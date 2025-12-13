@@ -24,7 +24,7 @@
    2. Pobieramy plik ze skopiowanego linku
 
    ```sh
-       curl -o ~/zespolowka.tar.gz https://bashupload.com/qo2ea5.gz
+       curl -o ~/zespolowka.tar.gz https://bashupload.com/3qIf2N.gz
    ```
 
    3. Rozpakowujemy
