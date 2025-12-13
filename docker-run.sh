@@ -1,0 +1,1 @@
+docker run -d --restart always -p 30109:80 --name studyup-frontend studyup-frontend
