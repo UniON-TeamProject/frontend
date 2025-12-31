@@ -1,7 +1,8 @@
 import styled from 'styled-components';
 import React from 'react';
 import SubmitButton from '../components/atoms/SubmitButton'
-
+import Logo from '../components/atoms/Logo'
+import Text from '../components/atoms/Text'
 
 const StyledContainer = styled.div`
    width: 100%;
@@ -26,12 +27,6 @@ const StyledHeader = styled.h2`
     font-size: 3rem;
 `
 
-const StyledLogo = styled.img`
-    width: 200px;
-    height: 200px;
-    margin: 0 auto;
-`
-
 const StyledTitle = styled.h2`
     width: 100%;
     padding: 0;
@@ -41,23 +36,14 @@ const StyledTitle = styled.h2`
 `
 
 
-const StyledSubtitle = styled.h4`
-    width: 100%;
-    padding: 0;
-    margin: 20px 0 30px 0;
-    font-size: 1rem;
-    font-weight: 400;
-`
-
-
 const Home = () => {
     return (
         <StyledContainer>
             <StyledBox>
                 <StyledHeader>Witaj!</StyledHeader>
-                <StyledLogo src="./icons/logo.svg" />
+                <Logo size="big" />
                 <StyledTitle>StudyUp!</StyledTitle>
-                <StyledSubtitle>Notuj, ucz się, powtarzaj</StyledSubtitle>
+                <Text style={{ padding: "20px 0", fontSize: "1rem" }} text="Notuj, ucz się, powtarzaj" />
                 <SubmitButton text="Logowanie" path="/logowanie" light />
                 <SubmitButton text="Stwórz konto" path="/rejestracja" light />
             </StyledBox>

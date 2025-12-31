@@ -24,7 +24,7 @@ const StyledButton = styled(Link)`
 const SubmitButton = ({ text, path, imgPath, color, onClick }) => {
     return (
         <StyledButton onClick={onClick} color={color} to={path}>
-            {imgPath ? <img src={imgPath} /> : <></>}
+            {imgPath && <img src={imgPath} />}
             {text}
         </StyledButton>
     )
