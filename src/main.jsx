@@ -1,12 +1,16 @@
-import ReactDom  from 'react-dom/client'
+import ReactDom from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 
-import {Provider} from 'react-redux'
-import {store} from './store/store.js'
+import { Provider as ReduxProvider } from 'react-redux'
+import { ThemeProvider } from 'styled-components'
+import { store } from './store/store.js'
+import { theme } from './styles/theme.js'
 
 ReactDom.createRoot(document.getElementById('root')).render(
-  <Provider store={store}>
-    <App />
-  </Provider>
+  <ReduxProvider store={store}>
+    <ThemeProvider theme={theme}>
+      <App />
+    </ThemeProvider>
+  </ReduxProvider>
 )

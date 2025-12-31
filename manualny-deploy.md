@@ -53,6 +53,7 @@
    6. Czyścimy pobrane pliki
 
    ```sh
+       cd ~
        rm -rf ~/zespolowka
        rm ~/zespolowka.tar.gz
    ```
