@@ -1,0 +1,31 @@
+@host = http://localhost:20109
+
+###
+POST {{host}}/studyUp/checkEmail HTTP/1.1
+content-type: application/json
+
+flisikowska.emilia@gmail.com
+    
+###
+POST {{host}}/studyUp/checkEmail HTTP/1.1
+content-type: application/json
+
+test@gmail.com
+
+
+###
+POST {{host}}/studyUp/signUp HTTP/1.1
+content-type: application/json
+
+{
+"username":"Mynka5",
+"email":"flisikowska.emilia@gmail.com",
+"password":"Mynka98!",
+"confirmPassword":"Mynka98!"
+}
+
+###
+POST {{host}}/studyUp/checkUsername HTTP/1.1
+content-type: application/json
+
+Mynka6

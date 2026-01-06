@@ -16,9 +16,6 @@ export const GlobalStyle = createGlobalStyle`
         min-height: 100vh;
     }
 
-    .h4{
-        font-size:0.9rem;
-    }
 
     //Styles for verificationCodeInput
     .container{
@@ -31,9 +28,6 @@ export const GlobalStyle = createGlobalStyle`
         border:1px solid ${({ theme }) => theme.colors.darkGrey};
         color: ${({ theme }) => theme.colors.text};
         background-color: ${({ theme }) => theme.colors.lightGrey};
-    }
-    .character.error {
-        border: 1px solid ${({ theme }) => theme.colors.danger};
     }
     .character--inactive{
         background-color: ${({ theme }) => theme.colors.darkGrey};

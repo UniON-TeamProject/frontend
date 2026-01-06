@@ -3,22 +3,31 @@ import SubmitButton from '../../atoms/SubmitButton'
 import Input from '../../atoms/Input'
 import Text from '../../atoms/Text'
 import Line from '../../atoms/Line'
+import styled from 'styled-components'
+import { emailVerificationRequest } from '../../../api';
 
-const EmailStep = ({ email, setEmail, setEmailAvailable }) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const StyledTitle = styled.h2`
+    width:100%;
+    padding:0;
+    margin:20px 0 5px 0;
+    font-size:1.1rem;
+    text-align:center;
+`
+
+const EmailStep = ({ email, setEmail, setStep, regex, emailErrorMessage, setEmailErrorMessage }) => {
 
     const [emailInputTouched, setEmailInputTouched] = useState(false);
 
     const [serverErrorMessage, setServerErrorMessage] = useState("");
-    const [emailErrorMessage, setEmailErrorMessage] = useState("");
 
     useEffect(() => {
+        console.log(email);
         if (emailInputTouched)
             validateEmail();
-    }, [email, emailInputTouched]);
+    }, [email]);
 
     const validateEmail = () => {
-        if (!emailRegex.test(email)) {
+        if (!regex.test(email)) {
             setEmailErrorMessage("Niepoprawny adres e-mail");
             return false;
         }
@@ -26,32 +35,33 @@ const EmailStep = ({ email, setEmail, setEmailAvailable }) => {
         return true;
     }
 
-    const handleSubmitEmail = (e) => {
-        e.preventDefault();
-        fetch('https://srv49-20109.wykr.es/studyUp/checkEmail', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: email })
-        })
-            .then(resp => {
-                if (resp.ok)
-                    setEmailAvailable(true);
-                else
-                    setEmailErrorMessage(resp.status);
-            })
-            .catch(err => {
-                setServerErrorMessage("Nie udało się połączyć z serwerem. Spróbuj ponownie.");
-                console.error(err);
-            });
+    const handleVerifyEmail = async () => {
+        setServerErrorMessage("");
+        const result = await emailVerificationRequest(email);
+        if (!result.valid) {
+            setEmailErrorMessage("Użytkownik o tym adresie e-mail już istnieje");
+            return;
+        }
+        if (result.errorCode) {
+            // if (result.errorCode == "EMAIL_TAKEN")
+            //    setEmailErrorMessage("Użytkownik o tym adresie e-mail już istnieje");
+            // else if (result.errorCode == "EMAIL_NOT_VERIFIED")
+            //     setEmailErrorMessage("Ten adres e-mail jest już zarejestrowany, ale nie został zweryfikowany. Wysłaliśmy nową wiadomość weryfikacyjną");
+            // else if (result.errorCode == "CONNECTION_ERROR")
+            //     setServerErrorMessage("Nie udało się połączyć z serwerem. Spróbuj ponownie");
+        }
+
+        setStep(2);
     }
 
     return (
         <>
+            <StyledTitle>Zarejestruj się</StyledTitle>
             <Text text="Wpisz swój adres e-mail, aby się zarejestrować" />
-            {serverErrorMessage != "" && <Text color="danger" text={serverErrorMessage} />}
-            {serverErrorMessage == "" && emailErrorMessage != "" && <Text color="danger" text={emailErrorMessage} />}
+            {serverErrorMessage && <Text color="danger" text={serverErrorMessage} />}
+            {!serverErrorMessage && emailErrorMessage && <Text color="danger" text={emailErrorMessage} />}
             <Input
-                error={emailErrorMessage != ""}
+                mode={emailErrorMessage ? "error" : "normal"}
                 placeholder="email@domena.pl"
                 type="text"
                 name="email"
@@ -60,9 +70,15 @@ const EmailStep = ({ email, setEmail, setEmailAvailable }) => {
                 onBlur={() => setEmailInputTouched(true)}
             />
             <SubmitButton text="Kontynuuj" color="dark" onClick={(e) => {
-                if (!validateEmail())
+                if (!email) {
+                    setEmailErrorMessage("Wypełnij pole");
                     return;
-                handleSubmitEmail(e);
+                }
+                validateEmail();
+                if (!emailErrorMessage) {
+                    e.preventDefault();
+                    handleVerifyEmail();
+                }
             }} />
             <Line><span>lub</span></Line>
             <SubmitButton text="Kontynuuj z Google" path="/" imgPath="./icons/google.png" color="light" />

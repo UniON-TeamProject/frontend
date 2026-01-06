@@ -14,13 +14,13 @@ const StyledInput = styled.input`
     font-size:0.9rem;
     background-color:${({ theme }) => theme.colors.white};
     border:none;
-    outline: ${({ theme, $error }) => $error ? `2px solid ${theme.colors.danger}` : `1px solid ${theme.colors.darkGrey}`};
+    outline: ${({ theme, $mode }) => $mode == "error" ? `2px solid ${theme.colors.danger}` : $mode == "success" ? `2px solid ${theme.colors.success}` : `1px solid ${theme.colors.darkGrey}`};
 `
 
-const Input = ({ name, type, placeholder, onChange, onBlur, error }) => {
+const Input = ({ name, type, placeholder, onChange, onBlur, value, mode }) => {
     return (
         <StyledContainer>
-            <StyledInput type={type} name={name} placeholder={placeholder} onChange={onChange} onBlur={onBlur} $error={error}></StyledInput>
+            <StyledInput type={type} name={name} value={value} placeholder={placeholder} onChange={onChange} onBlur={onBlur} $mode={mode}></StyledInput>
         </StyledContainer>
     )
 }

@@ -6,7 +6,7 @@ import Input from '../components/atoms/Input'
 import Text from '../components/atoms/Text'
 import Line from '../components/atoms/Line'
 import Logo from '../components/atoms/Logo'
-import Header from '../components/atoms/Header'
+import { loginRequest } from '../api'
 
 const StyledContainer = styled.div`
    width:100%;
@@ -25,7 +25,6 @@ const StyledBox = styled.div`
         width:100%;
         margin:0 auto;
         padding:30px 40px;
-
     }
 `
 
@@ -74,42 +73,27 @@ const Login = () => {
     const [password, setPassword] = useState("")
     const [rememberMe, setRememberMe] = useState(false);
 
-    const [loginError, setLoginError] = useState(false);
-    const [passwordError, setPasswordError] = useState(false);
-
     const [serverErrorMessage, setServerErrorMessage] = useState("");
-    const [errorMessage, setErrorMessage] = useState(false);
+    const [loginErrorMessage, setLoginErrorMessage] = useState(false);
+    const [passwordErrorMessage, setPasswordErrorMessage] = useState(false);
+
     const navigate = useNavigate();
 
-    useEffect(() => {
-        setErrorMessage("");
-        setLoginError(false);
-    }, [login]);
-
-    useEffect(() => {
-        setErrorMessage("");
-        setPasswordError(false);
-    }, [password]);
-
-    const handleLogin = (e) => {
-        e.preventDefault();
-        fetch('https://srv49-20109.wykr.es/studyUp/signIn', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ login: login, password: password })
-        })
-            .then(resp => {
-                if (resp.ok)
-                    navigate('/');
-                else if (resp.status === 401)
-                    setErrorMessage("Nieprawidłowe dane logowania. Spróbuj ponownie.");
-                else
-                    setErrorMessage(`Błąd serwera: ${resp.status}`);
-            })
-            .catch(err => {
-                setServerErrorMessage("Nie udało się połączyć z serwerem. Spróbuj ponownie.");
-                console.error(err);
-            });
+    const handleLogin = async () => {
+        setServerErrorMessage("");
+        const result = await loginRequest(login, password);
+        if (result.errorCode) {
+            if (result.errorCode == "USER_NOT_FOUND")
+                setLoginErrorMessage("Użytkownik nie istnieje");
+            else if (result.errorCode == "EMAIL_NOT_VERIFIED")
+                setLoginErrorMessage("Email nie jest zweryfikowany");
+            else if (result.errorCode == "INVALID_PASSWORD")
+                setServerErrorMessage("Login lub hasło są niepoprawne");
+            else if (result.errorCode == "CONNECTION_ERROR")
+                setServerErrorMessage("Nie udało się połączyć z serwerem. Spróbuj ponownie");
+        }
+        else
+            navigate('/');
     }
 
     return (
@@ -118,35 +102,31 @@ const Login = () => {
                 <Logo size="small" />
                 <Text bold="true" as="h2" text="StudyUp!" />
                 <StyledTitle>Zaloguj się</StyledTitle>
-                <Text text="Wpisz swój adres e-mail i hasło, aby zalogować się do konta" />
-                {serverErrorMessage != "" && <Text color="danger" text={serverErrorMessage} />}
-                {serverErrorMessage == "" && errorMessage != "" && <Text color="danger" text={errorMessage} />}
+                <Text text="Wpisz swój login i hasło, aby zalogować się do konta" />
+                {serverErrorMessage && <Text color="danger" text={serverErrorMessage} />}
+                {!serverErrorMessage && loginErrorMessage && <Text color="danger" text={loginErrorMessage} />}
+                {!serverErrorMessage && passwordErrorMessage && <Text color="danger" text={passwordErrorMessage} />}
                 <Input
                     type="text"
                     name="login"
                     placeholder="Email lub nazwa użytkownika"
                     value={login}
-                    error={loginError}
+                    mode={loginErrorMessage ? "error" : "normal"}
                     onChange={(e) => {
                         setLogin(e.target.value);
-                        setErrorMessage("");
-                    }}
-                    onBlur={() => {
-                        setErrorMessage("");
+                        setLoginErrorMessage("");
                     }}
                 />
                 <Input
                     type="password"
                     name="password"
                     placeholder="Hasło"
-                    error={passwordError}
+                    mode={passwordErrorMessage ? "error" : "normal"}
                     value={password}
                     onChange={(e) => {
                         setPassword(e.target.value);
-                        setErrorMessage("");
-                    }}
-                    onBlur={() => {
-                        setErrorMessage("");
+                        setPasswordErrorMessage("");
+
                     }}
                 />
                 <StyledContent>
@@ -157,18 +137,17 @@ const Login = () => {
                 </StyledContent>
                 <SubmitButton text="Kontynuuj" onClick={(e) => {
                     if (!login) {
-                        setLoginError(true);
-                        if (!password)
-                            setPasswordError(true);
-                        setErrorMessage("Dane logowania są niepoprawne");
+                        setLoginErrorMessage("Wypełnij pole");
                         return;
                     }
-                    else if (!password) {
-                        setPasswordError(true);
-                        setErrorMessage("Dane logowania są niepoprawne");
+                    if (!password) {
+                        setPasswordErrorMessage("Wypełnij pole");
                         return;
                     }
-                    handleLogin(e);
+                    if (serverErrorMessage || loginErrorMessage || passwordErrorMessage)
+                        return;
+                    e.preventDefault();
+                    handleLogin();
                 }} color="dark" />
                 <Line><span>lub</span></Line>
                 <SubmitButton text="Kontynuuj z Google" path="/" imgPath="./icons/google.png" color="light" />
@@ -182,5 +161,6 @@ const Login = () => {
 
     )
 }
+
 
 export default Login;

@@ -8,7 +8,7 @@ const StyledLogo = styled.img`
 
 const Logo = ({ size }) => {
     return (
-        <StyledLogo size={size} src="./icons/logo.svg" />
+        <StyledLogo size={size} src="./icons/logo.png" />
     )
 }
 

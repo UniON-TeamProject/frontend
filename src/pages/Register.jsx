@@ -5,6 +5,7 @@ import EmailStep from '../components/organisms/register/EmailStep'
 import AccountDataStep from '../components/organisms/register/AccountDataStep'
 import VerificationStep from '../components/organisms/register/VerificationStep'
 import Logo from '../components/atoms/Logo'
+import Text from '../components/atoms/Text'
 
 const StyledContainer = styled.div`
    width:100%;
@@ -15,6 +16,7 @@ const StyledContainer = styled.div`
 const StyledBox = styled.div`
     width:600px;
     border-radius:5px;
+    position:relative;
     background-color: ${({ theme }) => theme.colors.white};
     margin:100px auto 15px auto;
     padding:30px 80px;
@@ -25,22 +27,6 @@ const StyledBox = styled.div`
         padding:30px 40px;
 
     }
-`
-
-const StyledHeader = styled.h1`
-    width:100%;
-    padding: 0;
-    margin: 0;
-    font-size:1.5rem;
-    text-align:center;
-`
-
-const StyledTitle = styled.h2`
-    width:100%;
-    padding:0;
-    margin:20px 0 5px 0;
-    font-size:1.1rem;
-    text-align:center;
 `
 
 const StyledLoginButton = styled.div`
@@ -61,45 +47,47 @@ const StyledLink = styled(Link)`
 `
 
 const Register = () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     const [email, setEmail] = useState("");
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const [repeatedPassword, setRepeatedPassword] = useState("");
-    const [verificationCode, setVerificationCode] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [step, setStep] = useState(1);
 
-    const [emailAvailable, setEmailAvailable] = useState(false);
-    const [usernameAvailable, setUsernameAvailable] = useState(false);
-    const [emailVerificationSent, setEmailVerificationSent] = useState(false);
-
+    const [emailErrorMessage, setEmailErrorMessage] = useState("");
     return (
         <StyledContainer>
             <StyledBox>
+
                 <Logo size="small" />
-                <StyledHeader>StudyUp!</StyledHeader>
-                <StyledTitle>Zarejestruj się</StyledTitle>
-                {!emailAvailable &&
+
+                <Text as="h2" bold="true" text="StudyUp!" />
+                {step == 1 &&
                     <EmailStep
                         email={email}
+                        regex={emailRegex}
+                        setStep={e => setStep(e)}
                         setEmail={e => setEmail(e)}
-                        setEmailAvailable={e => setEmailAvailable(e)} />
+                        emailErrorMessage={emailErrorMessage}
+                        setEmailErrorMessage={e => setEmailErrorMessage(e)} />
                 }
-                {emailAvailable && !emailVerificationSent &&
+                {step == 2 &&
                     <AccountDataStep
-                        username={username}
-                        setUsername={(e) => setUsername(e)}
-                        password={password}
-                        setPassword={(e) => setPassword(e)}
-                        repeatedPassword={repeatedPassword}
-                        setRepeatedPassword={(e) => setRepeatedPassword(e)}
-                        usernameAvailable={usernameAvailable}
-                        setUsernameAvailable={(e) => setUsernameAvailable(e)}
-                        setEmailVerificationSent={(e) => setEmailVerificationSent(e)} />
-                }
-                {emailVerificationSent &&
-                    <VerificationStep
                         email={email}
-                        verificationCode={verificationCode}
-                        setVerificationCode={(e) => setVerificationCode(e)} />
+                        emailRegex={emailRegex}
+                        username={username}
+                        setStep={e => setStep(e)}
+                        setEmailErrorMessage={e => setEmailErrorMessage(e)}
+                        setUsername={e => setUsername(e)}
+                        password={password}
+                        setPassword={e => setPassword(e)}
+                        confirmPassword={confirmPassword}
+                        setConfirmPassword={e => setConfirmPassword(e)} />
+                }
+                {step == 3 &&
+                    <VerificationStep
+                        email={email} />
                 }
             </StyledBox>
             <StyledLoginButton>

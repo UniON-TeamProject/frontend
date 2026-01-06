@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import SubmitButton from '../components/atoms/SubmitButton'
 import Input from '../components/atoms/Input'
+import Logo from '../components/atoms/Logo'
+import Text from '../components/atoms/Text'
 
 const StyledContainer = styled.div`
    width:100%;
@@ -24,35 +26,12 @@ const StyledBox = styled.div`
     }
 `
 
-const StyledLogo = styled.img`
-    width:150px;
-    height:150px;
-    margin:0 auto;
-`
-
-const StyledHeader = styled.h1`
-    width:100%;
-    padding: 0;
-    margin: 0;
-    font-size:1.5rem;
-    text-align:center;
-`
-
 const StyledTitle = styled.h2`
     width:100%;
     padding:0;
     margin:20px 0 5px 0;
     font-size:1.1rem;
     text-align:center;
-`
-
-const StyledSubtitle = styled.h4`
-    width:100%;
-    padding:0;
-    margin:0 0 15px 0;
-    font-size:0.9rem;
-    text-align:center;
-    font-weight:400;
 `
 
 const StyledMessage = styled.h4`
@@ -109,14 +88,14 @@ const ForgotPassword = () => {
     return (
         <StyledContainer>
             <StyledBox>
-                <StyledLogo src="./icons/logo.svg" />
-                <StyledHeader>StudyUp!</StyledHeader>
+                <Logo size="big" />
+                <Text as="h2" bold="true" text="StudyUp!" />
                 <StyledTitle>Zresetuj hasło</StyledTitle>
-                <StyledSubtitle>Wpisz swój adres e-mail, na który ma zostać wysłane przypomnienie hasła</StyledSubtitle>
+                <Text text="Wpisz swój adres e-mail, na który ma zostać wysłane przypomnienie hasła" />
                 {serverErrorMessage != "" && <StyledMessage color="danger">{serverErrorMessage}</StyledMessage>}
-                {serverErrorMessage == "" && loginErrorMessage != "" && <StyledMessage color="danger">{loginErrorMessage}</StyledMessage>}
+                {serverErrorMessage == "" && loginErrorMessage != "" && <Text color="danger" text={loginErrorMessage} />}
                 {serverErrorMessage == "" && loginErrorMessage == "" && sentEmailMessageActive &&
-                    <StyledMessage color="success">Jeśli podane dane istnieją w naszym systemie, wysłaliśmy wiadomość z instrukcjami resetu hasła</StyledMessage>
+                    <Text color="success" text="Jeśli podane dane istnieją w naszym systemie, wysłaliśmy wiadomość z instrukcjami resetu hasła" />
                 }
 
                 <Input
@@ -124,7 +103,7 @@ const ForgotPassword = () => {
                     name="login"
                     placeholder="Email lub nazwa użytkownika"
                     value={login}
-                    error={loginErrorMessage != ""}
+                    mode={loginErrorMessage ? "error" : "normal"}
                     onChange={(e) => {
                         setLogin(e.target.value);
                         setLoginErrorMessage("");
