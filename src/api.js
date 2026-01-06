@@ -66,7 +66,7 @@ export async function verificationRequest(email, verificationCode) {
     const resp = await fetch(`${API_HOST}/studyUp/verify`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, verificationCode }),
+      body: JSON.stringify({ email, token: verificationCode }),
     });
 
     if (resp.ok) return { errorCode: null };

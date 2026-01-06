@@ -31,6 +31,7 @@ const VerificationStep = ({ email }) => {
     const [verificationCode, setVerificationCode] = useState("");
 
     useEffect(() => {
+        setVerificationCodeErrorMessage("");
         if (verificationCode.length == 6 && !serverErrorMessage && !verificationCodeErrorMessage) {
             handleVerifyVerificationCode();
         }
@@ -41,14 +42,10 @@ const VerificationStep = ({ email }) => {
 
         const result = await verificationRequest(email, verificationCode);
         if (result.errorCode) {
-            let errorCode = result.errorCode;
             if (result.errorCode == "EMAIL_ALREADY_VERIFIED")
                 setVerificationCodeErrorMessage("Użytkownik już jest zweryfikowany");
-            else if (result.errorCode == "INVALID_TOKEN") {
-                setVerificationCodeErrorMessage("Podano nieprawidłowy kod. ");
-                if (result.attemptsLeft != undefined)
-                    errorCode += `\n Pozostało prób: ${result.attemptsLeft}`;
-            }
+            else if (result.errorCode == "INVALID_TOKEN")
+                setVerificationCodeErrorMessage("Podano nieprawidłowy kod. " + (result.attemptsLeft !== undefined && ` Pozostało prób: ${result.attemptsLeft}`));
             else if (result.errorCode == "USER_NOT_FOUND")
                 setVerificationCodeErrorMessage("Nie znaleziono użytkownika");
             else if (result.errorCode == "TOKEN_LIMIT_EXCEEDED")
@@ -63,8 +60,8 @@ const VerificationStep = ({ email }) => {
     return (
         <>
             <Text text={`Na adres ${email} został wysłany kod weryfikacyjny`} />
-            {serverErrorMessage && <Text color="danger" text={serverErrorMessage} />}
-            {verificationCodeErrorMessage != "" && <Text color="danger" text={verificationCodeErrorMessage} />}
+            {serverErrorMessage ? <Text color="danger" text={serverErrorMessage} /> :
+                verificationCodeErrorMessage && <Text color="danger" text={verificationCodeErrorMessage} />}
             <Text text="Wpisz kod weryfikacyjny:" />
             <VerificationInput
                 classNames={{
@@ -74,9 +71,7 @@ const VerificationStep = ({ email }) => {
                 onChange={(e) => setVerificationCode(e)}
             />
             <SubmitButton text="Kontynuuj" color="dark" onClick={() => {
-                if (verificationCodeErrorMessage || serverErrorMessage)
-                    return;
-                if (verificationCode.length == 6)
+                if (!verificationCodeErrorMessage && verificationCode.length == 6)
                     handleVerifyVerificationCode();
             }} />
 

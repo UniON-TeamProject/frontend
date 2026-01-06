@@ -43,7 +43,7 @@ const Home = () => {
                 <StyledHeader>Witaj!</StyledHeader>
                 <Logo size="big" />
                 <StyledTitle>StudyUp!</StyledTitle>
-                <Text style={{ padding: "20px 0", fontSize: "1rem" }} text="Notuj, ucz się, powtarzaj" />
+                <Text as="h3" style={{ padding: "20px 0" }} text="Notuj, ucz się, powtarzaj" />
                 <SubmitButton text="Logowanie" path="/logowanie" light />
                 <SubmitButton text="Stwórz konto" path="/rejestracja" light />
             </StyledBox>

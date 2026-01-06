@@ -1,10 +1,9 @@
 import styled from 'styled-components'
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import SubmitButton from '../components/atoms/SubmitButton'
 import Input from '../components/atoms/Input'
 import Text from '../components/atoms/Text'
-import Line from '../components/atoms/Line'
 import Logo from '../components/atoms/Logo'
 import { loginRequest } from '../api'
 
@@ -28,14 +27,6 @@ const StyledBox = styled.div`
     }
 `
 
-const StyledTitle = styled.h2`
-    width:100%;
-    padding:0;
-    margin:20px 0 5px 0;
-    font-size:1.1rem;
-    text-align:center;
-`
-
 const StyledRegisterButton = styled.div`
     font-size:0.9rem;
     display:flex;
@@ -45,6 +36,29 @@ const StyledRegisterButton = styled.div`
         margin-right:5px;
         cursor:default;
     }
+`
+
+const StyledLine = styled.div`
+    width:100%;
+    position:relative;
+    padding: 20px 0;
+    >span{
+        position:relative;
+        margin:auto;
+        padding:0 15px;
+        background-color: ${({ theme }) => theme.colors.white};
+        z-index:1;
+    }
+    &:after{
+        content: '';
+        width: 100%;
+        height: 1px;
+        background-color:  ${({ theme }) => theme.colors.darkGrey};
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+}
 `
 
 const StyledContent = styled.div`
@@ -101,12 +115,18 @@ const Login = () => {
             <StyledBox>
                 <Logo size="small" />
                 <Text bold="true" as="h2" text="StudyUp!" />
-                <StyledTitle>Zaloguj się</StyledTitle>
+                <Text as="h3" bold="true" style={{ margin: "20px 0 5px 0" }} text="Zaloguj się" />
                 <Text text="Wpisz swój login i hasło, aby zalogować się do konta" />
-                {serverErrorMessage && <Text color="danger" text={serverErrorMessage} />}
-                {!serverErrorMessage && loginErrorMessage && <Text color="danger" text={loginErrorMessage} />}
-                {!serverErrorMessage && passwordErrorMessage && <Text color="danger" text={passwordErrorMessage} />}
-                <Input
+                {serverErrorMessage ?
+                    <Text color="danger" text={serverErrorMessage} />
+                    :
+                    [loginErrorMessage, passwordErrorMessage]
+                        .filter((v, i, a) => a.indexOf(v) === i)
+                        .map((error, idx) => (
+                            <Text key={idx} color="danger" text={error} />
+                        ))
+                }
+                < Input
                     type="text"
                     name="login"
                     placeholder="Email lub nazwa użytkownika"
@@ -126,7 +146,6 @@ const Login = () => {
                     onChange={(e) => {
                         setPassword(e.target.value);
                         setPasswordErrorMessage("");
-
                     }}
                 />
                 <StyledContent>
@@ -135,21 +154,19 @@ const Login = () => {
                     </StyledCheckbox>
                     <StyledLink to="/przypomnienie-hasla">Nie pamiętasz hasła?</StyledLink>
                 </StyledContent>
-                <SubmitButton text="Kontynuuj" onClick={(e) => {
-                    if (!login) {
-                        setLoginErrorMessage("Wypełnij pole");
-                        return;
-                    }
-                    if (!password) {
-                        setPasswordErrorMessage("Wypełnij pole");
-                        return;
-                    }
-                    if (serverErrorMessage || loginErrorMessage || passwordErrorMessage)
-                        return;
+                <SubmitButton text="Kontynuuj" color="dark" onClick={(e) => {
                     e.preventDefault();
-                    handleLogin();
-                }} color="dark" />
-                <Line><span>lub</span></Line>
+                    const loginEmpty = !login;
+                    const passwordEmpty = !password;
+
+                    if (loginEmpty) setLoginErrorMessage("Wypełnij pole");
+                    if (passwordEmpty) setPasswordErrorMessage("Wypełnij pole");
+
+                    if (!loginEmpty && !passwordEmpty) {
+                        handleLogin();
+                    }
+                }} />
+                <StyledLine><span>lub</span></StyledLine>
                 <SubmitButton text="Kontynuuj z Google" path="/" imgPath="./icons/google.png" color="light" />
                 <SubmitButton text="Kontynuuj z Apple" path="/" imgPath="./icons/apple.png" color="light" />
             </StyledBox>

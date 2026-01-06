@@ -29,3 +29,12 @@ POST {{host}}/studyUp/checkUsername HTTP/1.1
 content-type: application/json
 
 Mynka6
+
+###
+POST {{host}}/studyUp/verify HTTP/1.1
+content-type: application/json
+
+{
+"email":"flisikowska.emilia@gmail.com",
+"token":"123456"
+}

@@ -51,34 +51,21 @@ const StyledPasswordRequirement = styled.li`
     text-decoration: ${({ $crossedOut }) => $crossedOut ? "line-through" : "none"};
 `
 
-const StyledTitle = styled.h2`
-    width:100%;
-    padding:0;
-    margin:20px 0 5px 0;
-    font-size:1.1rem;
-    text-align:center;
-`
-
 const AccountDataStep = ({ username, password, email, emailRegex, setStep, confirmPassword, setUsername, setPassword, setConfirmPassword, setEmailErrorMessage }) => {
     const usernameTimeout = useRef(null);
     const [usernameValid, setUsernameValid] = useState(false);
     const usernameRegex = /^[a-zA-Z][a-zA-Z0-9_]{1,55}$/;
     const passwordRegex = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/;
 
-    const [usernameInputTouched, setUsernameInputTouched] = useState(false);
-    const [passwordInputTouched, setPasswordInputTouched] = useState(false);
-    const [confirmPasswordInputTouched, setConfirmPasswordInputTouched] = useState(false);
-
-
+    const [passwordRegexVisible, setPasswordRegexVisible] = useState(false);
     const [serverErrorMessage, setServerErrorMessage] = useState("");
     const [usernameErrorMessage, setUsernameErrorMessage] = useState("");
     const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
     const [confirmPasswordErrorMessage, setConfirmPasswordErrorMessage] = useState("");
 
-
     useEffect(() => {
-        if (username && username.length > 1 && usernameRegex.test(username) && /^[a-zA-Z]/.test(username)) {
-            validateUsername();
+        setUsernameValid(false);
+        if (username && validateUsername()) {
             if (usernameTimeout.current)
                 clearTimeout(usernameTimeout.current);
             usernameTimeout.current = setTimeout(() => {
@@ -87,23 +74,17 @@ const AccountDataStep = ({ username, password, email, emailRegex, setStep, confi
         }
     }, [username]);
 
-    useEffect(() => {
-        if (password && passwordInputTouched) {
-            validatePassword();
-        }
-    }, [password]);
-
-    useEffect(() => {
-        if (confirmPasswordInputTouched)
-            validateRepeatedPassword();
-    }, [confirmPassword, password]);
-
-
     const validateUsername = () => {
-        if (!usernameValid)
+        if (!username) {
+            setUsernameErrorMessage("Wypełnij pole");
             return false;
+        }
         if (username.length <= 1) {
             setUsernameErrorMessage("Nazwa musi składać się z przynajmniej dwóch znaków");
+            return false;
+        }
+        if (username.length > 55) {
+            setUsernameErrorMessage("Nazwa musi składać się maksymalnie 55 znaków");
             return false;
         }
         if (!/^[a-zA-Z]/.test(username)) {
@@ -119,6 +100,10 @@ const AccountDataStep = ({ username, password, email, emailRegex, setStep, confi
     }
 
     const validatePassword = () => {
+        if (!password) {
+            setPasswordErrorMessage("Wypełnij pole");
+            return false;
+        }
         if (!passwordRegex.test(password)) {
             setPasswordErrorMessage("Hasło niepoprawne");
             return false;
@@ -127,7 +112,11 @@ const AccountDataStep = ({ username, password, email, emailRegex, setStep, confi
         return true;
     }
 
-    const validateRepeatedPassword = () => {
+    const validateConfirmPassword = () => {
+        if (!confirmPassword) {
+            setConfirmPasswordErrorMessage("Wypełnij pole");
+            return false;
+        }
         if (password != confirmPassword) {
             setConfirmPasswordErrorMessage("Hasła nie są zgodne");
             return false;
@@ -178,20 +167,23 @@ const AccountDataStep = ({ username, password, email, emailRegex, setStep, confi
                 <img src="./icons/arrow_left.png" />
                 <p>Wróć</p>
             </ReturnButton>
-            <StyledTitle>Zarejestruj się</StyledTitle>
+            <Text as="h3" bold="true" style={{ margin: "20px 0 5px 0" }} text="Zarejestruj się" />
             <Text text="Uzupełnij pozostałe dane, aby się zarejestrować" />
-            {serverErrorMessage && <Text color="danger" text={serverErrorMessage} />}
-            {!serverErrorMessage && usernameErrorMessage && <Text color="danger" text={usernameErrorMessage} />}
-            {!serverErrorMessage && passwordErrorMessage && <Text color="danger" text={passwordErrorMessage} />}
-            {!serverErrorMessage && confirmPasswordErrorMessage && <Text color="danger" text={confirmPasswordErrorMessage} />}
-
+            {serverErrorMessage ?
+                <Text color="danger" text={serverErrorMessage} />
+                :
+                [usernameErrorMessage, passwordErrorMessage, confirmPasswordErrorMessage]
+                    .filter((v, i, a) => a.indexOf(v) === i) // usuwa duplikaty
+                    .map((error, idx) => (
+                        <Text key={idx} color="danger" text={error} />
+                    ))
+            }
             <Input
                 placeholder="Nazwa użytkownika"
                 type="text"
                 name="username"
                 mode={usernameErrorMessage ? "error" : usernameValid ? "success" : "normal"}
                 value={username}
-                onBlur={() => setUsernameInputTouched(true)}
                 onChange={e => setUsername(e.target.value)}
             />
             <Input
@@ -200,19 +192,21 @@ const AccountDataStep = ({ username, password, email, emailRegex, setStep, confi
                 name="password"
                 value={password}
                 mode={passwordErrorMessage ? "error" : "normal"}
-                onBlur={() => setPasswordInputTouched(true)}
-                onChange={e => setPassword(e.target.value)}
+                onChange={e => {
+                    setPasswordErrorMessage("");
+                    setPassword(e.target.value);
+                }
+                }
             />
             <Input
                 type="password"
                 placeholder="Powtórz hasło"
-                name="repeatPassword"
+                name="confirmPassword"
                 mode={confirmPasswordErrorMessage ? "error" : "normal"}
-                onBlur={() => setConfirmPasswordInputTouched(true)}
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
             />
-            {passwordInputTouched &&
+            {passwordRegexVisible &&
                 <StyledPasswordRequirementsList>Wymagania dotyczące hasła:
                     <StyledPasswordRequirement $crossedOut={password.length >= 8}>
                         co najmniej 8 znaków
@@ -231,18 +225,25 @@ const AccountDataStep = ({ username, password, email, emailRegex, setStep, confi
                     </StyledPasswordRequirement>
                 </StyledPasswordRequirementsList>
             }
-            <SubmitButton text="Kontynuuj" color="dark" onClick={(e) => {
-                if (!usernameValid && (!validateUsername() || !validatePassword() || !validateRepeatedPassword()
-                    || !serverErrorMessage || !usernameErrorMessage || !passwordErrorMessage || !confirmPasswordErrorMessage))
-                    return;
-                if (!emailRegex.test(email)) {
-                    setEmailErrorMessage("Niepoprawny adres e-mail");
-                    setStep(1);
-                    return;
-                }
+            <SubmitButton text="Kontynuuj" color="dark" onClick={e => {
                 e.preventDefault();
-                handleRegister();
-            }} />
+
+                const userOk = validateUsername();
+                const passOk = validatePassword();
+                const confirmOk = validateConfirmPassword();
+
+                if (userOk && passOk && confirmOk && usernameValid) {
+                    if (!emailRegex.test(email)) {
+                        setEmailErrorMessage("Niepoprawny adres e-mail");
+                        setStep(1);
+                        return;
+                    }
+                    handleRegister();
+                }
+                if (!passOk)
+                    setPasswordRegexVisible(true);
+            }}
+            />
             <StyledTermsClause>
                 Klikając “Kontynuuj” akceptujesz nasz{" "}
                 <Link to="/regulamin">Regulamin</Link> oraz{" "}
@@ -250,7 +251,6 @@ const AccountDataStep = ({ username, password, email, emailRegex, setStep, confi
                 .
             </StyledTermsClause>
         </>
-
     )
 }
 

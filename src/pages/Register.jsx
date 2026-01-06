@@ -56,12 +56,11 @@ const Register = () => {
     const [step, setStep] = useState(1);
 
     const [emailErrorMessage, setEmailErrorMessage] = useState("");
+
     return (
         <StyledContainer>
             <StyledBox>
-
                 <Logo size="small" />
-
                 <Text as="h2" bold="true" text="StudyUp!" />
                 {step == 1 &&
                     <EmailStep
