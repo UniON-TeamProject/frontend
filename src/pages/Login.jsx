@@ -1,5 +1,5 @@
 import styled from 'styled-components'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import SubmitButton from '../components/atoms/SubmitButton'
 import Input from '../components/atoms/Input'
@@ -87,27 +87,27 @@ const Login = () => {
     const [password, setPassword] = useState("")
     const [rememberMe, setRememberMe] = useState(false);
 
-    const [serverErrorMessage, setServerErrorMessage] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
     const [loginErrorMessage, setLoginErrorMessage] = useState(false);
     const [passwordErrorMessage, setPasswordErrorMessage] = useState(false);
 
     const navigate = useNavigate();
 
+    useEffect(() => {
+        const token = sessionStorage.getItem("token");
+        if (token)
+            navigate("/");
+    }, []);
+
     const handleLogin = async () => {
-        setServerErrorMessage("");
+        setErrorMessage("");
         const result = await loginRequest(login, password);
-        if (result.errorCode) {
-            if (result.errorCode == "USER_NOT_FOUND")
-                setLoginErrorMessage("Użytkownik nie istnieje");
-            else if (result.errorCode == "EMAIL_NOT_VERIFIED")
-                setLoginErrorMessage("Email nie jest zweryfikowany");
-            else if (result.errorCode == "INVALID_PASSWORD")
-                setServerErrorMessage("Login lub hasło są niepoprawne");
-            else if (result.errorCode == "CONNECTION_ERROR")
-                setServerErrorMessage("Nie udało się połączyć z serwerem. Spróbuj ponownie");
-        }
-        else
+        if (result.errorCode)
+            setErrorMessage(result.message);
+        else {
+            sessionStorage.setItem("token", result.token);
             navigate('/');
+        }
     }
 
     return (
@@ -117,14 +117,14 @@ const Login = () => {
                 <Text bold="true" as="h2" text="StudyUp!" />
                 <Text as="h3" bold="true" style={{ margin: "20px 0 5px 0" }} text="Zaloguj się" />
                 <Text text="Wpisz swój login i hasło, aby zalogować się do konta" />
-                {serverErrorMessage ?
-                    <Text color="danger" text={serverErrorMessage} />
-                    :
-                    [loginErrorMessage, passwordErrorMessage]
-                        .filter((v, i, a) => a.indexOf(v) === i)
-                        .map((error, idx) => (
-                            <Text key={idx} color="danger" text={error} />
-                        ))
+                {errorMessage &&
+                    <Text color="danger" text={errorMessage} />}
+
+                {[loginErrorMessage, passwordErrorMessage]
+                    .filter((v, i, a) => a.indexOf(v) === i)
+                    .map((error, idx) => (
+                        <Text key={idx} color="danger" text={error} />
+                    ))
                 }
                 < Input
                     type="text"
@@ -152,7 +152,7 @@ const Login = () => {
                     <StyledCheckbox>
                         <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} /> Zapamiętaj mnie
                     </StyledCheckbox>
-                    <StyledLink to="/przypomnienie-hasla">Nie pamiętasz hasła?</StyledLink>
+                    <StyledLink to="/resetowanie-hasla">Nie pamiętasz hasła?</StyledLink>
                 </StyledContent>
                 <SubmitButton text="Kontynuuj" color="dark" onClick={(e) => {
                     e.preventDefault();

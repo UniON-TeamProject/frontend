@@ -4,7 +4,7 @@ import styled from 'styled-components'
 import SubmitButton from '../../atoms/SubmitButton'
 import Input from '../../atoms/Input'
 import Text from '../../atoms/Text'
-import { registerRequest, checkUsernameRequest } from '../../../api'
+import { registerRequest, usernameVerificationRequest } from '../../../api'
 
 const StyledTermsClause = styled.h4`
     width:100%;
@@ -51,20 +51,30 @@ const StyledPasswordRequirement = styled.li`
     text-decoration: ${({ $crossedOut }) => $crossedOut ? "line-through" : "none"};
 `
 
-const AccountDataStep = ({ username, password, email, emailRegex, setStep, confirmPassword, setUsername, setPassword, setConfirmPassword, setEmailErrorMessage }) => {
-    const usernameTimeout = useRef(null);
-    const [usernameValid, setUsernameValid] = useState(false);
+const AccountDataStep = ({ username, password, email, emailRegex, setStep, confirmPassword, setUsername, setPassword, setConfirmPassword, setEmailError }) => {
     const usernameRegex = /^[a-zA-Z][a-zA-Z0-9_]{1,55}$/;
     const passwordRegex = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/;
 
+    const usernameTimeout = useRef(null);
     const [passwordRegexVisible, setPasswordRegexVisible] = useState(false);
-    const [serverErrorMessage, setServerErrorMessage] = useState("");
+    const [usernameValid, setUsernameValid] = useState(false);
+
+    const [errorMessage, setErrorMessage] = useState("");
+    const [emailErrorMessage, setEmailErrorMessage] = useState("");
+
     const [usernameErrorMessage, setUsernameErrorMessage] = useState("");
     const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
     const [confirmPasswordErrorMessage, setConfirmPasswordErrorMessage] = useState("");
 
+    const [usernameError, setUsernameError] = useState(false);
+    const [passwordError, setPasswordError] = useState(false);
+    const [confirmPasswordError, setConfirmPasswordError] = useState(false);
+
     useEffect(() => {
         setUsernameValid(false);
+        setErrorMessage("");
+        setUsernameErrorMessage("");
+        setUsernameError(false);
         if (username && validateUsername()) {
             if (usernameTimeout.current)
                 clearTimeout(usernameTimeout.current);
@@ -77,86 +87,90 @@ const AccountDataStep = ({ username, password, email, emailRegex, setStep, confi
     const validateUsername = () => {
         if (!username) {
             setUsernameErrorMessage("Wypełnij pole");
+            setUsernameError(true);
             return false;
         }
         if (username.length <= 1) {
             setUsernameErrorMessage("Nazwa musi składać się z przynajmniej dwóch znaków");
+            setUsernameError(true);
             return false;
         }
         if (username.length > 55) {
             setUsernameErrorMessage("Nazwa musi składać się maksymalnie 55 znaków");
+            setUsernameError(true);
             return false;
         }
         if (!/^[a-zA-Z]/.test(username)) {
             setUsernameErrorMessage("Nazwa musi rozpoczynać się od litery");
+            setUsernameError(true);
             return false;
         }
         if (!usernameRegex.test(username)) {
             setUsernameErrorMessage("Nazwa nie może zawierać spacji ani znaków specjalnych");
+            setUsernameError(true);
             return false;
         }
-        setUsernameErrorMessage("");
         return true;
     }
 
     const validatePassword = () => {
+        setPasswordErrorMessage("");
+        setPasswordError(false);
         if (!password) {
             setPasswordErrorMessage("Wypełnij pole");
+            setPasswordError(true);
             return false;
         }
         if (!passwordRegex.test(password)) {
             setPasswordErrorMessage("Hasło niepoprawne");
+            setPasswordError(true);
             return false;
         }
-        setPasswordErrorMessage("");
         return true;
     }
 
     const validateConfirmPassword = () => {
+        setConfirmPasswordErrorMessage("");
+        setConfirmPasswordError(false);
         if (!confirmPassword) {
             setConfirmPasswordErrorMessage("Wypełnij pole");
+            setConfirmPasswordError(true);
             return false;
         }
         if (password != confirmPassword) {
             setConfirmPasswordErrorMessage("Hasła nie są zgodne");
+            setConfirmPasswordError(true);
             return false;
         }
-        setConfirmPasswordErrorMessage("");
         return true;
     }
 
     const handleSubmitUsername = async () => {
-        const result = await checkUsernameRequest(username);
-        if (!result.valid) {
-            setUsernameErrorMessage("Użytkownik o tej nazwie użytkownika już istnieje");
-            return;
-        }
+        setErrorMessage("")
+        const result = await usernameVerificationRequest(username);
+        if (result.errorCode) {
+            if (result.errorCode != "USERNAME_AVAILABLE")
+                setErrorMessage(result.message);
 
-        setUsernameValid(true);
-        // if (result.errorCode) {
-        //     if (result.errorCode == "USERNAME_TAKEN")
-        //         setUsernameErrorMessage("Użytkownik o takiej nazwie użytkownika już istnieje");
-        //     else if (result.errorCode == "CONNECTION_ERROR")
-        //         setServerErrorMessage("Nie udało się połączyć z serwerem. Spróbuj ponownie");
-        // }
+            if (result.errorCode == "USERNAME_TAKEN")
+                setUsernameError(true);
+
+            if (result.errorCode == "USERNAME_AVAILABLE")
+                setUsernameValid(true);
+        }
     }
 
     const handleRegister = async () => {
-        setServerErrorMessage("");
+        setErrorMessage("");
         const result = await registerRequest(email, username, password, confirmPassword);
         if (result.errorCode) {
+            setErrorMessage(result.message);
             if (result.errorCode == "USERNAME_TAKEN")
-                setUsernameErrorMessage("Użytkownik o takiej nazwie użytkownika już istnieje");
-            else if (result.errorCode == "EMAIL_TAKEN") {
-                setEmailErrorMessage("Użytkownik o takim adresie email już istnieje");
-                setStep(1);
-            }
-            else if (result.errorCode == "EMAIL_NOT_VERIFIED") {
-                setEmailErrorMessage("Ten adres e-mail jest już zarejestrowany, ale nie został zweryfikowany. Wysłaliśmy nową wiadomość weryfikacyjną");
-                setStep(1);
-            }
-            else if (result.errorCode == "CONNECTION_ERROR")
-                setServerErrorMessage("Nie udało się połączyć z serwerem. Spróbuj ponownie");
+                setUsernameError(true);
+            else if (result.errorCode == "USERNAME_AVAILABLE")
+                setUsernameValid(true);
+            else if (result.errorCode == "EMAIL_TAKEN" || result.errorCode == "EMAIL_NOT_VERIFIED")
+                setEmailError(true);
         } else
             setStep(3);
     }
@@ -169,20 +183,20 @@ const AccountDataStep = ({ username, password, email, emailRegex, setStep, confi
             </ReturnButton>
             <Text as="h3" bold="true" style={{ margin: "20px 0 5px 0" }} text="Zarejestruj się" />
             <Text text="Uzupełnij pozostałe dane, aby się zarejestrować" />
-            {serverErrorMessage ?
-                <Text color="danger" text={serverErrorMessage} />
-                :
-                [usernameErrorMessage, passwordErrorMessage, confirmPasswordErrorMessage]
-                    .filter((v, i, a) => a.indexOf(v) === i) // usuwa duplikaty
-                    .map((error, idx) => (
-                        <Text key={idx} color="danger" text={error} />
-                    ))
-            }
+            {errorMessage &&
+                <Text color="danger" text={errorMessage} />}
+
+            {[emailErrorMessage, usernameErrorMessage, passwordErrorMessage, confirmPasswordErrorMessage]
+                .filter((v, i, a) => a.indexOf(v) === i)
+                .map((error, idx) => (
+                    <Text key={idx} color="danger" text={error} />
+                ))}
+
             <Input
                 placeholder="Nazwa użytkownika"
                 type="text"
                 name="username"
-                mode={usernameErrorMessage ? "error" : usernameValid ? "success" : "normal"}
+                mode={usernameError ? "error" : usernameValid ? "success" : "normal"}
                 value={username}
                 onChange={e => setUsername(e.target.value)}
             />
@@ -191,7 +205,7 @@ const AccountDataStep = ({ username, password, email, emailRegex, setStep, confi
                 placeholder="Hasło"
                 name="password"
                 value={password}
-                mode={passwordErrorMessage ? "error" : "normal"}
+                mode={passwordError ? "error" : "normal"}
                 onChange={e => {
                     setPasswordErrorMessage("");
                     setPassword(e.target.value);
@@ -202,7 +216,7 @@ const AccountDataStep = ({ username, password, email, emailRegex, setStep, confi
                 type="password"
                 placeholder="Powtórz hasło"
                 name="confirmPassword"
-                mode={confirmPasswordErrorMessage ? "error" : "normal"}
+                mode={confirmPasswordError ? "error" : "normal"}
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
             />
@@ -242,6 +256,8 @@ const AccountDataStep = ({ username, password, email, emailRegex, setStep, confi
                 }
                 if (!passOk)
                     setPasswordRegexVisible(true);
+                if (!userOk)
+                    setUsernameError(true);
             }}
             />
             <StyledTermsClause>

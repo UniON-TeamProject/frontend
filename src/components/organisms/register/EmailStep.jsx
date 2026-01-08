@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import SubmitButton from '../../atoms/SubmitButton'
 import Input from '../../atoms/Input'
 import styled from 'styled-components'
@@ -28,36 +28,36 @@ const StyledLine = styled.div`
 }
 `
 
-const EmailStep = ({ email, setEmail, setStep, regex, emailErrorMessage, setEmailErrorMessage }) => {
-    const [serverErrorMessage, setServerErrorMessage] = useState("");
+const EmailStep = ({ email, setEmail, setStep, regex, emailError, setEmailError, emailErrorMessage, setEmailErrorMessage }) => {
+    const [errorMessage, setErrorMessage] = useState("");
 
     const validateEmail = () => {
+        setErrorMessage("");
+        setEmailErrorMessage("");
+        setEmailError(false);
         if (!email) {
             setEmailErrorMessage("Wypełnij pole");
+            setEmailError(true);
             return false;
         }
         if (!regex.test(email)) {
             setEmailErrorMessage("Niepoprawny adres e-mail");
+            setEmailError(true);
             return false;
         }
-        setEmailErrorMessage("");
         return true;
     }
 
+
     const handleVerifyEmail = async () => {
-        setServerErrorMessage("");
+        setErrorMessage("");
         const result = await emailVerificationRequest(email);
-        if (!result.valid) {
-            setEmailErrorMessage("Użytkownik o tym adresie e-mail już istnieje");
-            return;
-        }
-        if (result.errorCode) {
-            // if (result.errorCode == "EMAIL_TAKEN")
-            //    setEmailErrorMessage("Użytkownik o tym adresie e-mail już istnieje");
-            // else if (result.errorCode == "EMAIL_NOT_VERIFIED")
-            //     setEmailErrorMessage("Ten adres e-mail jest już zarejestrowany, ale nie został zweryfikowany. Wysłaliśmy nową wiadomość weryfikacyjną");
-            // else if (result.errorCode == "CONNECTION_ERROR")
-            //     setServerErrorMessage("Nie udało się połączyć z serwerem. Spróbuj ponownie");
+        if (result.errorCode && result.errorCode != "EMAIL_AVAILABLE") {
+            setErrorMessage(result.message);
+            if (result.errorCode == "EMAIL_TAKEN" || result.errorCode == "EMAIL_NOT_VERIFIED") {
+                setEmailError(true);
+                return;
+            }
         }
         setStep(2);
     }
@@ -66,13 +66,11 @@ const EmailStep = ({ email, setEmail, setStep, regex, emailErrorMessage, setEmai
         <>
             <Text as="h3" bold="true" style={{ margin: "20px 0 5px 0" }} text="Zarejestruj się" />
             <Text text="Wpisz swój adres e-mail, aby się zarejestrować" />
-            {serverErrorMessage
-                ? <Text color="danger" text={serverErrorMessage} />
-                : emailErrorMessage && <Text color="danger" text={emailErrorMessage} />
-            }
+            {errorMessage && <Text color="danger" text={errorMessage} />}
+            {emailErrorMessage && <Text color="danger" text={emailErrorMessage} />}
             <Input
                 type="text"
-                mode={emailErrorMessage ? "error" : "normal"}
+                mode={emailError ? "error" : "normal"}
                 placeholder="email@domena.pl"
                 name="email"
                 value={email}

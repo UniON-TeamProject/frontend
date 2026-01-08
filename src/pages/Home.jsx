@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import SubmitButton from '../components/atoms/SubmitButton'
 import Logo from '../components/atoms/Logo'
 import Text from '../components/atoms/Text'
@@ -35,17 +35,47 @@ const StyledTitle = styled.h2`
     text-align: center;
 `
 
+const parseJwt = (token) => {
+    try {
+        return JSON.parse(atob(token.split('.')[1]));
+    } catch (e) {
+        return null;
+    }
+};
 
 const Home = () => {
+    const [token, setToken] = useState(undefined);
+    const [username, setUsername] = useState(undefined);
+
+    useEffect(() => {
+
+        let jwt = sessionStorage.getItem("token");
+        setToken(jwt);
+
+        let tokenContent = parseJwt(jwt);
+        setUsername(tokenContent?.sub);
+    }, [])
+
+
     return (
         <StyledContainer>
             <StyledBox>
-                <StyledHeader>Witaj!</StyledHeader>
-                <Logo size="big" />
-                <StyledTitle>StudyUp!</StyledTitle>
-                <Text as="h3" style={{ padding: "20px 0" }} text="Notuj, ucz się, powtarzaj" />
-                <SubmitButton text="Logowanie" path="/logowanie" light />
-                <SubmitButton text="Stwórz konto" path="/rejestracja" light />
+                {token ? <>
+                    <StyledHeader>Witaj {username}!</StyledHeader>
+                    <Logo size="big" />
+                    <StyledTitle>StudyUp!</StyledTitle>
+                    <Text as="h3" style={{ padding: "20px 0" }} text="Notuj, ucz się, powtarzaj" />
+                    <SubmitButton text="Wyloguj" path="/wyloguj" light />
+
+                </> :
+                    <>
+                        <Logo size="big" />
+                        <StyledTitle>StudyUp!</StyledTitle>
+                        <Text as="h3" style={{ padding: "20px 0" }} text="Notuj, ucz się, powtarzaj" />
+                        <SubmitButton text="Logowanie" path="/logowanie" light />
+                        <SubmitButton text="Stwórz konto" path="/rejestracja" light />
+                    </>
+                }
             </StyledBox>
         </StyledContainer>
     )

@@ -4,21 +4,14 @@
 POST {{host}}/studyUp/checkEmail HTTP/1.1
 content-type: application/json
 
-flisikowska.emilia@gmail.com
-    
-###
-POST {{host}}/studyUp/checkEmail HTTP/1.1
-content-type: application/json
-
-test@gmail.com
-
+mynka3@wp.pl
 
 ###
 POST {{host}}/studyUp/signUp HTTP/1.1
 content-type: application/json
 
 {
-"username":"Mynka5",
+"username":"Mynka3",
 "email":"flisikowska.emilia@gmail.com",
 "password":"Mynka98!",
 "confirmPassword":"Mynka98!"
@@ -36,5 +29,12 @@ content-type: application/json
 
 {
 "email":"flisikowska.emilia@gmail.com",
-"token":"123456"
+"token":"771994"
 }
+
+###
+POST {{host}}/studyUp/resendVerificationCode HTTP/1.1
+content-type: application/json
+
+
+mynka3@wp.pl

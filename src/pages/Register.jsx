@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import EmailStep from '../components/organisms/register/EmailStep'
 import AccountDataStep from '../components/organisms/register/AccountDataStep'
 import VerificationStep from '../components/organisms/register/VerificationStep'
+import EmailVerifiedStep from '../components/organisms/register/EmailVerifiedStep'
 import Logo from '../components/atoms/Logo'
 import Text from '../components/atoms/Text'
 
@@ -56,6 +57,7 @@ const Register = () => {
     const [step, setStep] = useState(1);
 
     const [emailErrorMessage, setEmailErrorMessage] = useState("");
+    const [emailError, setEmailError] = useState(false);
 
     return (
         <StyledContainer>
@@ -68,6 +70,8 @@ const Register = () => {
                         regex={emailRegex}
                         setStep={e => setStep(e)}
                         setEmail={e => setEmail(e)}
+                        emailError={emailError}
+                        setEmailError={e => setEmailError(e)}
                         emailErrorMessage={emailErrorMessage}
                         setEmailErrorMessage={e => setEmailErrorMessage(e)} />
                 }
@@ -77,7 +81,7 @@ const Register = () => {
                         emailRegex={emailRegex}
                         username={username}
                         setStep={e => setStep(e)}
-                        setEmailErrorMessage={e => setEmailErrorMessage(e)}
+                        setEmailError={e => setEmailError(e)}
                         setUsername={e => setUsername(e)}
                         password={password}
                         setPassword={e => setPassword(e)}
@@ -86,7 +90,11 @@ const Register = () => {
                 }
                 {step == 3 &&
                     <VerificationStep
+                        setStep={e => setStep(e)}
                         email={email} />
+                }
+                {step == 4 &&
+                    <EmailVerifiedStep />
                 }
             </StyledBox>
             <StyledLoginButton>

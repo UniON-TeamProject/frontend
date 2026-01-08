@@ -29,6 +29,11 @@ export const GlobalStyle = createGlobalStyle`
         color: ${({ theme }) => theme.colors.text};
         background-color: ${({ theme }) => theme.colors.lightGrey};
     }
+    .character.error{
+        border:1px solid ${({ theme }) => theme.colors.danger};
+
+    }
+
     .character--inactive{
         background-color: ${({ theme }) => theme.colors.darkGrey};
     }

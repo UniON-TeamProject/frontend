@@ -4,11 +4,26 @@ import { useNavigate } from 'react-router-dom'
 import SubmitButton from '../../atoms/SubmitButton'
 import Text from '../../atoms/Text'
 import VerificationInput from "react-verification-input"
-import { verificationRequest, resendVerificationToken } from '../../../api'
+import { verificationRequest, resendVerificationCode } from '../../../api'
 
-const ResendVerificationTokenButton = styled.div`
- font-size:0.9rem;
- margin-top:10px;
+
+const SuccessPopup = styled.div`
+    position: fixed;
+    top: 20px;
+    width:600px;
+    left: 50%;
+    transform: translate(-50%, ${({ $visible }) => ($visible ? '0' : '-180%')});
+    transition: transform 0.4s ease;
+    border: 2px solid ${({ theme }) => theme.colors.success};
+    color: ${({ theme }) => theme.colors.text};
+    padding: 12px 24px;
+    border-radius: 5px;
+    z-index: 100;
+`
+
+const ResendVerificationCodeButton = styled.div`
+    font-size:0.9rem;
+    margin-top:10px;
     display:flex;
     flex-flow:row nowrap;
     justify-content:center;
@@ -23,64 +38,78 @@ const ResendVerificationTokenButton = styled.div`
 `;
 
 
-const VerificationStep = ({ email }) => {
+const VerificationStep = ({ email, setStep }) => {
     const navigate = useNavigate();
-
-    const [serverErrorMessage, setServerErrorMessage] = useState("");
-    const [verificationCodeErrorMessage, setVerificationCodeErrorMessage] = useState("");
+    const [successPopupActive, setSuccessPopupActive] = useState(false);
+    const [successPopupMessage, setSuccessPopupMessage] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
     const [verificationCode, setVerificationCode] = useState("");
-
-    useEffect(() => {
-        setVerificationCodeErrorMessage("");
-        if (verificationCode.length == 6 && !serverErrorMessage && !verificationCodeErrorMessage) {
-            handleVerifyVerificationCode();
-        }
-    }, [verificationCode])
+    const [verificationCodeError, setVerificationCodeError] = useState(false);
 
     const handleVerifyVerificationCode = async () => {
-        setServerErrorMessage("");
-
+        setErrorMessage("");
         const result = await verificationRequest(email, verificationCode);
+        console.log(result.errorCode);
+
         if (result.errorCode) {
-            if (result.errorCode == "EMAIL_ALREADY_VERIFIED")
-                setVerificationCodeErrorMessage("Użytkownik już jest zweryfikowany");
-            else if (result.errorCode == "INVALID_TOKEN")
-                setVerificationCodeErrorMessage("Podano nieprawidłowy kod. " + (result.attemptsLeft !== undefined && ` Pozostało prób: ${result.attemptsLeft}`));
-            else if (result.errorCode == "USER_NOT_FOUND")
-                setVerificationCodeErrorMessage("Nie znaleziono użytkownika");
-            else if (result.errorCode == "TOKEN_LIMIT_EXCEEDED")
-                setVerificationCodeErrorMessage("Przekroczono limit prób wprowadzenia tokena");
-            else if (result.errorCode == "CONNECTION_ERROR")
-                setServerErrorMessage("Nie udało się połączyć z serwerem. Spróbuj ponownie");
+            if (result.errorCode == "VERIFICATION_SUCCESS" || result.errorCode == "EMAIL_ALREADY_VERIFIED")
+                setStep(4);
+            setErrorMessage(result.message)
+            if (result.errorCode == "INVALID_TOKEN")
+                setVerificationCodeError(true);
         }
         else
             navigate('/');
+
+    }
+
+    const handleResendVerificationCode = async () => {
+        setErrorMessage("");
+        const result = await resendVerificationCode(email);
+        if (result.errorCode) {
+            if (result.errorCode == "TOKEN_RESENT_SUCCESS") {
+                setSuccessPopupActive(true);
+                setTimeout(() => {
+                    setSuccessPopupActive(false);
+                }, 3000);
+                setSuccessPopupMessage(result.message);
+                return;
+            }
+            setErrorMessage(result.message)
+            return;
+        }
     }
 
     return (
         <>
+            <SuccessPopup $visible={successPopupActive}>{successPopupMessage}</SuccessPopup>
             <Text text={`Na adres ${email} został wysłany kod weryfikacyjny`} />
-            {serverErrorMessage ? <Text color="danger" text={serverErrorMessage} /> :
-                verificationCodeErrorMessage && <Text color="danger" text={verificationCodeErrorMessage} />}
+            {errorMessage && <Text color="danger" text={errorMessage} />}
             <Text text="Wpisz kod weryfikacyjny:" />
             <VerificationInput
+                validChars="0-9"
+                inputProps={{ inputMode: "numeric" }}
                 classNames={{
                     container: "container",
-                    character: serverErrorMessage != "" ? "character error" : "character",
+                    character: verificationCodeError ? "character error" : "character",
+                    characterSelected: "character--selected",
                 }}
-                onChange={(e) => setVerificationCode(e)}
+                onChange={(e) => {
+                    setVerificationCode(e);
+                    setVerificationCodeError(false);
+                }}
             />
             <SubmitButton text="Kontynuuj" color="dark" onClick={() => {
-                if (!verificationCodeErrorMessage && verificationCode.length == 6)
+                if (verificationCode.length == 6)
                     handleVerifyVerificationCode();
             }} />
 
-            <ResendVerificationTokenButton>
+            <ResendVerificationCodeButton>
                 <p>Kod nie dotarł?</p>
                 <div onClick={() => {
-                    resendVerificationToken(email);
+                    handleResendVerificationCode();
                 }}> Wyślij kod ponownie</div>
-            </ResendVerificationTokenButton>
+            </ResendVerificationCodeButton>
         </>
     )
 }
