@@ -61,7 +61,7 @@ const Home = () => {
         <StyledContainer>
             <StyledBox>
                 {token ? <>
-                    <StyledHeader>Witaj {username}!</StyledHeader>
+                    <StyledHeader>Elo mordo {username}!</StyledHeader>
                     <Logo size="big" />
                     <StyledTitle>StudyUp!</StyledTitle>
                     <Text as="h3" style={{ padding: "20px 0" }} text="Notuj, ucz się, powtarzaj" />
@@ -69,6 +69,7 @@ const Home = () => {
 
                 </> :
                     <>
+                        <StyledHeader>Elo mordo!</StyledHeader>
                         <Logo size="big" />
                         <StyledTitle>StudyUp!</StyledTitle>
                         <Text as="h3" style={{ padding: "20px 0" }} text="Notuj, ucz się, powtarzaj" />
