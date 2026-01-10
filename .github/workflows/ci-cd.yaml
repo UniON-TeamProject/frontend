@@ -49,7 +49,7 @@ jobs:
 
             docker rm --force $CONTAINER_NAME || true
 
-            docker run --restart always \ 
+            docker run --restart always \
               -d \
               --name $CONTAINER_NAME \
               -p 30109:80 \
