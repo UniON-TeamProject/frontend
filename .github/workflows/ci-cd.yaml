@@ -1,0 +1,57 @@
+name: Build and Deploy Docker Image
+
+on:
+  push:
+    branches:
+      - main
+      - cicd
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      IMAGE_NAME: studyup-frontend
+      IMAGE_TAG: latest
+      TAR_NAME: studyup-frontend.tar
+      REMOTE_DIR: /tmp/docker-images
+      CONTAINER_NAME: studyup-frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t $IMAGE_NAME:$IMAGE_TAG .
+
+      - name: Save Docker image to tar
+        run: |
+          docker save $IMAGE_NAME:$IMAGE_TAG -o $TAR_NAME
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.ID_RSA }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Copy image to server via SCP
+        run: |
+          ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p $REMOTE_DIR"
+          scp -P ${{ secrets.SSH_PORT }} $TAR_NAME \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:$REMOTE_DIR/
+
+      - name: Load image and run container on server
+        run: |
+          ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
+            docker load -i $REMOTE_DIR/$TAR_NAME
+
+            docker rm --force $CONTAINER_NAME || true
+
+            docker run --restart always \ 
+              -d \
+              --name $CONTAINER_NAME \
+              -p 30109:80 \
+              $IMAGE_NAME:$IMAGE_TAG
+          EOF
