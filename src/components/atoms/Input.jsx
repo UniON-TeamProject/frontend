@@ -11,6 +11,7 @@ const StyledContainer = styled.div`
 const StyledInput = styled.input`
     padding:8px;
     border-radius:6px;
+    color: ${({ theme }) => theme.colors.text};
     font-size:0.9rem;
     background-color:${({ theme }) => theme.colors.white};
     border:none;

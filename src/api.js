@@ -168,3 +168,26 @@ export async function resetPassword(email, verificationCode, password) {
     };
   }
 }
+
+export async function getDocumentDetails(id, token) {
+  try {
+    const resp = await fetch(`${API_HOST}/studyUp/getDocument`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id,
+        token,
+      }),
+    });
+
+    const { name, content } = await resp.json();
+    if (resp.ok) return { name, content };
+
+    return { errorCode, message };
+  } catch {
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
+    };
+  }
+}
