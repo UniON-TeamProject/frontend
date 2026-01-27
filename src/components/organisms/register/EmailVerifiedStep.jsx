@@ -31,7 +31,6 @@ const EmailVerifiedStep = () => {
         <StyledMessage>
             <Text text="Email został zweryfikowany poprawnie"></Text>
             <Text text="Za chwilę zostaniesz przekierowany na stronę główną."></Text>
-
             <StyledLink to='/'>
                 Przejdź teraz
             </StyledLink>

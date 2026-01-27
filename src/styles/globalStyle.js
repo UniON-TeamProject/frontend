@@ -7,9 +7,6 @@ export const GlobalStyle = createGlobalStyle`
         color-scheme: light dark;
         color: ${({ theme }) => theme.colors.text};
         background-color: ${({ theme }) => theme.colors.lightGrey};
-        @media(max-width:600px){
-            background-color:${({ theme }) => theme.colors.white};
-        }
     }
     #root {
         width: 100%;

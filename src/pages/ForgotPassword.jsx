@@ -93,7 +93,7 @@ const ForgotPassword = () => {
         const result = await sendResetPasswordCode(email);
         if (result.errorCode) {
             setErrorMessage(result.message);
-            if (result.errorCode == "TOKEN_RESENT_SUCCESS")
+            if (result.errorCode == "SUCCESS")
                 setStep(2);
         }
         return;
@@ -106,7 +106,7 @@ const ForgotPassword = () => {
             setErrorMessage(result.message);
             if (result.errorCode == "INVALID_TOKEN")
                 setVerificationCodeError(true);
-            if (result.errorCode == "PASSWORD_RESET_SUCCESS")
+            if (result.errorCode == "SUCCESS")
                 setStep(3);
         }
         return;

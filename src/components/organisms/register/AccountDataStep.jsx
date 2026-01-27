@@ -26,7 +26,7 @@ const ReturnButton = styled.div`
     flex-flow:row nowrap;
     align-items:center;
     cursor:pointer;
-    img{
+    svg{
         height:16px; 
         color:${({ theme }) => theme.colors.dark};
     }
@@ -178,7 +178,9 @@ const AccountDataStep = ({ username, password, email, emailRegex, setStep, confi
     return (
         <>
             <ReturnButton onClick={() => setStep(1)}>
-                <img src="./icons/arrow_left.png" />
+                <svg fill="currentColor" viewBox="0 0 16 16">
+                    <path fillRule="evenodd" d="M12 8a.5.5 0 0 1-.5.5H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5a.5.5 0 0 1 .5.5" />
+                </svg>
                 <p>Wróć</p>
             </ReturnButton>
             <Text as="h3" bold="true" style={{ margin: "20px 0 5px 0" }} text="Zarejestruj się" />

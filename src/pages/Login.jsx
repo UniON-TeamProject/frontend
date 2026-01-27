@@ -96,7 +96,7 @@ const Login = () => {
     useEffect(() => {
         const token = sessionStorage.getItem("token");
         if (token)
-            navigate("/");
+            navigate("/home");
     }, []);
 
     const handleLogin = async () => {
@@ -106,7 +106,7 @@ const Login = () => {
             setErrorMessage(result.message);
         else {
             sessionStorage.setItem("token", result.token);
-            navigate('/');
+            navigate('/home');
         }
     }
 

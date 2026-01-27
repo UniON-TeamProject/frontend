@@ -38,3 +38,15 @@ content-type: application/json
 
 
 mynka3@wp.pl
+
+
+###
+PATCH  {{host}}/notes/renameDocument HTTP/1.1
+content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJNeW5rYSIsImlhdCI6MTc2OTQ1Mjg4NCwiZXhwIjoxNzY5NDg4ODg0fQ.7DCmsaP9cbc8JQKUP32mNSfIurcZmldTevhBP8Xjlmw
+
+{
+"id":18,
+"newName":"Elo"
+}
+

@@ -49,25 +49,22 @@ const VerificationStep = ({ email, setStep }) => {
     const handleVerifyVerificationCode = async () => {
         setErrorMessage("");
         const result = await verificationRequest(email, verificationCode);
-        console.log(result.errorCode);
-
         if (result.errorCode) {
-            if (result.errorCode == "VERIFICATION_SUCCESS" || result.errorCode == "EMAIL_ALREADY_VERIFIED")
+            if (result.errorCode == "SUCCESS" || result.errorCode == "EMAIL_ALREADY_VERIFIED")
                 setStep(4);
             setErrorMessage(result.message)
             if (result.errorCode == "INVALID_TOKEN")
                 setVerificationCodeError(true);
         }
         else
-            navigate('/');
-
+            setStep(4);
     }
 
     const handleResendVerificationCode = async () => {
         setErrorMessage("");
         const result = await resendVerificationCode(email);
         if (result.errorCode) {
-            if (result.errorCode == "TOKEN_RESENT_SUCCESS") {
+            if (result.errorCode == "SUCCESS") {
                 setSuccessPopupActive(true);
                 setTimeout(() => {
                     setSuccessPopupActive(false);
