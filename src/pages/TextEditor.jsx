@@ -501,6 +501,7 @@ const TextEditor = () => {
     },
   })
 
+
   const fetchNoteDetails = async () => {
     setErrorMessage("");
     const result = await getNoteDetails(id);
