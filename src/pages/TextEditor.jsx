@@ -471,13 +471,13 @@ const TextEditor = () => {
   const [renameNoteErrorMessage, setRenameNoteErrorMessage] = useState("");
   const [name, setName] = useState("");
   const [newName, setNewName] = useState("");
-  const [content, setContent] = useState("");
+  const [content, setContent] = useState(undefined);
   const [tags, setTags] = useState(["studia", "semestr1", "kolokwium1", "algorytmika"])
   const [isAddingTag, setIsAddingTag] = useState(false)
   const [newTag, setNewTag] = useState('')
-  const lastSavedContent = useRef(content);
   const [noteNotFoundError, setNoteNotFoundError] = useState(false);
   const [noteNotFoundMessage, setNoteNotFoundMessage] = useState("");
+  const saveTimeout = useRef(null);
 
   const SaveShortcut = Extension.create({
     name: 'saveShortcut',
@@ -485,7 +485,7 @@ const TextEditor = () => {
     addKeyboardShortcuts() {
       return {
         'Mod-s': () => {
-          saveIfChanged();
+          save();
           return true;
         },
       };
@@ -494,7 +494,11 @@ const TextEditor = () => {
 
   const editor = useEditor({
     extensions: [StarterKit, Image, Markdown, Typography, SaveShortcut],
-    content: content,
+    content: '',
+    onUpdate() {
+      if (saveTimeout.current) clearTimeout(saveTimeout.current);
+      saveTimeout.current = setTimeout(() => save(), 2000)
+    },
   })
 
   const fetchNoteDetails = async () => {
@@ -513,8 +517,11 @@ const TextEditor = () => {
         setName(result.name);
         setNewName(result.name);
       }
-      if (result.content)
+      if (result.content !== undefined) {
         setContent(result.content);
+        if (editor)
+          editor.commands.setContent(result.content);
+      }
     }
   }
 
@@ -534,50 +541,37 @@ const TextEditor = () => {
     setName(result.newName);
   }
 
-  const saveIfChanged = async () => {
+  const save = async () => {
     if (!editor) return;
-    const currentContent = editor.getHTML();
-    if (currentContent !== lastSavedContent.current) {
-      const result = await editNote(id, currentContent);
-      if (result.errorCode) {
-        if (result.errorCode == "NOTE_NOT_FOUND") {
-          setNoteNotFoundError(true);
-          setNoteNotFoundMessage(result.message);
-        }
-        else
-          setErrorMessage(result.message);
+    const html = editor.getHTML();
+    if (!html || html === '<p></p>')
+      return;
+
+    const result = await editNote(id, html);
+    if (result.errorCode) {
+      if (result.errorCode === "NOTE_NOT_FOUND") {
+        setNoteNotFoundError(true);
+        setNoteNotFoundMessage(result.message);
+      } else {
+        setErrorMessage(result.message);
       }
-      else
-        lastSavedContent.current = currentContent;
     }
   };
 
   useEffect(() => {
     fetchNoteDetails();
     const handler = (e) => {
-      if (e.key === 's' && (navigator.userAgent.includes('Mac') ? e.metaKey : e.ctrlKey)) {
+      if (e.key === 's' && (navigator.userAgent.includes('Mac') ? e.metaKey : e.ctrlKey))
         e.preventDefault();
-        saveIfChanged();
-      }
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, []);
 
   useEffect(() => {
-    if (editor && content) {
-      editor.commands.setContent(content);
-      lastSavedContent.current = content;
-    }
-  }, [editor, content]);
-
-  useEffect(() => {
-    if (!editor) return;
-    const interval = setInterval(() => {
-      saveIfChanged();
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [editor]);
+    if (editor && content !== undefined)
+      editor.commands.setContent(content)
+  }, [editor, content])
 
   useEffect(() => {
     if (newName && name != newName) {
@@ -588,7 +582,6 @@ const TextEditor = () => {
       }, 1000);
     }
   }, [newName]);
-
 
   const addTag = () => {
     const value = newTag.trim()

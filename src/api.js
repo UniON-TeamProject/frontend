@@ -218,7 +218,7 @@ export async function getNoteDetails(id) {
   if (!token) return { name: "", content: "", errorCode: "", message: "" };
 
   try {
-    const resp = await fetch(`${API_HOST}/notes/readDocument/${id}`, {
+    const resp = await fetch(`${API_HOST}/notes/readNote/${id}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -245,7 +245,7 @@ export async function editNote(id, content) {
   if (!token) return { errorCode: "", message: "" };
 
   try {
-    const resp = await fetch(`${API_HOST}/notes/editDocument`, {
+    const resp = await fetch(`${API_HOST}/notes/editNote`, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -274,7 +274,7 @@ export async function addNote(name) {
   if (!token) return { id: undefined, errorCode: "", message: "" };
 
   try {
-    const resp = await fetch(`${API_HOST}/notes/addDocument`, {
+    const resp = await fetch(`${API_HOST}/notes/addNote`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -305,7 +305,7 @@ export async function renameNote(id, name) {
   if (!token) return { newName: "", errorCode: "", message: "" };
 
   try {
-    const resp = await fetch(`${API_HOST}/notes/renameDocument`, {
+    const resp = await fetch(`${API_HOST}/notes/renameNote`, {
       method: "PATCH",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -335,7 +335,7 @@ export async function deleteNote(id) {
   if (!token) return { errorCode: "", message: "" };
 
   try {
-    const resp = await fetch(`${API_HOST}/notes/deleteDocument/${id}`, {
+    const resp = await fetch(`${API_HOST}/notes/deleteNote/${id}`, {
       method: "PATCH",
       headers: {
         Authorization: `Bearer ${token}`,
