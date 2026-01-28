@@ -136,8 +136,11 @@ const Home = () => {
     const handleFetchNotes = async () => {
         setErrorMessage("");
         const res = await getAllNotes();
-        if (res.errorCode)
+        if (res.errorCode) {
             setErrorMessage(res.message);
+            if (result.errorCode == "TOKEN_UNDEFINED")
+                navigate("/", { replace: true });
+        }
         else {
             const sorted = [...res.notes].sort((a, b) => {
                 const dateA = new Date(a.lastEdited ?? 0);
@@ -149,10 +152,13 @@ const Home = () => {
     }
 
     const handleAddNote = async () => {
-        setErrorMessage("");
+        setAddNoteErrorMessage("");
         const result = await addNote(noteName);
-        if (result.errorCode)
+        if (result.errorCode) {
             setAddNoteErrorMessage(result.message);
+            if (result.errorCode == "TOKEN_UNDEFINED")
+                navigate("/", { replace: true });
+        }
         else {
             setIsAddingNote(false);
             navigate(`/dokument/${result.id}`)
@@ -163,8 +169,11 @@ const Home = () => {
     const handleDeleteNote = async (id) => {
         setErrorMessage("");
         const result = await deleteNote(id);
-        if (result.errorCode)
+        if (result.errorCode) {
             setErrorMessage(result.message);
+            if (result.errorCode == "TOKEN_UNDEFINED")
+                navigate("/", { replace: true });
+        }
         else
             handleFetchNotes();
     }

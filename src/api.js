@@ -172,8 +172,12 @@ export async function resetPassword(email, verificationCode, password) {
 
 export async function getAllNotes() {
   const token = sessionStorage.getItem("token");
-  if (!token) return { errorCode: "", message: "", notes: "" };
-
+  if (!token)
+    return {
+      notes: [],
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
   try {
     const resp = await fetch(`${API_HOST}/notes/getAllNotes`, {
       method: "GET",
@@ -185,6 +189,7 @@ export async function getAllNotes() {
 
     if (!resp.ok) {
       return {
+        notes: [],
         errorCode: "FETCH_ERROR",
         message: "Nie udało się pobrać dokumentów",
       };
@@ -200,23 +205,28 @@ export async function getAllNotes() {
     }));
 
     return {
+      notes: result,
       errorCode: "",
       message: "",
-      notes: result,
     };
   } catch {
     return {
+      notes: [],
       errorCode: "CONNECTION_ERROR",
       message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
-      notes: "",
     };
   }
 }
 
 export async function getNoteDetails(id) {
   const token = sessionStorage.getItem("token");
-  if (!token) return { name: "", content: "", errorCode: "", message: "" };
-
+  if (!token)
+    return {
+      name: "",
+      content: "",
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
   try {
     const resp = await fetch(`${API_HOST}/notes/readNote/${id}`, {
       method: "GET",
@@ -242,7 +252,11 @@ export async function getNoteDetails(id) {
 
 export async function editNote(id, content) {
   const token = sessionStorage.getItem("token");
-  if (!token) return { errorCode: "", message: "" };
+  if (!token)
+    return {
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
 
   try {
     const resp = await fetch(`${API_HOST}/notes/editNote`, {
@@ -271,7 +285,12 @@ export async function editNote(id, content) {
 
 export async function addNote(name) {
   const token = sessionStorage.getItem("token");
-  if (!token) return { id: undefined, errorCode: "", message: "" };
+  if (!token)
+    return {
+      id: undefined,
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
 
   try {
     const resp = await fetch(`${API_HOST}/notes/addNote`, {
@@ -302,7 +321,12 @@ export async function addNote(name) {
 
 export async function renameNote(id, name) {
   const token = sessionStorage.getItem("token");
-  if (!token) return { newName: "", errorCode: "", message: "" };
+  if (!token)
+    return {
+      newName: "",
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
 
   try {
     const resp = await fetch(`${API_HOST}/notes/renameNote`, {
@@ -332,7 +356,11 @@ export async function renameNote(id, name) {
 
 export async function deleteNote(id) {
   const token = sessionStorage.getItem("token");
-  if (!token) return { errorCode: "", message: "" };
+  if (!token)
+    return {
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
 
   try {
     const resp = await fetch(`${API_HOST}/notes/deleteNote/${id}`, {

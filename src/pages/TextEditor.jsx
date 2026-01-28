@@ -138,8 +138,10 @@ const StyledSelect = styled.select`
   border:none;
   background-color:unset;
   margin-right:15px;
+  color:${({ theme }) => theme.colors.text};
   option{
     font-weight:600;
+    color:${({ theme }) => theme.colors.text};
   }
   @media(max-width:768px){
     margin-right:5px;
@@ -512,6 +514,8 @@ const TextEditor = () => {
       }
       else
         setErrorMessage(result.message);
+      if (result.errorCode == "TOKEN_UNDEFINED")
+        navigate("/", { replace: true });
     }
     else {
       if (result.name) {
@@ -535,8 +539,10 @@ const TextEditor = () => {
         setNoteNotFoundMessage(result.message);
       }
       else {
-        setRenameNoteError(true);
         setRenameNoteErrorMessage(result.message);
+        if (result.errorCode == "TOKEN_UNDEFINED")
+          navigate("/", { replace: true });
+        setRenameNoteError(true);
       }
     }
     setName(result.newName);
@@ -555,6 +561,8 @@ const TextEditor = () => {
         setNoteNotFoundMessage(result.message);
       } else {
         setErrorMessage(result.message);
+        if (result.errorCode == "TOKEN_UNDEFINED")
+          navigate("/", { replace: true });
       }
     }
   };
