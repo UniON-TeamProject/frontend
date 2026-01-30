@@ -2,7 +2,7 @@ import styled from 'styled-components';
 import React, { useState, useEffect } from 'react';
 import SubmitButton from '../components/atoms/SubmitButton'
 import Text from '../components/atoms/Text'
-import { getAllNotes, addNote, deleteNote } from '../api';
+import { getAllNotes, getAllDeletedNotes, addNote, deleteNote, clearTrash, restoreNote } from '../api';
 import { useNavigate } from 'react-router-dom'
 import Input from '../components/atoms/Input';
 
@@ -96,6 +96,17 @@ const StyledAddNoteButton = styled.div`
   cursor: pointer;
 `
 
+const StyledClearTrashButton = styled.div`
+  padding:2px 10px;
+  margin: 0 3px;
+  width:120px;
+  background-color:${({ theme }) => theme.colors.danger};
+  border-radius:5px;
+  color:${({ theme }) => theme.colors.white};
+  font-weight:700;
+  cursor: pointer;
+`
+
 const StyledAddNoteBox = styled.div`
     position:absolute;
     left:50%;
@@ -126,6 +137,7 @@ const Home = () => {
     const [username, setUsername] = useState(undefined);
     const [noteName, setNoteName] = useState("");
     const [notes, setNotes] = useState([]);
+    const [deletedNotes, setDeletedNotes] = useState([]);
     const [addNoteErrorMessage, setAddNoteErrorMessage] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
     const [activeNoteOptionsId, setActiveNoteOptionsId] = useState(null);
@@ -138,7 +150,7 @@ const Home = () => {
         const res = await getAllNotes();
         if (res.errorCode) {
             setErrorMessage(res.message);
-            if (result.errorCode == "TOKEN_UNDEFINED")
+            if (res.errorCode == "TOKEN_UNDEFINED")
                 navigate("/", { replace: true });
         }
         else {
@@ -151,31 +163,79 @@ const Home = () => {
         }
     }
 
+    const handleFetchDeletedNotes = async () => {
+        setErrorMessage("");
+        const res = await getAllDeletedNotes();
+        if (res.errorCode) {
+            setErrorMessage(res.message);
+            if (res.errorCode == "TOKEN_UNDEFINED")
+                navigate("/", { replace: true });
+        }
+        else {
+            const sorted = [...res.notes].sort((a, b) => {
+                const dateA = new Date(a.lastEdited ?? 0);
+                const dateB = new Date(b.lastEdited ?? 0);
+                return dateB - dateA;
+            });
+            setDeletedNotes(sorted);
+        }
+    }
+
     const handleAddNote = async () => {
         setAddNoteErrorMessage("");
-        const result = await addNote(noteName);
-        if (result.errorCode) {
-            setAddNoteErrorMessage(result.message);
-            if (result.errorCode == "TOKEN_UNDEFINED")
+        const res = await addNote(noteName);
+        if (res.errorCode) {
+            setAddNoteErrorMessage(res.message);
+            if (res.errorCode == "TOKEN_UNDEFINED")
                 navigate("/", { replace: true });
         }
         else {
             setIsAddingNote(false);
-            navigate(`/dokument/${result.id}`)
+            navigate(`/dokument/${res.id}`)
         }
         setNoteName("");
     }
 
     const handleDeleteNote = async (id) => {
         setErrorMessage("");
-        const result = await deleteNote(id);
-        if (result.errorCode) {
-            setErrorMessage(result.message);
-            if (result.errorCode == "TOKEN_UNDEFINED")
+        const res = await deleteNote(id);
+        if (res.errorCode) {
+            setErrorMessage(res.message);
+            if (res.errorCode == "TOKEN_UNDEFINED")
                 navigate("/", { replace: true });
         }
-        else
+        else {
             handleFetchNotes();
+            handleFetchDeletedNotes();
+        }
+    }
+
+    const handleRestoreNote = async (id) => {
+        setErrorMessage("")
+        const res = await restoreNote(id);
+        if (res.errorCode) {
+            setErrorMessage(res.message);
+            if (res.errorCode == "TOKEN_UNDEFINED")
+                navigate("/", { replace: true });
+        }
+        else {
+            handleFetchNotes();
+            handleFetchDeletedNotes();
+        }
+    }
+
+    const handleClearTrash = async () => {
+        setErrorMessage("")
+        const res = await clearTrash();
+        if (res.errorCode) {
+            setErrorMessage(res.message);
+            if (res.errorCode == "TOKEN_UNDEFINED")
+                navigate("/", { replace: true });
+        }
+        else {
+            handleFetchNotes();
+            handleFetchDeletedNotes();
+        }
     }
 
     useEffect(() => {
@@ -184,6 +244,7 @@ const Home = () => {
             let tokenContent = parseJwt(jwt);
             setUsername(tokenContent?.sub);
             handleFetchNotes();
+            handleFetchDeletedNotes();
         }
     }, [])
 
@@ -199,6 +260,7 @@ const Home = () => {
             {errorMessage &&
                 <Text color="danger" text={errorMessage} />}
             <NotesContainer>
+
                 {notes.map((d) => {
                     const dateObj = new Date(d.lastEdited);
                     const formattedDate = dateObj.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }).replace(',', ' o');
@@ -231,12 +293,54 @@ const Home = () => {
                     )
                 })}
             </NotesContainer>
+
             <StyledAddNoteButton onClick={(e) => {
                 e.stopPropagation();
                 setIsAddingNote(!isAddingNote)
             }}>
                 +
             </StyledAddNoteButton>
+
+            <Text text="Usunięte:" as="h2" bold="true" />
+            <NotesContainer>
+                {deletedNotes.map((d) => {
+                    const dateObj = new Date(d.lastEdited);
+                    const formattedDate = dateObj.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }).replace(',', ' o');
+                    return (
+                        <StyledNote key={d.id}>
+                            <StyledNoteImage style={{ backgroundColor: 'red' }}>
+                                <svg fill="currentColor" viewBox="0 0 16 16">
+                                    <path fillRule="evenodd" d="M0 .5A.5.5 0 0 1 .5 0h4a.5.5 0 0 1 0 1h-4A.5.5 0 0 1 0 .5m0 2A.5.5 0 0 1 .5 2h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m9 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m-9 2A.5.5 0 0 1 .5 4h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m5 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m7 0a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-12 2A.5.5 0 0 1 .5 6h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5m8 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m-8 2A.5.5 0 0 1 .5 8h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m7 0a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-7 2a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1h-8a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5" />
+                                </svg>
+                            </StyledNoteImage>
+                            <StyledNoteHeader onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveNoteOptionsId(activeNoteOptionsId === d.id ? null : d.id)
+                            }}
+                            >
+                                <Text style={{ width: "unset" }} as="h4" bold="true" text={d.name} />
+                                <svg fill="currentColor" viewBox="0 0 16 16">
+                                    <path fillRule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708" />
+                                </svg>
+                                <StyledNoteOptions $active={activeNoteOptionsId === d.id}>
+                                    <div onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleRestoreNote(d.id);
+                                        setActiveNoteOptionsId(null);
+                                    }}>Przywróć</div>
+                                </StyledNoteOptions>
+                            </StyledNoteHeader>
+                            <Text as="h6" text={formattedDate} />
+                        </StyledNote>
+                    )
+                })}
+            </NotesContainer>
+            {deletedNotes.length > 0 && <StyledClearTrashButton onClick={(e) => {
+                e.stopPropagation();
+                handleClearTrash();
+            }}>
+                Usuń na śmierć
+            </StyledClearTrashButton>}
 
             {isAddingNote &&
                 <StyledAddNoteBox onClick={(e) => e.stopPropagation()}>

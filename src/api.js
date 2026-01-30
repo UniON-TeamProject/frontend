@@ -218,6 +218,54 @@ export async function getAllNotes() {
   }
 }
 
+export async function getAllDeletedNotes() {
+  const token = sessionStorage.getItem("token");
+  if (!token)
+    return {
+      notes: [],
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+  try {
+    const resp = await fetch(`${API_HOST}/notes/getAllDeletedNotes`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!resp.ok) {
+      return {
+        notes: [],
+        errorCode: "FETCH_ERROR",
+        message: "Nie udało się pobrać dokumentów",
+      };
+    }
+    const notes = await resp.json();
+
+    const result = notes.map((note) => ({
+      id: note.id,
+      name: note.name,
+      content: note.content,
+      lastEdited: note.editTime,
+      createdAt: note.createdAt,
+    }));
+
+    return {
+      notes: result,
+      errorCode: "",
+      message: "",
+    };
+  } catch {
+    return {
+      notes: [],
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
+    };
+  }
+}
+
 export async function getNoteDetails(id) {
   const token = sessionStorage.getItem("token");
   if (!token)
@@ -370,8 +418,71 @@ export async function deleteNote(id) {
         "Content-Type": "application/json",
       },
     });
+
     const { errorCode, message } = await resp.json();
 
+    if (resp.ok) return { errorCode: "", message: "" };
+
+    return { errorCode, message };
+  } catch {
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
+    };
+  }
+}
+
+export async function clearTrash() {
+  const token = sessionStorage.getItem("token");
+  if (!token)
+    return {
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+
+  try {
+    const resp = await fetch(`${API_HOST}/notes/hardDeleteNotes`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (resp.status === 204) {
+      return { errorCode: "", message: "" };
+    }
+
+    const { errorCode, message } = await resp.json();
+
+    if (resp.ok) return { errorCode: "", message: "" };
+
+    return { errorCode, message };
+  } catch {
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
+    };
+  }
+}
+
+export async function restoreNote(id) {
+  const token = sessionStorage.getItem("token");
+  if (!token)
+    return {
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+  try {
+    const resp = await fetch(`${API_HOST}/notes/restoreNote/${id}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const { errorCode, message } = await resp.json();
     if (resp.ok) return { errorCode: "", message: "" };
 
     return { errorCode, message };
