@@ -331,7 +331,93 @@ export async function editNote(id, content) {
   }
 }
 
-export async function addNote(name) {
+export async function getNoteSuggestedTags(subjectId) {
+  const token = sessionStorage.getItem("token");
+  if (!token)
+    return {
+      tags: [],
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+  try {
+    const resp = await fetch(
+      `${API_HOST}/notes/getSuggestedTags/${subjectId}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!resp.ok) {
+      return {
+        tags: [],
+        errorCode: "FETCH_ERROR",
+        message: "Nie udało się pobrać tagów",
+      };
+    }
+
+    const tags = await resp.json();
+
+    return {
+      tags,
+      errorCode: "",
+      message: "",
+    };
+  } catch {
+    return {
+      tags: [],
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
+    };
+  }
+}
+
+export async function getNoteTags(id) {
+  const token = sessionStorage.getItem("token");
+  if (!token)
+    return {
+      name: "",
+      content: "",
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+  try {
+    const resp = await fetch(`${API_HOST}/notes/getNoteTags/${id}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!resp.ok) {
+      return {
+        tags: [],
+        errorCode: "FETCH_ERROR",
+        message: "Nie udało się pobrać tagów",
+      };
+    }
+
+    const tags = await resp.json();
+    return {
+      tags: tags,
+      errorCode: "",
+      message: "",
+    };
+  } catch {
+    return {
+      name: "",
+      content: "",
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
+    };
+  }
+}
+
+export async function addNote(name, path = "/") {
   const token = sessionStorage.getItem("token");
   if (!token)
     return {
@@ -349,7 +435,7 @@ export async function addNote(name) {
       },
       body: JSON.stringify({
         name,
-        path: "/",
+        path,
         content: "",
       }),
     });
@@ -361,6 +447,73 @@ export async function addNote(name) {
   } catch {
     return {
       id: undefined,
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
+    };
+  }
+}
+
+export async function addNoteTag(id, name) {
+  const token = sessionStorage.getItem("token");
+  if (!token)
+    return {
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+
+  try {
+    const resp = await fetch(`${API_HOST}/notes/addNoteTag`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: id,
+        tagName: name,
+      }),
+    });
+    if (resp.ok) return { errorCode: "", message: "" };
+
+    const { errorCode, message } = await resp.json();
+
+    return { errorCode, message };
+  } catch {
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
+    };
+  }
+}
+
+export async function removeNoteTag(id, name) {
+  const token = sessionStorage.getItem("token");
+  if (!token)
+    return {
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+
+  try {
+    const resp = await fetch(`${API_HOST}/notes/removeNoteTag`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: id,
+        tagName: name,
+      }),
+    });
+
+    if (resp.ok) return { errorCode: "", message: "" };
+
+    const { errorCode, message } = await resp.json();
+
+    return { errorCode, message };
+  } catch {
+    return {
       errorCode: "CONNECTION_ERROR",
       message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
     };
@@ -488,6 +641,139 @@ export async function restoreNote(id) {
     return { errorCode, message };
   } catch {
     return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
+    };
+  }
+}
+
+export async function getAllSubjects() {
+  const token = sessionStorage.getItem("token");
+  if (!token)
+    return {
+      subjects: [],
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena",
+    };
+  try {
+    const resp = await fetch(`${API_HOST}/subjects/getAllSubjects`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    if (!resp.ok)
+      return {
+        subjects: [],
+        errorCode: "FETCH_ERROR",
+        message: "Nie udało się pobrać folderów",
+      };
+    const subjects = await resp.json();
+    return { subjects, errorCode: "", message: "" };
+  } catch {
+    return {
+      subjects: [],
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem",
+    };
+  }
+}
+
+export async function getSubjectContent(id) {
+  const token = sessionStorage.getItem("token");
+  if (!token)
+    return {
+      subFolders: [],
+      notes: [],
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena",
+    };
+  try {
+    const resp = await fetch(`${API_HOST}/subjects/getSubjectContent/${id}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    if (!resp.ok)
+      return {
+        subFolders: [],
+        notes: [],
+        errorCode: "FETCH_ERROR",
+        message: "Błąd",
+      };
+    const data = await resp.json();
+    return { ...data, errorCode: "", message: "" };
+  } catch {
+    return {
+      subFolders: [],
+      notes: [],
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć",
+    };
+  }
+}
+
+export async function addSubject(name, path) {
+  const token = sessionStorage.getItem("token");
+  if (!token) return { errorCode: "TOKEN_UNDEFINED", message: "Brak tokena" };
+  try {
+    const resp = await fetch(`${API_HOST}/subjects/addSubject`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name, path }),
+    });
+    const data = await resp.json();
+    if (resp.ok) return { ...data, errorCode: "", message: "" };
+    return { errorCode: data.errorCode, message: data.message };
+  } catch {
+    return { errorCode: "CONNECTION_ERROR", message: "Nie udało się połączyć" };
+  }
+}
+
+export async function getSubjectSuggestedTags(subjectId) {
+  const token = sessionStorage.getItem("token");
+  if (!token)
+    return {
+      tags: [],
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+  try {
+    const resp = await fetch(
+      `${API_HOST}/subjects/getSuggestedTags/${subjectId}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!resp.ok) {
+      return {
+        tags: [],
+        errorCode: "FETCH_ERROR",
+        message: "Nie udało się pobrać tagów",
+      };
+    }
+
+    const tags = await resp.json();
+
+    return {
+      tags,
+      errorCode: "",
+      message: "",
+    };
+  } catch {
+    return {
+      tags: [],
       errorCode: "CONNECTION_ERROR",
       message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
     };
