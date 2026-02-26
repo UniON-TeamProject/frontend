@@ -4,7 +4,7 @@ import StarterKit from '@tiptap/starter-kit'
 import { useParams } from 'react-router-dom';
 import Typography from '@tiptap/extension-typography'
 import React, { useState, useEffect, useRef } from 'react'
-import { getNoteDetails, editNote, renameNote } from '../api'
+import { getNoteDetails, editNote, renameNote, addNoteTag, removeNoteTag, getNoteTags, getNoteSuggestedTags } from '../api'
 import styled from 'styled-components'
 import Image from '@tiptap/extension-image'
 import { Extension } from '@tiptap/core';
@@ -73,14 +73,14 @@ const TagsContainer = styled.div`
 const StyledTag = styled.div`
   padding:2px 10px;
   margin: 3px;
-  background-color:${({ theme }) => theme.colors.secondary};
+  background-color:${({ theme, $inactive }) => $inactive ? theme.colors.darkGrey : theme.colors.secondary};
   border-radius:10px;
   color:${({ theme }) => theme.colors.white};
   font-weight:500;
   font-size: 0.9rem;
   display:flex;
   flex-flow:row-nowrap;
-  cursor: default;
+  cursor: ${({ $inactive }) => $inactive ? 'pointer' : 'default'};
   >div{
     cursor:pointer;
     font-weight:700;
@@ -474,7 +474,8 @@ const TextEditor = () => {
   const [name, setName] = useState("");
   const [newName, setNewName] = useState("");
   const [content, setContent] = useState(undefined);
-  const [tags, setTags] = useState(["studia", "semestr1", "kolokwium1", "algorytmika"])
+  const [tags, setTags] = useState([])
+  const [suggestedTags, setSuggestedTags] = useState([])
   const [isAddingTag, setIsAddingTag] = useState(false)
   const [newTag, setNewTag] = useState('')
   const [noteNotFoundError, setNoteNotFoundError] = useState(false);
@@ -527,12 +528,14 @@ const TextEditor = () => {
         if (editor)
           editor.commands.setContent(result.content);
       }
+      handleFetchTags();
+      handleFetchSuggestedTags(result.folderId);
     }
   }
 
   const handleRenameNote = async () => {
     setErrorMessage("");
-    const result = await renameNote(id, newName);
+    const result = await renameNote(id, newName.trim());
     if (result.errorCode) {
       if (result.errorCode == "NOTE_NOT_FOUND") {
         setNoteNotFoundError(true);
@@ -546,6 +549,68 @@ const TextEditor = () => {
       }
     }
     setName(result.newName);
+  }
+
+  const handleFetchTags = async () => {
+    setErrorMessage("");
+    const result = await getNoteTags(id);
+    if (result.errorCode) {
+      if (result.errorCode == "NOTE_NOT_FOUND") {
+        setNoteNotFoundError(true);
+        setNoteNotFoundMessage(result.message);
+      }
+      else {
+        if (result.errorCode == "TOKEN_UNDEFINED")
+          navigate("/", { replace: true });
+        setErrorMessage(result.message);
+      }
+      return;
+    }
+    setTags(result.tags);
+  }
+
+  const handleFetchSuggestedTags = async (folderId) => {
+    if (!folderId) return;
+    const result = await getNoteSuggestedTags(folderId);
+    if (!result.errorCode) {
+      setSuggestedTags(result.tags);
+    }
+  }
+
+  const handleAddTag = async (tagName) => {
+    setErrorMessage("");
+    const result = await addNoteTag(id, tagName);
+    if (result.errorCode) {
+      if (result.errorCode == "NOTE_NOT_FOUND") {
+        setNoteNotFoundError(true);
+        setNoteNotFoundMessage(result.message);
+      }
+      else {
+        if (result.errorCode == "TOKEN_UNDEFINED")
+          navigate("/", { replace: true });
+        setErrorMessage(result.message);
+      }
+      return;
+    }
+    await handleFetchTags();
+  }
+
+  const handleRemoveTag = async (tagName) => {
+    setErrorMessage("");
+    const result = await removeNoteTag(id, tagName);
+    if (result.errorCode) {
+      if (result.errorCode == "NOTE_NOT_FOUND") {
+        setNoteNotFoundError(true);
+        setNoteNotFoundMessage(result.message);
+      }
+      else {
+        if (result.errorCode == "TOKEN_UNDEFINED")
+          navigate("/", { replace: true });
+        setErrorMessage(result.message);
+      }
+      return;
+    }
+    await handleFetchTags();
   }
 
   const save = async () => {
@@ -583,7 +648,7 @@ const TextEditor = () => {
   }, [editor, content])
 
   useEffect(() => {
-    if (newName && name != newName) {
+    if (newName && name != newName.trim()) {
       if (newNameTimeout.current)
         clearTimeout(newNameTimeout.current);
       newNameTimeout.current = setTimeout(() => {
@@ -594,16 +659,11 @@ const TextEditor = () => {
 
   const addTag = () => {
     const value = newTag.trim()
-
-    if (value && !tags.includes(value))
-      setTags(prev => [...prev, value])
-
     setNewTag('')
     setIsAddingTag(false)
-  }
 
-  const removeTag = (valueToRemove) => {
-    setTags(prev => prev.filter(tag => tag !== valueToRemove));
+    if (value && !tags.includes(value))
+      handleAddTag(value)
   }
 
   return (
@@ -633,7 +693,12 @@ const TextEditor = () => {
             {tags.map((tag, index) => (
               <StyledTag key={index}>
                 {tag}
-                <div onClick={() => { removeTag(tag) }}>x</div>
+                <div onClick={() => { handleRemoveTag(tag) }}>x</div>
+              </StyledTag>
+            ))}
+            {suggestedTags.filter(t => !tags.includes(t)).map((tag, index) => (
+              <StyledTag key={`suggested-${index}`} $inactive onClick={() => handleAddTag(tag)}>
+                {tag}
               </StyledTag>
             ))}
             {isAddingTag && (

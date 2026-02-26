@@ -9,12 +9,18 @@ const StyledContainer = styled.div`
    min-height: 100vh;
    text-align: center;
    position:relative;
+   @media(max-width:600px){
+        background-color: ${({ theme }) => theme.colors.white};
+    }
 `
 
 const StyledBox = styled.div`
     width: 600px;
     border-radius: 5px;
-    margin: 100px auto 15px auto;
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%, -50%);
     background-color: ${({ theme }) => theme.colors.white};
     padding: 30px 80px 50px 80px;
     cursor: default;
@@ -43,8 +49,8 @@ const WelcomePage = () => {
                 <Logo size="big" />
                 <StyledTitle>StudyUp!</StyledTitle>
                 <Text as="h3" style={{ padding: "20px 0" }} text="Notuj, ucz się, powtarzaj" />
-                <SubmitButton text="Logowanie" path="/logowanie" light />
-                <SubmitButton text="Stwórz konto" path="/rejestracja" light />
+                <SubmitButton text="Logowanie" path="/login" light />
+                <SubmitButton text="Stwórz konto" path="/register" light />
             </StyledBox>
         </StyledContainer>
     )

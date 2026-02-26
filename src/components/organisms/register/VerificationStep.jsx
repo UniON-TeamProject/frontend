@@ -6,21 +6,6 @@ import Text from '../../atoms/Text'
 import VerificationInput from "react-verification-input"
 import { verificationRequest, resendVerificationCode } from '../../../api'
 
-
-const SuccessPopup = styled.div`
-    position: fixed;
-    top: 20px;
-    width:600px;
-    left: 50%;
-    transform: translate(-50%, ${({ $visible }) => ($visible ? '0' : '-180%')});
-    transition: transform 0.4s ease;
-    border: 2px solid ${({ theme }) => theme.colors.success};
-    color: ${({ theme }) => theme.colors.text};
-    padding: 12px 24px;
-    border-radius: 5px;
-    z-index: 100;
-`
-
 const ResendVerificationCodeButton = styled.div`
     font-size:0.9rem;
     margin-top:10px;
@@ -38,10 +23,9 @@ const ResendVerificationCodeButton = styled.div`
 `;
 
 
-const VerificationStep = ({ email, setStep }) => {
+const VerificationStep = ({ email, setStep, setSuccessPopupActive, setSuccessPopupMessage }) => {
     const navigate = useNavigate();
-    const [successPopupActive, setSuccessPopupActive] = useState(false);
-    const [successPopupMessage, setSuccessPopupMessage] = useState("");
+
     const [errorMessage, setErrorMessage] = useState("");
     const [verificationCode, setVerificationCode] = useState("");
     const [verificationCodeError, setVerificationCodeError] = useState(false);
@@ -79,11 +63,11 @@ const VerificationStep = ({ email, setStep }) => {
 
     return (
         <>
-            <SuccessPopup $visible={successPopupActive}>{successPopupMessage}</SuccessPopup>
             <Text text={`Na adres ${email} został wysłany kod weryfikacyjny`} />
             {errorMessage && <Text color="danger" text={errorMessage} />}
             <Text text="Wpisz kod weryfikacyjny:" />
             <VerificationInput
+                autoFocus
                 validChars="0-9"
                 inputProps={{ inputMode: "numeric" }}
                 classNames={{
