@@ -637,10 +637,9 @@ const FlashcardsPage = () => {
                                     <>
                                         <InvisibleOverlay onClick={() => setIsLearningMenuOpen(false)} />
                                         <LearningDropdown>
-                                            <LearningDropdownItem onClick={async () => {
+                                            <LearningDropdownItem onClick={() => {
                                                 setIsLearningMenuOpen(false);
-                                                await resetFlashcardSetProgress(currentSet?.id);
-                                                navigate(`/learnign/fast/${currentSet?.id}`);
+                                                navigate(`/learning/fast/${currentSet?.id}`);
                                             }}>
                                                 Szybka nauka
                                             </LearningDropdownItem>

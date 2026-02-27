@@ -327,7 +327,7 @@ export default function FastLearningPage() {
           <button onClick={() => {
             const confirmSave = window.confirm("Czy chcesz przerwać sesję nauki?\n\nTwój dotychczasowy postęp został automatycznie zapisany. Będziesz mógł wznowić tę sesję klikając 'Chcesz kontynuować ostatnią naukę'.");
             if (confirmSave) {
-              navigate(`/learnign/set/${setId}`);
+              navigate(`/learning/set/${setId}`);
             }
           }}>
             ✖ Zakończ i zapisz
