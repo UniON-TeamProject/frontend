@@ -109,7 +109,7 @@ const Login = () => {
 
     useEffect(() => {
         if (getToken())
-            navigate("/notes");
+            navigate("/home");
     }, []);
 
     const handleSubmit = () => {
@@ -131,7 +131,7 @@ const Login = () => {
             setErrorMessage(result.message);
         else {
             saveToken(result.token, rememberMe);
-            navigate('/notes');
+            navigate('/home');
         }
     }
 
@@ -140,7 +140,7 @@ const Login = () => {
             <StyledContent>
                 <StyledBox>
                     <Logo size="small" />
-                    <Text bold="true" as="h2" text="StudyUp!" />
+                    <Text bold="true" as="h2" text="UniON" />
                     <Text as="h3" bold="true" style={{ margin: "20px 0 5px 0" }} text="Zaloguj się" />
                     <Text text="Wpisz swój login i hasło, aby zalogować się do konta" />
                     {errorMessage &&

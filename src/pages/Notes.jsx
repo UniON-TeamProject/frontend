@@ -2,9 +2,9 @@ import styled from 'styled-components';
 import React, { useState, useEffect } from 'react';
 import SubmitButton from '../components/atoms/SubmitButton'
 import Text from '../components/atoms/Text'
-import { addNote, deleteNote, clearTrash, restoreNote, getFolderSuggestedTags, getRootFolder, getFolderContent, addFolder, deleteFolder, restoreFolder, clearFolderTrash, renameNote, renameFolder, getAllDeletedNotes, getAllDeletedFolders, getDeletedRootContent, resolveFolderByPath, getNoteTags, addNoteTag, removeNoteTag, getNoteSuggestedTags, getFolderTags, addFolderTag, removeFolderTag } from '../api';
+import { addNote, deleteNote, clearTrash, restoreNote, getFolderSuggestedTags, getRootFolder, getFolderContent, addFolder, deleteFolder, restoreFolder, clearFolderTrash, renameNote, renameFolder, getAllDeletedNotes, getAllDeletedFolders, getDeletedRootContent, resolveFolderByPath, getNoteTags, addNoteTag, removeNoteTag, getNoteSuggestedTags, getFolderTags, addFolderTag, removeFolderTag, moveNote, moveFolder, getAllFolders } from '../api';
 import { useNavigate, useParams } from 'react-router-dom'
-import { getToken } from '../token'
+import { getToken, parseJwt } from '../token'
 import Input from '../components/atoms/Input';
 
 const StyledContainer = styled.div`
@@ -114,7 +114,6 @@ const StyledOptions = styled.div`
 const StyledItem = styled.div`
     width:125px;
     cursor:pointer;
- 
 `
 
 const StyledNoteImage = styled.div`
@@ -189,6 +188,7 @@ const StyledItemOptions = styled.div`
         border-radius: 5px;
         border:none;
         font-weight:700;
+        color:${({ theme }) => theme.colors.text};
         background-color:${({ theme }) => theme.colors.lightGrey};
     }
 
@@ -198,10 +198,11 @@ const StyledItemOption = styled.div`
     cursor:pointer;
     display: flex; 
     align-items: center;
-
+    font-weight:600;
+    padding:5px 0;
+    color:${({ theme }) => theme.colors.text};
     &.danger{
         color:${({ theme }) => theme.colors.danger};
-        font-weight:600;
         >svg{
             color:${({ theme }) => theme.colors.danger};
         }
@@ -210,9 +211,9 @@ const StyledItemOption = styled.div`
         width: 18px;
         margin-right: 8px;
         flex-shrink: 0;
+        color:${({ theme }) => theme.colors.text};
     } 
 `
-
 
 const TagsContainer = styled.div`
   width:100%;
@@ -275,6 +276,30 @@ const StyledTagInput = styled.input`
   }
 `
 
+const StyledTreeItem = styled.div`
+    padding-left: ${({ $depth }) => $depth * 20}px;
+`
+
+const StyledTreeItemLabel = styled.div`
+    display: flex;
+    align-items: center;
+    padding: 5px 8px;
+    cursor: pointer;
+    border-radius:5px;
+    background-color: ${({ $selected, $disabled, theme }) =>
+        $disabled ? theme.colors.lightGrey : $selected ? '#e0c8dc' : 'transparent'};
+    opacity: ${({ $disabled }) => $disabled ? 0.5 : 1};
+    pointer-events: ${({ $disabled }) => $disabled ? 'none' : 'auto'};
+    &:hover {
+        background-color: ${({ $selected, $disabled }) =>
+        $disabled ? undefined : $selected ? '#e0c8dc' : '#f0f0f0'};
+    }
+    > svg {
+        width: 16px;
+        margin-right: 6px;
+        flex-shrink: 0;
+    }
+`
 
 const StyledPopup = styled.div`
     position:absolute;
@@ -291,14 +316,6 @@ const StyledPopup = styled.div`
         border:1px solid black;
     }   
 `
-
-const parseJwt = (token) => {
-    try {
-        return JSON.parse(atob(token.split('.')[1]));
-    } catch (e) {
-        return null;
-    }
-};
 
 const Notes = () => {
     const params = useParams();
@@ -339,6 +356,12 @@ const Notes = () => {
     const [itemSuggestedTags, setItemSuggestedTags] = useState([]);
     const [isAddingItemTag, setIsAddingItemTag] = useState(false);
     const [newItemTag, setNewItemTag] = useState('');
+    const [isMoving, setIsMoving] = useState(false);
+    const [movingItem, setMovingItem] = useState(null);
+    const [moveTree, setMoveTree] = useState([]);
+    const [expandedMoveIds, setExpandedMoveIds] = useState(new Set());
+    const [selectedMovePath, setSelectedMovePath] = useState(null);
+    const [moveErrorMessage, setMoveErrorMessage] = useState("");
 
     const handleFetchItemTags = async (id, type) => {
         const suggestedId = type === 'folder' ? id : currentFolder?.id;
@@ -368,6 +391,111 @@ const Notes = () => {
         } else {
             await handleFetchItemTags(id, type);
         }
+    };
+
+    const buildFolderTree = (folders) => {
+        const nonRoot = folders.filter(f => !(f.name === "/" && f.path === "/"));
+        const byFullPath = {};
+        const enriched = nonRoot.map(f => {
+            const fullPath = f.path === "/" ? "/" + f.name : f.path + "/" + f.name;
+            const node = { ...f, fullPath, children: [] };
+            byFullPath[fullPath] = node;
+            return node;
+        });
+        const roots = [];
+        enriched.forEach(node => {
+            if (node.path === "/") {
+                roots.push(node);
+            } else if (byFullPath[node.path]) {
+                byFullPath[node.path].children.push(node);
+            } else {
+                roots.push(node);
+            }
+        });
+        return roots;
+    };
+
+    const handleOpenMovePopup = async (id, type, name) => {
+        setMovingItem({ id, type, name });
+        setSelectedMovePath(null);
+        setMoveErrorMessage("");
+        setExpandedMoveIds(new Set());
+        const res = await getAllFolders();
+        if (res.errorCode) {
+            if (res.errorCode === "TOKEN_UNDEFINED") navigate("/", { replace: true });
+            setMoveErrorMessage(res.message);
+            setMoveTree([]);
+        } else {
+            setMoveTree(buildFolderTree(res.folders || []));
+        }
+        setIsMoving(true);
+        setActiveFolderOptionsId(null);
+        setActiveNoteOptionsId(null);
+    };
+
+    const handleMove = async () => {
+        if (!movingItem || selectedMovePath === null) return;
+        setMoveErrorMessage("");
+        const res = movingItem.type === 'note'
+            ? await moveNote(movingItem.id, selectedMovePath)
+            : await moveFolder(movingItem.id, selectedMovePath);
+        if (res.errorCode) {
+            if (res.errorCode === "TOKEN_UNDEFINED") navigate("/", { replace: true });
+            setMoveErrorMessage(res.message);
+        } else {
+            setIsMoving(false);
+            setMovingItem(null);
+            await refreshCurrentView();
+        }
+    };
+
+    const renderMoveTree = (nodes, depth = 1) => {
+        return nodes.map(node => {
+            const nodePath = node.fullPath;
+            const isExpanded = expandedMoveIds.has(node.id);
+            const isSelected = selectedMovePath === nodePath;
+            const isCurrentFolder = currentFolder && currentFolder.id === node.id;
+            const isMovingThis = movingItem?.type === 'folder' && movingItem.id === node.id;
+            const isDisabled = isCurrentFolder || isMovingThis;
+
+            return (
+                <React.Fragment key={node.id}>
+                    <StyledTreeItem $depth={depth}>
+                        <StyledTreeItemLabel
+                            $selected={isSelected}
+                            $disabled={isDisabled}
+                            onClick={() => {
+                                if (!isDisabled) setSelectedMovePath(nodePath);
+                            }}
+                        >
+                            {node.children && node.children.length > 0 && (
+                                <svg
+                                    fill="currentColor" viewBox="0 0 16 16"
+                                    style={{ cursor: 'pointer', transform: isExpanded ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s' }}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setExpandedMoveIds(prev => {
+                                            const next = new Set(prev);
+                                            if (next.has(node.id)) next.delete(node.id);
+                                            else next.add(node.id);
+                                            return next;
+                                        });
+                                    }}
+                                >
+                                    <path fillRule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708" />
+                                </svg>
+                            )}
+                            {(!node.children || node.children.length === 0) && <span style={{ width: 16, marginRight: 6, flexShrink: 0, display: 'inline-block' }} />}
+                            <svg fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139q.323-.119.684-.12h5.396z" />
+                            </svg>
+                            <span style={{ marginLeft: 4 }}>{node.name}</span>
+                        </StyledTreeItemLabel>
+                    </StyledTreeItem>
+                    {isExpanded && node.children && renderMoveTree(node.children, depth + 1)}
+                </React.Fragment>
+            );
+        });
     };
 
     const handleRenameNote = async (id, newName) => {
@@ -663,6 +791,9 @@ const Notes = () => {
             setItemSuggestedTags([]);
             setIsAddingItemTag(false);
             setNewItemTag('');
+            setIsMoving(false);
+            setMovingItem(null);
+            setMoveErrorMessage("");
         }}>
             <StyledUserHeader>
                 <StyledName>Witaj, {username}!</StyledName>
@@ -834,6 +965,15 @@ const Notes = () => {
                                                 </StyledAddTagButton>
                                             )}
                                         </TagsContainer>
+                                        <StyledItemOption onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleOpenMovePopup(folder.id, 'folder', folder.name);
+                                        }}>
+                                            <svg fill="currentColor" viewBox="0 0 16 16">
+                                                <path fillRule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8" />
+                                            </svg>
+                                            Przenieś
+                                        </StyledItemOption>
                                         <StyledItemOption className="danger" onClick={(e) => {
                                             e.stopPropagation();
                                             handleDeleteFolder(folder.id);
@@ -939,6 +1079,15 @@ const Notes = () => {
                                                     </StyledAddTagButton>
                                                 )}
                                             </TagsContainer>
+                                            <StyledItemOption onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleOpenMovePopup(d.id, 'note', d.name);
+                                            }}>
+                                                <svg fill="currentColor" viewBox="0 0 16 16">
+                                                    <path fillRule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8" />
+                                                </svg>
+                                                Przenieś
+                                            </StyledItemOption>
                                             <StyledItemOption className="danger" onClick={(e) => {
                                                 e.stopPropagation();
                                                 handleDeleteNote(d.id);
@@ -1091,6 +1240,36 @@ const Notes = () => {
                         }} />
                         <SubmitButton text="Anuluj" color="dark" light onClick={() => {
                             setIsConfirmingTrashClear(false);
+                        }} />
+                    </div>
+                </StyledPopup>
+            }
+            {isMoving &&
+                <StyledPopup onClick={(e) => e.stopPropagation()}>
+                    <Text bold="true" as="h2" text={`Przenieś: ${movingItem?.name || ''}`} />
+                    {moveErrorMessage && <Text color="danger" text={moveErrorMessage} />}
+                    <div style={{ maxHeight: '300px', overflowY: 'auto', margin: '15px 0', border: '1px solid #ddd', borderRadius: '5px', padding: '8px' }}>
+                        <StyledTreeItem $depth={0}>
+                            <StyledTreeItemLabel
+                                $selected={selectedMovePath === '/'}
+                                $disabled={!currentFolder}
+                                onClick={() => { if (currentFolder) setSelectedMovePath('/'); }}
+                            >
+                                <svg fill="currentColor" viewBox="0 0 16 16" style={{ width: 16, marginRight: 6, flexShrink: 0 }}>
+                                    <path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5v-4h2v4a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM2.5 14V7.707l5.5-5.5 5.5 5.5V14H10v-4a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v4z" />
+                                </svg>
+                                <span style={{ marginLeft: 4 }}>/</span>
+                            </StyledTreeItemLabel>
+                        </StyledTreeItem>
+                        {renderMoveTree(moveTree)}
+                    </div>
+                    <div style={{ display: "flex", gap: "10px" }}>
+                        <SubmitButton text="Zatwierdź" color="dark" onClick={handleMove}
+                            style={{ opacity: selectedMovePath === null ? 0.5 : 1, pointerEvents: selectedMovePath === null ? 'none' : 'auto' }} />
+                        <SubmitButton text="Anuluj" color="dark" light onClick={() => {
+                            setIsMoving(false);
+                            setMovingItem(null);
+                            setMoveErrorMessage("");
                         }} />
                     </div>
                 </StyledPopup>

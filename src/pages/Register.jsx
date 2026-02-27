@@ -99,7 +99,7 @@ const Register = () => {
             <StyledContent>
                 <StyledBox>
                     <Logo size="small" />
-                    <Text as="h2" bold="true" text="StudyUp!" />
+                    <Text as="h2" bold="true" text="UniON" />
                     {step == 1 &&
                         <EmailStep
                             email={email}

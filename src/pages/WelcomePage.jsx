@@ -47,7 +47,7 @@ const WelcomePage = () => {
         <StyledContainer>
             <StyledBox>
                 <Logo size="big" />
-                <StyledTitle>StudyUp!</StyledTitle>
+                <StyledTitle>UniON</StyledTitle>
                 <Text as="h3" style={{ padding: "20px 0" }} text="Notuj, ucz się, powtarzaj" />
                 <SubmitButton text="Logowanie" path="/login" light />
                 <SubmitButton text="Stwórz konto" path="/register" light />

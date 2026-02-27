@@ -1220,6 +1220,68 @@ export async function restoreFolder(id) {
   }
 }
 
+export async function moveNote(id, destinationPath) {
+  const token = getToken();
+  if (!token)
+    return {
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+  try {
+    const resp = await fetch(`${API_HOST}/notes/moveNote`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ id, destinationPath }),
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+
+    const { errorCode, message } = await resp.json();
+    if (resp.ok) return { errorCode: "", message: "" };
+
+    return { errorCode, message };
+  } catch {
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
+    };
+  }
+}
+
+export async function moveFolder(id, destinationPath) {
+  const token = getToken();
+  if (!token)
+    return {
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+  try {
+    const resp = await fetch(`${API_HOST}/folders/moveFolder`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ id, destinationPath }),
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+
+    const { errorCode, message } = await resp.json();
+    if (resp.ok) return { errorCode: "", message: "" };
+
+    return { errorCode, message };
+  } catch {
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
+    };
+  }
+}
+
 export async function clearFolderTrash() {
   const token = getToken();
   if (!token)

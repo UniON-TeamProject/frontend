@@ -2,6 +2,7 @@ import { Routes, Route, BrowserRouter } from 'react-router-dom';
 import { React } from 'react'
 import Notes from './pages/Notes';
 import Login from './pages/Login';
+import Home from './pages/Home';
 import Logout from './pages/Logout';
 import Register from './pages/Register';
 import TextEditor from './pages/TextEditor';
@@ -22,6 +23,7 @@ function App() {
         <GlobalStyle />
         <Routes>
           <Route path="/" element={<WelcomePage />} />
+          <Route path="/home" element={<Home />} />
           <Route path="/notes/*" element={<ProtectedRoute><Notes /></ProtectedRoute>} />
           <Route path="/login" element={<Login />} />
           <Route path="/logout" element={<Logout />} />

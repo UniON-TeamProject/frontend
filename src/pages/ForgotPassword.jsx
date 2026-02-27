@@ -186,7 +186,7 @@ const ForgotPassword = () => {
             <StyledContent>
                 <StyledBox>
                     <Logo size="big" />
-                    <Text as="h2" bold="true" text="StudyUp!" />
+                    <Text as="h2" bold="true" text="UniON" />
                     {step == 1 &&
                         <>
                             <StyledTitle>Zresetuj hasło</StyledTitle>
