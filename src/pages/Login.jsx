@@ -6,23 +6,36 @@ import Input from '../components/atoms/Input'
 import Text from '../components/atoms/Text'
 import Logo from '../components/atoms/Logo'
 import { loginRequest } from '../api'
+import { getToken, saveToken } from '../token'
 
 const StyledContainer = styled.div`
-   width:100%;
-   min-height:100vh;
-   text-align:center;
+    width:100%;
+    min-height:100vh;
+    height:100%;
+    @media(max-width:600px){
+        background-color: ${({ theme }) => theme.colors.white};
+    }
+`
+
+const StyledContent = styled.div`
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%, -50%);
+    @media(max-width:600px){
+        width:100%;
+    }
 `
 
 const StyledBox = styled.div`
     width:600px;
     border-radius:5px;
     background-color: ${({ theme }) => theme.colors.white};
-    margin:100px auto 15px auto;
     padding:30px 80px;
+    margin-bottom:15px;
     cursor:default;
     @media(max-width:600px){
         width:100%;
-        margin:0 auto;
         padding:30px 40px;
     }
 `
@@ -41,6 +54,7 @@ const StyledRegisterButton = styled.div`
 const StyledLine = styled.div`
     width:100%;
     position:relative;
+    text-align:center;
     padding: 20px 0;
     >span{
         position:relative;
@@ -61,7 +75,7 @@ const StyledLine = styled.div`
 }
 `
 
-const StyledContent = styled.div`
+const StyledRememberMeAndForgotPassword = styled.div`
     display: flex;
     flex-flow: row nowrap;
     justify-content: space-between;
@@ -85,7 +99,7 @@ const StyledLink = styled(Link)`
 const Login = () => {
     const [login, setLogin] = useState("");
     const [password, setPassword] = useState("")
-    const [rememberMe, setRememberMe] = useState(false);
+    const [rememberMe, setRememberMe] = useState(true);
 
     const [errorMessage, setErrorMessage] = useState("");
     const [loginErrorMessage, setLoginErrorMessage] = useState(false);
@@ -94,10 +108,21 @@ const Login = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const token = sessionStorage.getItem("token");
-        if (token)
+        if (getToken())
             navigate("/home");
     }, []);
+
+    const handleSubmit = () => {
+        const loginEmpty = !login;
+        const passwordEmpty = !password;
+
+        if (loginEmpty) setLoginErrorMessage("Wypełnij pole");
+        if (passwordEmpty) setPasswordErrorMessage("Wypełnij pole");
+
+        if (!loginEmpty && !passwordEmpty) {
+            handleLogin();
+        }
+    }
 
     const handleLogin = async () => {
         setErrorMessage("");
@@ -105,77 +130,76 @@ const Login = () => {
         if (result.errorCode)
             setErrorMessage(result.message);
         else {
-            sessionStorage.setItem("token", result.token);
+            saveToken(result.token, rememberMe);
             navigate('/home');
         }
     }
 
     return (
         <StyledContainer>
-            <StyledBox>
-                <Logo size="small" />
-                <Text bold="true" as="h2" text="StudyUp!" />
-                <Text as="h3" bold="true" style={{ margin: "20px 0 5px 0" }} text="Zaloguj się" />
-                <Text text="Wpisz swój login i hasło, aby zalogować się do konta" />
-                {errorMessage &&
-                    <Text color="danger" text={errorMessage} />}
+            <StyledContent>
+                <StyledBox>
+                    <Logo size="small" />
+                    <Text bold="true" as="h2" text="UniON" />
+                    <Text as="h3" bold="true" style={{ margin: "20px 0 5px 0" }} text="Zaloguj się" />
+                    <Text text="Wpisz swój login i hasło, aby zalogować się do konta" />
+                    {errorMessage &&
+                        <Text color="danger" text={errorMessage} />}
 
-                {[loginErrorMessage, passwordErrorMessage]
-                    .filter((v, i, a) => a.indexOf(v) === i)
-                    .map((error, idx) => (
-                        <Text key={idx} color="danger" text={error} />
-                    ))
-                }
-                < Input
-                    type="text"
-                    name="login"
-                    placeholder="Email lub nazwa użytkownika"
-                    value={login}
-                    mode={loginErrorMessage ? "error" : "normal"}
-                    onChange={(e) => {
-                        setLogin(e.target.value);
-                        setLoginErrorMessage("");
-                    }}
-                />
-                <Input
-                    type="password"
-                    name="password"
-                    placeholder="Hasło"
-                    mode={passwordErrorMessage ? "error" : "normal"}
-                    value={password}
-                    onChange={(e) => {
-                        setPassword(e.target.value);
-                        setPasswordErrorMessage("");
-                    }}
-                />
-                <StyledContent>
-                    <StyledCheckbox>
-                        <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} /> Zapamiętaj mnie
-                    </StyledCheckbox>
-                    <StyledLink to="/resetowanie-hasla">Nie pamiętasz hasła?</StyledLink>
-                </StyledContent>
-                <SubmitButton text="Kontynuuj" color="dark" onClick={(e) => {
-                    e.preventDefault();
-                    const loginEmpty = !login;
-                    const passwordEmpty = !password;
-
-                    if (loginEmpty) setLoginErrorMessage("Wypełnij pole");
-                    if (passwordEmpty) setPasswordErrorMessage("Wypełnij pole");
-
-                    if (!loginEmpty && !passwordEmpty) {
-                        handleLogin();
+                    {[loginErrorMessage, passwordErrorMessage]
+                        .filter((v, i, a) => a.indexOf(v) === i)
+                        .map((error, idx) => (
+                            <Text key={idx} color="danger" text={error} />
+                        ))
                     }
-                }} />
-                <StyledLine><span>lub</span></StyledLine>
-                <SubmitButton text="Kontynuuj z Google" path="/" imgPath="./icons/google.png" color="light" />
-                <SubmitButton text="Kontynuuj z Apple" path="/" imgPath="./icons/apple.png" color="light" />
-            </StyledBox>
-            <StyledRegisterButton>
-                <p>Nie masz konta?</p>
-                <StyledLink to="/rejestracja">Zarejestruj się</StyledLink>
-            </StyledRegisterButton>
-        </StyledContainer >
-
+                    < Input
+                        type="text"
+                        name="login"
+                        placeholder="Email lub nazwa użytkownika"
+                        value={login}
+                        mode={loginErrorMessage ? "error" : "normal"}
+                        onChange={(e) => {
+                            setLogin(e.target.value);
+                            setLoginErrorMessage("");
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleSubmit();
+                        }}
+                    />
+                    <Input
+                        type="password"
+                        name="password"
+                        placeholder="Hasło"
+                        mode={passwordErrorMessage ? "error" : "normal"}
+                        value={password}
+                        onChange={(e) => {
+                            setPassword(e.target.value);
+                            setPasswordErrorMessage("");
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleSubmit();
+                        }}
+                    />
+                    <StyledRememberMeAndForgotPassword>
+                        <StyledCheckbox>
+                            <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} /> Zapamiętaj mnie
+                        </StyledCheckbox>
+                        <StyledLink to="/reset-password">Nie pamiętasz hasła?</StyledLink>
+                    </StyledRememberMeAndForgotPassword>
+                    <SubmitButton text="Kontynuuj" color="dark" onClick={(e) => {
+                        e.preventDefault();
+                        handleSubmit();
+                    }} />
+                    <StyledLine><span>lub</span></StyledLine>
+                    <SubmitButton text="Kontynuuj z Google" path="/" imgPath="./icons/google.png" color="light" />
+                    <SubmitButton text="Kontynuuj z Apple" path="/" imgPath="./icons/apple.png" color="light" />
+                </StyledBox>
+                <StyledRegisterButton>
+                    <p>Nie masz konta?</p>
+                    <StyledLink to="/register">Zarejestruj się</StyledLink>
+                </StyledRegisterButton>
+            </StyledContent>
+        </StyledContainer>
     )
 }
 

@@ -18,10 +18,10 @@ const StyledInput = styled.input`
     outline: ${({ theme, $mode }) => $mode == "error" ? `2px solid ${theme.colors.danger}` : $mode == "success" ? `2px solid ${theme.colors.success}` : `1px solid ${theme.colors.darkGrey}`};
 `
 
-const Input = ({ name, type, placeholder, onChange, onBlur, value, mode }) => {
+const Input = ({ name, type, placeholder, onChange, onBlur, onKeyDown, value, mode, autoFocus, autoComplete }) => {
     return (
         <StyledContainer>
-            <StyledInput type={type} name={name} value={value} placeholder={placeholder} onChange={onChange} onBlur={onBlur} $mode={mode}></StyledInput>
+            <StyledInput type={type} name={name} value={value} placeholder={placeholder} onChange={onChange} onBlur={onBlur} onKeyDown={onKeyDown} $mode={mode} autoFocus={autoFocus} autoComplete={autoComplete}></StyledInput>
         </StyledContainer>
     )
 }

@@ -160,6 +160,25 @@ const AccountDataStep = ({ username, password, email, emailRegex, setStep, confi
         }
     }
 
+    const handleSubmit = () => {
+        const userOk = validateUsername();
+        const passOk = validatePassword();
+        const confirmOk = validateConfirmPassword();
+
+        if (userOk && passOk && confirmOk && usernameValid) {
+            if (!emailRegex.test(email)) {
+                setEmailErrorMessage("Niepoprawny adres e-mail");
+                setStep(1);
+                return;
+            }
+            handleRegister();
+        }
+        if (!passOk)
+            setPasswordRegexVisible(true);
+        if (!userOk)
+            setUsernameError(true);
+    }
+
     const handleRegister = async () => {
         setErrorMessage("");
         const result = await registerRequest(email, username, password, confirmPassword);
@@ -195,9 +214,11 @@ const AccountDataStep = ({ username, password, email, emailRegex, setStep, confi
                 ))}
 
             <Input
+                autoFocus
                 placeholder="Nazwa użytkownika"
                 type="text"
                 name="username"
+                autoComplete="off"
                 mode={usernameError ? "error" : usernameValid ? "success" : "normal"}
                 value={username}
                 onChange={e => setUsername(e.target.value)}
@@ -206,6 +227,7 @@ const AccountDataStep = ({ username, password, email, emailRegex, setStep, confi
                 type="password"
                 placeholder="Hasło"
                 name="password"
+                autoComplete="new-password"
                 value={password}
                 mode={passwordError ? "error" : "normal"}
                 onChange={e => {
@@ -218,9 +240,11 @@ const AccountDataStep = ({ username, password, email, emailRegex, setStep, confi
                 type="password"
                 placeholder="Powtórz hasło"
                 name="confirmPassword"
+                autoComplete="new-password"
                 mode={confirmPasswordError ? "error" : "normal"}
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleSubmit(); }}
             />
             {passwordRegexVisible &&
                 <StyledPasswordRequirementsList>Wymagania dotyczące hasła:
@@ -243,23 +267,7 @@ const AccountDataStep = ({ username, password, email, emailRegex, setStep, confi
             }
             <SubmitButton text="Kontynuuj" color="dark" onClick={e => {
                 e.preventDefault();
-
-                const userOk = validateUsername();
-                const passOk = validatePassword();
-                const confirmOk = validateConfirmPassword();
-
-                if (userOk && passOk && confirmOk && usernameValid) {
-                    if (!emailRegex.test(email)) {
-                        setEmailErrorMessage("Niepoprawny adres e-mail");
-                        setStep(1);
-                        return;
-                    }
-                    handleRegister();
-                }
-                if (!passOk)
-                    setPasswordRegexVisible(true);
-                if (!userOk)
-                    setUsernameError(true);
+                handleSubmit();
             }}
             />
             <StyledTermsClause>

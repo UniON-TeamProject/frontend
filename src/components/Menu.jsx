@@ -23,8 +23,8 @@ const StyledLink = styled(Link)`
 const Menu = () => {
     return (
         <StyledMenu>
-            <StyledLink to="/logowanie">Logowanie</StyledLink>
-            <StyledLink to="/rejestracja">Rejestracja</StyledLink>
+            <StyledLink to="/login">Logowanie</StyledLink>
+            <StyledLink to="/register">Rejestracja</StyledLink>
         </StyledMenu>
     )
 

@@ -1,11 +1,12 @@
 import { useNavigate } from 'react-router-dom'
 import React, { useEffect } from 'react'
+import { removeToken } from '../token'
 
 const Logout = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        sessionStorage.removeItem("token");
+        removeToken();
         navigate("/");
     }, []);
 

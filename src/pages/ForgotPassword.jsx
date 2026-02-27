@@ -9,21 +9,34 @@ import { sendResetPasswordCode, resetPassword } from '../api'
 import VerificationInput from "react-verification-input"
 
 const StyledContainer = styled.div`
-   width:100%;
-   min-height:100vh;
-   text-align:center;
+    width:100%;
+    min-height:100vh;
+    height:100%;
+    @media(max-width:600px){
+        background-color: ${({ theme }) => theme.colors.white};
+    }
+`
+
+const StyledContent = styled.div`
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%, -50%);
+    text-align: center;
+    @media(max-width:600px){
+        width:100%;
+    }
 `
 
 const StyledBox = styled.div`
     width:600px;
     border-radius:5px;
     background-color: ${({ theme }) => theme.colors.white};
-    margin:100px auto 15px auto;
     padding:30px 80px;
+    margin-bottom:15px;
     cursor:default;
     @media(max-width:600px){
         width:100%;
-        margin:0 auto;
         padding:30px 40px;
     }
 `
@@ -76,6 +89,7 @@ const ForgotPassword = () => {
     const [confirmPassword, setConfirmPassword] = useState("")
 
     const [errorMessage, setErrorMessage] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
     const [emailErrorMessage, setEmailErrorMessage] = useState(false);
     const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
     const [confirmPasswordErrorMessage, setConfirmPasswordErrorMessage] = useState("");
@@ -92,9 +106,12 @@ const ForgotPassword = () => {
         setErrorMessage("");
         const result = await sendResetPasswordCode(email);
         if (result.errorCode) {
-            setErrorMessage(result.message);
-            if (result.errorCode == "SUCCESS")
+            if (result.errorCode == "SUCCESS") {
+                setSuccessMessage(result.errorMessage);
                 setStep(2);
+            }
+            else
+                setErrorMessage(result.errorMessage);
         }
         return;
     }
@@ -166,116 +183,130 @@ const ForgotPassword = () => {
 
     return (
         <StyledContainer>
-            <StyledBox>
-                <Logo size="big" />
-                <Text as="h2" bold="true" text="StudyUp!" />
-                {step == 1 &&
-                    <>
+            <StyledContent>
+                <StyledBox>
+                    <Logo size="big" />
+                    <Text as="h2" bold="true" text="UniON" />
+                    {step == 1 &&
+                        <>
+                            <StyledTitle>Zresetuj hasło</StyledTitle>
+                            <Text text="Wpisz swój adres e-mail, na który ma zostać wysłane przypomnienie hasła" />
+                            {errorMessage && <StyledMessage color="danger">{errorMessage}</StyledMessage>}
+                            {emailErrorMessage && <Text as="h2" id=" melo" color="danger" text={emailErrorMessage} />}
+                            <Input
+                                autoFocus
+                                type="text"
+                                name="email"
+                                placeholder="Email"
+                                value={email}
+                                mode={emailError ? "error" : "normal"}
+                                onChange={(e) => {
+                                    setEmailErrorMessage("");
+                                    setEmail(e.target.value);
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && validateEmail())
+                                        handleSendResetPasswordCode();
+                                }}
+                            />
+                            <SubmitButton text="Wyślij e-mail resetujący hasło" onClick={e => {
+                                e.preventDefault();
+                                if (validateEmail())
+                                    handleSendResetPasswordCode();
+                            }} color="dark" />
+                        </>
+                    }
+                    {step == 2 && <>
                         <StyledTitle>Zresetuj hasło</StyledTitle>
-                        <Text text="Wpisz swój adres e-mail, na który ma zostać wysłane przypomnienie hasła" />
-                        {errorMessage && <StyledMessage color="danger">{errorMessage}</StyledMessage>}
-                        {emailErrorMessage && <Text color="danger" text={emailErrorMessage} />}
 
-                        <Input
-                            type="text"
-                            name="email"
-                            placeholder="Email"
-                            value={email}
-                            mode={emailError ? "error" : "normal"}
+                        {errorMessage && <Text color="danger" text={errorMessage} />}
+                        {successMessage && <Text color="success" text={successMessage} />}
+                        {[passwordErrorMessage, confirmPasswordErrorMessage]
+                            .filter((v, i, a) => a.indexOf(v) === i)
+                            .map((error, idx) => (
+                                <Text key={idx} color="danger" text={error} />
+                            ))}
+
+                        <Text text="Wpisz kod wysłany na podany adres e-mail oraz nowe hasło" />
+                        <VerificationInput
+                            validChars="0-9"
+                            inputProps={{ inputMode: "numeric" }}
+                            classNames={{
+                                container: "container",
+                                character: verificationCodeError ? "character error" : "character",
+                                characterSelected: "character--selected",
+                            }}
                             onChange={(e) => {
-                                setEmailErrorMessage("");
-                                setEmail(e.target.value);
+                                setVerificationCode(e);
+                                setVerificationCodeError(false);
                             }}
                         />
-                        <SubmitButton text="Wyślij e-mail resetujący hasło" onClick={e => {
+                        <Input
+                            type="password"
+                            placeholder="Hasło"
+                            name="password"
+                            value={password}
+                            mode={passwordError ? "error" : "normal"}
+                            onChange={e => {
+                                setPasswordErrorMessage("");
+                                setPassword(e.target.value);
+                            }}
+                        />
+                        <Input
+                            type="password"
+                            placeholder="Powtórz hasło"
+                            name="confirmPassword"
+                            mode={confirmPasswordError ? "error" : "normal"}
+                            value={confirmPassword}
+                            onChange={e => setConfirmPassword(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    const passOk = validatePassword();
+                                    const confirmOk = validateConfirmPassword();
+                                    if (passOk && confirmOk)
+                                        handleResetPassword();
+                                    if (!passOk)
+                                        setPasswordRegexVisible(true);
+                                }
+                            }}
+                        />
+                        {passwordRegexVisible &&
+                            <StyledPasswordRequirementsList>Wymagania dotyczące hasła:
+                                <StyledPasswordRequirement $crossedOut={password.length >= 8}>
+                                    co najmniej 8 znaków
+                                </StyledPasswordRequirement>
+                                <StyledPasswordRequirement $crossedOut={/[a-z]/.test(password)}>
+                                    jedna mała litera
+                                </StyledPasswordRequirement>
+                                <StyledPasswordRequirement $crossedOut={/[A-Z]/.test(password)}>
+                                    jedna wielka litera
+                                </StyledPasswordRequirement>
+                                <StyledPasswordRequirement $crossedOut={/\d/.test(password)}>
+                                    jedna cyfra
+                                </StyledPasswordRequirement>
+                                <StyledPasswordRequirement $crossedOut={/[#?!@$%^&*-]/.test(password)}>
+                                    jeden znak specjalny (#?!@$%^&*-)
+                                </StyledPasswordRequirement>
+                            </StyledPasswordRequirementsList>
+                        }
+                        <SubmitButton text="Zresetuj hasło" onClick={e => {
                             e.preventDefault();
-                            if (validateEmail())
-                                handleSendResetPasswordCode();
+                            const passOk = validatePassword();
+                            const confirmOk = validateConfirmPassword();
+                            if (passOk && confirmOk)
+                                handleResetPassword();
+                            if (!passOk)
+                                setPasswordRegexVisible(true);
                         }} color="dark" />
-                    </>
-                }
-                {step == 2 && <>
-                    <StyledTitle>Zresetuj hasło</StyledTitle>
 
-                    {errorMessage &&
-                        <Text color="danger" text={errorMessage} />}
-
-                    {[passwordErrorMessage, confirmPasswordErrorMessage]
-                        .filter((v, i, a) => a.indexOf(v) === i)
-                        .map((error, idx) => (
-                            <Text key={idx} color="danger" text={error} />
-                        ))}
-
-                    <Text text="Wpisz kod wysłany na podany adres e-mail oraz nowe hasło" />
-                    <VerificationInput
-                        validChars="0-9"
-                        inputProps={{ inputMode: "numeric" }}
-                        classNames={{
-                            container: "container",
-                            character: verificationCodeError ? "character error" : "character",
-                            characterSelected: "character--selected",
-                        }}
-                        onChange={(e) => {
-                            setVerificationCode(e);
-                            setVerificationCodeError(false);
-                        }}
-                    />
-                    <Input
-                        type="password"
-                        placeholder="Hasło"
-                        name="password"
-                        value={password}
-                        mode={passwordError ? "error" : "normal"}
-                        onChange={e => {
-                            setPasswordErrorMessage("");
-                            setPassword(e.target.value);
-                        }}
-                    />
-                    <Input
-                        type="password"
-                        placeholder="Powtórz hasło"
-                        name="confirmPassword"
-                        mode={confirmPasswordError ? "error" : "normal"}
-                        value={confirmPassword}
-                        onChange={e => setConfirmPassword(e.target.value)}
-                    />
-                    {passwordRegexVisible &&
-                        <StyledPasswordRequirementsList>Wymagania dotyczące hasła:
-                            <StyledPasswordRequirement $crossedOut={password.length >= 8}>
-                                co najmniej 8 znaków
-                            </StyledPasswordRequirement>
-                            <StyledPasswordRequirement $crossedOut={/[a-z]/.test(password)}>
-                                jedna mała litera
-                            </StyledPasswordRequirement>
-                            <StyledPasswordRequirement $crossedOut={/[A-Z]/.test(password)}>
-                                jedna wielka litera
-                            </StyledPasswordRequirement>
-                            <StyledPasswordRequirement $crossedOut={/\d/.test(password)}>
-                                jedna cyfra
-                            </StyledPasswordRequirement>
-                            <StyledPasswordRequirement $crossedOut={/[#?!@$%^&*-]/.test(password)}>
-                                jeden znak specjalny (#?!@$%^&*-)
-                            </StyledPasswordRequirement>
-                        </StyledPasswordRequirementsList>
+                    </>}
+                    {step == 3 &&
+                        <StyledTitle>Hasło zostało zmienione pomyślnie</StyledTitle>
                     }
-                    <SubmitButton text="Zresetuj hasło" onClick={e => {
-                        e.preventDefault();
-                        const passOk = validatePassword();
-                        const confirmOk = validateConfirmPassword();
-                        if (passOk && confirmOk)
-                            handleResetPassword();
-                        if (!passOk)
-                            setPasswordRegexVisible(true);
-                    }} color="dark" />
-
-                </>}
-                {step == 3 &&
-                    <StyledTitle>Hasło zostało zmienione pomyślnie</StyledTitle>
-                }
-            </StyledBox>
-            <StyledLink to="/logowanie">Wróć do logowania</StyledLink>
+                </StyledBox>
+                <StyledLink to="/login">Wróć do logowania</StyledLink>
+            </StyledContent>
         </StyledContainer >
-
     )
 }
 

@@ -8,6 +8,7 @@ import { emailVerificationRequest } from '../../../api';
 const StyledLine = styled.div`
     width:100%;
     position:relative;
+    text-align:center;
     padding: 20px 0;
     >span{
         position:relative;
@@ -49,6 +50,11 @@ const EmailStep = ({ email, setEmail, setStep, regex, emailError, setEmailError,
     }
 
 
+    const handleSubmit = () => {
+        if (validateEmail())
+            handleVerifyEmail();
+    }
+
     const handleVerifyEmail = async () => {
         setErrorMessage("");
         const result = await emailVerificationRequest(email);
@@ -69,12 +75,14 @@ const EmailStep = ({ email, setEmail, setStep, regex, emailError, setEmailError,
             {errorMessage && <Text color="danger" text={errorMessage} />}
             {emailErrorMessage && <Text color="danger" text={emailErrorMessage} />}
             <Input
+                autoFocus
                 type="text"
                 mode={emailError ? "error" : "normal"}
                 placeholder="email@domena.pl"
                 name="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleSubmit(); }}
             />
             <SubmitButton text="Kontynuuj" color="dark" onClick={(e) => {
                 e.preventDefault();
