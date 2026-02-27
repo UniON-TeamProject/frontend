@@ -255,7 +255,10 @@ const Home = () => {
         }}>
             <StyledHeader>
                 <StyledName>Witaj, {username}!</StyledName>
-                <SubmitButton style={{ width: "fit-content" }} color="dark" text="Wyloguj" path="/wyloguj" light />
+                <div style={{ display: 'flex', gap: '15px' }}>
+                    <SubmitButton style={{ width: "fit-content" }} color="dark" text="Nauka" path="/nauka" light />
+                    <SubmitButton style={{ width: "fit-content" }} color="dark" text="Wyloguj" path="/wyloguj" light />
+                </div>
             </StyledHeader>
             {errorMessage &&
                 <Text color="danger" text={errorMessage} />}

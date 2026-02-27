@@ -493,3 +493,264 @@ export async function restoreNote(id) {
     };
   }
 }
+
+
+//
+//
+// FISZKI I ZESTAWY FISZEK
+//
+//
+export async function addCard(question, answer, setId, tags = [], isForced = false) {
+  const token = sessionStorage.getItem("token");
+  if (!token) return { id: undefined, errorCode: "TOKEN_UNDEFINED", message: "Brak tokena" };
+
+  try {
+    const resp = await fetch(`${API_HOST}/addCard`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+
+      body: JSON.stringify({ 
+          contentFirstSide: question, 
+          contentFlipSide: answer, 
+          setId: setId,
+          cardTags: tags,
+          isForced: isForced
+      }), 
+    });
+
+    if (resp.ok) {
+      const { id } = await resp.json();
+      return { id, errorCode: "", message: "" };
+    }
+
+
+    const errorData = await resp.json().catch(() => ({})); 
+    return { id: undefined, errorCode: "API_ERROR", message: errorData.message || "Błąd dodawania fiszki" };
+  } catch {
+    return { id: undefined, errorCode: "CONNECTION_ERROR", message: "Błąd połączenia z serwerem" };
+  }
+}
+
+export async function editCard(id, question, answer, setId, tags = []) {
+  const token = sessionStorage.getItem("token");
+  if (!token) return { errorCode: "TOKEN_UNDEFINED", message: "Brak tokena" };
+
+  try {
+    const resp = await fetch(`${API_HOST}/editCard/${id}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ 
+          contentFirstSide: question, 
+          contentFlipSide: answer, 
+          setId: setId,
+          cardTags: tags,
+          isForced: false
+      }),
+    });
+
+    if (resp.ok) return { errorCode: "", message: "" };
+    const errorData = await resp.json().catch(() => ({})); 
+    return { errorCode: "API_ERROR", message: errorData.message || "Błąd edycji fiszki" };
+  } catch {
+    return { errorCode: "CONNECTION_ERROR", message: "Błąd serwera" };
+  }
+}
+
+export async function deleteCard(id) {
+  const token = sessionStorage.getItem("token");
+  if (!token) return { errorCode: "TOKEN_UNDEFINED", message: "Brak tokena" };
+
+  try {
+    const resp = await fetch(`${API_HOST}/deleteCard/${id}`, {
+      method: "PATCH", 
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (resp.ok) return { errorCode: "", message: "" };
+    const errorData = await resp.json().catch(() => ({})); 
+    return { errorCode: "API_ERROR", message: errorData.message || "Błąd usuwania fiszki" };
+  } catch {
+    return { errorCode: "CONNECTION_ERROR", message: "Błąd serwera" };
+  }
+}
+
+export async function addFlashcardSet(name, tags = []) {
+  const token = sessionStorage.getItem("token");
+  if (!token) return { id: undefined, errorCode: "TOKEN_UNDEFINED", message: "Brak tokena" };
+
+  try {
+    const resp = await fetch(`${API_HOST}/addCardSet`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ 
+          name: name, 
+          tags: tags, 
+          cards: [] 
+      }), 
+    });
+
+    if (resp.ok) {
+      const responseBody = await resp.json();
+      return { id: responseBody.name, errorCode: "", message: "" }; 
+    }
+
+    const errorData = await resp.json().catch(() => ({})); 
+    return { id: undefined, errorCode: "API_ERROR", message: errorData.message || "Błąd tworzenia zestawu" };
+  } catch {
+    return { id: undefined, errorCode: "CONNECTION_ERROR", message: "Błąd serwera" };
+  }
+}
+
+export async function editFlashcardSet(setId, name, tags = []) {
+  const token = sessionStorage.getItem("token");
+  try {
+    const resp = await fetch(`${API_HOST}/editCardSet/${setId}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name: name, tags: tags }),
+    });
+    if (resp.ok) return { errorCode: "", message: "" };
+    const errorData = await resp.json().catch(() => ({}));
+    return { errorCode: "API_ERROR", message: errorData.message || "Błąd edycji zestawu" };
+  } catch {
+    return { errorCode: "CONNECTION_ERROR", message: "Błąd serwera" };
+  }
+}
+
+
+export async function deleteFlashcardSet(setId) {
+  const token = sessionStorage.getItem("token");
+  try {
+    const resp = await fetch(`${API_HOST}/deleteCardSet/${setId}`, {
+      method: "PUT",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (resp.ok) return { errorCode: "", message: "" };
+    return { errorCode: "API_ERROR", message: "Błąd usuwania zestawu" };
+  } catch {
+    return { errorCode: "CONNECTION_ERROR", message: "Błąd serwera" };
+  }
+}
+
+
+
+
+export async function getAllFlashcardSets() {
+  const token = sessionStorage.getItem("token");
+  if (!token) return { sets: [], errorCode: "TOKEN_UNDEFINED", message: "Brak tokena" };
+
+  try {
+    const resp = await fetch(`${API_HOST}/allCardSets`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }
+    });
+
+    if (!resp.ok) return { sets: [], errorCode: "FETCH_ERROR", message: "Nie udało się pobrać zestawów" };
+    
+    const sets = await resp.json();
+    return { sets, errorCode: "", message: "" };
+  } catch {
+    return { sets: [], errorCode: "CONNECTION_ERROR", message: "Błąd serwera" };
+  }
+}
+
+export async function getFastLearningCards(setId) {
+  const token = sessionStorage.getItem("token");
+  try {
+    const resp = await fetch(`${API_HOST}/getCardsToLearn/${setId}`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!resp.ok) throw new Error("Błąd pobierania");
+    return await resp.json();
+  } catch (err) {
+    return null;
+  }
+}
+
+export async function sendFastLearningAnswer(cardId, answerCode) {
+  const token = sessionStorage.getItem("token");
+  try {
+    const resp = await fetch(`${API_HOST}/fastLearningModeAnswer`, {
+      method: "PATCH",
+      headers: { 
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ 
+          cardId: cardId, 
+          answer: answerCode 
+      })
+    });
+    return resp.ok;
+  } catch (err) {
+    return false;
+  }
+}
+
+
+// resetowanie postepu nauki (umiem = 0)
+export async function resetFlashcardSetProgress(setId) {
+  const token = sessionStorage.getItem("token");
+  try {
+    const resp = await fetch(`${API_HOST}/resetCards/${setId}`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return resp.ok;
+  } catch (err) {
+    return false;
+  }
+}
+
+//
+// FSRS
+//
+export async function getFsrsCards(setId) {
+  const token = sessionStorage.getItem("token");
+  try {
+    const resp = await fetch(`${API_HOST}/getCardsToLearnFsrs/${setId}`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!resp.ok) throw new Error("Błąd pobierania");
+    return await resp.json();
+  } catch (err) {
+    return null;
+  }
+}
+
+export async function sendFsrsAnswer(cardId, ratingValue) {
+  const token = sessionStorage.getItem("token");
+  try {
+    const resp = await fetch(`${API_HOST}/rateCard`, {
+      method: "POST", 
+      headers: { 
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ 
+          cardId: cardId,
+          rating: rating
+      })
+    });
+    return resp.ok;
+  } catch (err) {
+    return false;
+  }
+}
