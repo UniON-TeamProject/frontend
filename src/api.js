@@ -719,63 +719,6 @@ export async function restoreNote(id) {
   }
 }
 
-//
-//
-// FISZKI I ZESTAWY FISZEK
-//
-//
-export async function addCard(
-  question,
-  answer,
-  setId,
-  tags = [],
-  isForced = false
-) {
-  const token = getToken();
-  if (!token)
-    return {
-      id: undefined,
-      errorCode: "TOKEN_UNDEFINED",
-      message: "Brak tokena",
-    };
-
-  try {
-    const resp = await fetch(`${API_HOST}/addCard`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-
-      body: JSON.stringify({
-        contentFirstSide: question,
-        contentFlipSide: answer,
-        setId: setId,
-        cardTags: tags,
-        isForced: isForced,
-      }),
-    });
-
-    if (resp.ok) {
-      const { id } = await resp.json();
-      return { id, errorCode: "", message: "" };
-    }
-
-    const errorData = await resp.json().catch(() => ({}));
-    return {
-      id: undefined,
-      errorCode: "API_ERROR",
-      message: errorData.message || "Błąd dodawania fiszki",
-    };
-  } catch {
-    return {
-      id: undefined,
-      errorCode: "CONNECTION_ERROR",
-      message: "Błąd połączenia z serwerem",
-    };
-  }
-}
-
 export async function getAllFolders() {
   const token = getToken();
   if (!token)
@@ -1019,6 +962,64 @@ export async function getFolderTags(id) {
   }
 }
 
+//
+//
+// FISZKI I ZESTAWY FISZEK
+//
+//
+export async function addCard(
+  question,
+  answer,
+  setId,
+  tags = [],
+  isForced = false
+) {
+  const token = getToken();
+  if (!token)
+    return {
+      id: undefined,
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena",
+    };
+
+  try {
+    const resp = await fetch(`${API_HOST}/addCard`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+
+      body: JSON.stringify({
+        contentFirstSide: question,
+        contentFlipSide: answer,
+        setId: setId,
+        cardTags: tags,
+        isForced: isForced,
+      }),
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+    if (resp.ok) {
+      const { id } = await resp.json();
+      return { id, errorCode: "", message: "" };
+    }
+
+    const errorData = await resp.json().catch(() => ({}));
+    return {
+      id: undefined,
+      errorCode: "API_ERROR",
+      message: errorData.message || "Błąd dodawania fiszki",
+    };
+  } catch {
+    return {
+      id: undefined,
+      errorCode: "CONNECTION_ERROR",
+      message: "Błąd połączenia z serwerem",
+    };
+  }
+}
+
 export async function deleteCard(id) {
   const token = getToken();
   if (!token) return { errorCode: "TOKEN_UNDEFINED", message: "Brak tokena" };
@@ -1031,6 +1032,8 @@ export async function deleteCard(id) {
         "Content-Type": "application/json",
       },
     });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
 
     if (resp.ok) return { errorCode: "", message: "" };
     const errorData = await resp.json().catch(() => ({}));
@@ -1136,6 +1139,8 @@ export async function addFlashcardSet(name, tags = []) {
         cards: [],
       }),
     });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
 
     if (resp.ok) {
       const responseBody = await resp.json();
@@ -1176,6 +1181,8 @@ export async function editCard(id, question, answer, setId, tags = []) {
         isForced: false,
       }),
     });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
 
     if (resp.ok) return { errorCode: "", message: "" };
     const errorData = await resp.json().catch(() => ({}));
@@ -1190,6 +1197,7 @@ export async function editCard(id, question, answer, setId, tags = []) {
 
 export async function editFlashcardSet(setId, name, tags = []) {
   const token = getToken();
+  if (!token) return { errorCode: "TOKEN_UNDEFINED", message: "Brak tokena" };
   try {
     const resp = await fetch(`${API_HOST}/editCardSet/${setId}`, {
       method: "PUT",
@@ -1199,6 +1207,8 @@ export async function editFlashcardSet(setId, name, tags = []) {
       },
       body: JSON.stringify({ name: name, tags: tags }),
     });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
     if (resp.ok) return { errorCode: "", message: "" };
     const errorData = await resp.json().catch(() => ({}));
     return {
@@ -1544,6 +1554,7 @@ export async function getAllFlashcardSets() {
 
 export async function getFastLearningCards(setId) {
   const token = getToken();
+  if (!token) return null;
   try {
     const resp = await fetch(`${API_HOST}/getCardsToLearn/${setId}`, {
       method: "GET",
@@ -1561,6 +1572,7 @@ export async function getFastLearningCards(setId) {
 
 export async function sendFastLearningAnswer(cardId, answerCode) {
   const token = getToken();
+  if (!token) return false;
   try {
     const resp = await fetch(`${API_HOST}/fastLearningModeAnswer`, {
       method: "PATCH",
@@ -1586,6 +1598,7 @@ export async function sendFastLearningAnswer(cardId, answerCode) {
 // resetowanie postepu nauki (umiem = 0)
 export async function resetFlashcardSetProgress(setId) {
   const token = getToken();
+  if (!token) return false;
   try {
     const resp = await fetch(`${API_HOST}/resetCards/${setId}`, {
       method: "PATCH",
@@ -1605,6 +1618,7 @@ export async function resetFlashcardSetProgress(setId) {
 //
 export async function getFsrsCards(setId) {
   const token = getToken();
+  if (!token) return null;
   try {
     const resp = await fetch(`${API_HOST}/getCardsToLearnFsrs/${setId}`, {
       method: "GET",
@@ -1622,6 +1636,7 @@ export async function getFsrsCards(setId) {
 
 export async function sendFsrsAnswer(cardId, ratingValue) {
   const token = getToken();
+  if (!token) return false;
   try {
     const resp = await fetch(`${API_HOST}/rateCard`, {
       method: "POST",
@@ -1631,7 +1646,7 @@ export async function sendFsrsAnswer(cardId, ratingValue) {
       },
       body: JSON.stringify({
         cardId: cardId,
-        rating: rating,
+        rating: ratingValue,
       }),
     });
     const authErr = checkUnauthorized(resp);

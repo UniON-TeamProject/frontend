@@ -35,10 +35,10 @@ function App() {
           <Route path="/reset-password" element={<ForgotPassword />} />
           <Route path="/note/:id" element={<ProtectedRoute><TextEditor /></ProtectedRoute>} />
 
-          <Route path="/nauka" element={<FlashcardsPage />} />
-          <Route path="/nauka/zestaw/:setId" element={<FlashcardsPage />} />
-          <Route path="/nauka/szybka/:setId" element={<FastLearningPage />} />
-          <Route path="/nauka/trwala/:setId" element={<FSRSLearningPage />} />
+          <Route path="/learning" element={<FlashcardsPage />} />
+          <Route path="/learning/set/:setId" element={<FlashcardsPage />} />
+          <Route path="/learning/fast/:setId" element={<FastLearningPage />} />
+          <Route path="/learning/fsrs/:setId" element={<FSRSLearningPage />} />
         </Routes>
       </BrowserRouter>
     </>

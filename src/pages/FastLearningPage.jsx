@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { getFastLearningCards, sendFastLearningAnswer } from "../api";
+import { getToken } from "../token";
 
 
 const PageContainer = styled.div`
@@ -110,14 +111,14 @@ const CardBack = styled(CardFace)`
     opacity: ${(props) => (props.$hoverSide ? 1 : 0)};
     transition: opacity 0.2s ease;
     background: ${(props) => {
-      if (props.$hoverSide === "left") {
-        return `linear-gradient(to right, rgba(190, 103, 103, 0.35), rgba(190, 103, 103, 0.15), transparent 60%)`;
-      }
-      if (props.$hoverSide === "right") {
-        return `linear-gradient(to left, rgba(86, 153, 101, 0.35), rgba(86, 153, 101, 0.15), transparent 60%)`;
-      }
-      return "transparent";
-    }};
+    if (props.$hoverSide === "left") {
+      return `linear-gradient(to right, rgba(190, 103, 103, 0.35), rgba(190, 103, 103, 0.15), transparent 60%)`;
+    }
+    if (props.$hoverSide === "right") {
+      return `linear-gradient(to left, rgba(86, 153, 101, 0.35), rgba(86, 153, 101, 0.15), transparent 60%)`;
+    }
+    return "transparent";
+  }};
   }
 `;
 
@@ -186,6 +187,7 @@ export default function FastLearningPage() {
   const backRef = useRef(null);
 
   useEffect(() => {
+    if (!getToken()) { navigate("/", { replace: true }); return; }
     const fetchCards = async () => {
       const data = await getFastLearningCards(setId);
       if (data) {
@@ -234,7 +236,7 @@ export default function FastLearningPage() {
         <div style={{ textAlign: "center", fontSize: "20px" }}>
           <h2>Gratulacje!</h2>
           <p>Przeszedłeś przez wszystkie fiszki z tego zestawu.</p>
-          <button onClick={() => navigate(`/nauka/zestaw/${setId}`)}>
+          <button onClick={() => navigate(`/learning/set/${setId}`)}>
             Wróć do zestawu
           </button>
         </div>
@@ -306,11 +308,11 @@ export default function FastLearningPage() {
           >
             ⭠
           </NavButton>
-          
+
           <div className="counter">
             {currentIndex + 1} / {cards.length}
           </div>
-          
+
           <NavButton
             $isFlipped={isFlipped}
             $color="good"
@@ -323,12 +325,12 @@ export default function FastLearningPage() {
         {/* dolne menu wyjscia */}
         <MenuBottom>
           <button onClick={() => {
-              const confirmSave = window.confirm("Czy chcesz przerwać sesję nauki?\n\nTwój dotychczasowy postęp został automatycznie zapisany. Będziesz mógł wznowić tę sesję klikając 'Chcesz kontynuować ostatnią naukę'.");
-              if (confirmSave) {
-                  navigate(`/nauka/zestaw/${setId}`);
-              }
+            const confirmSave = window.confirm("Czy chcesz przerwać sesję nauki?\n\nTwój dotychczasowy postęp został automatycznie zapisany. Będziesz mógł wznowić tę sesję klikając 'Chcesz kontynuować ostatnią naukę'.");
+            if (confirmSave) {
+              navigate(`/learnign/set/${setId}`);
+            }
           }}>
-             ✖ Zakończ i zapisz
+            ✖ Zakończ i zapisz
           </button>
         </MenuBottom>
       </AppContainer>

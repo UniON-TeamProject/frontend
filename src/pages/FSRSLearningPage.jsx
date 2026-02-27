@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { getFsrsCards, sendFsrsAnswer } from "../api";
+import { getToken } from "../token";
 
 
 const PageContainer = styled.div`
@@ -152,6 +153,7 @@ export default function SpacedLearningPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (!getToken()) { navigate("/", { replace: true }); return; }
     const fetchCards = async () => {
       const data = await getFsrsCards(setId);
       if (data) {
@@ -164,7 +166,7 @@ export default function SpacedLearningPage() {
 
   const handleRating = async (ratingValue, e) => {
     e.stopPropagation();
-    
+
     const currentCard = cards[currentIndex];
     await sendFsrsAnswer(currentCard.id, ratingValue);
 
@@ -181,7 +183,7 @@ export default function SpacedLearningPage() {
           <h2>Gratulacje!</h2>
           <p>Ukończyłeś powtórki na dziś.</p>
           <button
-            onClick={() => navigate(`/nauka/zestaw/${setId}`)}
+            onClick={() => navigate(`/learning/set/${setId}`)}
             style={{ padding: "10px 20px", marginTop: "20px", fontSize: "18px", cursor: "pointer", borderRadius: "10px", border: "1px solid #ccc" }}
           >
             Wróć do zestawu
@@ -196,7 +198,7 @@ export default function SpacedLearningPage() {
   return (
     <PageContainer>
       <AppContainer>
-        <CloseButton onClick={() => navigate(`/nauka/zestaw/${setId}`)}>
+        <CloseButton onClick={() => navigate(`/learning/set/${setId}`)}>
           ✖ Wyjdź
         </CloseButton>
 

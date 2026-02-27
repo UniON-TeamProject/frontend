@@ -2,8 +2,10 @@ import styled from 'styled-components';
 import React, { useState, useEffect } from 'react';
 import SubmitButton from '../components/atoms/SubmitButton';
 import Text from '../components/atoms/Text';
-import Input from '../components/atoms/Input'; 
-import { addCard, deleteCard, editCard, addFlashcardSet, getAllFlashcardSets, editFlashcardSet, deleteFlashcardSet, resetFlashcardSetProgress } from '../api';import Flashcard from '../components/organisms/Flashcard'; 
+import Input from '../components/atoms/Input';
+import { addCard, deleteCard, editCard, addFlashcardSet, getAllFlashcardSets, editFlashcardSet, deleteFlashcardSet, resetFlashcardSetProgress } from '../api';
+import { getToken } from '../token';
+import Flashcard from '../components/organisms/Flashcard';
 import { useNavigate, useParams } from 'react-router-dom';
 
 const StyledContainer = styled.div`
@@ -400,17 +402,17 @@ const CheckmarkIcon = () => (
 const FlashcardsPage = () => {
     const navigate = useNavigate();
     const { setId } = useParams();
-    
+
     const [activeSetId, setActiveSetId] = useState(null);
 
     const [sets, setSets] = useState([]);
     const [errorMessage, setErrorMessage] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
-    
+
     const [isSetModalOpen, setIsSetModalOpen] = useState(false);
-    const [editingSetId, setEditingSetId] = useState(null); 
+    const [editingSetId, setEditingSetId] = useState(null);
     const [setName, setSetName] = useState("");
-    const [setTags, setSetTags] = useState(""); 
+    const [setTags, setSetTags] = useState("");
 
     const [isCardEditModalOpen, setIsCardEditModalOpen] = useState(false);
     const [editingCardId, setEditingCardId] = useState(null);
@@ -418,7 +420,7 @@ const FlashcardsPage = () => {
     const [editAnswer, setEditAnswer] = useState("");
 
     const [isLearningMenuOpen, setIsLearningMenuOpen] = useState(false);
-    const [activeMenuId, setActiveMenuId] = useState(null); 
+    const [activeMenuId, setActiveMenuId] = useState(null);
 
     const [isAddingMode, setIsAddingMode] = useState(false);
     const [newCards, setNewCards] = useState([{ question: "", answer: "" }]);
@@ -431,11 +433,13 @@ const FlashcardsPage = () => {
         if (!setsRes.errorCode) {
             setSets(setsRes.sets || []);
         } else {
-            setErrorMessage(setsRes.message);
+            if (setsRes.errorCode === "TOKEN_UNDEFINED") navigate("/", { replace: true });
+            else setErrorMessage(setsRes.message);
         }
     };
 
     useEffect(() => {
+        if (!getToken()) { navigate("/", { replace: true }); return; }
         fetchData();
     }, []);
 
@@ -443,11 +447,11 @@ const FlashcardsPage = () => {
         if (setId && sets.length > 0) {
             const setToOpen = sets.find(set => set.id === parseInt(setId));
             if (setToOpen) {
-                setActiveSetId(setToOpen.id); 
+                setActiveSetId(setToOpen.id);
             }
         } else if (!setId) {
             setActiveSetId(null);
-            setIsLearningMenuOpen(false); 
+            setIsLearningMenuOpen(false);
             setIsAddingMode(false); // wyjdz z trybu dodawania jesli wracamy do menu DO POPRAWY I GUESS?
         }
     }, [setId, sets]);
@@ -464,14 +468,15 @@ const FlashcardsPage = () => {
     const handleSaveNewCards = async () => {
         setErrorMessage("");
         let addedCount = 0;
-        
+
         for (const card of newCards) {
             if (card.question.trim() && card.answer.trim()) {
                 const res = await addCard(card.question, card.answer, parseInt(activeSetId), []);
+                if (res.errorCode === "TOKEN_UNDEFINED") { navigate("/", { replace: true }); return; }
                 if (!res.errorCode) addedCount++;
             }
         }
-        
+
         if (addedCount > 0) {
             setSuccessMessage(`Pomyślnie dodano!`);
             fetchData();
@@ -486,7 +491,7 @@ const FlashcardsPage = () => {
     // EDYCJA POJEDYNCZEJ FISZKI
     const openEditCardModal = (card) => {
         setEditingCardId(card.id);
-        setEditQuestion(card.question || card.contentFirstSide); 
+        setEditQuestion(card.question || card.contentFirstSide);
         setEditAnswer(card.answer || card.contentFlipSide);
         setErrorMessage("");
         setSuccessMessage("");
@@ -502,6 +507,7 @@ const FlashcardsPage = () => {
 
         const res = await editCard(editingCardId, editQuestion, editAnswer, parseInt(activeSetId), []);
         if (res.errorCode) {
+            if (res.errorCode === "TOKEN_UNDEFINED") { navigate("/", { replace: true }); return; }
             setErrorMessage(res.message);
         } else {
             setSuccessMessage("Fiszka zaktualizowana!");
@@ -517,8 +523,10 @@ const FlashcardsPage = () => {
         const isConfirmed = window.confirm("Czy na pewno chcesz usunąć tę fiszkę?");
         if (!isConfirmed) return;
         const res = await deleteCard(id);
-        if (res.errorCode) setErrorMessage(res.message);
-        else fetchData();
+        if (res.errorCode) {
+            if (res.errorCode === "TOKEN_UNDEFINED") { navigate("/", { replace: true }); return; }
+            setErrorMessage(res.message);
+        } else fetchData();
     };
 
     const openAddSetModal = () => {
@@ -543,8 +551,10 @@ const FlashcardsPage = () => {
         const isConfirmed = window.confirm("Czy na pewno chcesz usunąć ten zestaw wraz z fiszkami?");
         if (!isConfirmed) return;
         const res = await deleteFlashcardSet(id);
-        if (res.errorCode) setErrorMessage(res.message);
-        else fetchData();
+        if (res.errorCode) {
+            if (res.errorCode === "TOKEN_UNDEFINED") { navigate("/", { replace: true }); return; }
+            setErrorMessage(res.message);
+        } else fetchData();
     };
 
     const handleSaveSet = async (e) => {
@@ -557,12 +567,14 @@ const FlashcardsPage = () => {
 
         const tagsArray = setTags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
         let res;
-        
+
         if (editingSetId) res = await editFlashcardSet(editingSetId, setName, tagsArray);
         else res = await addFlashcardSet(setName, tagsArray, "/");
 
         if (res.errorCode) {
-            setErrorMessage(res.message);
+            if (res.errorCode === "TOKEN_UNDEFINED") navigate("/", { replace: true });
+            else
+                setErrorMessage(res.message);
         } else {
             setSuccessMessage(editingSetId ? "Zestaw zaktualizowany!" : "Zestaw utworzony!");
             fetchData();
@@ -573,13 +585,13 @@ const FlashcardsPage = () => {
         }
     };
 
- 
+
     return (
         <StyledContainer>
             <TopSection>
                 <MainTitle>Nauka</MainTitle>
             </TopSection>
-            
+
             <Divider />
 
             {/* NAGŁÓWEK */}
@@ -590,7 +602,7 @@ const FlashcardsPage = () => {
                     <SubTitle style={{ marginBottom: '20px' }}>
                         <BackButton onClick={() => {
                             if (isAddingMode) setIsAddingMode(false);
-                            else navigate('/nauka');
+                            else navigate('/learning');
                         }}>
                             &#8592;
                         </BackButton>
@@ -606,11 +618,11 @@ const FlashcardsPage = () => {
 
                     {!isAddingMode && (
                         <SetHeaderControls>
-                            <ContinueLearningBanner 
+                            <ContinueLearningBanner
                                 style={{ cursor: 'pointer', transition: 'background-color 0.2s' }}
                                 onMouseEnter={(e) => e.target.style.backgroundColor = '#f9f9f9'}
                                 onMouseLeave={(e) => e.target.style.backgroundColor = '#ffffff'}
-                                onClick={() => navigate(`/nauka/szybka/${currentSet?.id}`)}
+                                onClick={() => navigate(`/learning/fast/${currentSet?.id}`)}
                                 title="Wznów od miejsca, w którym skończyłeś"
                             >
                                 Chcesz kontynuować ostatnią naukę? (Wznów sesję)
@@ -628,14 +640,14 @@ const FlashcardsPage = () => {
                                             <LearningDropdownItem onClick={async () => {
                                                 setIsLearningMenuOpen(false);
                                                 await resetFlashcardSetProgress(currentSet?.id);
-                                                navigate(`/nauka/szybka/${currentSet?.id}`);
+                                                navigate(`/learnign/fast/${currentSet?.id}`);
                                             }}>
                                                 Szybka nauka
                                             </LearningDropdownItem>
-                                            
+
                                             <LearningDropdownItem onClick={() => {
                                                 setIsLearningMenuOpen(false);
-                                                navigate(`/nauka/trwala/${currentSet?.id}`);
+                                                navigate(`/learning/fsrs/${currentSet?.id}`);
                                             }}>
                                                 Trwała nauka
                                             </LearningDropdownItem>
@@ -661,11 +673,11 @@ const FlashcardsPage = () => {
                     ) : (
                         <CardsGrid>
                             {sets.map((set, idx) => (
-                                <SetItemWrapper key={set.id || idx} onClick={() => navigate(`/nauka/zestaw/${set.id}`)}>
+                                <SetItemWrapper key={set.id || idx} onClick={() => navigate(`/learning/set/${set.id}`)}>
                                     <SetIconContainer>
                                         <StackedCardsIcon />
-                                        
-                                        <GearButton 
+
+                                        <GearButton
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 setActiveMenuId(activeMenuId === set.id ? null : set.id);
@@ -694,7 +706,7 @@ const FlashcardsPage = () => {
                                             </>
                                         )}
                                     </SetIconContainer>
-                                    
+
                                     <SetTitle>{set.name}</SetTitle>
                                     {set.tags && set.tags.length > 0 && (
                                         <TagsContainer>
@@ -720,10 +732,10 @@ const FlashcardsPage = () => {
                     ) : (
                         <CardsGrid>
                             {currentSet.cards.map((card) => (
-                                <Flashcard 
-                                    key={card.id} 
-                                    question={card.contentFirstSide || card.question} 
-                                    answer={card.contentFlipSide || card.answer} 
+                                <Flashcard
+                                    key={card.id}
+                                    question={card.contentFirstSide || card.question}
+                                    answer={card.contentFlipSide || card.answer}
                                     onEdit={() => openEditCardModal(card)}
                                     onDelete={() => handleDeleteCard(card.id)}
                                 />
@@ -740,16 +752,16 @@ const FlashcardsPage = () => {
                         <CardInputRow key={index}>
                             <CardInputSide>
                                 <SideLabel>Przód:</SideLabel>
-                                <StyledCardTextarea 
-                                    placeholder="Wprowadź pytanie..." 
+                                <StyledCardTextarea
+                                    placeholder="Wprowadź pytanie..."
                                     value={card.question}
                                     onChange={(e) => updateNewCard(index, 'question', e.target.value)}
                                 />
                             </CardInputSide>
                             <CardInputSide>
                                 <SideLabel>Tył:</SideLabel>
-                                <StyledCardTextarea 
-                                    placeholder="Wprowadź odpowiedź..." 
+                                <StyledCardTextarea
+                                    placeholder="Wprowadź odpowiedź..."
                                     value={card.answer}
                                     onChange={(e) => updateNewCard(index, 'answer', e.target.value)}
                                 />
@@ -757,7 +769,7 @@ const FlashcardsPage = () => {
                         </CardInputRow>
                     ))}
 
-                    <AddMoreRowButton 
+                    <AddMoreRowButton
                         disabled={hasEmptyCard}
                         onClick={() => setNewCards([...newCards, { question: "", answer: "" }])}
                     >
@@ -790,14 +802,14 @@ const FlashcardsPage = () => {
                         <Text text={`Edytujesz fiszkę z zestawu: ${currentSet?.name}`} style={{ marginBottom: '20px', color: '#555' }} />
 
                         <Text text="Pytanie:" />
-                        <StyledModalTextArea 
+                        <StyledModalTextArea
                             placeholder="Wpisz pytanie..."
                             value={editQuestion}
                             onChange={(e) => setEditQuestion(e.target.value)}
                         />
 
                         <Text text="Odpowiedź:" />
-                        <StyledModalTextArea 
+                        <StyledModalTextArea
                             placeholder="Wpisz odpowiedź..."
                             value={editAnswer}
                             onChange={(e) => setEditAnswer(e.target.value)}
@@ -816,9 +828,9 @@ const FlashcardsPage = () => {
                         <Text bold="true" as="h2" text={editingSetId ? "Edytuj zestaw" : "Nowy zestaw fiszek"} />
                         {errorMessage && <Text color="danger" text={errorMessage} />}
                         {successMessage && <Text style={{ color: 'green' }} text={successMessage} />}
-                        
+
                         <div style={{ marginTop: '20px', marginBottom: editingSetId ? '20px' : '0' }}>
-                            <Input 
+                            <Input
                                 type="text"
                                 name="setName"
                                 placeholder="Nazwa zestawu"
@@ -828,7 +840,7 @@ const FlashcardsPage = () => {
                         </div>
                         {!editingSetId && (
                             <div style={{ marginTop: '10px', marginBottom: '20px' }}>
-                                <Input 
+                                <Input
                                     type="text"
                                     name="setTags"
                                     placeholder="Tagi (po przecinku, np. matematyka, sesja)"
