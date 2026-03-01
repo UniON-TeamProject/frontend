@@ -6,6 +6,7 @@ import { addNote, deleteNote, clearTrash, restoreNote, getFolderSuggestedTags, g
 import { useNavigate, useParams } from 'react-router-dom'
 import { getToken, parseJwt } from '../token'
 import Input from '../components/atoms/Input';
+import Layout from '../components/organisms/Layout';
 
 const StyledContainer = styled.div`
    width: 100%;
@@ -779,6 +780,7 @@ const Notes = () => {
     }, [urlPath])
 
     return (
+        <Layout>
         <StyledContainer onClick={() => {
             setActiveNoteOptionsId(null);
             setActiveFolderOptionsId(null);
@@ -797,7 +799,6 @@ const Notes = () => {
         }}>
             <StyledUserHeader>
                 <StyledName>Witaj, {username}!</StyledName>
-                <SubmitButton style={{ width: "fit-content", fontWeight: "600" }} color="dark" text="Wyloguj" path="/logout" />
             </StyledUserHeader>
             {errorMessage && <Text color="danger" text={errorMessage} />}
             <StyledOptionsHeader>
@@ -1275,6 +1276,7 @@ const Notes = () => {
                 </StyledPopup>
             }
         </StyledContainer>
+        </Layout>
     )
 }
 

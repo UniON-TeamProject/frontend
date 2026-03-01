@@ -16,6 +16,11 @@ const StyledTermsClause = styled.h4`
     >a{
         color:${({ theme }) => theme.colors.textLight};
     }
+    >p{
+        display:inline-block;
+        text-decoration: underline;
+        cursor:pointer;
+    }
 `
 
 const ReturnButton = styled.div`
@@ -51,7 +56,7 @@ const StyledPasswordRequirement = styled.li`
     text-decoration: ${({ $crossedOut }) => $crossedOut ? "line-through" : "none"};
 `
 
-const AccountDataStep = ({ username, password, email, emailRegex, setStep, confirmPassword, setUsername, setPassword, setConfirmPassword, setEmailError }) => {
+const AccountDataStep = ({ username, password, email, emailRegex, setStep, confirmPassword, setUsername, setPassword, setConfirmPassword, setEmailError, setTermsOfServiceOpen, setPrivacyStatementOpen, termsOfServiceOpen, privacyStatementOpen }) => {
     const usernameRegex = /^[a-zA-Z][a-zA-Z0-9_]{1,55}$/;
     const passwordRegex = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/;
 
@@ -272,8 +277,14 @@ const AccountDataStep = ({ username, password, email, emailRegex, setStep, confi
             />
             <StyledTermsClause>
                 Klikając “Kontynuuj” akceptujesz nasz{" "}
-                <Link to="/regulamin">Regulamin</Link> oraz{" "}
-                <Link to="/polityka-prywatnosci">Politykę prywatności</Link>
+                <p onClick={(e) => {
+                    e.stopPropagation();
+                    setTermsOfServiceOpen(!termsOfServiceOpen);
+                }}>Regulamin</p> oraz{" "}
+                <p onClick={(e) => {
+                    e.stopPropagation();
+                    setPrivacyStatementOpen(!privacyStatementOpen)
+                }}>Politykę prywatności</p>
                 .
             </StyledTermsClause>
         </>

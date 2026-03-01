@@ -16,6 +16,7 @@ const StyledContainer = styled.div`
     @media(max-width:600px){
         background-color: ${({ theme }) => theme.colors.white};
     }
+    position:relative;
 `
 
 const StyledContent = styled.div`
@@ -78,6 +79,38 @@ const SuccessPopup = styled.div`
     }
 `
 
+const StyledPopup = styled.div`
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%, -50%);
+    width:1000px;
+    min-height:80vh;
+    padding:60px;
+    border-radius:5px;
+    background-color:${({ theme }) => theme.colors.white};
+    text-align: center;
+    .closeButton{
+        position:absolute;
+        top:40px;
+        right:40px;
+        width:30px;
+        height:30px;
+        border-radius:100%;
+        cursor:pointer;
+        background-color:${({ theme }) => theme.colors.dark};
+        >svg{
+        width:100%;
+        height:100%;
+        color:${({ theme }) => theme.colors.white};
+        }
+    }
+    @media(max-width:768px){
+        width:90%;
+        border:1px solid black;
+    }   
+`
+
 const Register = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -93,8 +126,16 @@ const Register = () => {
     const [successPopupActive, setSuccessPopupActive] = useState(false);
     const [successPopupMessage, setSuccessPopupMessage] = useState("");
 
+
+    const [termsOfServiceOpen, setTermsOfServiceOpen] = useState(false);
+    const [privacyStatementOpen, setPrivacyStatementOpen] = useState(false);
+
+
     return (
-        <StyledContainer>
+        <StyledContainer onClick={(e) => {
+            setTermsOfServiceOpen(false);
+            setPrivacyStatementOpen(false);
+        }}>
             <SuccessPopup $visible={successPopupActive}>{successPopupMessage}</SuccessPopup>
             <StyledContent>
                 <StyledBox>
@@ -122,7 +163,11 @@ const Register = () => {
                             password={password}
                             setPassword={e => setPassword(e)}
                             confirmPassword={confirmPassword}
-                            setConfirmPassword={e => setConfirmPassword(e)} />
+                            setConfirmPassword={e => setConfirmPassword(e)}
+                            setTermsOfServiceOpen={e => setTermsOfServiceOpen(e)}
+                            setPrivacyStatementOpen={e => setPrivacyStatementOpen(e)}
+                            termsOfServiceOpen={termsOfServiceOpen}
+                            privacyStatementOpen={privacyStatementOpen} />
                     }
                     {step == 3 &&
                         <VerificationStep
@@ -141,7 +186,33 @@ const Register = () => {
                     <StyledLink to="/login">Zaloguj się</StyledLink>
                 </StyledLoginButton>
             </StyledContent>
-        </StyledContainer >
+            {termsOfServiceOpen && (
+                <StyledPopup onClick={(e) => e.stopPropagation()}>
+                    <div className="closeButton" onClick={() => setTermsOfServiceOpen(false)}>
+                        <svg fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708" />
+                        </svg>
+                    </div>
+                    <Text bold="true" as="h2" text="Regulamin" />
+                    <p>
+                        Tu wpiszemy regulamin
+                    </p>
+                </StyledPopup>
+            )}
+            {privacyStatementOpen && (
+                <StyledPopup onClick={(e) => e.stopPropagation()}>
+                    <div className="closeButton" onClick={() => setPrivacyStatementOpen(false)}>
+                        <svg fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708" />
+                        </svg>
+                    </div>
+                    <Text bold="true" as="h2" text="Polityka prywatności" />
+                    <p>
+                        Tu wpiszemy politykę prywatności
+                    </p>
+                </StyledPopup>
+            )}
+        </StyledContainer>
     )
 }
 

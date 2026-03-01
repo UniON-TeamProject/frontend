@@ -1,4 +1,5 @@
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react'
+import { BubbleMenu } from '@tiptap/react/menus'
 import { Markdown } from 'tiptap-markdown'
 import StarterKit from '@tiptap/starter-kit'
 import { useParams } from 'react-router-dom';
@@ -9,6 +10,20 @@ import styled from 'styled-components'
 import Image from '@tiptap/extension-image'
 import { Extension } from '@tiptap/core';
 import Text from '../components/atoms/Text';
+import Commands from '../helpers/commands.js'
+import createSuggestion from '../helpers/suggestion.js'
+
+const slashItems = [
+  { title: "Heading 1", command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setNode("heading", { level: 1 }).run() },
+  { title: "Heading 2", command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setNode("heading", { level: 2 }).run() },
+  { title: "Heading 3", command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setNode("heading", { level: 3 }).run() },
+  { title: "Bullet List", command: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleBulletList().run() },
+  { title: "Ordered List", command: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleOrderedList().run() },
+  { title: "Code Block", command: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleCodeBlock().run() },
+  { title: "Blockquote", command: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleBlockquote().run() },
+  { title: "Bold", command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setMark("bold").run() },
+  { title: "Italic", command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setMark("italic").run() },
+];
 
 const StyledContainer = styled.div`
   width:100%;
@@ -17,6 +32,7 @@ const StyledContainer = styled.div`
   display:flex;
   flex-flow: column;
   align-items:center;
+  position:relative;
 `
 
 const StyledHeader = styled.div`
@@ -195,13 +211,19 @@ const ContentContainer = styled.div`
   .ProseMirror{
     width:65%;
     height:100%;
-    margin:0 auto;
+    margin:16px auto 0 auto;
     @media(max-width:768px){
       width:100%;
       padding:0 10px; 
       margin:0;
     }
   }
+  .bubble-menu{
+    background-color: ${({ theme }) => theme.colors.white};
+    padding:3px;
+    border-radius:13px;
+  }
+
   .ProseMirror:focus{
     border:none;
     outline:none;
@@ -240,31 +262,34 @@ const ContentContainer = styled.div`
   h4,
   h5,
   h6 {
-    line-height: 1.1;
-    margin-top: 2.5rem;
+    line-height: 1.2;
     text-wrap: pretty;
   }
 
   h1,
   h2 {
-    margin-top: 3.5rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
   }
 
   h1 {
-    font-size: 1.4rem;
+    font-size: 2rem;
   }
 
   h2 {
-    font-size: 1.2rem;
+    font-size: 1.6rem;
   }
 
   h3 {
-    font-size: 1.1rem;
+    font-size: 1.4rem;
   }
 
-  h4,
-  h5,
+  h4 {
+    font-size: 1.2rem;
+
+  }
+  h5{
+    font-size: 1.1rem;
+  }
   h6 {
     font-size: 1rem;
   }
@@ -306,6 +331,39 @@ const ContentContainer = styled.div`
     margin: 2rem 0;
   }
 }
+`
+
+const ReturnButton = styled.div`
+    position:absolute;
+    top:45px;
+    left:30px;
+    z-index:11;
+    display:flex;
+    flex-flow:row nowrap;
+    align-items:center;
+    cursor:pointer;
+    svg{
+        height:16px;
+        color:${({ theme }) => theme.colors.dark};
+    }
+    p{
+        font-size:.9rem;
+        margin-left:5px;
+        color:${({ theme }) => theme.colors.dark};
+    }
+`
+
+const StyledFloatingButton = styled.button`
+  background-color: ${({ theme }) => theme.colors.white};
+  border:none;
+  border-radius:10px;
+  margin:0 1px;
+  padding:5px 10px;
+  cursor:pointer;
+  box-sizing:content-box;
+  &:hover{
+    background-color: ${({ theme }) => theme.colors.lightGrey};
+  }
 `
 
 function TextSizeDropdown({ editor }) {
@@ -496,7 +554,11 @@ const TextEditor = () => {
   });
 
   const editor = useEditor({
-    extensions: [StarterKit, Image, Markdown, Typography, SaveShortcut],
+    extensions: [StarterKit, Image, Markdown, Typography, SaveShortcut,
+      Commands.configure({
+        suggestion: createSuggestion(slashItems),
+      }),
+    ],
     content: '',
     onUpdate() {
       if (saveTimeout.current) clearTimeout(saveTimeout.current);
@@ -674,6 +736,12 @@ const TextEditor = () => {
       </>
       :
       <StyledContainer>
+        <ReturnButton onClick={() => history.back()}>
+          <svg fill="currentColor" viewBox="0 0 16 16">
+            <path fillRule="evenodd" d="M12 8a.5.5 0 0 1-.5.5H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5a.5.5 0 0 1 .5.5" />
+          </svg>
+          <p>Wróć</p>
+        </ReturnButton>
         <StyledHeader>
           {renameNoteError && <Text style={{ width: "65%", textAlign: 'left' }} color="danger" text={renameNoteErrorMessage} />}
           <StyledTitleInput
@@ -752,6 +820,28 @@ const TextEditor = () => {
               editor.chain().focus('end').run();
           }}
         >
+          {editor && (
+            <BubbleMenu className="bubble-menu" editor={editor}>
+              <StyledFloatingButton
+                onClick={() => editor.chain().focus().toggleBold().run()}
+                className={editor.isActive('bold') ? 'is-active' : ''}
+              >
+                Bold
+              </StyledFloatingButton>
+              <StyledFloatingButton
+                onClick={() => editor.chain().focus().toggleItalic().run()}
+                className={editor.isActive('italic') ? 'is-active' : ''}
+              >
+                Italic
+              </StyledFloatingButton>
+              <StyledFloatingButton
+                onClick={() => editor.chain().focus().toggleStrike().run()}
+                className={editor.isActive('strike') ? 'is-active' : ''}
+              >
+                Strike
+              </StyledFloatingButton>
+            </BubbleMenu>
+          )}
           <EditorContent editor={editor} />
         </ContentContainer>
       </StyledContainer >

@@ -7,6 +7,7 @@ import { addCard, deleteCard, editCard, addFlashcardSet, getAllFlashcardSets, ed
 import { getToken } from '../token';
 import Flashcard from '../components/organisms/Flashcard';
 import { useNavigate, useParams } from 'react-router-dom';
+import Layout from '../components/organisms/Layout';
 
 const StyledContainer = styled.div`
    width: 100%;
@@ -587,6 +588,7 @@ const FlashcardsPage = () => {
 
 
     return (
+        <Layout>
         <StyledContainer>
             <TopSection>
                 <MainTitle>Nauka</MainTitle>
@@ -854,6 +856,7 @@ const FlashcardsPage = () => {
                 </>
             )}
         </StyledContainer>
+        </Layout>
     );
 }
 
