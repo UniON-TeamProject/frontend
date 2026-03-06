@@ -10,12 +10,14 @@ import { getNoteDetails, editNote, renameNote, addNoteTag, removeNoteTag, getNot
 import styled from 'styled-components'
 import Image from '@tiptap/extension-image'
 import { Extension } from '@tiptap/core';
+import { Plugin } from '@tiptap/pm/state';
 import Text from '../components/atoms/Text';
 import Commands from '../helpers/textEditor/commands.js'
 import createSuggestion from '../helpers/textEditor/suggestion.js'
 import { slashItems } from '../helpers/textEditor/slashItems.jsx'
 import TextSizeDropdown from '../components/editor/TextSizeDropdown.jsx'
 import RightMenuBar from '../components/editor/RightMenuBar.jsx'
+import DragHandle from '@tiptap/extension-drag-handle-react'
 
 const StyledContainer = styled.div`
   width:100%;
@@ -175,9 +177,8 @@ const StyledButton = styled.button`
 
 const ContentContainer = styled.div`
   width:100%;
-  margin:20px auto;
+  margin:30px auto;
   background-color:${({ theme }) => theme.colors.lightGrey};
-  padding:10px;
   border-radius:5px;
   height:100%;
   min-height:70vh;
@@ -188,7 +189,8 @@ const ContentContainer = styled.div`
   .ProseMirror{
     width:65%;
     height:100%;
-    margin:16px auto 0 auto;
+    padding-top:16px;
+    margin:0 auto;
     @media(max-width:768px){
       width:100%;
       padding:0 10px;
@@ -366,8 +368,66 @@ const TextEditor = () => {
     },
   });
 
+  const ImageDropHandler = Extension.create({
+    name: 'imageDropHandler',
+    addProseMirrorPlugins() {
+      return [
+        new Plugin({
+          props: {
+            handleDrop(view, event) {
+              const files = event.dataTransfer?.files;
+              if (!files || files.length === 0) return false;
+
+              const images = Array.from(files).filter(f => f.type.startsWith('image/'));
+              if (images.length === 0) return false;
+
+              event.preventDefault();
+              const pos = view.posAtCoords({ left: event.clientX, top: event.clientY });
+
+              images.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                  const { tr } = view.state;
+                  const node = view.state.schema.nodes.image.create({ src: reader.result });
+                  const insertPos = pos?.pos ?? view.state.selection.from;
+                  view.dispatch(tr.insert(insertPos, node));
+                };
+                reader.readAsDataURL(file);
+              });
+
+              return true;
+            },
+            handlePaste(view, event) {
+              const items = event.clipboardData?.items;
+              if (!items) return false;
+
+              const images = Array.from(items).filter(i => i.type.startsWith('image/'));
+              if (images.length === 0) return false;
+
+              event.preventDefault();
+
+              images.forEach(item => {
+                const file = item.getAsFile();
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = () => {
+                  const { tr } = view.state;
+                  const node = view.state.schema.nodes.image.create({ src: reader.result });
+                  view.dispatch(tr.replaceSelectionWith(node));
+                };
+                reader.readAsDataURL(file);
+              });
+
+              return true;
+            },
+          },
+        }),
+      ];
+    },
+  });
+
   const editor = useEditor({
-    extensions: [StarterKit, Image, Markdown, Typography, SaveShortcut,
+    extensions: [StarterKit, Markdown, Typography, SaveShortcut, ImageDropHandler,
       Commands.configure({
         suggestion: createSuggestion(slashItems),
       }),
@@ -376,6 +436,7 @@ const TextEditor = () => {
           return "'/' dla formatowania"
         },
       }),
+      Image.configure({ inline: false }),
     ],
     content: '',
     onUpdate() {
@@ -666,6 +727,9 @@ const TextEditor = () => {
               </StyledFloatingButton>
             </BubbleMenu>
           )}
+          <DragHandle editor={editor} nested={false}>
+            <div className="custom-drag-handle" />
+          </DragHandle>
           <EditorContent editor={editor} />
         </ContentContainer>
       </StyledContainer >
