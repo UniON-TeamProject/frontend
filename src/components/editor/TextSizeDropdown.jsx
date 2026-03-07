@@ -8,24 +8,27 @@ const StyledDropdownWrapper = styled.div`
 `
 
 const StyledDropdownTrigger = styled.button`
-  padding:9px;
-  border:none;
-  background-color:rgba(50,50,50,0.1);
-  border-radius:10px;
-  display:flex;
+  padding: 4px 6px;
+  border: none;
+  background-color: unset;
+  border-radius: 7px;
+  display: flex;
   flex-flow: row nowrap;
-  align-items:flex-end;
-  cursor:pointer;
-  color:${({ theme }) => theme.colors.text};
-  >svg{
-    width:20px;
-    height:20px;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  color: ${({ theme }) => theme.colors.text};
+  &:hover {
+    background-color: rgba(50, 50, 50, 0.1);
   }
-  .arrow{
-    height:10px;
-    width:10px;
-    margin:0 0 3px 2px;
-    color:${({ theme }) => theme.colors.dark};
+  >svg:not(.arrow) {
+    width: 20px;
+    height: 20px;
+  }
+  .arrow {
+    height: 10px;
+    width: 10px;
+    color: ${({ theme }) => theme.colors.dark};
   }
 `
 
@@ -108,7 +111,7 @@ function TextSizeDropdown({ editor }) {
 
   return (
     <StyledDropdownWrapper ref={dropdownRef}>
-      <StyledDropdownTrigger onClick={() => setIsOpen(!isOpen)}>
+      <StyledDropdownTrigger className="dropdown" onClick={() => setIsOpen(!isOpen)}>
         {currentOption.icon}
         <svg className="arrow" fill="currentColor" viewBox="0 0 16 16">
           <path d="M3.204 5h9.592L8 10.481zm-.753.659 4.796 5.48a1 1 0 0 0 1.506 0l4.796-5.48c.566-.647.106-1.659-.753-1.659H3.204a1 1 0 0 0-.753 1.659" />

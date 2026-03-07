@@ -27,7 +27,7 @@ export default defineConfig({
       registerType: "autoUpdate",
       manifest: {
         name: "Union",
-        short_name: "PWA App",
+        short_name: "Union",
         icons: manifestIcons,
       },
     }),

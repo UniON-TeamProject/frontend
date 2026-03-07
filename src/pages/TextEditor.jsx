@@ -15,8 +15,7 @@ import Text from '../components/atoms/Text';
 import Commands from '../helpers/textEditor/commands.js'
 import createSuggestion from '../helpers/textEditor/suggestion.js'
 import { slashItems } from '../helpers/textEditor/slashItems.jsx'
-import TextSizeDropdown from '../components/editor/TextSizeDropdown.jsx'
-import RightMenuBar from '../components/editor/RightMenuBar.jsx'
+import TextEditorFormatting from '../components/editor/TextEditorFormatting.jsx'
 import DragHandle from '@tiptap/extension-drag-handle-react'
 
 const StyledContainer = styled.div`
@@ -38,6 +37,8 @@ const StyledHeader = styled.div`
   top: 0;
   z-index: 10;
   background-color: ${({ theme }) => theme.colors.lightGrey};
+  border-bottom: 2px solid #ede9fe;
+  box-shadow: 0 2px 8px #cbd0bc;
   @media(max-width:768px){
     position:static;
   }
@@ -46,7 +47,7 @@ const StyledHeader = styled.div`
 const StyledTitleInput = styled.input`
   width:65%;
   padding:10px 0;
-  margin: 10px 0;
+  margin: 0;
   border:none;
   font-size: 3rem;
   font-weight:900;
@@ -70,7 +71,7 @@ const TagsContainer = styled.div`
   align-items:center;
   >p{
     color:${({ theme }) => theme.colors.darkGrey};
-    font-size:1rem;
+    font-size:0.85rem;
     margin-right:7px;
     font-weight:600;
   }
@@ -84,7 +85,7 @@ const StyledTag = styled.div`
   padding:2px 10px;
   margin: 3px;
   background-color:${({ theme, $inactive }) => $inactive ? theme.colors.darkGrey : theme.colors.secondary};
-  border-radius:10px;
+  border-radius:12px;
   color:${({ theme }) => theme.colors.white};
   font-weight:500;
   font-size: 0.9rem;
@@ -103,13 +104,14 @@ const StyledTag = styled.div`
 `
 
 const StyledAddTagButton = styled.div`
-  padding:2px 10px;
+  padding:0px 8px;
   margin: 0 3px;
-  background-color:${({ theme }) => theme.colors.darkGrey};
-  border-radius:7px;
+  border-radius:10px;
+  border: 1px dashed ${({ theme }) => theme.colors.secondary};
   color:${({ theme }) => theme.colors.text};
   font-weight:500;
   cursor: pointer;
+    color: ${({ theme }) => theme.colors.secondary};
 `
 
 const StyledTagInput = styled.input`
@@ -123,55 +125,6 @@ const StyledTagInput = styled.input`
   background-color: ${({ theme }) => theme.colors.secondary};
   &:focus{
     outline:none;
-  }
-`
-
-const StyledMenuContainer = styled.div`
-  margin:20px auto;
-  padding:0;
-  height:50px;
-  width:65%;
-  display:flex;
-  flex-flow: row wrap;
-  align-items:center;
-  justify-content:space-between;
-  border-radius:35px;
-  background-color:${({ theme }) => theme.colors.lightGrey};
-  @media(max-width:768px){
-    width:100%;
-    padding:0 10px;
-  }
-`
-
-const RightMenuContainer = styled.div`
-  display:flex;
-  flex-flow: row-nowrap;
-  align-items:center;
-  gap:3px;
-`
-
-const StyledButton = styled.button`
-  color:${({ theme }) => theme.colors.text};
-  padding:8px 3px;
-  border:none;
-  border-radius:10px;
-  background-color: ${({ $active, theme }) => $active ? 'rgba(50, 50, 50, 0.1)' : 'unset'};
-  cursor:pointer;
-  >svg{
-    width:23px;
-    height:23px;
-    margin: 0 5px;
-    color: ${({ $disabled, theme }) => $disabled ? theme.colors.darkGrey : theme.colors.text};
-  }
-  &.image{
-    padding:0px;
-    width:35px;
-    height:35px;
-    margin: 0;
-    background-color: rgb(144, 223, 232);
-    >svg{
-      margin: auto;
-    }
   }
 `
 
@@ -189,7 +142,7 @@ const ContentContainer = styled.div`
   .ProseMirror{
     width:65%;
     height:100%;
-    padding-top:16px;
+    padding-top:22px;
     margin:0 auto;
     @media(max-width:768px){
       width:100%;
@@ -307,21 +260,41 @@ const ContentContainer = styled.div`
 
 const ReturnButton = styled.div`
     position:absolute;
-    top:45px;
-    left:30px;
+    top: 32px;
+    left:calc((100% - 65%) / 2 - 35px);
     z-index:11;
     display:flex;
-    flex-flow:row nowrap;
     align-items:center;
     cursor:pointer;
+    transition: top 0.35s ease;
     svg{
-        height:16px;
+        height:24px;
+        width:24px;
         color:${({ theme }) => theme.colors.dark};
     }
-    p{
-        font-size:.9rem;
-        margin-left:5px;
-        color:${({ theme }) => theme.colors.dark};
+    @media(max-width:768px){
+        left:10px;
+    }
+`
+
+const CollapsingSection = styled.div`
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    overflow:hidden;
+    max-height: ${({ $collapsed }) => $collapsed ? '0' : '300px'};
+    opacity: ${({ $collapsed }) => $collapsed ? '0' : '1'};
+    transition: max-height 0.35s ease, opacity 0.25s ease;
+`
+
+const TagsDivider = styled.div`
+    width:65%;
+    height:1px;
+    background-color:#cbd0bc;
+    margin:6px 0 0 0;
+    @media(max-width:768px){
+        width:100%;
     }
 `
 
@@ -354,6 +327,7 @@ const TextEditor = () => {
   const [noteNotFoundError, setNoteNotFoundError] = useState(false);
   const [noteNotFoundMessage, setNoteNotFoundMessage] = useState("");
   const saveTimeout = useRef(null);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const SaveShortcut = Extension.create({
     name: 'saveShortcut',
@@ -580,7 +554,14 @@ const TextEditor = () => {
         e.preventDefault();
     };
     document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
+
+    const handleScroll = () => setIsScrolled(window.scrollY > 10);
+    window.addEventListener('scroll', handleScroll);
+
+    return () => {
+      document.removeEventListener('keydown', handler);
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   useEffect(() => {
@@ -615,81 +596,68 @@ const TextEditor = () => {
       </>
       :
       <StyledContainer>
-        <ReturnButton onClick={() => history.back()}>
-          <svg fill="currentColor" viewBox="0 0 16 16">
-            <path fillRule="evenodd" d="M12 8a.5.5 0 0 1-.5.5H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5a.5.5 0 0 1 .5.5" />
-          </svg>
-          <p>Wróć</p>
-        </ReturnButton>
         <StyledHeader>
-          {renameNoteError && <Text style={{ width: "65%", textAlign: 'left' }} color="danger" text={renameNoteErrorMessage} />}
-          <StyledTitleInput
-            type="text"
-            name="name"
-            value={newName}
-            $mode={renameNoteError ? "error" : ""}
-            autoComplete="off"
-            onChange={e => {
-              setRenameNoteError(false);
-              setRenameNoteErrorMessage("");
-              setNewName(e.target.value);
-            }}
-          />
-          <TagsContainer>
-            <p>Tagi: </p>
-            {tags.map((tag, index) => (
-              <StyledTag key={index}>
-                {tag}
-                <div onClick={() => { handleRemoveTag(tag) }}>x</div>
-              </StyledTag>
-            ))}
-            {suggestedTags.filter(t => !tags.includes(t)).map((tag, index) => (
-              <StyledTag key={`suggested-${index}`} $inactive onClick={() => handleAddTag(tag)}>
-                {tag}
-              </StyledTag>
-            ))}
-            {isAddingTag && (
-              <StyledTagInput
-                autoFocus
-                value={newTag}
-                onChange={e => setNewTag(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') addTag()
-                  if (e.key === 'Escape') {
+          <ReturnButton $collapsed={isScrolled} onClick={() => history.back()}>
+            <svg fill="currentColor" viewBox="0 0 16 16">
+              <path fillRule="evenodd" d="M12 8a.5.5 0 0 1-.5.5H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5a.5.5 0 0 1 .5.5" />
+            </svg>
+          </ReturnButton>
+          <CollapsingSection $collapsed={isScrolled}>
+            {renameNoteError && <Text style={{ width: "65%", textAlign: 'left' }} color="danger" text={renameNoteErrorMessage} />}
+            <StyledTitleInput
+              type="text"
+              name="name"
+              value={newName}
+              $mode={renameNoteError ? "error" : ""}
+              autoComplete="off"
+              onChange={e => {
+                setRenameNoteError(false);
+                setRenameNoteErrorMessage("");
+                setNewName(e.target.value);
+              }}
+            />
+            <TagsContainer>
+              <p>TAGI: </p>
+              {tags.map((tag, index) => (
+                <StyledTag key={index}>
+                  {tag}
+                  <div onClick={() => { handleRemoveTag(tag) }}>x</div>
+                </StyledTag>
+              ))}
+              {suggestedTags.filter(t => !tags.includes(t)).map((tag, index) => (
+                <StyledTag key={`suggested-${index}`} $inactive onClick={() => handleAddTag(tag)}>
+                  {tag}
+                </StyledTag>
+              ))}
+              {isAddingTag && (
+                <StyledTagInput
+                  autoFocus
+                  value={newTag}
+                  onChange={e => setNewTag(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') addTag()
+                    if (e.key === 'Escape') {
+                      setIsAddingTag(false)
+                      setNewTag('')
+                    }
+                  }}
+                  onBlur={() => {
                     setIsAddingTag(false)
                     setNewTag('')
-                  }
-                }}
-                onBlur={() => {
-                  setIsAddingTag(false)
-                  setNewTag('')
-                }}
-              />
-            )}
+                  }}
+                />
+              )}
 
-            {!isAddingTag && (
-              <StyledAddTagButton onClick={() => setIsAddingTag(true)}>
-                +
-              </StyledAddTagButton>
-            )}
+              {!isAddingTag && (
+                <StyledAddTagButton onClick={() => setIsAddingTag(true)}>
+                  +
+                </StyledAddTagButton>
+              )}
 
-          </TagsContainer>
-          <StyledMenuContainer>
-            <StyledButton className="image" onClick={() => {
-              const url = window.prompt('URL')
-              if (url)
-                editor.chain().focus().setImage({ src: url }).run();
-            }}>
-              <svg fill="currentColor" viewBox="0 0 16 16">
-                <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0" />
-                <path d="M1.5 2A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2zm13 1a.5.5 0 0 1 .5.5v6l-3.775-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12v.54L1 12.5v-9a.5.5 0 0 1 .5-.5z" />
-              </svg>
-            </StyledButton>
-            <RightMenuContainer>
-              <TextSizeDropdown editor={editor} />
-              <RightMenuBar editor={editor} />
-            </RightMenuContainer>
-          </StyledMenuContainer>
+            </TagsContainer>
+            <TagsDivider />
+          </CollapsingSection>
+          <TextEditorFormatting editor={editor} />
         </StyledHeader>
         {errorMessage && <Text color="danger" text={errorMessage} />}
         <ContentContainer

@@ -1,27 +1,70 @@
 import React from 'react';
 import { useEditorState } from '@tiptap/react';
 import styled from 'styled-components';
+import TextSizeDropdown from './TextSizeDropdown.jsx'
 
-const StyledButton = styled.button`
-  color:${({ theme }) => theme.colors.text};
-  padding:8px 3px;
-  border:none;
-  border-radius:10px;
-  background-color: ${({ $active, theme }) => $active ? 'rgba(50, 50, 50, 0.1)' : 'unset'};
-  cursor:pointer;
-  &:hover{
-    background-color: rgba(50, 50, 50, 0.1);
-  }
-
-  >svg{
-    width:23px;
-    height:23px;
-    margin: 0 5px;
-    color: ${({ $disabled, theme }) => $disabled ? theme.colors.darkGrey : theme.colors.text};
+const StyledContainer = styled.div`
+  margin:20px auto;
+  padding:0;
+  height:50px;
+  width:65%;
+  display:flex;
+  flex-flow: row wrap;
+  align-items:center;
+  justify-content:flex-start;
+  gap:3px;
+  background-color:${({ theme }) => theme.colors.lightGrey};
+  @media(max-width:768px){
+    width:100%;
+    padding:0 10px;
   }
 `
 
-function RightMenuBar({ editor }) {
+const Separator = styled.div`
+  width:1px;
+  height:20px;
+  background-color:#cbd0bc;
+  margin:0 4px;
+`
+
+const StyledButton = styled.button`
+  color:${({ theme }) => theme.colors.text};
+  padding:4px 2px;
+  border:none;
+  border-radius:7px;
+  background-color: ${({ $active, theme }) => $active ? '#cbd0bc' : 'unset'};
+  cursor:pointer;
+  &:hover{
+    background-color: #cbd0bc;
+  }
+  >svg{
+    width:20px;
+    height:20px;
+    margin: 0 3px;
+    color: ${({ $disabled, theme }) => $disabled ? theme.colors.darkGrey : theme.colors.text};
+  }
+  &.image{
+    margin-right:15px;
+    display:flex;
+    flex-flow: row nowrap;
+    background-color:#cbd0bc;
+    padding:8px;
+    border-radius:10px;
+    font-size:0.9rem;
+    font-weight:600;
+    >svg{
+      margin:auto;
+    }
+    &:hover{
+      background-color:#cbd0bc;
+    }
+    >p{
+      padding-left:6px ;
+    }
+  }
+`
+
+function TextEditorFormatting({ editor }) {
   const editorState = useEditorState({
     editor,
     selector: ctx => ({
@@ -45,7 +88,21 @@ function RightMenuBar({ editor }) {
   })
 
   return (
-    <>
+    <StyledContainer>
+      <StyledButton className="image" onClick={() => {
+        const url = window.prompt('URL')
+        if (url)
+          editor.chain().focus().setImage({ src: url }).run();
+      }}>
+        <svg fill="currentColor" viewBox="0 0 16 16">
+          <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0" />
+          <path d="M1.5 2A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2zm13 1a.5.5 0 0 1 .5.5v6l-3.775-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12v.54L1 12.5v-9a.5.5 0 0 1 .5-.5z" />
+        </svg>
+        <p>Dodaj zdjęcie</p>
+      </StyledButton>
+      <Separator />
+      <TextSizeDropdown editor={editor} />
+      <Separator />
       <StyledButton
         onClick={() => editor.chain().focus().toggleBold().run()}
         $disabled={!editorState.canBold}
@@ -82,6 +139,7 @@ function RightMenuBar({ editor }) {
           <path d="M6.333 5.686c0 .31.083.581.27.814H5.166a2.8 2.8 0 0 1-.099-.76c0-1.627 1.436-2.768 3.48-2.768 1.969 0 3.39 1.175 3.445 2.85h-1.23c-.11-1.08-.964-1.743-2.25-1.743-1.23 0-2.18.602-2.18 1.607zm2.194 7.478c-2.153 0-3.589-1.107-3.705-2.81h1.23c.144 1.06 1.129 1.703 2.544 1.703 1.34 0 2.31-.705 2.31-1.675 0-.827-.547-1.374-1.914-1.675L8.046 8.5H1v-1h14v1h-3.504c.468.437.675.994.675 1.697 0 1.826-1.436 2.967-3.644 2.967" />
         </svg>
       </StyledButton>
+      <Separator />
       <StyledButton
         onClick={() => editor.chain().focus().toggleCode().run()}
         $disabled={!editorState.canCode}
@@ -92,14 +150,15 @@ function RightMenuBar({ editor }) {
         </svg>
       </StyledButton>
       <StyledButton
-        onClick={() => editor.chain().focus().toggleLink().run()}
-        $active={editorState.isLink ? true : false}
+        onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+        $active={editorState.isCodeBlock ? true : false}
       >
         <svg fill="currentColor" viewBox="0 0 16 16">
-          <path d="M4.715 6.542 3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1 1 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4 4 0 0 1-.128-1.287z" />
-          <path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 1 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 1 0-4.243-4.243z" />
+          <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z" />
+          <path d="M6.854 4.646a.5.5 0 0 1 0 .708L4.207 8l2.647 2.646a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 0 1 .708 0m2.292 0a.5.5 0 0 0 0 .708L11.793 8l-2.647 2.646a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708 0" />
         </svg>
       </StyledButton>
+      <Separator />
       <StyledButton
         onClick={() => editor.chain().focus().toggleBulletList().run()}
         $active={editorState.isBulletList ? true : false}
@@ -118,15 +177,6 @@ function RightMenuBar({ editor }) {
         </svg>
       </StyledButton>
       <StyledButton
-        onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-        $active={editorState.isCodeBlock ? true : false}
-      >
-        <svg fill="currentColor" viewBox="0 0 16 16">
-          <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z" />
-          <path d="M6.854 4.646a.5.5 0 0 1 0 .708L4.207 8l2.647 2.646a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 0 1 .708 0m2.292 0a.5.5 0 0 0 0 .708L11.793 8l-2.647 2.646a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708 0" />
-        </svg>
-      </StyledButton>
-      <StyledButton
         onClick={() => editor.chain().focus().toggleBlockquote().run()}
         $active={editorState.isBlockquote ? true : false}
       >
@@ -134,8 +184,8 @@ function RightMenuBar({ editor }) {
           <path d="M2.5 3a.5.5 0 0 0 0 1h11a.5.5 0 0 0 0-1zm5 3a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1zm0 3a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1zm-5 3a.5.5 0 0 0 0 1h11a.5.5 0 0 0 0-1zm.79-5.373q.168-.117.444-.275L3.524 6q-.183.111-.452.287-.27.176-.51.428a2.4 2.4 0 0 0-.398.562Q2 7.587 2 7.969q0 .54.217.873.217.328.72.328.322 0 .504-.211a.7.7 0 0 0 .188-.463q0-.345-.211-.521-.205-.182-.568-.182h-.282q.036-.305.123-.498a1.4 1.4 0 0 1 .252-.37 2 2 0 0 1 .346-.298zm2.167 0q.17-.117.445-.275L5.692 6q-.183.111-.452.287-.27.176-.51.428a2.4 2.4 0 0 0-.398.562q-.165.31-.164.692 0 .54.217.873.217.328.72.328.322 0 .504-.211a.7.7 0 0 0 .188-.463q0-.345-.211-.521-.205-.182-.568-.182h-.282a1.8 1.8 0 0 1 .118-.492q.087-.194.257-.375a2 2 0 0 1 .346-.3z" />
         </svg>
       </StyledButton>
-    </>
+    </StyledContainer>
   )
 }
 
-export default RightMenuBar;
+export default TextEditorFormatting;
