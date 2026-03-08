@@ -28,6 +28,7 @@ const StyledMenu = styled.div`
     overflow-y: auto;
     max-height: 200px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    color: rgb(17, 24, 39);
 `
 
 const StyledItem = styled.button`
@@ -41,6 +42,7 @@ const StyledItem = styled.button`
     width: 100%;
     display: flex;
     align-items: center;
+    color: rgb(17, 24, 39);
     background-color: ${({ $selected }) => $selected ? '#f0f0f0' : '#fff'};
     &:hover {
         background-color: #f0f0f0;

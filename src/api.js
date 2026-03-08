@@ -1144,7 +1144,7 @@ export async function addFlashcardSet(name, tags = []) {
 
     if (resp.ok) {
       const responseBody = await resp.json();
-      return { id: responseBody.name, errorCode: "", message: "" };
+      return { id: responseBody.id, errorCode: "", message: "" };
     }
 
     const errorData = await resp.json().catch(() => ({}));

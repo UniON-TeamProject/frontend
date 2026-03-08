@@ -8,6 +8,8 @@ import { getToken, parseJwt } from '../token'
 import Input from '../components/atoms/Input';
 import Layout from '../components/organisms/Layout';
 
+const noteNameRegex = /^[a-zA-Z0-9 _\-ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+$/;
+
 const StyledContainer = styled.div`
    width: 100%;
    height:100%;
@@ -76,7 +78,7 @@ const StyledOptionsButtons = styled.div`
 const StyledOptionsButton = styled.div`
   margin-left: auto;
   padding: 5px 13px;
-  background-color: #b486ab;
+  background-color: ${({ theme }) => theme.colors.secondary};
   border-radius: 5px;
   color: ${({ theme }) => theme.colors.white};
   font-weight: 700;
@@ -91,26 +93,86 @@ const StyledOptionsButton = styled.div`
 `
 
 const StyledOptions = styled.div`
-  display: ${({ $active }) => $active ? "block" : "none"};
+  display: ${({ $active }) => $active ? "flex" : "none"};
+  flex-direction: column;
+  gap: 8px;
   position: absolute;
   right: 0;
-  top: 100%;
-  width: 180px;
-  border: 2px solid ${({ theme }) => theme.colors.darkGrey};
-  color: ${({ theme }) => theme.colors.text};
-  border-radius: 5px;
-  z-index: 10;
-  background-color: ${({ theme }) => theme.colors.white};
-  padding: 10px;
-  margin-top:5px;
-
-  cursor: default;
+  top: calc(100% + 8px);
+  z-index: 100;
   > div {
+    background: ${({ theme }) => theme.colors.white};
+    border-radius: 12px;
+    padding: 10px 18px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: ${({ theme }) => theme.colors.text};
     cursor: pointer;
-    padding: 5px 0;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    white-space: nowrap;
+    transition: box-shadow 0.15s, background 0.15s;
+    &:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      background: ${({ theme }) => theme.colors.lightGreen};
+    }
   }
 `
 
+
+const FloatingActionButton = styled.button`
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    width: 70px;
+    height: 70px;
+    background-color: ${({ theme }) => theme.colors.white};
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    z-index: 100;
+    &:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 25px rgba(0,0,0,0.15);
+    }
+    svg {
+        width: 32px;
+        height: 32px;
+        color: ${({ theme }) => theme.colors.secondary};
+    }
+`
+
+const FabMenu = styled.div`
+    position: fixed;
+    bottom: 124px;
+    right: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 100;
+`
+
+const FabMenuItem = styled.button`
+    background: ${({ theme }) => theme.colors.white};
+    border: none;
+    border-radius: 12px;
+    padding: 10px 18px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: ${({ theme }) => theme.colors.text};
+    cursor: pointer;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    text-align: left;
+    transition: box-shadow 0.15s, background 0.15s;
+    &:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        background: ${({ theme }) => theme.colors.lightGreen};
+    }
+`
 
 const StyledItem = styled.div`
     width:125px;
@@ -157,7 +219,7 @@ const StyledItemHeader = styled.span`
         width:9px;
         margin-left:3px;
         flex-shrink:0;
-        color: #b486ab;
+        color: ${({ theme }) => theme.colors.secondary};
     }
 `
 
@@ -288,12 +350,12 @@ const StyledTreeItemLabel = styled.div`
     cursor: pointer;
     border-radius:5px;
     background-color: ${({ $selected, $disabled, theme }) =>
-        $disabled ? theme.colors.lightGrey : $selected ? '#e0c8dc' : 'transparent'};
+        $disabled ? theme.colors.lightGrey : $selected ? theme.colors.lightGreen : 'transparent'};
     opacity: ${({ $disabled }) => $disabled ? 0.5 : 1};
     pointer-events: ${({ $disabled }) => $disabled ? 'none' : 'auto'};
     &:hover {
-        background-color: ${({ $selected, $disabled }) =>
-        $disabled ? undefined : $selected ? '#e0c8dc' : '#f0f0f0'};
+        background-color: ${({ $selected, $disabled, theme }) =>
+        $disabled ? undefined : $selected ? theme.colors.lightGreen : '#f0f0f0'};
     }
     > svg {
         width: 16px;
@@ -799,6 +861,26 @@ const Notes = () => {
             }}>
                 <StyledUserHeader>
                     <StyledName>Witaj, {username}!</StyledName>
+                    {!isTrashView && (
+                        <StyledOptionsButton onClick={(e) => {
+                            e.stopPropagation();
+                            setIsActivePathOptions(!isActivePathOptions);
+                            setIsActiveAddOptions(false);
+                            setActiveFolderOptionsId(null);
+                            setActiveNoteOptionsId(null);
+                        }}>
+                            <svg width="17" height="17" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3" />
+                            </svg>
+                            <StyledOptions $active={isActivePathOptions}>
+                                <div onClick={(e) => {
+                                    e.stopPropagation();
+                                    setIsActivePathOptions(false);
+                                    navigate("/notes/trash");
+                                }}>Pokaż usunięte</div>
+                            </StyledOptions>
+                        </StyledOptionsButton>
+                    )}
                 </StyledUserHeader>
                 {errorMessage && <Text color="danger" text={errorMessage} />}
                 <StyledOptionsHeader>
@@ -821,49 +903,6 @@ const Notes = () => {
                         </StyledBreadcrumbPath>
                     )}
                     <StyledOptionsButtons >
-                        {!isTrashView && <>
-                            <StyledOptionsButton onClick={(e) => {
-                                e.stopPropagation();
-                                setIsActiveAddOptions(!isActiveAddOptions);
-                                setIsActivePathOptions(false);
-                                setActiveFolderOptionsId(null);
-                                setActiveNoteOptionsId(null);
-                            }}>
-                                Nowy +
-                                <StyledOptions $active={isActiveAddOptions}>
-                                    <div onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (currentFolder)
-                                            handleFetchFolderSuggestedTags();
-                                        setIsAddingFolder(true);
-                                        setIsActiveAddOptions(false);
-                                    }}>Nowy folder</div>
-                                    <div onClick={(e) => {
-                                        e.stopPropagation();
-                                        setIsAddingNote(true);
-                                        setIsActiveAddOptions(false);
-                                    }}>Nowy dokument</div>
-                                </StyledOptions>
-                            </StyledOptionsButton>
-                            <StyledOptionsButton onClick={(e) => {
-                                e.stopPropagation();
-                                setIsActivePathOptions(!isActivePathOptions);
-                                setIsActiveAddOptions(false);
-                                setActiveFolderOptionsId(null);
-                                setActiveNoteOptionsId(null);
-                            }}>
-                                <svg width="17" height="17" fill="currentColor" viewBox="0 0 16 16">
-                                    <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3" />
-                                </svg>
-                                <StyledOptions $active={isActivePathOptions}>
-                                    <div onClick={(e) => {
-                                        e.stopPropagation();
-                                        setIsActivePathOptions(false);
-                                        navigate("/notes/trash");
-                                    }}> Pokaż usunięte</div>
-                                </StyledOptions>
-                            </StyledOptionsButton>
-                        </>}
                         {isTrashView &&
                             <StyledOptionsButton onClick={() => navigate("/notes")}>
                                 Wyjdź
@@ -1129,17 +1168,19 @@ const Notes = () => {
                             }}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
-                                    const nameEmpty = !noteName.trim();
-                                    if (nameEmpty) setNoteNameErrorMessage("Wypełnij pole");
-                                    if (!nameEmpty) handleAddNote();
+                                    const trimmed = noteName.trim();
+                                    if (!trimmed) { setNoteNameErrorMessage("Wypełnij pole"); return; }
+                                    if (!noteNameRegex.test(trimmed)) { setNoteNameErrorMessage("Nazwa może zawierać tylko litery, cyfry, spacje, _ i -"); return; }
+                                    handleAddNote();
                                 };
                             }}
                         />
                         <SubmitButton text="Stwórz" color="dark" onClick={(e) => {
                             e.preventDefault();
-                            const nameEmpty = !noteName.trim();
-                            if (nameEmpty) setNoteNameErrorMessage("Wypełnij pole");
-                            if (!nameEmpty) handleAddNote();
+                            const trimmed = noteName.trim();
+                            if (!trimmed) { setNoteNameErrorMessage("Wypełnij pole"); return; }
+                            if (!noteNameRegex.test(trimmed)) { setNoteNameErrorMessage("Nazwa może zawierać tylko litery, cyfry, spacje, _ i -"); return; }
+                            handleAddNote();
                         }} />
                     </StyledPopup>
                 }
@@ -1275,6 +1316,40 @@ const Notes = () => {
                         </div>
                     </StyledPopup>
                 }
+                {!isTrashView && (
+                    <>
+                        {isActiveAddOptions && (
+                            <FabMenu>
+                                <FabMenuItem onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (currentFolder) handleFetchFolderSuggestedTags();
+                                    setIsAddingFolder(true);
+                                    setIsActiveAddOptions(false);
+                                }}>
+                                    Nowy folder
+                                </FabMenuItem>
+                                <FabMenuItem onClick={(e) => {
+                                    e.stopPropagation();
+                                    setIsAddingNote(true);
+                                    setIsActiveAddOptions(false);
+                                }}>
+                                    Nowy dokument
+                                </FabMenuItem>
+                            </FabMenu>
+                        )}
+                        <FloatingActionButton onClick={(e) => {
+                            e.stopPropagation();
+                            setIsActiveAddOptions(!isActiveAddOptions);
+                            setIsActivePathOptions(false);
+                            setActiveFolderOptionsId(null);
+                            setActiveNoteOptionsId(null);
+                        }}>
+                            <svg fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4" />
+                            </svg>
+                        </FloatingActionButton>
+                    </>
+                )}
             </StyledContainer>
         </Layout>
     )

@@ -10,5 +10,6 @@ export const theme = {
     lightGrey: "rgb(247,247,247)",
     text: "rgb(17, 24, 39)",
     textLight: "rgb(120, 120, 120)",
+    lightGreen: "rgb(203, 208, 188)",
   },
 };

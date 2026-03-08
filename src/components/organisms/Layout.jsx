@@ -12,7 +12,7 @@ const StyledTopbar = styled.div`
     left: 0;
     right: 0;
     height: 80px;
-    background-color: #cbd0bc;
+    background-color: ${({ theme }) => theme.colors.lightGreen};
     display: flex;
     align-items: center;
     padding: 0 24px;
@@ -33,7 +33,7 @@ const StyledSidebar = styled.div`
     left: 0;
     width: 80px;
     height: calc(100vh - 80px);
-    background-color: #cbd0bc;
+    background-color: ${({ theme }) => theme.colors.lightGreen};
     display: flex;
     flex-direction: column;
     align-items: center;
