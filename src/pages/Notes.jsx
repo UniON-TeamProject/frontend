@@ -7,6 +7,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { getToken, parseJwt } from '../token'
 import Input from '../components/atoms/Input';
 import Layout from '../components/organisms/Layout';
+import AIFlashcardModal from '../components/editor/AIFlashcardModal.jsx';
 
 const noteNameRegex = /^[a-zA-Z0-9 _\-ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+$/;
 
@@ -425,6 +426,7 @@ const Notes = () => {
     const [expandedMoveIds, setExpandedMoveIds] = useState(new Set());
     const [selectedMovePath, setSelectedMovePath] = useState(null);
     const [moveErrorMessage, setMoveErrorMessage] = useState("");
+    const [aiModalNoteId, setAiModalNoteId] = useState(null);
 
     const handleFetchItemTags = async (id, type) => {
         const suggestedId = type === 'folder' ? id : currentFolder?.id;
@@ -1121,6 +1123,16 @@ const Notes = () => {
                                                 </TagsContainer>
                                                 <StyledItemOption onClick={(e) => {
                                                     e.stopPropagation();
+                                                    setAiModalNoteId(d.id);
+                                                    setActiveNoteOptionsId(null);
+                                                }}>
+                                                    <svg fill="currentColor" viewBox="0 0 16 16">
+                                                        <path d="M6 12.796V3.204L11.481 8zm.659.753 5.48-4.796a1 1 0 0 0 0-1.506L6.66 2.451C6.011 1.885 5 2.345 5 3.204v9.592a1 1 0 0 0 1.659.753" />
+                                                    </svg>
+                                                    Stwórz fiszki AI
+                                                </StyledItemOption>
+                                                <StyledItemOption onClick={(e) => {
+                                                    e.stopPropagation();
                                                     handleOpenMovePopup(d.id, 'note', d.name);
                                                 }}>
                                                     <svg fill="currentColor" viewBox="0 0 16 16">
@@ -1351,6 +1363,11 @@ const Notes = () => {
                     </>
                 )}
             </StyledContainer>
+            <AIFlashcardModal
+                isOpen={aiModalNoteId !== null}
+                onClose={() => setAiModalNoteId(null)}
+                noteId={aiModalNoteId}
+            />
         </Layout>
     )
 }

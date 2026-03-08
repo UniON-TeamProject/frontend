@@ -18,6 +18,7 @@ import { slashItems } from '../helpers/textEditor/slashItems.jsx'
 import TextEditorFormatting from '../components/editor/TextEditorFormatting.jsx'
 import DragHandle from '@tiptap/extension-drag-handle-react'
 import FlashcardCreatorSidebar from '../components/editor/FlashcardCreatorSidebar.jsx'
+import AIFlashcardModal from '../components/editor/AIFlashcardModal.jsx'
 
 const StyledContainer = styled.div`
   width:100%;
@@ -374,6 +375,7 @@ const TextEditor = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [flashcards, setFlashcards] = useState([]);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
   const SaveShortcut = Extension.create({
     name: 'saveShortcut',
@@ -678,13 +680,21 @@ const TextEditor = () => {
       :
       <StyledContainer>
         <StyledHeader>
-          <FlashcardToggleButton onClick={() => setIsSidebarOpen(o => !o)}>
-            <svg fill="currentColor" viewBox="0 0 16 16">
-              <path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2z" />
-              <path d="M3 5.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M3 8a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 8m0 2.5a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5" />
-            </svg>
-            Kreator fiszek
-          </FlashcardToggleButton>
+          <div style={{ position: 'absolute', top: 18, right: 20, display: 'flex', gap: 8, zIndex: 11 }}>
+            <FlashcardToggleButton style={{ position: 'static' }} onClick={() => setIsSidebarOpen(o => !o)}>
+              <svg fill="currentColor" viewBox="0 0 16 16">
+                <path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2z" />
+                <path d="M3 5.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M3 8a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 8m0 2.5a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5" />
+              </svg>
+              Kreator fiszek
+            </FlashcardToggleButton>
+            <FlashcardToggleButton style={{ position: 'static' }} onClick={() => setIsAIModalOpen(true)}>
+              <svg fill="currentColor" viewBox="0 0 16 16">
+                <path d="M6 12.796V3.204L11.481 8zm.659.753 5.48-4.796a1 1 0 0 0 0-1.506L6.66 2.451C6.011 1.885 5 2.345 5 3.204v9.592a1 1 0 0 0 1.659.753" />
+              </svg>
+              Stwórz fiszki AI
+            </FlashcardToggleButton>
+          </div>
           <ReturnButton $collapsed={isScrolled} onClick={() => history.back()}>
             <svg fill="currentColor" viewBox="0 0 16 16">
               <path fillRule="evenodd" d="M12 8a.5.5 0 0 1-.5.5H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5a.5.5 0 0 1 .5.5" />
@@ -695,6 +705,11 @@ const TextEditor = () => {
             onClose={() => setIsSidebarOpen(false)}
             flashcards={flashcards}
             setFlashcards={setFlashcards}
+          />
+          <AIFlashcardModal
+            isOpen={isAIModalOpen}
+            onClose={() => setIsAIModalOpen(false)}
+            noteId={id}
           />
           <CollapsingSection $collapsed={isScrolled}>
             {renameNoteError && <Text style={{ width: "65%", textAlign: 'left' }} color="danger" text={renameNoteErrorMessage} />}
