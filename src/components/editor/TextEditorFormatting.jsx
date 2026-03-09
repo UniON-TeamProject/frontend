@@ -15,15 +15,28 @@ const StyledContainer = styled.div`
   gap:5px;
   background-color:${({ theme }) => theme.colors.lightGrey};
   @media(max-width:768px){
-    width:100%;
-    padding:0 10px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: auto;
+    margin: 0;
+    padding: 8px 10px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    background-color: ${({ theme }) => theme.colors.white};
+    border-top: 1px solid ${({ theme }) => theme.colors.darkGrey};
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+    z-index: 50;
+    -webkit-overflow-scrolling: touch;
   }
 `
 
 const Separator = styled.div`
   width:1px;
   height:20px;
-  background-color:${({ theme }) => theme.colors.lightGreen};
+  background-color:${({ theme }) => theme.colors.primary};
   margin:0 4px;
 `
 
@@ -32,10 +45,10 @@ const StyledButton = styled.button`
   padding:4px 2px;
   border:none;
   border-radius:7px;
-  background-color: ${({ $active, theme }) => $active ? theme.colors.lightGreen : 'unset'};
+  background-color: ${({ $active, theme }) => $active ? theme.colors.primary : 'unset'};
   cursor:pointer;
   &:hover{
-    background-color: ${({ $disabled, theme }) => $disabled ? 'unset' : theme.colors.lightGreen};
+    background-color: ${({ $disabled, theme }) => $disabled ? 'unset' : theme.colors.primary};
   }
   >svg{
     width:20px;
@@ -47,7 +60,7 @@ const StyledButton = styled.button`
     margin-right:15px;
     display:flex;
     flex-flow: row nowrap;
-    background-color:${({ theme }) => theme.colors.lightGreen};
+    background-color:${({ theme }) => theme.colors.primary};
     padding:8px 12px;
     border-radius:10px;
     font-size:0.9rem;
@@ -57,7 +70,7 @@ const StyledButton = styled.button`
       padding:1px;
     }
     &:hover{
-      background-color:${({ theme }) => theme.colors.lightGreen};
+      background-color:${({ theme }) => theme.colors.primary};
     }
     >p{
       padding-left:6px ;

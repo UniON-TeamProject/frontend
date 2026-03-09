@@ -1657,3 +1657,51 @@ export async function sendFsrsAnswer(cardId, ratingValue) {
     return false;
   }
 }
+
+export async function generateCardsFromNote(noteId) {
+  const token = getToken();
+  if (!token)
+    return { errorCode: "TOKEN_UNDEFINED", message: "Brak tokena" };
+  try {
+    const resp = await fetch(`${API_HOST}/generateCards/${noteId}`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+    if (resp.ok) {
+      const cards = await resp.json();
+      return { cards, errorCode: "", message: "" };
+    }
+    const data = await resp.json().catch(() => ({}));
+    return { errorCode: data.errorCode || "ERROR", message: data.message || "Błąd generowania fiszek" };
+  } catch {
+    return { errorCode: "CONNECTION_ERROR", message: "Nie udało się połączyć z serwerem." };
+  }
+}
+
+export async function addListOfCardsToSet(cardSetId, cards) {
+  const token = getToken();
+  if (!token)
+    return { errorCode: "TOKEN_UNDEFINED", message: "Brak tokena" };
+  try {
+    const resp = await fetch(`${API_HOST}/addListOfCardsToTheCardSet/${cardSetId}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(cards),
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+    if (resp.ok) {
+      const saved = await resp.json();
+      return { cards: saved, errorCode: "", message: "" };
+    }
+    const data = await resp.json().catch(() => ({}));
+    return { errorCode: data.errorCode || "ERROR", message: data.message || "Błąd zapisywania fiszek" };
+  } catch {
+    return { errorCode: "CONNECTION_ERROR", message: "Nie udało się połączyć z serwerem." };
+  }
+}

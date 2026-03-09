@@ -18,6 +18,8 @@ import { slashItems } from '../helpers/textEditor/slashItems.jsx'
 import TextEditorFormatting from '../components/editor/TextEditorFormatting.jsx'
 import DragHandle from '@tiptap/extension-drag-handle-react'
 import FlashcardCreatorSidebar from '../components/editor/FlashcardCreatorSidebar.jsx'
+import AIFlashcardModal from '../components/editor/AIFlashcardModal.jsx'
+import Layout from '../components/organisms/Layout.jsx'
 
 const StyledContainer = styled.div`
   width:100%;
@@ -38,7 +40,7 @@ const StyledHeader = styled.div`
   top: 0;
   z-index: 10;
   background-color: ${({ theme }) => theme.colors.lightGrey};
-  box-shadow: 0 1px 8px ${({ theme }) => theme.colors.lightGreen};
+  box-shadow: 0 1px 8px ${({ theme }) => theme.colors.primary};
   @media(max-width:768px){
     position:static;
   }
@@ -46,7 +48,7 @@ const StyledHeader = styled.div`
 
 const StyledTitleInput = styled.input`
   width:65%;
-  padding:10px 0;
+  padding:20px 0 10px 0;
   margin: 0;
   border:none;
   font-size: 3rem;
@@ -84,8 +86,9 @@ const TagsContainer = styled.div`
 
 const StyledTag = styled.div`
   padding:2px 10px;
+  min-height:28px;
   margin: 3px;
-  background-color:${({ theme, $inactive }) => $inactive ? theme.colors.darkGrey : theme.colors.secondary};
+  background-color:${({ theme, $inactive }) => $inactive ? "rgba(200, 212, 184, 0.7)" : theme.colors.secondary};
   border-radius:12px;
   color:${({ theme }) => theme.colors.white};
   font-weight:500;
@@ -100,7 +103,7 @@ const StyledTag = styled.div`
     margin:0 0 0 6px;
     padding:0;
     position:relative;
-    bottom:2px;
+    bottom:3px;
   }
 `
 
@@ -131,11 +134,14 @@ const StyledTagInput = styled.input`
 
 const ContentContainer = styled.div`
   width:100%;
-  margin:30px auto;
+  margin:30px auto 0 auto;
   background-color:${({ theme }) => theme.colors.lightGrey};
   border-radius:5px;
   height:100%;
   min-height:70vh;
+  @media(max-width:768px){
+    padding-bottom: 70px;
+  }
   >div{
     width:100%;
     height:100%;
@@ -143,7 +149,7 @@ const ContentContainer = styled.div`
   .ProseMirror{
     width:65%;
     height:100%;
-    padding-top:22px;
+    padding:22px 0 50px 0;
     margin:0 auto;
     @media(max-width:768px){
       width:100%;
@@ -260,7 +266,7 @@ const ContentContainer = styled.div`
 
 const ReturnButton = styled.div`
     position:absolute;
-    top: 32px;
+    top: ${({ $collapsed }) => $collapsed ? "30px" : "45px"};
     left:calc((100% - 65%) / 2 - 35px);
     z-index:11;
     display:flex;
@@ -291,7 +297,7 @@ const CollapsingSection = styled.div`
 const TagsDivider = styled.div`
     width:65%;
     height:1px;
-    background-color:${({ theme }) => theme.colors.lightGreen};
+    background-color:${({ theme }) => theme.colors.primary};
     margin:6px 0 0 0;
     @media(max-width:768px){
         width:100%;
@@ -303,7 +309,7 @@ const FlashcardToggleButton = styled.button`
   top: 18px;
   right: 20px;
   z-index: 11;
-  background-color: ${({ theme }) => theme.colors.lightGreen};
+  background-color: ${({ theme }) => theme.colors.primary};
   border: none;
   border-radius: 10px;
   padding: 8px 12px;
@@ -315,7 +321,7 @@ const FlashcardToggleButton = styled.button`
   font-weight: 600;
   color: ${({ theme }) => theme.colors.text};
   &:hover {
-    background-color: ${({ theme }) => theme.colors.lightGreen};
+    background-color: ${({ theme }) => theme.colors.primary};
   }
   svg {
     width: 20px;
@@ -374,6 +380,8 @@ const TextEditor = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [flashcards, setFlashcards] = useState([]);
   const [isScrolled, setIsScrolled] = useState(false);
+  const collapsingSectionRef = useRef(null);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
   const SaveShortcut = Extension.create({
     name: 'saveShortcut',
@@ -601,7 +609,18 @@ const TextEditor = () => {
     };
     document.addEventListener('keydown', handler);
 
-    const handleScroll = () => setIsScrolled(window.scrollY > 10);
+    const handleScroll = () => {
+      const y = window.scrollY;
+      setIsScrolled(prev => {
+        if (prev && y <= 10) return false;
+        if (!prev && y > 10) {
+          const collapseHeight = collapsingSectionRef.current?.scrollHeight || 0;
+          const maxScrollAfterCollapse = document.documentElement.scrollHeight - collapseHeight - window.innerHeight;
+          return maxScrollAfterCollapse > 10;
+        }
+        return prev;
+      });
+    };
     window.addEventListener('scroll', handleScroll);
 
     return () => {
@@ -676,138 +695,152 @@ const TextEditor = () => {
         <Text style={{ marginTop: "20px" }} as="h3" text="Sprawdź, czy URL jest poprawny i czy plik istnieje." />
       </>
       :
-      <StyledContainer>
-        <StyledHeader>
-          <FlashcardToggleButton onClick={() => setIsSidebarOpen(o => !o)}>
-            <svg fill="currentColor" viewBox="0 0 16 16">
-              <path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2z" />
-              <path d="M3 5.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M3 8a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 8m0 2.5a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5" />
-            </svg>
-            Kreator fiszek
-          </FlashcardToggleButton>
-          <ReturnButton $collapsed={isScrolled} onClick={() => history.back()}>
-            <svg fill="currentColor" viewBox="0 0 16 16">
-              <path fillRule="evenodd" d="M12 8a.5.5 0 0 1-.5.5H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5a.5.5 0 0 1 .5.5" />
-            </svg>
-          </ReturnButton>
-          <FlashcardCreatorSidebar
-            isOpen={isSidebarOpen}
-            onClose={() => setIsSidebarOpen(false)}
-            flashcards={flashcards}
-            setFlashcards={setFlashcards}
-          />
-          <CollapsingSection $collapsed={isScrolled}>
-            {renameNoteError && <Text style={{ width: "65%", textAlign: 'left' }} color="danger" text={renameNoteErrorMessage} />}
-            <StyledTitleInput
-              type="text"
-              name="name"
-              value={newName}
-              $mode={renameNoteError ? "error" : ""}
-              autoComplete="off"
-              onChange={e => {
-                setRenameNoteError(false);
-                setRenameNoteErrorMessage("");
-                setNewName(e.target.value);
-              }}
+      <Layout>
+        <StyledContainer>
+          <StyledHeader>
+            <div style={{ position: 'absolute', top: 25, right: 20, display: 'flex', gap: 8, zIndex: 11 }}>
+              <FlashcardToggleButton style={{ position: 'static' }} onClick={() => setIsSidebarOpen(o => !o)}>
+                <svg fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2z" />
+                  <path d="M3 5.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M3 8a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 8m0 2.5a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5" />
+                </svg>
+                Kreator fiszek
+              </FlashcardToggleButton>
+              <FlashcardToggleButton style={{ position: 'static' }} onClick={() => setIsAIModalOpen(true)}>
+                <svg fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M6 12.796V3.204L11.481 8zm.659.753 5.48-4.796a1 1 0 0 0 0-1.506L6.66 2.451C6.011 1.885 5 2.345 5 3.204v9.592a1 1 0 0 0 1.659.753" />
+                </svg>
+                Stwórz fiszki AI
+              </FlashcardToggleButton>
+            </div>
+            <ReturnButton $collapsed={isScrolled} onClick={() => history.back()}>
+              <svg fill="currentColor" viewBox="0 0 16 16">
+                <path fillRule="evenodd" d="M12 8a.5.5 0 0 1-.5.5H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5a.5.5 0 0 1 .5.5" />
+              </svg>
+            </ReturnButton>
+            <FlashcardCreatorSidebar
+              isOpen={isSidebarOpen}
+              onClose={() => setIsSidebarOpen(false)}
+              flashcards={flashcards}
+              setFlashcards={setFlashcards}
+              suggestedTags={suggestedTags}
             />
-            <TagsContainer>
-              <p>TAGI: </p>
-              {tags.map((tag, index) => (
-                <StyledTag key={index}>
-                  {tag}
-                  <div onClick={() => { handleRemoveTag(tag) }}>x</div>
-                </StyledTag>
-              ))}
-              {suggestedTags.filter(t => !tags.includes(t)).map((tag, index) => (
-                <StyledTag key={`suggested-${index}`} $inactive onClick={() => handleAddTag(tag)}>
-                  {tag}
-                </StyledTag>
-              ))}
-              {isAddingTag && (
-                <StyledTagInput
-                  autoFocus
-                  value={newTag}
-                  onChange={e => setNewTag(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter') addTag()
-                    if (e.key === 'Escape') {
+            <AIFlashcardModal
+              isOpen={isAIModalOpen}
+              onClose={() => setIsAIModalOpen(false)}
+              noteId={id}
+            />
+            <CollapsingSection ref={collapsingSectionRef} $collapsed={isScrolled}>
+              {renameNoteError && <Text style={{ width: "65%", textAlign: 'left' }} color="danger" text={renameNoteErrorMessage} />}
+              <StyledTitleInput
+                type="text"
+                name="name"
+                value={newName}
+                $mode={renameNoteError ? "error" : ""}
+                autoComplete="off"
+                onChange={e => {
+                  setRenameNoteError(false);
+                  setRenameNoteErrorMessage("");
+                  setNewName(e.target.value);
+                }}
+              />
+              <TagsContainer>
+                <p>TAGI: </p>
+                {tags.map((tag, index) => (
+                  <StyledTag key={index}>
+                    {tag}
+                    <div onClick={() => { handleRemoveTag(tag) }}>x</div>
+                  </StyledTag>
+                ))}
+                {suggestedTags.filter(t => !tags.includes(t)).map((tag, index) => (
+                  <StyledTag key={`suggested-${index}`} $inactive onClick={() => handleAddTag(tag)}>
+                    {tag}
+                  </StyledTag>
+                ))}
+                {isAddingTag && (
+                  <StyledTagInput
+                    autoFocus
+                    value={newTag}
+                    onChange={e => setNewTag(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') addTag()
+                      if (e.key === 'Escape') {
+                        setIsAddingTag(false)
+                        setNewTag('')
+                      }
+                    }}
+                    onBlur={() => {
                       setIsAddingTag(false)
                       setNewTag('')
-                    }
-                  }}
-                  onBlur={() => {
-                    setIsAddingTag(false)
-                    setNewTag('')
-                  }}
-                />
-              )}
-
-              {!isAddingTag && (
-                <StyledAddTagButton onClick={() => setIsAddingTag(true)}>
-                  +
-                </StyledAddTagButton>
-              )}
-
-            </TagsContainer>
-            <TagsDivider />
-          </CollapsingSection>
-          <TextEditorFormatting editor={editor} />
-        </StyledHeader >
-        {errorMessage && <Text color="danger" text={errorMessage} />}
-        <ContentContainer
-          onClick={(e) => {
-            if (!editor) return;
-            if (e.target === e.currentTarget)
-              editor.chain().focus('end').run();
-          }}
-        >
-          {editor && (
-            <BubbleMenu className="bubble-menu" editor={editor}>
-              {isSidebarOpen ? (
-                <>
-                  <FlashcardBubbleButton onClick={saveSelectionAsFront}>
-                    Zapisz jako przód
-                  </FlashcardBubbleButton>
-                  <FlashcardBubbleButton onClick={saveSelectionAsBack}>
-                    Zapisz jako tył
-                  </FlashcardBubbleButton>
-                </>
-              ) : (
-                <>
-                  <StyledFloatingButton
-                    onClick={() => editor.chain().focus().toggleBold().run()}
-                    className={editor.isActive('bold') ? 'is-active' : ''}
-                  >
-                    Pogrubienie
-                  </StyledFloatingButton>
-                  <StyledFloatingButton
-                    onClick={() => editor.chain().focus().toggleItalic().run()}
-                    className={editor.isActive('italic') ? 'is-active' : ''}
-                  >
-                    Kursywa
-                  </StyledFloatingButton>
-                  <StyledFloatingButton
-                    onClick={() => editor.chain().focus().toggleUnderline().run()}
-                    className={editor.isActive('underline') ? 'is-active' : ''}
-                  >
-                    Podkreślenie
-                  </StyledFloatingButton>
-                  <StyledFloatingButton
-                    onClick={() => editor.chain().focus().toggleStrike().run()}
-                    className={editor.isActive('strike') ? 'is-active' : ''}
-                  >
-                    Przekreślenie
-                  </StyledFloatingButton>
-                </>
-              )}
-            </BubbleMenu>
-          )}
-          <DragHandle editor={editor} nested={false}>
-            <div className="custom-drag-handle" />
-          </DragHandle>
-          <EditorContent editor={editor} />
-        </ContentContainer>
-      </StyledContainer >
+                    }}
+                  />
+                )}
+                {!isAddingTag && (
+                  <StyledAddTagButton onClick={() => setIsAddingTag(true)}>
+                    +
+                  </StyledAddTagButton>
+                )}
+              </TagsContainer>
+              <TagsDivider />
+            </CollapsingSection>
+            <TextEditorFormatting editor={editor} />
+          </StyledHeader >
+          {errorMessage && <Text color="danger" text={errorMessage} />}
+          <ContentContainer
+            onClick={(e) => {
+              if (!editor) return;
+              if (e.target === e.currentTarget)
+                editor.chain().focus('end').run();
+            }}
+          >
+            {editor && (
+              <BubbleMenu className="bubble-menu" editor={editor}>
+                {isSidebarOpen ? (
+                  <>
+                    <FlashcardBubbleButton onClick={saveSelectionAsFront}>
+                      Zapisz jako przód
+                    </FlashcardBubbleButton>
+                    <FlashcardBubbleButton onClick={saveSelectionAsBack}>
+                      Zapisz jako tył
+                    </FlashcardBubbleButton>
+                  </>
+                ) : (
+                  <>
+                    <StyledFloatingButton
+                      onClick={() => editor.chain().focus().toggleBold().run()}
+                      className={editor.isActive('bold') ? 'is-active' : ''}
+                    >
+                      Pogrubienie
+                    </StyledFloatingButton>
+                    <StyledFloatingButton
+                      onClick={() => editor.chain().focus().toggleItalic().run()}
+                      className={editor.isActive('italic') ? 'is-active' : ''}
+                    >
+                      Kursywa
+                    </StyledFloatingButton>
+                    <StyledFloatingButton
+                      onClick={() => editor.chain().focus().toggleUnderline().run()}
+                      className={editor.isActive('underline') ? 'is-active' : ''}
+                    >
+                      Podkreślenie
+                    </StyledFloatingButton>
+                    <StyledFloatingButton
+                      onClick={() => editor.chain().focus().toggleStrike().run()}
+                      className={editor.isActive('strike') ? 'is-active' : ''}
+                    >
+                      Przekreślenie
+                    </StyledFloatingButton>
+                  </>
+                )}
+              </BubbleMenu>
+            )}
+            <DragHandle editor={editor} nested={false}>
+              <div className="custom-drag-handle" />
+            </DragHandle>
+            <EditorContent editor={editor} />
+          </ContentContainer>
+        </StyledContainer>
+      </Layout>
   )
 }
 

@@ -19,7 +19,7 @@ const StyledDropdownTrigger = styled.button`
   cursor: pointer;
   color: ${({ theme }) => theme.colors.text};
   &:hover {
-    background-color: ${({ theme }) => theme.colors.lightGreen};
+    background-color: ${({ theme }) => theme.colors.primary};
   }
   >svg:not(.arrow) {
     width: 20px;
@@ -61,9 +61,9 @@ const StyledDropdownItem = styled.button`
   width:100%;
   display:flex;
   align-items:center;
-  background-color:${({ $active, theme }) => $active ? theme.colors.lightGreen : '#fff'};
+  background-color:${({ $active, theme }) => $active ? theme.colors.primary : '#fff'};
   &:hover{
-    background-color:${({ theme }) => theme.colors.lightGreen};
+    background-color:${({ theme }) => theme.colors.primary};
   }
   >svg{
     width:18px;

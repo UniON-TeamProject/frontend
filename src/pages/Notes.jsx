@@ -2,11 +2,12 @@ import styled from 'styled-components';
 import React, { useState, useEffect } from 'react';
 import SubmitButton from '../components/atoms/SubmitButton'
 import Text from '../components/atoms/Text'
-import { addNote, deleteNote, clearTrash, restoreNote, getFolderSuggestedTags, getRootFolder, getFolderContent, addFolder, deleteFolder, restoreFolder, clearFolderTrash, renameNote, renameFolder, getAllDeletedNotes, getAllDeletedFolders, getDeletedRootContent, resolveFolderByPath, getNoteTags, addNoteTag, removeNoteTag, getNoteSuggestedTags, getFolderTags, addFolderTag, removeFolderTag, moveNote, moveFolder, getAllFolders } from '../api';
+import { addNote, deleteNote, clearTrash, restoreNote, getFolderSuggestedTags, getRootFolder, getFolderContent, addFolder, deleteFolder, restoreFolder, clearFolderTrash, renameNote, renameFolder, getAllDeletedNotes, getAllDeletedFolders, getDeletedRootContent, resolveFolderByPath, getNoteTags, addNoteTag, removeNoteTag, getNoteSuggestedTags, getFolderTags, addFolderTag, removeFolderTag, moveNote, moveFolder, getAllFolders, getAllNotes } from '../api';
 import { useNavigate, useParams } from 'react-router-dom'
 import { getToken, parseJwt } from '../token'
 import Input from '../components/atoms/Input';
 import Layout from '../components/organisms/Layout';
+import AIFlashcardModal from '../components/editor/AIFlashcardModal.jsx';
 
 const noteNameRegex = /^[a-zA-Z0-9 _\-ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+$/;
 
@@ -14,7 +15,8 @@ const StyledContainer = styled.div`
    width: 100%;
    height:100%;
    min-height:100vh;
-   padding:40px;
+   /* padding:40px; */
+   padding:20px 40px;
    position:relative;
 `
 
@@ -23,28 +25,22 @@ const StyledUserHeader = styled.div`
     flex-flow:row nowrap;
     justify-content:space-between;
     align-items:center;
+    margin-bottom:10px;
 `
 
 const StyledName = styled.h2`
     color: ${({ theme }) => theme.colors.text};
     font-size: 2.5rem;
+    cursor:default;
     @media(max-width:768px){
         font-size: 2rem;
     }
 `
 
-const StyledOptionsHeader = styled.div`
-    width:100%;
-    margin-top:10px;
-    display:flex;
-    flex-flow:row nowrap;
-    align-items:center;
-    position:relative;
-`
-
 const StyledBreadcrumbPath = styled.div`
     display:flex;
     align-items:center;
+    font-size:0.95rem;
     gap:5px;
     >p{
         cursor:pointer;
@@ -61,27 +57,21 @@ const StyledBreadcrumbPath = styled.div`
 
 const ContentContainer = styled.div`
     width:100%; 
-    padding:20px 0;  
+    padding:20px 0;
+    
     display:flex;
     flex-flow:row wrap;
     gap:20px;
 `
 
-const StyledOptionsButtons = styled.div`
-    margin-left:auto;
-    display:flex;
-    gap:6px;
-    align-items:center;
-`
-
-
-const StyledOptionsButton = styled.div`
+const StyledClearTrashButton = styled.div`
   margin-left: auto;
   padding: 5px 13px;
   background-color: ${({ theme }) => theme.colors.secondary};
-  border-radius: 5px;
+  border-radius: 8px;
   color: ${({ theme }) => theme.colors.white};
   font-weight: 700;
+  font-size: 0.95rem;
   cursor: pointer;
   position: relative;
   &.danger{
@@ -89,32 +79,6 @@ const StyledOptionsButton = styled.div`
   }
   >svg{
     margin:3px 0;
-  }
-`
-
-const StyledOptions = styled.div`
-  display: ${({ $active }) => $active ? "flex" : "none"};
-  flex-direction: column;
-  gap: 8px;
-  position: absolute;
-  right: 0;
-  top: calc(100% + 8px);
-  z-index: 100;
-  > div {
-    background: ${({ theme }) => theme.colors.white};
-    border-radius: 12px;
-    padding: 10px 18px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: ${({ theme }) => theme.colors.text};
-    cursor: pointer;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-    white-space: nowrap;
-    transition: box-shadow 0.15s, background 0.15s;
-    &:hover {
-      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-      background: ${({ theme }) => theme.colors.lightGreen};
-    }
   }
 `
 
@@ -170,7 +134,7 @@ const FabMenuItem = styled.button`
     transition: box-shadow 0.15s, background 0.15s;
     &:hover {
         box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-        background: ${({ theme }) => theme.colors.lightGreen};
+        background: ${({ theme }) => theme.colors.primary};
     }
 `
 
@@ -183,9 +147,7 @@ const StyledNoteImage = styled.div`
     width:85px;
     height:100px;
     margin:auto;
-    border:3px solid ${({ theme }) => theme.colors.darkGrey};
     border-radius:4px;
-    padding:10px;
     @media(max-width:768px){
         height:110px;
     }
@@ -198,7 +160,7 @@ const StyledFolderImage = styled.div`
     width:100px;
     height:100px;
     margin:auto;
-    padding:10px;
+    padding:8px;
     >svg{
         color:${({ theme }) => theme.colors.black};
     }
@@ -207,6 +169,8 @@ const StyledFolderImage = styled.div`
 const StyledItemHeaderWrapper = styled.div`
     text-align:center;
     word-break:break-word;
+  
+
 `
 
 const StyledItemHeader = styled.span`
@@ -221,6 +185,9 @@ const StyledItemHeader = styled.span`
         flex-shrink:0;
         color: ${({ theme }) => theme.colors.secondary};
     }
+    p{
+        cursor:pointer;
+    }   
 `
 
 const StyledItemOptions = styled.div`
@@ -350,12 +317,12 @@ const StyledTreeItemLabel = styled.div`
     cursor: pointer;
     border-radius:5px;
     background-color: ${({ $selected, $disabled, theme }) =>
-        $disabled ? theme.colors.lightGrey : $selected ? theme.colors.lightGreen : 'transparent'};
+        $disabled ? theme.colors.lightGrey : $selected ? theme.colors.primary : 'transparent'};
     opacity: ${({ $disabled }) => $disabled ? 0.5 : 1};
     pointer-events: ${({ $disabled }) => $disabled ? 'none' : 'auto'};
     &:hover {
         background-color: ${({ $selected, $disabled, theme }) =>
-        $disabled ? undefined : $selected ? theme.colors.lightGreen : '#f0f0f0'};
+        $disabled ? undefined : $selected ? theme.colors.primary : '#f0f0f0'};
     }
     > svg {
         width: 16px;
@@ -377,7 +344,138 @@ const StyledPopup = styled.div`
     @media(max-width:768px){
         width:90%;
         border:1px solid black;
-    }   
+    }
+`
+
+const StyledSearchInput = styled.div`
+    position: relative;
+    display: flex;
+    align-items: center;
+    background-color: ${({ theme }) => theme.colors.white};
+    border: 1px solid ${({ theme }) => theme.colors.darkGrey};
+    border-radius: 8px;
+    padding: 6px 12px;
+    gap: 8px;
+    transition: border-color 0.2s;
+    &:focus-within {
+        border-color: ${({ theme }) => theme.colors.secondary};
+    }
+    > input {
+        border: none;
+        background: transparent;
+        outline: none;
+        color: ${({ theme }) => theme.colors.text};
+        font-size: 0.95rem;
+        width: 180px;
+        &::placeholder {
+            color: ${({ theme }) => theme.colors.darkGrey};
+        }
+    }
+    > svg {
+        color: ${({ theme }) => theme.colors.darkGrey};
+        flex-shrink: 0;
+    }
+`
+
+const StyledSearchDropdown = styled.div`
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    width: 360px;
+    background: ${({ theme }) => theme.colors.white};
+    border: 1px solid ${({ theme }) => theme.colors.darkGrey};
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    z-index: 200;
+    max-height: 420px;
+    overflow-y: auto;
+    padding: 6px 0;
+`
+
+const StyledSearchSectionTitle = styled.div`
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: ${({ theme }) => theme.colors.textLight};
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 8px 14px 4px;
+`
+
+const StyledSearchResultItem = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 14px;
+    cursor: pointer;
+    transition: background 0.12s;
+    &:hover {
+        background: ${({ theme }) => theme.colors.lightGrey};
+    }
+    > svg {
+        flex-shrink: 0;
+        color: ${({ theme }) => theme.colors.textLight};
+    }
+`
+
+const StyledSearchResultInfo = styled.div`
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+`
+
+const StyledSearchResultName = styled.span`
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: ${({ theme }) => theme.colors.text};
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+`
+
+const StyledSearchResultPath = styled.span`
+    font-size: 0.72rem;
+    color: ${({ theme }) => theme.colors.textLight};
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+`
+
+const StyledSearchEmpty = styled.div`
+    padding: 16px 14px;
+    font-size: 0.85rem;
+    color: ${({ theme }) => theme.colors.textLight};
+    text-align: center;
+`
+
+const StyledTabs = styled.div`
+    display: inline-flex;
+    gap: 0;
+    border-bottom: 2px solid ${({ theme }) => theme.colors.darkGrey};
+    margin-bottom: 10px;
+    padding-right:150px;
+`
+
+const StyledTab = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: ${({ $active, theme }) => $active ? theme.colors.secondary : theme.colors.textLight};
+    border-bottom: 2px solid ${({ $active, theme }) => $active ? theme.colors.secondary : 'transparent'};
+    margin-bottom: -2px;
+    transition: color 0.15s, border-color 0.15s;
+    &:hover {
+        color: ${({ $active, theme }) => $active ? theme.colors.secondary : theme.colors.text};
+    }
+`
+
+const StyledSearchDivider = styled.div`
+    height: 1px;
+    background: ${({ theme }) => theme.colors.lightGrey};
+    margin: 4px 0;
 `
 
 const Notes = () => {
@@ -425,6 +523,12 @@ const Notes = () => {
     const [expandedMoveIds, setExpandedMoveIds] = useState(new Set());
     const [selectedMovePath, setSelectedMovePath] = useState(null);
     const [moveErrorMessage, setMoveErrorMessage] = useState("");
+    const [aiModalNoteId, setAiModalNoteId] = useState(null);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [isSearchFocused, setIsSearchFocused] = useState(false);
+    const [globalSearchResults, setGlobalSearchResults] = useState({ notes: [], folders: [] });
+    const [isSearchLoading, setIsSearchLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     const handleFetchItemTags = async (id, type) => {
         const suggestedId = type === 'folder' ? id : currentFolder?.id;
@@ -534,7 +638,7 @@ const Notes = () => {
                             {node.children && node.children.length > 0 && (
                                 <svg
                                     fill="currentColor" viewBox="0 0 16 16"
-                                    style={{ cursor: 'pointer', transform: isExpanded ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s' }}
+                                    style={{ cursor: 'pointer', transform: isExpanded ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s', pointerEvents: 'auto' }}
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setExpandedMoveIds(prev => {
@@ -595,17 +699,21 @@ const Notes = () => {
 
     const fetchForCurrentUrl = async () => {
         setErrorMessage("");
+        setIsLoading(true);
         const res = await resolveFolderByPath(pathSegments, isTrashView);
         if (res.errorCode === "TOKEN_UNDEFINED") {
             navigate("/", { replace: true });
+            setIsLoading(false);
             return;
         }
         if (res.errorCode === "PATH_NOT_FOUND") {
             navigate(isTrashView ? "/notes/trash" : "/notes", { replace: true });
+            setIsLoading(false);
             return;
         }
         if (res.errorCode) {
             setErrorMessage(res.message);
+            setIsLoading(false);
             return;
         }
         setCurrentFolder(res.currentFolder);
@@ -615,6 +723,7 @@ const Notes = () => {
         if (isTrashView && pathSegments.length === 0) {
             setTrashHasItems((res.subFolders?.length > 0) || (res.notes?.length > 0));
         }
+        setIsLoading(false);
     };
 
     const skipNextFetch = React.useRef(false);
@@ -629,6 +738,7 @@ const Notes = () => {
         setNotes(sortNotes(res.notes || []));
         setBreadcrumbs([...breadcrumbs, folder]);
         setCurrentFolder(folder);
+        setSearchQuery("");
 
         const encodedName = encodeURIComponent(folder.name);
         const newUrl = urlPath ? `/notes/${urlPath}/${encodedName}` : `/notes/${encodedName}`;
@@ -637,6 +747,7 @@ const Notes = () => {
     };
 
     const handleBreadcrumbClick = async (index) => {
+        setSearchQuery("");
         if (index === -1) {
             if (isTrashView) {
                 const res = await getDeletedRootContent();
@@ -828,6 +939,26 @@ const Notes = () => {
     }
 
     useEffect(() => {
+        const q = searchQuery.trim();
+        if (q.length < 2) {
+            setGlobalSearchResults({ notes: [], folders: [] });
+            return;
+        }
+        setIsSearchLoading(true);
+        const timer = setTimeout(async () => {
+            const lower = q.toLowerCase();
+            const [notesRes, foldersRes] = await Promise.all([getAllNotes(), getAllFolders()]);
+            const notes = notesRes.errorCode ? [] : notesRes.notes.filter(n => n.name.toLowerCase().includes(lower));
+            const folders = foldersRes.errorCode ? [] : (foldersRes.folders || [])
+                .filter(f => !(f.name === "/" && f.path === "/"))
+                .filter(f => f.name.toLowerCase().includes(lower));
+            setGlobalSearchResults({ notes, folders });
+            setIsSearchLoading(false);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
+    useEffect(() => {
         let jwt = getToken();
         if (!jwt) return;
 
@@ -861,66 +992,149 @@ const Notes = () => {
             }}>
                 <StyledUserHeader>
                     <StyledName>Witaj, {username}!</StyledName>
-                    {!isTrashView && (
-                        <StyledOptionsButton onClick={(e) => {
-                            e.stopPropagation();
-                            setIsActivePathOptions(!isActivePathOptions);
-                            setIsActiveAddOptions(false);
-                            setActiveFolderOptionsId(null);
-                            setActiveNoteOptionsId(null);
-                        }}>
-                            <svg width="17" height="17" fill="currentColor" viewBox="0 0 16 16">
-                                <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3" />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: 'auto' }}>
+                        <StyledSearchInput onClick={(e) => e.stopPropagation()}>
+                            <svg width="15" height="15" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" />
                             </svg>
-                            <StyledOptions $active={isActivePathOptions}>
-                                <div onClick={(e) => {
-                                    e.stopPropagation();
-                                    setIsActivePathOptions(false);
-                                    navigate("/notes/trash");
-                                }}>Pokaż usunięte</div>
-                            </StyledOptions>
-                        </StyledOptionsButton>
-                    )}
+                            <input
+                                placeholder="Szukaj wszędzie..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onFocus={() => setIsSearchFocused(true)}
+                                onBlur={() => setTimeout(() => setIsSearchFocused(false), 150)}
+                            />
+                            {isSearchFocused && searchQuery.trim().length >= 2 && (
+                                <StyledSearchDropdown>
+                                    {isSearchLoading ? (
+                                        <StyledSearchEmpty>Szukam...</StyledSearchEmpty>
+                                    ) : globalSearchResults.folders.length === 0 && globalSearchResults.notes.length === 0 ? (
+                                        <StyledSearchEmpty>Brak wyników dla „{searchQuery}"</StyledSearchEmpty>
+                                    ) : (
+                                        <>
+                                            {globalSearchResults.folders.length > 0 && (
+                                                <>
+                                                    <StyledSearchSectionTitle>Foldery</StyledSearchSectionTitle>
+                                                    {globalSearchResults.folders.map(f => {
+                                                        const fullPath = f.path === "/" ? "/" + f.name : f.path + "/" + f.name;
+                                                        const segments = fullPath.substring(1).split("/");
+                                                        const url = "/notes/" + segments.map(s => encodeURIComponent(s)).join("/");
+                                                        return (
+                                                            <StyledSearchResultItem key={f.id} onClick={() => {
+                                                                setSearchQuery("");
+                                                                setIsSearchFocused(false);
+                                                                navigate(url);
+                                                            }}>
+                                                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                                                    <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139q.323-.119.684-.12h5.396z" />
+                                                                </svg>
+                                                                <StyledSearchResultInfo>
+                                                                    <StyledSearchResultName>{f.name}</StyledSearchResultName>
+                                                                    <StyledSearchResultPath>{fullPath}</StyledSearchResultPath>
+                                                                </StyledSearchResultInfo>
+                                                            </StyledSearchResultItem>
+                                                        );
+                                                    })}
+                                                </>
+                                            )}
+                                            {globalSearchResults.folders.length > 0 && globalSearchResults.notes.length > 0 && (
+                                                <StyledSearchDivider />
+                                            )}
+                                            {globalSearchResults.notes.length > 0 && (
+                                                <>
+                                                    <StyledSearchSectionTitle>Notatki</StyledSearchSectionTitle>
+                                                    {globalSearchResults.notes.map(n => (
+                                                        <StyledSearchResultItem key={n.id} onClick={() => {
+                                                            setSearchQuery("");
+                                                            setIsSearchFocused(false);
+                                                            navigate(`/note/${n.id}`);
+                                                        }}>
+                                                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                                                <path fillRule="evenodd" d="M0 .5A.5.5 0 0 1 .5 0h4a.5.5 0 0 1 0 1h-4A.5.5 0 0 1 0 .5m0 2A.5.5 0 0 1 .5 2h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m9 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m-9 2A.5.5 0 0 1 .5 4h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m5 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m7 0a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-12 2A.5.5 0 0 1 .5 6h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5m8 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m-8 2A.5.5 0 0 1 .5 8h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m7 0a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-7 2a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1h-8a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5" />
+                                                            </svg>
+                                                            <StyledSearchResultInfo>
+                                                                <StyledSearchResultName>{n.name}</StyledSearchResultName>
+                                                            </StyledSearchResultInfo>
+                                                        </StyledSearchResultItem>
+                                                    ))}
+                                                </>
+                                            )}
+                                        </>
+                                    )}
+                                </StyledSearchDropdown>
+                            )}
+                        </StyledSearchInput>
+                    </div>
                 </StyledUserHeader>
                 {errorMessage && <Text color="danger" text={errorMessage} />}
-                <StyledOptionsHeader>
-                    {(currentFolder || (isTrashView && breadcrumbs.length > 0)) && (
-                        <StyledBreadcrumbPath>
-                            <p onClick={() => handleBreadcrumbClick(-1)}>
-                                <svg width="17" height="17" fill="currentColor" viewBox="0 0 16 16">
-                                    <path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5v-4h2v4a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM2.5 14V7.707l5.5-5.5 5.5 5.5V14H10v-4a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v4z" />
-                                </svg>
-                            </p>
-                            {breadcrumbs.map((crumb, index) => (
-                                <React.Fragment key={crumb.id}>
-                                    <p className="separator">/</p>
-                                    {index === breadcrumbs.length - 1
-                                        ? <p className="current">{crumb.name}</p>
-                                        : <p onClick={() => handleBreadcrumbClick(index)}>{crumb.name}</p>
-                                    }
-                                </React.Fragment>
-                            ))}
-                        </StyledBreadcrumbPath>
-                    )}
-                    <StyledOptionsButtons >
-                        {isTrashView &&
-                            <StyledOptionsButton onClick={() => navigate("/notes")}>
-                                Wyjdź
-                            </StyledOptionsButton>
-                        }
-                        {isTrashView && trashHasItems &&
-                            <StyledOptionsButton className="danger"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setIsConfirmingTrashClear(true);
-                                }}>
-                                Wyczyść kosz
-                            </StyledOptionsButton>
-                        }
-                    </StyledOptionsButtons>
-                </StyledOptionsHeader>
+                <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+                    <StyledTabs>
+                        <StyledTab $active={!isTrashView} onClick={() => navigate("/notes")}>
+                            <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5v-4h2v4a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM2.5 14V7.707l5.5-5.5 5.5 5.5V14H10v-4a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v4z" />
+                            </svg>
+                            Moje pliki
+                        </StyledTab>
+                        <StyledTab $active={isTrashView} onClick={() => navigate("/notes/trash")}>
+                            <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
+                            </svg>
+                            Usunięte
+                        </StyledTab>
+                    </StyledTabs>
+                    {isTrashView && trashHasItems &&
+                        <StyledClearTrashButton className="danger"
+                            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsConfirmingTrashClear(true);
+                            }}>
+                            <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
+                            </svg>
+                            Wyczyść kosz
+                        </StyledClearTrashButton>
+                    }
+                </div>
+                {(currentFolder || (isTrashView && breadcrumbs.length > 0)) && (
+                    <StyledBreadcrumbPath style={{ marginTop: '8px' }}>
+                        <p onClick={() => handleBreadcrumbClick(-1)}>
+                            <svg width="17" height="17" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5v-4h2v4a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM2.5 14V7.707l5.5-5.5 5.5 5.5V14H10v-4a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v4z" />
+                            </svg>
+                        </p>
+                        {breadcrumbs.map((crumb, index) => (
+                            <React.Fragment key={crumb.id}>
+                                <p className="separator">/</p>
+                                {index === breadcrumbs.length - 1
+                                    ? <p className="current">{crumb.name}</p>
+                                    : <p onClick={() => handleBreadcrumbClick(index)}>{crumb.name}</p>
+                                }
+                            </React.Fragment>
+                        ))}
+                    </StyledBreadcrumbPath>
+                )}
                 <ContentContainer>
-                    {subFolders.map((folder) => (
+                    {!isLoading && subFolders.length === 0 && notes.length === 0 && (
+                        <div style={{ width: '100%', padding: '60px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', color: 'inherit', opacity: 0.4 }}>
+                            {isTrashView && breadcrumbs.length === 0 ? (
+                                <>
+                                    <svg width="48" height="48" fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
+                                    </svg>
+                                    <p style={{ fontSize: '1rem', fontWeight: '600' }}>Kosz jest pusty</p>
+                                </>
+                            ) : (
+                                <>
+                                    <svg width="48" height="48" fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139q.323-.119.684-.12h5.396z" />
+                                    </svg>
+                                    <p style={{ fontSize: '1rem', fontWeight: '600' }}>Ten folder jest pusty</p>
+                                </>
+                            )}
+                        </div>
+                    )}
+                    {subFolders.filter(f => f.name.toLowerCase().includes(searchQuery.toLowerCase())).map((folder) => (
                         <StyledItem key={`folder-${folder.id}`}>
                             <StyledFolderImage onClick={() => handleOpenFolder(folder)}>
                                 <svg fill="currentColor" viewBox="0 0 16 16">
@@ -1030,14 +1244,19 @@ const Notes = () => {
                             </StyledItemHeaderWrapper>
                         </StyledItem>
                     ))}
-                    {notes.map((d) => {
+                    {notes.filter(d => d.name.toLowerCase().includes(searchQuery.toLowerCase())).map((d) => {
                         const dateObj = new Date(d.editTime ?? d.lastEdited);
                         const formattedDate = dateObj.toLocaleString('pl-PL', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
                         return (
                             <StyledItem key={d.id}>
                                 <StyledNoteImage onClick={() => { if (!isTrashView) navigate(`/note/${d.id}`) }}>
-                                    <svg fill="currentColor" viewBox="0 0 16 16">
+                                    {/* <svg fill="currentColor" viewBox="0 0 16 16">
                                         <path fillRule="evenodd" d="M0 .5A.5.5 0 0 1 .5 0h4a.5.5 0 0 1 0 1h-4A.5.5 0 0 1 0 .5m0 2A.5.5 0 0 1 .5 2h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m9 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m-9 2A.5.5 0 0 1 .5 4h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m5 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m7 0a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-12 2A.5.5 0 0 1 .5 6h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5m8 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m-8 2A.5.5 0 0 1 .5 8h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m7 0a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-7 2a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1h-8a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5" />
+                                    </svg> */}
+                                    <svg fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M5 10.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5" />
+                                        <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2" />
+                                        <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z" />
                                     </svg>
                                 </StyledNoteImage>
                                 <StyledItemHeaderWrapper>
@@ -1119,6 +1338,16 @@ const Notes = () => {
                                                         </StyledAddTagButton>
                                                     )}
                                                 </TagsContainer>
+                                                <StyledItemOption onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setAiModalNoteId(d.id);
+                                                    setActiveNoteOptionsId(null);
+                                                }}>
+                                                    <svg fill="currentColor" viewBox="0 0 16 16">
+                                                        <path d="M6 12.796V3.204L11.481 8zm.659.753 5.48-4.796a1 1 0 0 0 0-1.506L6.66 2.451C6.011 1.885 5 2.345 5 3.204v9.592a1 1 0 0 0 1.659.753" />
+                                                    </svg>
+                                                    Stwórz fiszki AI
+                                                </StyledItemOption>
                                                 <StyledItemOption onClick={(e) => {
                                                     e.stopPropagation();
                                                     handleOpenMovePopup(d.id, 'note', d.name);
@@ -1351,6 +1580,11 @@ const Notes = () => {
                     </>
                 )}
             </StyledContainer>
+            <AIFlashcardModal
+                isOpen={aiModalNoteId !== null}
+                onClose={() => setAiModalNoteId(null)}
+                noteId={aiModalNoteId}
+            />
         </Layout>
     )
 }

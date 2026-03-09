@@ -589,273 +589,273 @@ const FlashcardsPage = () => {
 
     return (
         <Layout>
-        <StyledContainer>
-            <TopSection>
-                <MainTitle>Nauka</MainTitle>
-            </TopSection>
+            <StyledContainer>
+                <TopSection>
+                    <MainTitle>Nauka</MainTitle>
+                </TopSection>
 
-            <Divider />
+                <Divider />
 
-            {/* NAGŁÓWEK */}
-            {!activeSetId ? (
-                <SubTitle>Twoje zestawy fiszek...</SubTitle>
-            ) : (
-                <>
-                    <SubTitle style={{ marginBottom: '20px' }}>
-                        <BackButton onClick={() => {
-                            if (isAddingMode) setIsAddingMode(false);
-                            else navigate('/learning');
-                        }}>
-                            &#8592;
-                        </BackButton>
-                        {currentSet?.name}
-                        {currentSet?.tags && currentSet.tags.length > 0 && !isAddingMode && (
-                            <TagsContainer style={{ marginLeft: '20px' }}>
-                                {currentSet.tags.map((tag, i) => (
-                                    <TagPill key={i}>{tag}</TagPill>
-                                ))}
-                            </TagsContainer>
-                        )}
-                    </SubTitle>
+                {/* NAGŁÓWEK */}
+                {!activeSetId ? (
+                    <SubTitle>Twoje zestawy fiszek...</SubTitle>
+                ) : (
+                    <>
+                        <SubTitle style={{ marginBottom: '20px' }}>
+                            <BackButton onClick={() => {
+                                if (isAddingMode) setIsAddingMode(false);
+                                else navigate('/learning');
+                            }}>
+                                &#8592;
+                            </BackButton>
+                            {currentSet?.name}
+                            {currentSet?.tags && currentSet.tags.length > 0 && !isAddingMode && (
+                                <TagsContainer style={{ marginLeft: '20px' }}>
+                                    {currentSet.tags.map((tag, i) => (
+                                        <TagPill key={i}>{tag}</TagPill>
+                                    ))}
+                                </TagsContainer>
+                            )}
+                        </SubTitle>
 
-                    {!isAddingMode && (
-                        <SetHeaderControls>
-                            <ContinueLearningBanner
-                                style={{ cursor: 'pointer', transition: 'background-color 0.2s' }}
-                                onMouseEnter={(e) => e.target.style.backgroundColor = '#f9f9f9'}
-                                onMouseLeave={(e) => e.target.style.backgroundColor = '#ffffff'}
-                                onClick={() => navigate(`/learning/fast/${currentSet?.id}`)}
-                                title="Wznów od miejsca, w którym skończyłeś"
-                            >
-                                Chcesz kontynuować ostatnią naukę? (Wznów sesję)
-                            </ContinueLearningBanner>
+                        {!isAddingMode && (
+                            <SetHeaderControls>
+                                <ContinueLearningBanner
+                                    style={{ cursor: 'pointer', transition: 'background-color 0.2s' }}
+                                    onMouseEnter={(e) => e.target.style.backgroundColor = '#f9f9f9'}
+                                    onMouseLeave={(e) => e.target.style.backgroundColor = '#ffffff'}
+                                    onClick={() => navigate(`/learning/fast/${currentSet?.id}`)}
+                                    title="Wznów od miejsca, w którym skończyłeś"
+                                >
+                                    Chcesz kontynuować ostatnią naukę? (Wznów sesję)
+                                </ContinueLearningBanner>
 
-                            <div style={{ position: 'relative' }}>
-                                <StartLearningButton onClick={() => setIsLearningMenuOpen(!isLearningMenuOpen)}>
-                                    Rozpocznij naukę ▼
-                                </StartLearningButton>
+                                <div style={{ position: 'relative' }}>
+                                    <StartLearningButton onClick={() => setIsLearningMenuOpen(!isLearningMenuOpen)}>
+                                        Rozpocznij naukę ▼
+                                    </StartLearningButton>
 
-                                {isLearningMenuOpen && (
-                                    <>
-                                        <InvisibleOverlay onClick={() => setIsLearningMenuOpen(false)} />
-                                        <LearningDropdown>
-                                            <LearningDropdownItem onClick={() => {
-                                                setIsLearningMenuOpen(false);
-                                                navigate(`/learning/fast/${currentSet?.id}`);
-                                            }}>
-                                                Szybka nauka
-                                            </LearningDropdownItem>
+                                    {isLearningMenuOpen && (
+                                        <>
+                                            <InvisibleOverlay onClick={() => setIsLearningMenuOpen(false)} />
+                                            <LearningDropdown>
+                                                <LearningDropdownItem onClick={() => {
+                                                    setIsLearningMenuOpen(false);
+                                                    navigate(`/learning/fast/${currentSet?.id}`);
+                                                }}>
+                                                    Szybka nauka
+                                                </LearningDropdownItem>
 
-                                            <LearningDropdownItem onClick={() => {
-                                                setIsLearningMenuOpen(false);
-                                                navigate(`/learning/fsrs/${currentSet?.id}`);
-                                            }}>
-                                                Trwała nauka
-                                            </LearningDropdownItem>
-                                        </LearningDropdown>
-                                    </>
-                                )}
-                            </div>
-                        </SetHeaderControls>
-                    )}
-                </>
-            )}
-
-            {errorMessage && !isSetModalOpen && !isCardEditModalOpen && <Text color="danger" text={errorMessage} />}
-            {successMessage && !isSetModalOpen && !isCardEditModalOpen && <Text style={{ color: 'green', textAlign: 'center', marginBottom: '20px' }} text={successMessage} />}
-
-            {/* LISTA ZESTAWÓW */}
-            {!activeSetId && (
-                <>
-                    {sets.length === 0 && !errorMessage ? (
-                        <EmptyStateContainer>
-                            <Text text="Brak zestawów. Utwórz swój pierwszy pusty zestaw!" />
-                        </EmptyStateContainer>
-                    ) : (
-                        <CardsGrid>
-                            {sets.map((set, idx) => (
-                                <SetItemWrapper key={set.id || idx} onClick={() => navigate(`/learning/set/${set.id}`)}>
-                                    <SetIconContainer>
-                                        <StackedCardsIcon />
-
-                                        <GearButton
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setActiveMenuId(activeMenuId === set.id ? null : set.id);
-                                            }}
-                                        >
-                                            <img src="/icons/gear.png" alt="Opcje" />
-                                        </GearButton>
-
-                                        {activeMenuId === set.id && (
-                                            <>
-                                                <InvisibleOverlay onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); }} />
-                                                <DropdownMenu onClick={(e) => e.stopPropagation()}>
-                                                    <DropdownItem onClick={() => {
-                                                        setActiveMenuId(null);
-                                                        openEditSetModal(set);
-                                                    }}>
-                                                        Zmień nazwę
-                                                    </DropdownItem>
-                                                    <DropdownItem onClick={() => {
-                                                        setActiveMenuId(null);
-                                                        handleDeleteSet(set.id);
-                                                    }}>
-                                                        Usuń
-                                                    </DropdownItem>
-                                                </DropdownMenu>
-                                            </>
-                                        )}
-                                    </SetIconContainer>
-
-                                    <SetTitle>{set.name}</SetTitle>
-                                    {set.tags && set.tags.length > 0 && (
-                                        <TagsContainer>
-                                            {set.tags.map((tag, i) => (
-                                                <TagPill key={i}>{tag}</TagPill>
-                                            ))}
-                                        </TagsContainer>
+                                                <LearningDropdownItem onClick={() => {
+                                                    setIsLearningMenuOpen(false);
+                                                    navigate(`/learning/fsrs/${currentSet?.id}`);
+                                                }}>
+                                                    Trwała nauka
+                                                </LearningDropdownItem>
+                                            </LearningDropdown>
+                                        </>
                                     )}
-                                </SetItemWrapper>
-                            ))}
-                        </CardsGrid>
-                    )}
-                </>
-            )}
+                                </div>
+                            </SetHeaderControls>
+                        )}
+                    </>
+                )}
 
-            {/* WNETRZE ZESTAWU */}
-            {activeSetId && !isAddingMode && (
-                <>
-                    {(!currentSet?.cards || currentSet.cards.length === 0) && !errorMessage ? (
-                        <EmptyStateContainer>
-                            <Text text="Ten zestaw jest pusty. Kliknij + w prawym dolnym rogu, aby dodać fiszkę!" />
-                        </EmptyStateContainer>
-                    ) : (
-                        <CardsGrid>
-                            {currentSet.cards.map((card) => (
-                                <Flashcard
-                                    key={card.id}
-                                    question={card.contentFirstSide || card.question}
-                                    answer={card.contentFlipSide || card.answer}
-                                    onEdit={() => openEditCardModal(card)}
-                                    onDelete={() => handleDeleteCard(card.id)}
-                                />
-                            ))}
-                        </CardsGrid>
-                    )}
-                </>
-            )}
+                {errorMessage && !isSetModalOpen && !isCardEditModalOpen && <Text color="danger" text={errorMessage} />}
+                {successMessage && !isSetModalOpen && !isCardEditModalOpen && <Text style={{ color: 'green', textAlign: 'center', marginBottom: '20px' }} text={successMessage} />}
 
-            {/* TRYB DODAWANIA FISZEK */}
-            {activeSetId && isAddingMode && (
-                <CardsFormContainer>
-                    {newCards.map((card, index) => (
-                        <CardInputRow key={index}>
-                            <CardInputSide>
-                                <SideLabel>Przód:</SideLabel>
-                                <StyledCardTextarea
-                                    placeholder="Wprowadź pytanie..."
-                                    value={card.question}
-                                    onChange={(e) => updateNewCard(index, 'question', e.target.value)}
-                                />
-                            </CardInputSide>
-                            <CardInputSide>
-                                <SideLabel>Tył:</SideLabel>
-                                <StyledCardTextarea
-                                    placeholder="Wprowadź odpowiedź..."
-                                    value={card.answer}
-                                    onChange={(e) => updateNewCard(index, 'answer', e.target.value)}
-                                />
-                            </CardInputSide>
-                        </CardInputRow>
-                    ))}
+                {/* LISTA ZESTAWÓW */}
+                {!activeSetId && (
+                    <>
+                        {sets.length === 0 && !errorMessage ? (
+                            <EmptyStateContainer>
+                                <Text text="Brak zestawów. Utwórz swój pierwszy pusty zestaw!" />
+                            </EmptyStateContainer>
+                        ) : (
+                            <CardsGrid>
+                                {sets.map((set, idx) => (
+                                    <SetItemWrapper key={set.id || idx} onClick={() => navigate(`/learning/set/${set.id}`)}>
+                                        <SetIconContainer>
+                                            <StackedCardsIcon />
 
-                    <AddMoreRowButton
-                        disabled={hasEmptyCard}
-                        onClick={() => setNewCards([...newCards, { question: "", answer: "" }])}
-                    >
-                        + Dodaj nową fiszkę...
-                    </AddMoreRowButton>
-                </CardsFormContainer>
-            )}
+                                            <GearButton
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setActiveMenuId(activeMenuId === set.id ? null : set.id);
+                                                }}
+                                            >
+                                                <img src="/icons/gear.png" alt="Opcje" />
+                                            </GearButton>
 
-            <FloatingActionButton onClick={() => {
-                if (isAddingMode) {
-                    handleSaveNewCards();
-                } else if (activeSetId) {
-                    setIsAddingMode(true);
-                    setNewCards([{ question: "", answer: "" }]);
-                } else {
-                    openAddSetModal();
-                }
-            }}>
-                {isAddingMode ? <CheckmarkIcon /> : <PlusIcon />}
-            </FloatingActionButton>
+                                            {activeMenuId === set.id && (
+                                                <>
+                                                    <InvisibleOverlay onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); }} />
+                                                    <DropdownMenu onClick={(e) => e.stopPropagation()}>
+                                                        <DropdownItem onClick={() => {
+                                                            setActiveMenuId(null);
+                                                            openEditSetModal(set);
+                                                        }}>
+                                                            Zmień nazwę
+                                                        </DropdownItem>
+                                                        <DropdownItem onClick={() => {
+                                                            setActiveMenuId(null);
+                                                            handleDeleteSet(set.id);
+                                                        }}>
+                                                            Usuń
+                                                        </DropdownItem>
+                                                    </DropdownMenu>
+                                                </>
+                                            )}
+                                        </SetIconContainer>
+
+                                        <SetTitle>{set.name}</SetTitle>
+                                        {set.tags && set.tags.length > 0 && (
+                                            <TagsContainer>
+                                                {set.tags.map((tag, i) => (
+                                                    <TagPill key={i}>{tag}</TagPill>
+                                                ))}
+                                            </TagsContainer>
+                                        )}
+                                    </SetItemWrapper>
+                                ))}
+                            </CardsGrid>
+                        )}
+                    </>
+                )}
+
+                {/* WNETRZE ZESTAWU */}
+                {activeSetId && !isAddingMode && (
+                    <>
+                        {(!currentSet?.cards || currentSet.cards.length === 0) && !errorMessage ? (
+                            <EmptyStateContainer>
+                                <Text text="Ten zestaw jest pusty. Kliknij + w prawym dolnym rogu, aby dodać fiszkę!" />
+                            </EmptyStateContainer>
+                        ) : (
+                            <CardsGrid>
+                                {currentSet.cards.map((card) => (
+                                    <Flashcard
+                                        key={card.id}
+                                        question={card.contentFirstSide || card.question}
+                                        answer={card.contentFlipSide || card.answer}
+                                        onEdit={() => openEditCardModal(card)}
+                                        onDelete={() => handleDeleteCard(card.id)}
+                                    />
+                                ))}
+                            </CardsGrid>
+                        )}
+                    </>
+                )}
+
+                {/* TRYB DODAWANIA FISZEK */}
+                {activeSetId && isAddingMode && (
+                    <CardsFormContainer>
+                        {newCards.map((card, index) => (
+                            <CardInputRow key={index}>
+                                <CardInputSide>
+                                    <SideLabel>Przód:</SideLabel>
+                                    <StyledCardTextarea
+                                        placeholder="Wprowadź pytanie..."
+                                        value={card.question}
+                                        onChange={(e) => updateNewCard(index, 'question', e.target.value)}
+                                    />
+                                </CardInputSide>
+                                <CardInputSide>
+                                    <SideLabel>Tył:</SideLabel>
+                                    <StyledCardTextarea
+                                        placeholder="Wprowadź odpowiedź..."
+                                        value={card.answer}
+                                        onChange={(e) => updateNewCard(index, 'answer', e.target.value)}
+                                    />
+                                </CardInputSide>
+                            </CardInputRow>
+                        ))}
+
+                        <AddMoreRowButton
+                            disabled={hasEmptyCard}
+                            onClick={() => setNewCards([...newCards, { question: "", answer: "" }])}
+                        >
+                            + Dodaj nową fiszkę...
+                        </AddMoreRowButton>
+                    </CardsFormContainer>
+                )}
+
+                <FloatingActionButton onClick={() => {
+                    if (isAddingMode) {
+                        handleSaveNewCards();
+                    } else if (activeSetId) {
+                        setIsAddingMode(true);
+                        setNewCards([{ question: "", answer: "" }]);
+                    } else {
+                        openAddSetModal();
+                    }
+                }}>
+                    {isAddingMode ? <CheckmarkIcon /> : <PlusIcon />}
+                </FloatingActionButton>
 
 
-            {/* EDYCJA POJEDYNCZEJ FISZKI */}
-            {isCardEditModalOpen && (
-                <>
-                    <ModalOverlay onClick={() => setIsCardEditModalOpen(false)} />
-                    <StyledModalBox>
-                        <Text bold="true" as="h2" text="Edytuj fiszkę" />
-                        {errorMessage && <Text color="danger" text={errorMessage} />}
-                        <Text text={`Edytujesz fiszkę z zestawu: ${currentSet?.name}`} style={{ marginBottom: '20px', color: '#555' }} />
+                {/* EDYCJA POJEDYNCZEJ FISZKI */}
+                {isCardEditModalOpen && (
+                    <>
+                        <ModalOverlay onClick={() => setIsCardEditModalOpen(false)} />
+                        <StyledModalBox>
+                            <Text bold="true" as="h2" text="Edytuj fiszkę" />
+                            {errorMessage && <Text color="danger" text={errorMessage} />}
+                            <Text text={`Edytujesz fiszkę z zestawu: ${currentSet?.name}`} style={{ marginBottom: '20px', color: '#555' }} />
 
-                        <Text text="Pytanie:" />
-                        <StyledModalTextArea
-                            placeholder="Wpisz pytanie..."
-                            value={editQuestion}
-                            onChange={(e) => setEditQuestion(e.target.value)}
-                        />
-
-                        <Text text="Odpowiedź:" />
-                        <StyledModalTextArea
-                            placeholder="Wpisz odpowiedź..."
-                            value={editAnswer}
-                            onChange={(e) => setEditAnswer(e.target.value)}
-                        />
-
-                        <SubmitButton text="Zapisz zmiany" color="dark" onClick={handleEditSingleCard} />
-                    </StyledModalBox>
-                </>
-            )}
-
-            {/* DODAWANIE/EDYCJA ZESTAWU */}
-            {isSetModalOpen && (
-                <>
-                    <ModalOverlay onClick={() => setIsSetModalOpen(false)} />
-                    <StyledModalBox>
-                        <Text bold="true" as="h2" text={editingSetId ? "Edytuj zestaw" : "Nowy zestaw fiszek"} />
-                        {errorMessage && <Text color="danger" text={errorMessage} />}
-                        {successMessage && <Text style={{ color: 'green' }} text={successMessage} />}
-
-                        <div style={{ marginTop: '20px', marginBottom: editingSetId ? '20px' : '0' }}>
-                            <Input
-                                type="text"
-                                name="setName"
-                                placeholder="Nazwa zestawu"
-                                value={setName}
-                                onChange={(e) => setSetName(e.target.value)}
+                            <Text text="Pytanie:" />
+                            <StyledModalTextArea
+                                placeholder="Wpisz pytanie..."
+                                value={editQuestion}
+                                onChange={(e) => setEditQuestion(e.target.value)}
                             />
-                        </div>
-                        {!editingSetId && (
-                            <div style={{ marginTop: '10px', marginBottom: '20px' }}>
+
+                            <Text text="Odpowiedź:" />
+                            <StyledModalTextArea
+                                placeholder="Wpisz odpowiedź..."
+                                value={editAnswer}
+                                onChange={(e) => setEditAnswer(e.target.value)}
+                            />
+
+                            <SubmitButton text="Zapisz zmiany" color="dark" onClick={handleEditSingleCard} />
+                        </StyledModalBox>
+                    </>
+                )}
+
+                {/* DODAWANIE/EDYCJA ZESTAWU */}
+                {isSetModalOpen && (
+                    <>
+                        <ModalOverlay onClick={() => setIsSetModalOpen(false)} />
+                        <StyledModalBox>
+                            <Text bold="true" as="h2" text={editingSetId ? "Edytuj zestaw" : "Nowy zestaw fiszek"} />
+                            {errorMessage && <Text color="danger" text={errorMessage} />}
+                            {successMessage && <Text style={{ color: 'green' }} text={successMessage} />}
+
+                            <div style={{ marginTop: '20px', marginBottom: editingSetId ? '20px' : '0' }}>
                                 <Input
                                     type="text"
-                                    name="setTags"
-                                    placeholder="Tagi (po przecinku, np. matematyka, sesja)"
-                                    value={setTags}
-                                    onChange={(e) => setSetTags(e.target.value)}
+                                    name="setName"
+                                    placeholder="Nazwa zestawu"
+                                    value={setName}
+                                    onChange={(e) => setSetName(e.target.value)}
                                 />
                             </div>
-                        )}
+                            {!editingSetId && (
+                                <div style={{ marginTop: '10px', marginBottom: '20px' }}>
+                                    <Input
+                                        type="text"
+                                        name="setTags"
+                                        placeholder="Tagi (po przecinku, np. matematyka, sesja)"
+                                        value={setTags}
+                                        onChange={(e) => setSetTags(e.target.value)}
+                                    />
+                                </div>
+                            )}
 
-                        <SubmitButton text={editingSetId ? "Zapisz zmiany" : "Utwórz pusty zestaw"} color="dark" onClick={handleSaveSet} />
-                    </StyledModalBox>
-                </>
-            )}
-        </StyledContainer>
+                            <SubmitButton text={editingSetId ? "Zapisz zmiany" : "Utwórz pusty zestaw"} color="dark" onClick={handleSaveSet} />
+                        </StyledModalBox>
+                    </>
+                )}
+            </StyledContainer>
         </Layout>
     );
 }
