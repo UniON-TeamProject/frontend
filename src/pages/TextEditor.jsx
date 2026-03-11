@@ -348,6 +348,7 @@ const FlashcardBubbleButton = styled.button`
 
 const StyledFloatingButton = styled.button`
   background-color: ${({ theme }) => theme.colors.white};
+  color:${({ theme }) => theme.colors.text};
   border:none;
   border-radius:10px;
   margin:0 1px;
