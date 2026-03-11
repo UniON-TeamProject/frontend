@@ -991,7 +991,7 @@ const Notes = () => {
                 setMoveErrorMessage("");
             }}>
                 <StyledUserHeader>
-                    <StyledName>Witaj, {username}!</StyledName>
+                    <StyledName>Twoje notatki</StyledName>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: 'auto' }}>
                         <StyledSearchInput onClick={(e) => e.stopPropagation()}>
                             <svg width="15" height="15" fill="currentColor" viewBox="0 0 16 16">

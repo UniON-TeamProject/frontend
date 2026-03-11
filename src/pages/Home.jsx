@@ -1,11 +1,17 @@
 import styled from 'styled-components';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getToken, parseJwt } from '../token';
+import { getToken, parseJwt, removeToken } from '../token';
 import Layout from '../components/organisms/Layout';
 
 const StyledContainer = styled.div`
-    padding: 40px;
+    padding: 20px 40px;
+`
+
+const StyledHeader = styled.div`
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 `
 
 const StyledName = styled.h2`
@@ -14,6 +20,21 @@ const StyledName = styled.h2`
     cursor:default;
     @media(max-width: 768px){
         font-size: 2rem;
+    }
+`
+
+const StyledLogoutButton = styled.button`
+    padding: 8px 20px;
+    background-color: ${({ theme }) => theme.colors.secondary};
+    color: ${({ theme }) => theme.colors.white};
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    &:hover {
+        opacity: 0.85;
     }
 `
 
@@ -62,7 +83,12 @@ const Home = () => {
     return (
         <Layout>
             <StyledContainer>
-                <StyledName>Witaj, {username}!</StyledName>
+                <StyledHeader>
+                    <StyledName>Witaj, {username}!</StyledName>
+                    <StyledLogoutButton onClick={() => { removeToken(); navigate("/"); }}>
+                        Wyloguj
+                    </StyledLogoutButton>
+                </StyledHeader>
                 <StyledGrid>
                     <StyledBox onClick={() => navigate("/learning")}>
                         <StyledBoxTitle>Wróć do nauki</StyledBoxTitle>
