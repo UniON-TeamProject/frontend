@@ -8,8 +8,12 @@ const EXPANDED_WIDTH = 220;
 
 const StyledPageWrapper = styled.div`
     min-height: 100vh;
+    background-color: #f5f6f1;
+    color: #1a3020;
+    font-family: 'Inter', sans-serif;      /*?????*/
 `
 
+/*
 const StyledTopbar = styled.div`
     position: fixed;
     top: 0;
@@ -22,6 +26,7 @@ const StyledTopbar = styled.div`
     padding: 0 24px;
     z-index: 10;
 `
+*/
 
 const StyledLogo = styled.h1`
     font-size: 1.8rem;
@@ -33,13 +38,11 @@ const StyledLogo = styled.h1`
 
 const StyledSidebar = styled.div`
     position: fixed;
-    /* top: 80px; */
     top: 0px;
     left: 0;
     width: ${({ $expanded }) => $expanded ? `${EXPANDED_WIDTH}px` : `${COLLAPSED_WIDTH}px`};
     height: 100vh;
-    /* height: calc(100vh - 80px); */
-    background-color: ${({ theme }) => theme.colors.primary};
+    background-color: #e6eadb;
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -48,9 +51,10 @@ const StyledSidebar = styled.div`
     z-index: 10;
     transition: width 0.25s ease;
     overflow: hidden;
+    border-right: 1px solid rgba(0,0,0,0.03);
 `
-
-/* Rząd: SvgSlot + NavLabel. Brak dynamicznych właściwości layoutu. */
+/*
+/* Rząd: SvgSlot + NavLabel. Brak dynamicznych właściwości layoutu. 
 const StyledSidebarIcon = styled.div`
     height: 48px;
     display: flex;
@@ -64,6 +68,26 @@ const StyledSidebarIcon = styled.div`
     flex-shrink: 0;
     &:hover {
         background-color: ${({ $active, theme }) => $active ? theme.colors.secondary : 'rgba(255, 255, 255, 0.45)'};
+    }
+`
+*/
+
+const StyledSidebarIcon = styled.div`
+    height: 48px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    color: ${({ $active }) => $active ? '#1a3020' : '#707a73'};
+    background-color: ${({ $active }) => $active ? '#e0e4d8' : 'transparent'};
+    transition: background-color 0.15s ease, color 0.15s ease;
+    flex-shrink: 0;
+    
+    &:hover {
+        background-color: ${({ $active }) => $active ? '#e0e4d8' : '#eaede4'};
+        color: #1a3020;
     }
 `
 
@@ -85,7 +109,7 @@ const SvgSlot = styled.div`
 
 const NavLabel = styled.span`
     font-size: 0.95rem;
-    font-weight: 500;
+    /*font-weight: 500;*/
     white-space: nowrap;
     overflow: hidden;
     max-width: ${({ $expanded }) => $expanded ? '160px' : '0'};
@@ -104,12 +128,12 @@ const StyledSidebarCenter = styled.div`
 
 const StyledContent = styled.div`
     margin-left: ${({ $expanded }) => $expanded ? `${EXPANDED_WIDTH}px` : `${COLLAPSED_WIDTH}px`};
-    /* margin-top: 80px; */
     transition: margin-left 0.25s ease;
+    min-height: 100vh;
 `
 
 const Layout = ({ children }) => {
-    const navigate = useNavigate();
+const navigate = useNavigate();
     const location = useLocation();
     const [expanded, setExpanded] = useState(false);
 
@@ -128,8 +152,9 @@ const Layout = ({ children }) => {
                             <path fillRule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5" />
                         </svg>
                     </SvgSlot>
-                    <NavLabel $expanded={expanded}>Menu</NavLabel>
+                    <NavLabel $expanded={expanded}>Zwiń menu</NavLabel>
                 </StyledSidebarIcon>
+                
                 <StyledSidebarCenter>
                     <StyledSidebarIcon $active={isActive("/home")} onClick={() => navigate("/home")}>
                         <SvgSlot>
@@ -137,8 +162,9 @@ const Layout = ({ children }) => {
                                 <path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5v-4h2v4a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM2.5 14V7.707l5.5-5.5 5.5 5.5V14H10v-4a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v4z" />
                             </svg>
                         </SvgSlot>
-                        <NavLabel $expanded={expanded}>Home</NavLabel>
+                        <NavLabel $expanded={expanded}>Strona główna</NavLabel>
                     </StyledSidebarIcon>
+                    
                     <StyledSidebarIcon $active={isActive("/notes") || isActive("/note/")} onClick={() => navigate("/notes")}>
                         <SvgSlot>
                             <svg fill="currentColor" viewBox="0 0 16 16">
@@ -147,6 +173,7 @@ const Layout = ({ children }) => {
                         </SvgSlot>
                         <NavLabel $expanded={expanded}>Notatki</NavLabel>
                     </StyledSidebarIcon>
+                    
                     <StyledSidebarIcon $active={isActive("/learning")} onClick={() => navigate("/learning")}>
                         <SvgSlot>
                             <svg fill="currentColor" viewBox="0 0 16 16">
@@ -154,8 +181,9 @@ const Layout = ({ children }) => {
                                 <path d="M4.176 9.032a.5.5 0 0 0-.656.327l-.5 1.7a.5.5 0 0 0 .294.605l4.5 1.8a.5.5 0 0 0 .372 0l4.5-1.8a.5.5 0 0 0 .294-.605l-.5-1.7a.5.5 0 0 0-.656-.327L8 10.466zm-.068 1.873.22-.748 3.496 1.311a.5.5 0 0 0 .352 0l3.496-1.311.22.748L8 12.46z" />
                             </svg>
                         </SvgSlot>
-                        <NavLabel $expanded={expanded}>Fiszki</NavLabel>
+                        <NavLabel $expanded={expanded}>Tryby nauki</NavLabel>
                     </StyledSidebarIcon>
+                    
                     <StyledSidebarIcon>
                         <SvgSlot>
                             <svg fill="currentColor" viewBox="0 0 16 16">
@@ -164,15 +192,17 @@ const Layout = ({ children }) => {
                         </SvgSlot>
                         <NavLabel $expanded={expanded}>Kalendarz</NavLabel>
                     </StyledSidebarIcon>
+                    
                     <StyledSidebarIcon>
                         <SvgSlot>
                             <svg fill="currentColor" viewBox="0 0 16 16">
                                 <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275zM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4" />
                             </svg>
                         </SvgSlot>
-                        <NavLabel $expanded={expanded}>Społeczności</NavLabel>
+                        <NavLabel $expanded={expanded}>Społeczność</NavLabel>
                     </StyledSidebarIcon>
                 </StyledSidebarCenter>
+
                 <StyledSidebarIcon>
                     <SvgSlot>
                         <svg fill="currentColor" viewBox="0 0 16 16">
@@ -182,6 +212,16 @@ const Layout = ({ children }) => {
                     </SvgSlot>
                     <NavLabel $expanded={expanded}>Ustawienia</NavLabel>
                 </StyledSidebarIcon>
+
+                <StyledSidebarIcon>
+                    <SvgSlot>
+                        <svg fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3Zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+                        </svg>
+                    </SvgSlot>
+                    <NavLabel $expanded={expanded}>Profil</NavLabel>
+                </StyledSidebarIcon>
+
             </StyledSidebar>
             <StyledContent $expanded={expanded}>
                 {children}
