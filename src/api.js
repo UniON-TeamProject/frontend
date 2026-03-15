@@ -216,6 +216,9 @@ export async function getAllNotes() {
       content: note.content,
       lastEdited: note.editTime,
       createdAt: note.createdAt,
+
+      folderId: note.folderId,
+      
     }));
 
     return {

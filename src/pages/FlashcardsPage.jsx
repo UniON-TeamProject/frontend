@@ -374,7 +374,6 @@ const StyledModalTextArea = styled.textarea`
     min-height: 80px;
 `;
 
-// TO SIE POTEM ZMIENI NA PRAWDZIWE GRAFICZKI OKEEJ
 const StackedCardsIcon = () => (
     <svg viewBox="0 0 140 100" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
         <rect x="15" y="10" width="115" height="75" rx="5" transform="rotate(-4 15 10)" fill="white" stroke="black" strokeWidth="2" />
