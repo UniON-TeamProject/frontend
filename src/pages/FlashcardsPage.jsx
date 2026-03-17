@@ -10,13 +10,14 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Layout from '../components/organisms/Layout';
 
 const StyledContainer = styled.div`
-   width: 100%;
-   min-height: 100vh;
-   padding: 40px 60px; 
-   position: relative;
-   background-color: #fafafa; 
+    width: 100%;
+    height: 100%;
+    min-height: 100vh;
+    padding: 20px 40px;
+    position: relative;
+    background-color: transparent; 
 `;
-
+/*
 const TopSection = styled.div`
     width: 100%;
     text-align: center;
@@ -37,42 +38,77 @@ const Divider = styled.div`
     background-color: #000;
     margin-bottom: 20px;
 `;
+*/
+const StyledUserHeader = styled.div`
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+`;
 
-const SubTitle = styled.h2`
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #000;
-    text-align: left;
-    margin-bottom: 40px;
+const StyledName = styled.h2`
+    color: ${({ theme }) => theme.colors?.text || '#333'};
+    font-size: 2.5rem;
+    cursor: default;
+    @media(max-width:768px){
+        font-size: 2rem;
+    }
+`;
+
+const SubTitle = styled.div`
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: ${({ theme }) => theme.colors?.darkGrey || '#666'};
+    margin-bottom: 30px;
     display: flex;
     align-items: center;
     gap: 15px;
 `;
 
-const BackButton = styled.button`
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    font-weight: 700;
+const BackButton = styled.div`
     cursor: pointer;
-    color: #555;
-    transition: color 0.2s;
     display: flex;
     align-items: center;
-
+    color: ${({ theme }) => theme.colors?.darkGrey || '#666'};
+    transition: color 0.2s;
+    
     &:hover {
-        color: #000;
+        color: ${({ theme }) => theme.colors?.text || '#000'};
+    }
+    
+    > svg {
+        margin-right: 8px;
     }
 `;
 
-const SetHeaderControls = styled.div`
+
+
+const ContentContainer = styled.div`
+    width: 100%; 
+    padding: 20px 0;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-    gap: 20px;
-    width: 100%;
+    flex-flow: row wrap;
+    gap: 30px;
 `;
+
+const StartLearningButton = styled.button`
+    background-color: ${({ theme }) => theme.colors?.secondary || '#555'};
+    color: ${({ theme }) => theme.colors?.white || '#fff'};
+    border: none;
+    border-radius: 8px;
+    padding: 12px 25px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: opacity 0.2s;
+    
+    &:hover { opacity: 0.8; }
+`;
+
+/*
 
 const ContinueLearningBanner = styled.div`
     background-color: #ffffff;
@@ -84,24 +120,6 @@ const ContinueLearningBanner = styled.div`
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     display: flex;
     align-items: center;
-`;
-
-const StartLearningButton = styled.button`
-    background-color: #d1d4c9;
-    border: none;
-    border-radius: 10px;
-    padding: 12px 20px;
-    font-size: 16px;
-    font-weight: 500;
-    cursor: pointer;
-    color: #333;
-    display: flex;
-    align-items: center;
-    transition: background-color 0.2s;
-    
-    &:hover {
-        background-color: #c2c5ba;
-    }
 `;
 
 const LearningDropdown = styled.div`
@@ -137,51 +155,112 @@ const LearningDropdownItem = styled.button`
         border-bottom: none;
     }
 `;
+*/
 
 const CardsGrid = styled.div`
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 50px 50px; 
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 40px; 
     justify-items: center;
+    padding: 20px 0;
+    width: 100%;
+    align-items: stretch;
 `;
 
 const SetItemWrapper = styled.div`
+    width: 100%; 
+    max-width: 280px; 
+    height: 100%; 
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 220px;
+    justify-content: flex-start;
+    padding: 15px; 
+    position: relative; 
     cursor: pointer;
-    transition: transform 0.2s;
-    &:hover { transform: translateY(-5px); }
 `;
 
 const SetIconContainer = styled.div`
     position: relative;
     width: 140px;
     height: 100px;
-    margin-bottom: 15px;
+    margin: auto;
+    margin-bottom: 10px;
+    color: ${({ theme }) => theme.colors?.black || '#000'};
 `;
 
-const GearButton = styled.div`
+const StyledItemHeaderWrapper = styled.div`
+    text-align: center;
+    word-break: break-word;
+    width: 100%;
+`;
+
+
+const StyledItemHeader = styled.span`
     position: absolute;
-    bottom: -5px;
-    right: -20px;
-    width: 28px;
-    height: 28px;
-    
-    border-radius: 40%;
+    top: 15px;
+    right: 15px;
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    color: ${({ theme }) => theme.colors?.text || '#333'};
     cursor: pointer;
-    z-index: 11;
-    
-    transition: transform 0.2s;
+    z-index: 10;
+    transition: background-color 0.2s;
 
-    &:hover { transform: scale(1.1); }
-    img { width: 29px; height: 29px; opacity: 0.6; transition: opacity 0.2s; }
-    &:hover img { opacity: 1; }
+    &:hover {
+        background-color: ${({ theme }) => theme.colors?.lightGrey || '#f4f4f4'};
+    }
+    
+    svg {
+        width: 18px;
+        height: 18px;
+        color: ${({ theme }) => theme.colors?.darkGrey || '#666'};
+    }
 `;
+
+const StyledItemOptions = styled.div`
+    position: absolute;
+    top: 100%;
+    right: 0;
+    // transform: translateX(-50%);
+    margin-top: 8px;
+    width: 200px;
+    border: 2px solid ${({ theme }) => theme.colors?.darkGrey || '#ccc'};
+    border-radius: 5px;
+    z-index: 20;
+    background-color: ${({ theme }) => theme.colors?.white || '#fff'};
+    padding: 10px;
+    text-align: left;
+    cursor: default;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+`;
+
+const StyledItemOption = styled.div`
+    cursor: pointer;
+    display: flex; 
+    align-items: center;
+    font-weight: 600;
+    padding: 8px 0;
+    color: ${({ theme }) => theme.colors?.text || '#333'};
+    
+    &.danger {
+        color: ${({ theme }) => theme.colors?.danger || 'red'};
+        > svg { color: ${({ theme }) => theme.colors?.danger || 'red'}; }
+    }
+    
+    > svg {
+        width: 16px;
+        margin-right: 10px;
+        flex-shrink: 0;
+    }
+    
+    &:hover { opacity: 0.7; }
+`;
+/*
 
 const SetTitle = styled.h3`
     font-size: 1.1rem;
@@ -191,22 +270,37 @@ const SetTitle = styled.h3`
     margin-bottom: 10px;
     line-height: 1.3;
 `;
+*/
 
 const TagsContainer = styled.div`
+    width: 100%;
     display: flex;
-    flex-wrap: wrap;
+    flex-flow: row wrap;
+    align-items: center;
     justify-content: center;
-    gap: 8px;
 `;
 
-const TagPill = styled.span`
-    background-color: #f4f4f4;
-    border: 1px solid #e0e0e0;
-    border-radius: 20px;
-    padding: 4px 12px;
-    font-size: 0.75rem;
-    color: #555;
+const StyledTag = styled.div`
+    padding: 2px 10px;
+    margin: 3px;
+    background-color: ${({ theme, $inactive }) => $inactive ? theme.colors?.darkGrey : theme.colors?.secondary};
+    border-radius: 10px;
+    color: ${({ theme }) => theme.colors?.white || '#fff'};
     font-weight: 500;
+    font-size: 0.8rem;
+    display: flex;
+    flex-flow: row nowrap;
+    cursor: default;
+    
+    > div {
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin: 0 0 0 6px;
+        padding: 0;
+        position: relative;
+        bottom: 1px;
+    }
 `;
 
 const CardsFormContainer = styled.div`
@@ -231,6 +325,18 @@ const CardInputSide = styled.div`
     flex-direction: column;
     flex: 1;
 `;
+
+/*
+const TagPill = styled.span`
+    background-color: #f4f4f4;
+    border: 1px solid #e0e0e0;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    color: #555;
+    font-weight: 500;
+`;
+*/
 
 const SideLabel = styled.label`
     font-size: 13px;
@@ -259,24 +365,23 @@ const StyledCardTextarea = styled.textarea`
     }
 `;
 
+
 const AddMoreRowButton = styled.button`
-    background: white;
-    border: 1px solid #e0e0e0;
-    border-radius: 20px;
-    padding: 12px 40px;
-    font-size: 15px;
-    color: #555;
+    background: transparent;
+    border: 2px dashed ${({ theme }) => theme.colors?.darkGrey || '#ccc'};
+    border-radius: 10px;
+    padding: 15px 40px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: ${({ theme }) => theme.colors?.text || '#555'};
     cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
     opacity: ${props => props.disabled ? 0.5 : 1};
-    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
     transition: all 0.2s;
     
     &:hover {
-        box-shadow: ${props => props.disabled ? '0 2px 5px rgba(0,0,0,0.02)' : '0 4px 10px rgba(0,0,0,0.08)'};
-        background: ${props => props.disabled ? 'white' : '#fafafa'};
+        background: ${({ theme, disabled }) => disabled ? 'transparent' : theme.colors?.lightGrey || '#fafafa'};
     }
 `;
-
 
 const FloatingActionButton = styled.button`
     position: fixed;
@@ -284,9 +389,9 @@ const FloatingActionButton = styled.button`
     right: 40px;
     width: 70px;
     height: 70px;
-    background-color: white;
+    background-color: ${({ theme }) => theme.colors?.white || '#fff'};
     border: none;
-    border-radius: 20px; 
+    border-radius: 20px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     display: flex;
     justify-content: center;
@@ -294,20 +399,58 @@ const FloatingActionButton = styled.button`
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
     z-index: 100;
-
+    
     &:hover {
         transform: scale(1.05);
         box-shadow: 0 6px 25px rgba(0,0,0,0.15);
+    }
+    
+    svg {
+        width: 32px;
+        height: 32px;
+        color: ${({ theme }) => theme.colors?.secondary || '#555'};
+    }
+`;
+
+const StyledPopup = styled.div`
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 700px;
+    min-height: 300px;
+    padding: 60px;
+    border-radius: 5px;
+    background-color: ${({ theme }) => theme.colors?.white || '#fff'};
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    z-index: 1000;
+    
+    @media(max-width:768px){
+        width: 90%;
+        padding: 40px;
     }
 `;
 
 const ModalOverlay = styled.div`
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0,0,0,0.4);
     z-index: 999;
 `;
 
+const EmptyStateContainer = styled.div`
+    width: 100%;
+    padding: 60px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: ${({ theme }) => theme.colors?.text || '#333'};
+    opacity: 0.5;
+`;
+
+
+/*
 const StyledModalBox = styled.div`
     position: fixed;
     top: 50%;
@@ -319,15 +462,6 @@ const StyledModalBox = styled.div`
     background-color: ${({ theme }) => theme.colors?.white || '#fff'};
     box-shadow: 0 0 20px rgba(0,0,0,0.3);
     z-index: 1000;
-`;
-
-const EmptyStateContainer = styled.div`
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    height: 50vh; 
-    text-align: center; 
 `;
 
 const InvisibleOverlay = styled.div`
@@ -362,17 +496,49 @@ const DropdownItem = styled.button`
     font-family: inherit;
     &:hover { background-color: #f5f5f5; }
 `;
-
+*/
 const StyledModalTextArea = styled.textarea`
     width: 100%;
-    padding: 10px;
-    margin: 10px 0 10px 0;
-    border: 1px solid #ccc;
+    padding: 15px;
+    margin: 10px 0 20px 0;
+    border: 1px solid ${({ theme }) => theme.colors?.darkGrey || '#ccc'};
     border-radius: 5px;
     font-family: inherit;
+    font-size: 1rem;
     resize: vertical;
-    min-height: 80px;
+    min-height: 100px;
+    background-color: ${({ theme }) => theme.colors?.lightGrey || '#f9f9f9'};
+    
+    &:focus {
+        outline: none;
+        border-color: ${({ theme }) => theme.colors?.secondary || '#888'};
+    }
 `;
+
+const SetHeaderControls = styled.div`
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+    gap: 20px;
+`;
+
+const ActionBanner = styled.div`
+    background-color: ${({ theme }) => theme.colors?.lightGrey || '#f4f4f4'};
+    border-radius: 8px;
+    padding: 12px 25px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: ${({ theme }) => theme.colors?.text || '#333'};
+    cursor: pointer;
+    transition: background-color 0.2s;
+    
+    &:hover { background-color: ${({ theme }) => theme.colors?.darkGrey || '#e0e0e0'}; color: ${({ theme }) => theme.colors?.white || '#000'}; }
+`;
+
+
+
+
+
 
 const StackedCardsIcon = () => (
     <svg viewBox="0 0 140 100" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
@@ -393,6 +559,12 @@ const PlusIcon = () => (
 const CheckmarkIcon = () => (
     <svg viewBox="0 0 24 24" width="36" height="36" stroke="#333" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round">
         <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+);
+
+const EllipsisIcon = () => (
+    <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
     </svg>
 );
 
@@ -452,7 +624,7 @@ const FlashcardsPage = () => {
         } else if (!setId) {
             setActiveSetId(null);
             setIsLearningMenuOpen(false);
-            setIsAddingMode(false); // wyjdz z trybu dodawania jesli wracamy do menu DO POPRAWY I GUESS?
+            setIsAddingMode(false);
         }
     }, [setId, sets]);
 
@@ -541,7 +713,7 @@ const FlashcardsPage = () => {
     const openEditSetModal = (set) => {
         setEditingSetId(set.id);
         setSetName(set.name);
-        setSetTags(set.tags ? set.tags.join(', ') : "");
+        setSetTags(set.tags && set.tags.length > 0 ? set.tags.join(', ') : "");
         setErrorMessage("");
         setSuccessMessage("");
         setIsSetModalOpen(true);
@@ -588,71 +760,62 @@ const FlashcardsPage = () => {
 
     return (
         <Layout>
-            <StyledContainer>
-                <TopSection>
-                    <MainTitle>Nauka</MainTitle>
-                </TopSection>
-
-                <Divider />
+            <StyledContainer onClick={() => setActiveMenuId(null)}>
+                <StyledUserHeader>
+                    <StyledName>Fiszki</StyledName>
+                </StyledUserHeader>
 
                 {/* NAGŁÓWEK */}
                 {!activeSetId ? (
-                    <SubTitle>Twoje zestawy fiszek...</SubTitle>
+                    <SubTitle>Twoje zestawy do nauki...</SubTitle>
                 ) : (
                     <>
-                        <SubTitle style={{ marginBottom: '20px' }}>
+                        <SubTitle>
                             <BackButton onClick={() => {
                                 if (isAddingMode) setIsAddingMode(false);
                                 else navigate('/learning');
                             }}>
-                                &#8592;
+                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                                    <path fillRule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z" />
+                                </svg>
+                                Powrót do zestawów
                             </BackButton>
-                            {currentSet?.name}
+                        </SubTitle>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '30px', flexWrap: 'wrap' }}>
+                            <StyledName style={{ fontSize: '2rem', margin: 0 }}>{currentSet?.name}</StyledName>
                             {currentSet?.tags && currentSet.tags.length > 0 && !isAddingMode && (
-                                <TagsContainer style={{ marginLeft: '20px' }}>
+                                <TagsContainer style={{ width: 'auto', marginTop: 0 }}>
                                     {currentSet.tags.map((tag, i) => (
-                                        <TagPill key={i}>{tag}</TagPill>
+                                        <StyledTag key={i}>{tag}</StyledTag>
                                     ))}
                                 </TagsContainer>
                             )}
-                        </SubTitle>
+                        </div>
 
                         {!isAddingMode && (
                             <SetHeaderControls>
-                                <ContinueLearningBanner
-                                    style={{ cursor: 'pointer', transition: 'background-color 0.2s' }}
-                                    onMouseEnter={(e) => e.target.style.backgroundColor = '#f9f9f9'}
-                                    onMouseLeave={(e) => e.target.style.backgroundColor = '#ffffff'}
-                                    onClick={() => navigate(`/learning/fast/${currentSet?.id}`)}
-                                    title="Wznów od miejsca, w którym skończyłeś"
-                                >
-                                    Chcesz kontynuować ostatnią naukę? (Wznów sesję)
-                                </ContinueLearningBanner>
+                                <ActionBanner onClick={() => navigate(`/learning/fast/${currentSet?.id}`)}>
+                                    Wznów ostatnią sesję
+                                </ActionBanner>
 
                                 <div style={{ position: 'relative' }}>
-                                    <StartLearningButton onClick={() => setIsLearningMenuOpen(!isLearningMenuOpen)}>
-                                        Rozpocznij naukę ▼
+                                    <StartLearningButton onClick={(e) => { e.stopPropagation(); setIsLearningMenuOpen(!isLearningMenuOpen); }}>
+                                        Rozpocznij naukę
+                                        <svg style={{ marginLeft: '8px' }} width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
+                                            <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
+                                        </svg>
                                     </StartLearningButton>
 
                                     {isLearningMenuOpen && (
-                                        <>
-                                            <InvisibleOverlay onClick={() => setIsLearningMenuOpen(false)} />
-                                            <LearningDropdown>
-                                                <LearningDropdownItem onClick={() => {
-                                                    setIsLearningMenuOpen(false);
-                                                    navigate(`/learning/fast/${currentSet?.id}`);
-                                                }}>
-                                                    Szybka nauka
-                                                </LearningDropdownItem>
-
-                                                <LearningDropdownItem onClick={() => {
-                                                    setIsLearningMenuOpen(false);
-                                                    navigate(`/learning/fsrs/${currentSet?.id}`);
-                                                }}>
-                                                    Trwała nauka
-                                                </LearningDropdownItem>
-                                            </LearningDropdown>
-                                        </>
+                                        <StyledItemOptions style={{ top: 'calc(100% + 5px)', left: 'auto', right: '0', transform: 'none' }}>
+                                            <StyledItemOption onClick={() => navigate(`/learning/fast/${currentSet?.id}`)}>
+                                                Szybka nauka
+                                            </StyledItemOption>
+                                            <StyledItemOption onClick={() => navigate(`/learning/fsrs/${currentSet?.id}`)}>
+                                                Trwała nauka
+                                            </StyledItemOption>
+                                        </StyledItemOptions>
                                     )}
                                 </div>
                             </SetHeaderControls>
@@ -665,84 +828,79 @@ const FlashcardsPage = () => {
 
                 {/* LISTA ZESTAWÓW */}
                 {!activeSetId && (
-                    <>
+                    <ContentContainer>
                         {sets.length === 0 && !errorMessage ? (
                             <EmptyStateContainer>
-                                <Text text="Brak zestawów. Utwórz swój pierwszy pusty zestaw!" />
+                                <svg width="48" height="48" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4z" />
+                                </svg>
+                                <p style={{ fontSize: '1rem', fontWeight: '600' }}>Brak zestawów. Utwórz swój pierwszy!</p>
                             </EmptyStateContainer>
                         ) : (
-                            <CardsGrid>
-                                {sets.map((set, idx) => (
-                                    <SetItemWrapper key={set.id || idx} onClick={() => navigate(`/learning/set/${set.id}`)}>
-                                        <SetIconContainer>
-                                            <StackedCardsIcon />
-
-                                            <GearButton
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setActiveMenuId(activeMenuId === set.id ? null : set.id);
-                                                }}
-                                            >
-                                                <img src="/icons/gear.png" alt="Opcje" />
-                                            </GearButton>
-
+                            sets.map((set) => (
+                                <SetItemWrapper key={set.id} onClick={() => navigate(`/learning/set/${set.id}`)}>
+                                    <SetIconContainer>
+                                        <StackedCardsIcon />
+                                    </SetIconContainer>
+                                    <StyledItemHeaderWrapper>
+                                        <Text as="h4" bold="true" text={set.name} style={{ marginBottom: '10px' }} />
+                                        <StyledItemHeader onClick={(e) => {
+                                            e.stopPropagation();
+                                            setActiveMenuId(activeMenuId === set.id ? null : set.id);
+                                        }}>
+                                            <EllipsisIcon />
+                                            
                                             {activeMenuId === set.id && (
-                                                <>
-                                                    <InvisibleOverlay onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); }} />
-                                                    <DropdownMenu onClick={(e) => e.stopPropagation()}>
-                                                        <DropdownItem onClick={() => {
-                                                            setActiveMenuId(null);
-                                                            openEditSetModal(set);
-                                                        }}>
-                                                            Zmień nazwę
-                                                        </DropdownItem>
-                                                        <DropdownItem onClick={() => {
-                                                            setActiveMenuId(null);
-                                                            handleDeleteSet(set.id);
-                                                        }}>
-                                                            Usuń
-                                                        </DropdownItem>
-                                                    </DropdownMenu>
-                                                </>
+                                                <StyledItemOptions onClick={e => e.stopPropagation()}>
+                                                    <StyledItemOption onClick={() => { setActiveMenuId(null); openEditSetModal(set); }}>
+                                                        <svg fill="currentColor" viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325" /></svg>
+                                                        Edytuj zestaw
+                                                    </StyledItemOption>
+                                                    <StyledItemOption className="danger" onClick={() => { setActiveMenuId(null); handleDeleteSet(set.id); }}>
+                                                        <svg fill="currentColor" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" /></svg>
+                                                        Usuń zestaw
+                                                    </StyledItemOption>
+                                                </StyledItemOptions>
                                             )}
-                                        </SetIconContainer>
-
-                                        <SetTitle>{set.name}</SetTitle>
-                                        {set.tags && set.tags.length > 0 && (
-                                            <TagsContainer>
-                                                {set.tags.map((tag, i) => (
-                                                    <TagPill key={i}>{tag}</TagPill>
-                                                ))}
-                                            </TagsContainer>
-                                        )}
-                                    </SetItemWrapper>
-                                ))}
-                            </CardsGrid>
+                                        </StyledItemHeader>
+                                    </StyledItemHeaderWrapper>
+                                    
+                                    {set.tags && set.tags.length > 0 && (
+                                        <TagsContainer>
+                                            {set.tags.map((tag, i) => (
+                                                <StyledTag key={i}>{tag}</StyledTag>
+                                            ))}
+                                        </TagsContainer>
+                                    )}
+                                </SetItemWrapper>
+                            ))
                         )}
-                    </>
+                    </ContentContainer>
                 )}
 
                 {/* WNETRZE ZESTAWU */}
                 {activeSetId && !isAddingMode && (
-                    <>
+                    <ContentContainer>
                         {(!currentSet?.cards || currentSet.cards.length === 0) && !errorMessage ? (
                             <EmptyStateContainer>
-                                <Text text="Ten zestaw jest pusty. Kliknij + w prawym dolnym rogu, aby dodać fiszkę!" />
+                                <svg width="48" height="48" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1z" />
+                                    <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0z" />
+                                </svg>
+                                <p style={{ fontSize: '1rem', fontWeight: '600' }}>Ten zestaw jest pusty. Kliknij +, aby dodać fiszkę!</p>
                             </EmptyStateContainer>
                         ) : (
-                            <CardsGrid>
-                                {currentSet.cards.map((card) => (
-                                    <Flashcard
-                                        key={card.id}
-                                        question={card.contentFirstSide || card.question}
-                                        answer={card.contentFlipSide || card.answer}
-                                        onEdit={() => openEditCardModal(card)}
-                                        onDelete={() => handleDeleteCard(card.id)}
-                                    />
-                                ))}
-                            </CardsGrid>
+                            currentSet.cards.map((card) => (
+                                <Flashcard
+                                    key={card.id}
+                                    question={card.contentFirstSide || card.question}
+                                    answer={card.contentFlipSide || card.answer}
+                                    onEdit={() => openEditCardModal(card)}
+                                    onDelete={() => handleDeleteCard(card.id)}
+                                />
+                            ))
                         )}
-                    </>
+                    </ContentContainer>
                 )}
 
                 {/* TRYB DODAWANIA FISZEK */}
@@ -796,12 +954,11 @@ const FlashcardsPage = () => {
                 {isCardEditModalOpen && (
                     <>
                         <ModalOverlay onClick={() => setIsCardEditModalOpen(false)} />
-                        <StyledModalBox>
+                        <StyledPopup onClick={e => e.stopPropagation()}>
                             <Text bold="true" as="h2" text="Edytuj fiszkę" />
                             {errorMessage && <Text color="danger" text={errorMessage} />}
-                            <Text text={`Edytujesz fiszkę z zestawu: ${currentSet?.name}`} style={{ marginBottom: '20px', color: '#555' }} />
-
-                            <Text text="Pytanie:" />
+                            
+                            <Text text="Pytanie:" style={{ marginTop: '20px' }} />
                             <StyledModalTextArea
                                 placeholder="Wpisz pytanie..."
                                 value={editQuestion}
@@ -816,7 +973,7 @@ const FlashcardsPage = () => {
                             />
 
                             <SubmitButton text="Zapisz zmiany" color="dark" onClick={handleEditSingleCard} />
-                        </StyledModalBox>
+                        </StyledPopup>
                     </>
                 )}
 
@@ -824,13 +981,14 @@ const FlashcardsPage = () => {
                 {isSetModalOpen && (
                     <>
                         <ModalOverlay onClick={() => setIsSetModalOpen(false)} />
-                        <StyledModalBox>
+                        <StyledPopup onClick={e => e.stopPropagation()}>
                             <Text bold="true" as="h2" text={editingSetId ? "Edytuj zestaw" : "Nowy zestaw fiszek"} />
                             {errorMessage && <Text color="danger" text={errorMessage} />}
                             {successMessage && <Text style={{ color: 'green' }} text={successMessage} />}
 
-                            <div style={{ marginTop: '20px', marginBottom: editingSetId ? '20px' : '0' }}>
+                            <div style={{ marginTop: '30px', marginBottom: '20px' }}>
                                 <Input
+                                    autoFocus
                                     type="text"
                                     name="setName"
                                     placeholder="Nazwa zestawu"
@@ -838,20 +996,19 @@ const FlashcardsPage = () => {
                                     onChange={(e) => setSetName(e.target.value)}
                                 />
                             </div>
-                            {!editingSetId && (
-                                <div style={{ marginTop: '10px', marginBottom: '20px' }}>
-                                    <Input
-                                        type="text"
-                                        name="setTags"
-                                        placeholder="Tagi (po przecinku, np. matematyka, sesja)"
-                                        value={setTags}
-                                        onChange={(e) => setSetTags(e.target.value)}
-                                    />
-                                </div>
-                            )}
+                            
+                            <div style={{ marginBottom: '30px' }}>
+                                <Input
+                                    type="text"
+                                    name="setTags"
+                                    placeholder="Tagi (po przecinku, np. matematyka, sesja)"
+                                    value={setTags}
+                                    onChange={(e) => setSetTags(e.target.value)}
+                                />
+                            </div>
 
                             <SubmitButton text={editingSetId ? "Zapisz zmiany" : "Utwórz pusty zestaw"} color="dark" onClick={handleSaveSet} />
-                        </StyledModalBox>
+                        </StyledPopup>
                     </>
                 )}
             </StyledContainer>

@@ -31,7 +31,6 @@ const CardFace = styled.div`
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 20px;
     font-size: 1.1rem;
     color: #333;
     text-align: center;
@@ -40,7 +39,7 @@ const CardFace = styled.div`
 const CardBack = styled(CardFace)`
     transform: rotateY(180deg);
 `;
-
+/*
 const GearButton = styled.div`
     position: absolute;
     top: 5px; 
@@ -60,19 +59,19 @@ const GearButton = styled.div`
     &:hover { transform: scale(1.1); }
     img { width: 35px; height: 35px; opacity: 0.6; transition: opacity 0.2s; }
     &:hover img { opacity: 1; }
-`;
+`;*/
 
 const DropdownMenu = styled.div`
     position: absolute;
-    top: 25px; 
-    right: -10px; 
+    top: 45px;
+    right: 10px; 
     background: white;
     border: 1px solid #eee;
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     padding: 5px 0;
     z-index: 20;
-    min-width: 70px;
+    min-width: 120px;
     display: flex;
     flex-direction: column;
 `;
@@ -94,6 +93,66 @@ const InvisibleOverlay = styled.div`
     z-index: 15;
 `;
 
+const CardText = styled.div`
+    width: 100%;
+    height: 100%;
+    padding: 40px;
+    font-size: 1.1rem;
+    color: #333;
+    text-align: center;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    p {
+        margin: 0;
+        width: 100%;
+        word-wrap: break-word;
+        word-break: break-all;
+        
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 10;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+`;
+
+const OptionsButton = styled.div`
+    position: absolute;
+    top: 15px; 
+    right: 15px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: background-color 0.2s;
+    
+    color: #888;
+    
+    &:hover { 
+        background-color: #f0f0f0; 
+        color: #333;
+    }
+    
+    svg {
+        width: 20px;
+        height: 20px;
+    }
+`;
+
+
+const EllipsisIcon = () => (
+    <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
+    </svg>
+);
+
 export default function Flashcard({ question, answer, onEdit, onDelete }) {
     const [isFlipped, setIsFlipped] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -101,26 +160,30 @@ export default function Flashcard({ question, answer, onEdit, onDelete }) {
     return (
         <CardWrapper>
             <CardInner $isFlipped={isFlipped} onClick={() => setIsFlipped(!isFlipped)}>
-                <CardFace>{question}</CardFace>
-                <CardBack>{answer}</CardBack>
+                <CardFace>
+                    <CardText><p>{question}</p></CardText>
+                </CardFace>
+                <CardBack>
+                    <CardText><p>{answer}</p></CardText>
+                </CardBack>
             </CardInner>
 
-            <GearButton onClick={(e) => {
+            <OptionsButton onClick={(e) => {
                 e.stopPropagation();
                 setIsMenuOpen(!isMenuOpen);
             }}>
-                <img src="/icons/gear.png" alt="Opcje" />
-            </GearButton>
+                <EllipsisIcon />
+            </OptionsButton>
 
             {isMenuOpen && (
                 <>
                     <InvisibleOverlay onClick={(e) => { e.stopPropagation(); setIsMenuOpen(false); }} />
                     <DropdownMenu onClick={(e) => e.stopPropagation()}>
                         <DropdownItem onClick={() => { setIsMenuOpen(false); onEdit(); }}>
-                            Edytuj
+                            Edytuj fiszkę
                         </DropdownItem>
-                        <DropdownItem onClick={() => { setIsMenuOpen(false); onDelete(); }}>
-                            Usuń
+                        <DropdownItem className="danger" onClick={() => { setIsMenuOpen(false); onDelete(); }}>
+                            Usuń fiszkę
                         </DropdownItem>
                     </DropdownMenu>
                 </>
