@@ -15,6 +15,8 @@ import { getToken } from './token';
 import FlashcardsPage from './pages/FlashcardsPage';
 import FastLearningPage from './pages/FastLearningPage';
 import FSRSLearningPage from './pages/FSRSLearningPage';
+import Calendar from './pages/Calendar';
+import UsosCallback from './pages/UsosCallback';
 
 const ProtectedRoute = ({ children }) => {
   return getToken() ? children : <Navigate to="/" replace />;
@@ -35,6 +37,8 @@ function App() {
           <Route path="/reset-password" element={<ForgotPassword />} />
           <Route path="/note/:id" element={<ProtectedRoute><TextEditor /></ProtectedRoute>} />
 
+          <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
+          <Route path="/usos-callback" element={<ProtectedRoute><UsosCallback /></ProtectedRoute>} />
           <Route path="/learning" element={<FlashcardsPage />} />
           <Route path="/learning/set/:setId" element={<FlashcardsPage />} />
           <Route path="/learning/fast/:setId" element={<FastLearningPage />} />

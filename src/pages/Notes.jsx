@@ -2,7 +2,7 @@ import styled from 'styled-components';
 import React, { useState, useEffect } from 'react';
 import SubmitButton from '../components/atoms/SubmitButton'
 import Text from '../components/atoms/Text'
-import { addNote, deleteNote, clearTrash, restoreNote, getFolderSuggestedTags, getRootFolder, getFolderContent, addFolder, deleteFolder, restoreFolder, clearFolderTrash, renameNote, renameFolder, getAllDeletedNotes, getAllDeletedFolders, getDeletedRootContent, resolveFolderByPath, getNoteTags, addNoteTag, removeNoteTag, getNoteSuggestedTags, getFolderTags, addFolderTag, removeFolderTag, moveNote, moveFolder, getAllFolders, getAllNotes } from '../api';
+import { addNote, deleteNote, clearTrash, restoreNote, getFolderSuggestedTags, addFolder, deleteFolder, restoreFolder, clearFolderTrash, renameNote, renameFolder, getAllDeletedNotes, getAllDeletedFolders, resolveFolderByPath, getNoteTags, addNoteTag, removeNoteTag, getNoteSuggestedTags, getFolderTags, addFolderTag, removeFolderTag, moveNote, moveFolder, getAllFolders, getAllNotes } from '../api';
 import { useNavigate, useParams } from 'react-router-dom'
 import { getToken, parseJwt } from '../token'
 import Input from '../components/atoms/Input';
@@ -507,8 +507,8 @@ const Notes = () => {
     const [suggestedTags, setSuggestedTags] = useState([]);
     const [chosenTags, setChosenTags] = useState([]);
     const navigate = useNavigate();
+    const breadcrumbs = pathSegments.map(s => decodeURIComponent(s));
     const [currentFolder, setCurrentFolder] = useState(null);
-    const [breadcrumbs, setBreadcrumbs] = useState([]);
     const [subFolders, setSubFolders] = useState([]);
     const [editingName, setEditingName] = useState("");
     const [flipLeft, setFlipLeft] = useState(false);
@@ -717,7 +717,6 @@ const Notes = () => {
             return;
         }
         setCurrentFolder(res.currentFolder);
-        setBreadcrumbs(res.breadcrumbs || []);
         setSubFolders(res.subFolders || []);
         setNotes(sortNotes(res.notes || []));
         if (isTrashView && pathSegments.length === 0) {
@@ -726,90 +725,26 @@ const Notes = () => {
         setIsLoading(false);
     };
 
-    const skipNextFetch = React.useRef(false);
-
-    const handleOpenFolder = async (folder) => {
-        const res = await getFolderContent(folder.id, isTrashView);
-        if (res.errorCode) {
-            setErrorMessage(res.message);
-            return;
-        }
-        setSubFolders(res.subFolders || []);
-        setNotes(sortNotes(res.notes || []));
-        setBreadcrumbs([...breadcrumbs, folder]);
-        setCurrentFolder(folder);
+    const handleOpenFolder = (folder) => {
         setSearchQuery("");
-
         const encodedName = encodeURIComponent(folder.name);
         const newUrl = urlPath ? `/notes/${urlPath}/${encodedName}` : `/notes/${encodedName}`;
-        skipNextFetch.current = true;
         navigate(newUrl);
     };
 
-    const handleBreadcrumbClick = async (index) => {
+    const handleBreadcrumbClick = (index) => {
         setSearchQuery("");
         if (index === -1) {
-            if (isTrashView) {
-                const res = await getDeletedRootContent();
-                if (!res.errorCode) {
-                    setSubFolders(res.subFolders || []);
-                    setNotes(sortNotes(res.notes || []));
-                    setTrashHasItems((res.subFolders?.length > 0) || (res.notes?.length > 0));
-                }
-            } else {
-                const root = await getRootFolder();
-                if (!root.errorCode) {
-                    const res = await getFolderContent(root.id, false);
-                    if (!res.errorCode) {
-                        setSubFolders(res.subFolders || []);
-                        setNotes(sortNotes(res.notes || []));
-                    }
-                }
-            }
-            setCurrentFolder(null);
-            setBreadcrumbs([]);
-            skipNextFetch.current = true;
             navigate(isTrashView ? "/notes/trash" : "/notes");
         } else {
-            const target = breadcrumbs[index];
-            const res = await getFolderContent(target.id, isTrashView);
-            if (!res.errorCode) {
-                setSubFolders(res.subFolders || []);
-                setNotes(sortNotes(res.notes || []));
-                setBreadcrumbs(breadcrumbs.slice(0, index + 1));
-                setCurrentFolder(target);
-            }
-            const segments = breadcrumbs.slice(0, index + 1).map(b => encodeURIComponent(b.name));
+            const segments = breadcrumbs.slice(0, index + 1).map(b => encodeURIComponent(b));
             const newPath = segments.join("/");
-            skipNextFetch.current = true;
             navigate(isTrashView ? `/notes/trash/${newPath}` : `/notes/${newPath}`);
         }
     };
 
-    const refreshCurrentView = async () => {
-        if (currentFolder) {
-            const res = await getFolderContent(currentFolder.id, isTrashView);
-            if (!res.errorCode) {
-                setSubFolders(res.subFolders || []);
-                setNotes(sortNotes(res.notes || []));
-            }
-        } else if (isTrashView) {
-            const res = await getDeletedRootContent();
-            if (!res.errorCode) {
-                setSubFolders(res.subFolders || []);
-                setNotes(sortNotes(res.notes || []));
-                setTrashHasItems((res.subFolders?.length > 0) || (res.notes?.length > 0));
-            }
-        } else {
-            const root = await getRootFolder();
-            if (!root.errorCode) {
-                const res = await getFolderContent(root.id, false);
-                if (!res.errorCode) {
-                    setSubFolders(res.subFolders || []);
-                    setNotes(sortNotes(res.notes || []));
-                }
-            }
-        }
+    const refreshCurrentView = () => {
+        fetchForCurrentUrl();
     };
 
     const getCurrentPath = () => {
@@ -965,10 +900,6 @@ const Notes = () => {
         let tokenContent = parseJwt(jwt);
         setUsername(tokenContent?.sub);
 
-        if (skipNextFetch.current) {
-            skipNextFetch.current = false;
-            return;
-        }
         fetchForCurrentUrl();
     }, [urlPath])
 
@@ -1103,12 +1034,12 @@ const Notes = () => {
                                 <path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5v-4h2v4a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM2.5 14V7.707l5.5-5.5 5.5 5.5V14H10v-4a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v4z" />
                             </svg>
                         </p>
-                        {breadcrumbs.map((crumb, index) => (
-                            <React.Fragment key={crumb.id}>
+                        {breadcrumbs.map((name, index) => (
+                            <React.Fragment key={index}>
                                 <p className="separator">/</p>
                                 {index === breadcrumbs.length - 1
-                                    ? <p className="current">{crumb.name}</p>
-                                    : <p onClick={() => handleBreadcrumbClick(index)}>{crumb.name}</p>
+                                    ? <p className="current">{name}</p>
+                                    : <p onClick={() => handleBreadcrumbClick(index)}>{name}</p>
                                 }
                             </React.Fragment>
                         ))}
