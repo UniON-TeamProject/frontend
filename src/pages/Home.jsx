@@ -309,9 +309,11 @@ const Home = () => {
                     });
 
                 setRecentSets(setsArray.slice(0, 3));
+
                 setRecentNotes(sortedNotes.slice(0, 3)); 
                 setRecentFolders(sortedFolders.slice(0, 4));
                 
+
                 setAllFoldersList(foldersArray);
             } catch (error) {
                 console.error("Błąd pobierania danych:", error);
@@ -455,7 +457,7 @@ const Home = () => {
                             <CardTitle>Styczeń
                                 <span style={{ cursor: 'pointer', color: '#707a73' }}>⋮</span>
                             </CardTitle>
-                            
+
                             <div style={{ flexGrow: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#b3b9a8', fontSize: '1.2rem' }}>
                                 (Miejsce na kalendarz)
                             </div>
