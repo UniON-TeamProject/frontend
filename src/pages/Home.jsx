@@ -296,10 +296,21 @@ const Home = () => {
                 const notesArray = Array.isArray(notesData) ? notesData : (notesData.notes || []);
                 const foldersArray = Array.isArray(foldersData) ? foldersData : (foldersData.folders || []);
 
+                const sortedFolders = [...foldersArray]
+                    .filter(f => f.name !== "/")
+                    .sort((a, b) => (b.id || 0) - (a.id || 0));
+
+                const sortedNotes = [...notesArray]
+                    .sort((a, b) => {
+                        const dateA = new Date(a.editTime ?? a.lastEdited ?? a.createTime ?? 0).getTime();
+                        const dateB = new Date(b.editTime ?? b.lastEdited ?? b.createTime ?? 0).getTime();
+                        if (!dateA || isNaN(dateA) || dateA === 0) return (b.id || 0) - (a.id || 0); // fallback na ID
+                        return dateB - dateA;
+                    });
+
                 setRecentSets(setsArray.slice(0, 3));
-                setRecentNotes(notesArray.slice(0, 3)); 
-                
-                setRecentFolders(foldersArray.filter(f => f.name !== "/").slice(0, 4));
+                setRecentNotes(sortedNotes.slice(0, 3)); 
+                setRecentFolders(sortedFolders.slice(0, 4));
                 
                 setAllFoldersList(foldersArray);
             } catch (error) {

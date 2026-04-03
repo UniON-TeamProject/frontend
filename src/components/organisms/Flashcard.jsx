@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 
 const CardWrapper = styled.div`
@@ -31,76 +31,19 @@ const CardFace = styled.div`
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 1.1rem;
-    color: #333;
-    text-align: center;
 `;
 
 const CardBack = styled(CardFace)`
     transform: rotateY(180deg);
 `;
-/*
-const GearButton = styled.div`
-    position: absolute;
-    top: 5px; 
-    right: 5px;
-    width: 28px;
-    height: 28px;
-
-    border-radius: 40%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    z-index: 10;
-    
-    transition: transform 0.2s;
-    
-    &:hover { transform: scale(1.1); }
-    img { width: 35px; height: 35px; opacity: 0.6; transition: opacity 0.2s; }
-    &:hover img { opacity: 1; }
-`;*/
-
-const DropdownMenu = styled.div`
-    position: absolute;
-    top: 45px;
-    right: 10px; 
-    background: white;
-    border: 1px solid #eee;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    padding: 5px 0;
-    z-index: 20;
-    min-width: 120px;
-    display: flex;
-    flex-direction: column;
-`;
-
-const DropdownItem = styled.button`
-    padding: 8px 15px;
-    background: none;
-    border: none;
-    text-align: left;
-    font-size: 13px;
-    cursor: pointer;
-    color: #333;
-    &:hover { background-color: #f5f5f5; }
-`;
-
-const InvisibleOverlay = styled.div`
-    position: fixed;
-    inset: 0;
-    z-index: 15;
-`;
 
 const CardText = styled.div`
     width: 100%;
     height: 100%;
-    padding: 40px;
+    padding: 20px; 
     font-size: 1.1rem;
     color: #333;
     text-align: center;
-    
     display: flex;
     align-items: center;
     justify-content: center;
@@ -108,12 +51,11 @@ const CardText = styled.div`
     p {
         margin: 0;
         width: 100%;
-        word-wrap: break-word;
-        word-break: break-all;
-        
+        overflow-wrap: break-word; 
+        word-break: normal; /* Słowa spadają całe do nowej linijki */
         display: -webkit-box;
         -webkit-box-orient: vertical;
-        -webkit-line-clamp: 10;
+        -webkit-line-clamp: 10; 
         overflow: hidden;
         text-overflow: ellipsis;
     }
@@ -146,6 +88,121 @@ const OptionsButton = styled.div`
     }
 `;
 
+const DropdownMenu = styled.div`
+    position: absolute;
+    top: 45px; 
+    right: 10px; 
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    padding: 10px;
+    z-index: 20;
+    width: 260px; 
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    cursor: default;
+`;
+
+const DropdownItem = styled.button`
+    padding: 10px 12px;
+    background: none;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #333;
+    border-radius: 8px;
+    
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    text-align: left;
+    
+    &.danger { color: #e74c3c; }
+    &:hover { background-color: #f9f9f9; }
+
+    svg {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+    }
+`;
+
+const DropdownSectionLabel = styled.div`
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    margin-top: 5px;
+`;
+
+const TagsContainer = styled.div`
+    width: 100%;
+    display: flex;
+    flex-flow: row wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    margin-bottom: 10px;
+`;
+
+const StyledTag = styled.div`
+    padding: 4px 10px;
+    background-color: ${({ theme }) => theme.colors?.secondary || '#555'};
+    border-radius: 8px;
+    color: white;
+    font-weight: 500;
+    font-size: 0.8rem;
+    display: flex;
+    flex-flow: row nowrap;
+    
+    > div {
+        cursor: pointer;
+        font-weight: 700;
+        margin-left: 6px;
+        transition: opacity 0.2s;
+        &:hover { opacity: 0.7; }
+    }
+`;
+
+const StyledTagInput = styled.input`
+    padding: 4px 10px;
+    border-radius: 8px;
+    color: white;
+    border: none;
+    width: 90px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: inherit;
+    background-color: ${({ theme }) => theme.colors?.secondary || '#555'};
+    &:focus { outline: none; box-shadow: 0 0 0 2px rgba(0,0,0,0.1); }
+`;
+
+const StyledAddTagButton = styled.div`
+    padding: 4px 12px;
+    background-color: transparent;
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+    color: #666;
+    font-weight: 600;
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    
+    &:hover { 
+        background-color: #f4f4f4; 
+        color: #333;
+        border-color: #333;
+    }
+`;
 
 const EllipsisIcon = () => (
     <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
@@ -153,9 +210,31 @@ const EllipsisIcon = () => (
     </svg>
 );
 
-export default function Flashcard({ question, answer, onEdit, onDelete }) {
+export default function Flashcard({ card, question, answer, onEdit, onDelete, onTagAdd, onTagRemove }) {
     const [isFlipped, setIsFlipped] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    const [isAddingTag, setIsAddingTag] = useState(false);
+    const [newTag, setNewTag] = useState("");
+
+    const menuRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setIsMenuOpen(false);
+                setIsAddingTag(false);
+            }
+        };
+
+        if (isMenuOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isMenuOpen]);
 
     return (
         <CardWrapper>
@@ -168,26 +247,71 @@ export default function Flashcard({ question, answer, onEdit, onDelete }) {
                 </CardBack>
             </CardInner>
 
-            <OptionsButton onClick={(e) => {
-                e.stopPropagation();
-                setIsMenuOpen(!isMenuOpen);
-            }}>
-                <EllipsisIcon />
-            </OptionsButton>
+            <div ref={menuRef}>
+                <OptionsButton onClick={(e) => {
+                    e.stopPropagation();
+                    if (!isMenuOpen) {
+                        setIsAddingTag(false);
+                        setNewTag("");
+                    }
+                    setIsMenuOpen(!isMenuOpen);
+                }}>
+                    <EllipsisIcon />
+                </OptionsButton>
 
-            {isMenuOpen && (
-                <>
-                    <InvisibleOverlay onClick={(e) => { e.stopPropagation(); setIsMenuOpen(false); }} />
+                {isMenuOpen && (
                     <DropdownMenu onClick={(e) => e.stopPropagation()}>
-                        <DropdownItem onClick={() => { setIsMenuOpen(false); onEdit(); }}>
+                        <DropdownItem onClick={(e) => { e.stopPropagation(); setIsMenuOpen(false); onEdit(); }}>
+                            <svg fill="currentColor" viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325" /></svg>
                             Edytuj fiszkę
                         </DropdownItem>
-                        <DropdownItem className="danger" onClick={() => { setIsMenuOpen(false); onDelete(); }}>
+
+                        <div style={{ padding: '0 12px' }}>
+                            <DropdownSectionLabel>Tagi</DropdownSectionLabel>
+                            <TagsContainer>
+                                {card?.tags?.map((tag, idx) => (
+                                    <StyledTag key={idx}>
+                                        {tag}
+                                        <div onClick={(e) => { e.stopPropagation(); onTagRemove(card, tag); }}>x</div>
+                                    </StyledTag>
+                                ))}
+                                
+                                {isAddingTag ? (
+                                    <StyledTagInput
+                                        autoFocus
+                                        value={newTag}
+                                        onChange={e => setNewTag(e.target.value)}
+                                        onKeyDown={e => {
+                                            if (e.key === 'Enter' && newTag.trim()) {
+                                                onTagAdd(card, newTag.trim());
+                                                setNewTag('');
+                                                setIsAddingTag(false);
+                                            }
+                                            if (e.key === 'Escape') {
+                                                setIsAddingTag(false);
+                                                setNewTag('');
+                                            }
+                                        }}
+                                        onBlur={() => { setIsAddingTag(false); setNewTag(''); }}
+                                        onClick={e => e.stopPropagation()}
+                                    />
+                                ) : (
+                                    <StyledAddTagButton onClick={(e) => { e.stopPropagation(); setIsAddingTag(true); }}>
+                                        + Dodaj
+                                    </StyledAddTagButton>
+                                )}
+                            </TagsContainer>
+                        </div>
+
+                        <div style={{ height: '1px', background: '#eee', margin: '5px 0' }}></div>
+
+                        <DropdownItem className="danger" onClick={(e) => { e.stopPropagation(); setIsMenuOpen(false); onDelete(); }}>
+                            <svg fill="currentColor" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" /></svg>
                             Usuń fiszkę
                         </DropdownItem>
                     </DropdownMenu>
-                </>
-            )}
+                )}
+            </div>
         </CardWrapper>
     );
 }
