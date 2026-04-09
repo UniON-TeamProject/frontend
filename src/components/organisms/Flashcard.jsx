@@ -37,27 +37,53 @@ const CardBack = styled(CardFace)`
     transform: rotateY(180deg);
 `;
 
-const CardText = styled.div`
+const CardContent = styled.div`
     width: 100%;
     height: 100%;
-    padding: 20px; 
+    padding: 55px 35px 35px 35px; 
     font-size: 1.1rem;
     color: #333;
-    text-align: center;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
+    overflow-y: auto;
 
-    p {
-        margin: 0;
+    .inner-content {
+        margin: auto 0; 
         width: 100%;
-        overflow-wrap: break-word; 
-        word-break: normal; /* Słowa spadają całe do nowej linijki */
-        display: -webkit-box;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 10; 
-        overflow: hidden;
-        text-overflow: ellipsis;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    p { 
+        margin: 0.5em 0; 
+        word-break: break-word; 
+    }
+    ul, ol { 
+        padding-left: 1.5rem; 
+        text-align: left; 
+        margin: 0.5em 0;
+    }
+    code { 
+        background-color: #eee; 
+        padding: 2px 5px; 
+        border-radius: 4px; 
+        font-family: monospace;
+    }
+    pre { 
+        background-color: #2b2b2b; 
+        color: white; 
+        padding: 10px; 
+        border-radius: 8px; 
+        text-align: left;
+        width: 100%;
+        overflow-x: auto;
+    }
+    blockquote { 
+        border-left: 3px solid ${({ theme }) => theme.colors?.secondary }; 
+        padding-left: 10px; 
+        font-style: italic; 
     }
 `;
 
@@ -204,13 +230,41 @@ const StyledAddTagButton = styled.div`
     }
 `;
 
+const SelectCircle = styled.div`
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid ${({ $isSelected, theme }) => $isSelected ? (theme.colors?.secondary ) : '#ccc'};
+    background-color: ${({ $isSelected, theme }) => $isSelected ? (theme.colors?.secondary ) : 'white'};
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 20;
+    cursor: pointer;
+    transition: all 0.2s;
+    
+    &:hover {
+        transform: scale(1.1);
+    }
+
+    svg {
+        color: white;
+        width: 14px;
+        height: 14px;
+        opacity: ${({ $isSelected }) => $isSelected ? 1 : 0};
+    }
+`;
+
 const EllipsisIcon = () => (
     <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
         <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
     </svg>
 );
 
-export default function Flashcard({ card, question, answer, onEdit, onDelete, onTagAdd, onTagRemove }) {
+export default function Flashcard({ card, question, answer, onEdit, onDelete, onTagAdd, onTagRemove, isSelectMode, isSelected, onToggleSelect }) {
     const [isFlipped, setIsFlipped] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -238,12 +292,28 @@ export default function Flashcard({ card, question, answer, onEdit, onDelete, on
 
     return (
         <CardWrapper>
-            <CardInner $isFlipped={isFlipped} onClick={() => setIsFlipped(!isFlipped)}>
+            <CardInner 
+                $isFlipped={isFlipped} 
+                onClick={() => isSelectMode ? onToggleSelect() : setIsFlipped(!isFlipped)}
+            >
+                {/* KÓŁKO ZAZNACZANIA */}
+                {isSelectMode && (
+                    <SelectCircle $isSelected={isSelected} onClick={(e) => { e.stopPropagation(); onToggleSelect(); }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </SelectCircle>
+                )}
+                
                 <CardFace>
-                    <CardText><p>{question}</p></CardText>
+                    <CardContent>
+                        <div className="inner-content" dangerouslySetInnerHTML={{ __html: question }} />
+                    </CardContent>
                 </CardFace>
                 <CardBack>
-                    <CardText><p>{answer}</p></CardText>
+                    <CardContent>
+                        <div className="inner-content" dangerouslySetInnerHTML={{ __html: answer }} />
+                    </CardContent>
                 </CardBack>
             </CardInner>
 

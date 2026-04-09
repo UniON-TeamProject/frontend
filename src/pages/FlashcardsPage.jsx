@@ -5,12 +5,22 @@ import Text from '../components/atoms/Text';
 import Input from '../components/atoms/Input';
 import { 
     addCard, deleteCard, editCard, addFlashcardSet, getAllFlashcardSets, editFlashcardSet, deleteFlashcardSet, 
-    resetFlashcardSetProgress 
+    resetFlashcardSetProgress,
+    getAllDeletedFlashcardSets, restoreFlashcardSet, hardDeleteFlashcardSet, clearFlashcardSetsTrash,
+    addFlashcardTag, removeFlashcardTag,
+    addListOfCardsToSet
 } from '../api';
 import { getToken } from '../token';
 import Flashcard from '../components/organisms/Flashcard';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import Layout from '../components/organisms/Layout';
+import FlashcardEditor from '../components/editor/FlashcardEditor';
+
+const stripHtml = (html) => {
+    if (!html) return "";
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    return doc.body.textContent || "";
+};
 
 const StyledContainer = styled.div`
     width: 100%;
@@ -34,32 +44,35 @@ const StyledSearchInput = styled.div`
     position: relative;
     display: flex;
     align-items: center;
-    background-color: ${({ theme }) => theme.colors?.white };
-    border: 1px solid ${({ theme }) => theme.colors?.darkGrey };
-    border-radius: 8px;
-    padding: 6px 12px;
+    background-color: #f4f5f7;
+    border: 1px solid transparent;
+    border-radius: 20px;
+    padding: 8px 16px;
     gap: 8px;
-    transition: border-color 0.2s;
+    transition: all 0.2s;
+
+    border-color: ${({ theme }) => theme.colors?.secondary };
     
     &:focus-within {
-        border-color: ${({ theme }) => theme.colors?.secondary };
+        background-color: ${({ theme }) => theme.colors?.white || '#fff'};
+        border-color: ${({ theme }) => theme.colors?.secondary || '#00b894'};
     }
     
     > input {
         border: none;
         background: transparent;
         outline: none;
-        color: ${({ theme }) => theme.colors?.text };
+        color: ${({ theme }) => theme.colors?.text};
         font-size: 0.95rem;
-        width: 180px;
+        width: 200px;
         
         &::placeholder {
-            color: ${({ theme }) => theme.colors?.darkGrey };
+            color: #a0a0a0;
         }
     }
     
     > svg {
-        color: ${({ theme }) => theme.colors?.darkGrey };
+        color: #a0a0a0;
         flex-shrink: 0;
     }
 `;
@@ -172,7 +185,7 @@ const ContentContainer = styled.div`
     width: 100%; 
     padding: 20px 0 120px 0;
     display: grid;
-    grid-template-columns: repeat(auto-fit, 400px);
+    grid-template-columns: repeat(auto-fit, 350px);
     gap: 30px;
     justify-content: center;
 `;
@@ -204,14 +217,14 @@ const SetItemWrapper = styled.div`
     padding: 15px; 
     position: relative; 
     cursor: pointer;
+    z-index: ${({ $isActive }) => $isActive ? 50 : 1};
 `;
 
 const SetIconContainer = styled.div`
     position: relative;
     width: 140px;
     height: 100px;
-    margin: auto;
-    margin-bottom: 10px;
+    margin: 0 auto 10px auto;
     color: ${({ theme }) => theme.colors?.black };
 `;
 
@@ -220,6 +233,9 @@ const StyledItemHeaderWrapper = styled.div`
     word-wrap: break-word;
     word-break: break-word;
     width: 100%;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
 `;
 
 
@@ -285,6 +301,17 @@ const StyledItemOptions = styled.div`
     }
 `;
 
+const StyledToolbar = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #d1d5db;
+    padding-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 15px;
+`;
+
 const StyledTagInput = styled.input`
     padding: 4px 10px;
     border-radius: 8px;
@@ -311,6 +338,9 @@ const StyledAddTagButton = styled.div`
     align-items: center;
     justify-content: center;
     transition: all 0.2s;
+
+    white-space: nowrap; 
+    display: inline-flex;
     
     &:hover { 
         background-color: #f4f4f4; 
@@ -356,12 +386,13 @@ const DropdownSectionLabel = styled.div`
 `;
 
 const TagsContainer = styled.div`
-    width: 100%;
+    box-sizing: border-box;
     display: flex;
     flex-flow: row wrap;
     align-items: center;
     justify-content: center;
     gap: 6px;
+    margin-bottom: 10px;
 `;
 
 const StyledTag = styled.div`
@@ -560,50 +591,63 @@ const ActionBanner = styled.div`
     &:hover { background-color: ${({ theme }) => theme.colors?.darkGrey }; color: ${({ theme }) => theme.colors?.white }; }
 `;
 
-const StyledTabs = styled.div`
+const StyledTabsContainer = styled.div`
     display: flex;
     align-items: center;
-    border-bottom: 2px solid ${({ theme }) => theme.colors?.darkGrey };
-    margin-bottom: 30px;
-    width: 100%;
+    gap: 25px;
 `;
 
 const StyledTab = styled.div`
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 20px;
-    font-size: 0.9rem;
+    gap: 8px;
+    font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
-    color: ${({ $active, theme }) => $active ? theme.colors?.secondary  : theme.colors?.textLight };
-    border-bottom: 2px solid ${({ $active, theme }) => $active ? theme.colors?.secondary : 'transparent'};
-    margin-bottom: -2px;
-    transition: color 0.15s, border-color 0.15s;
+    color: ${({ $active, theme }) => $active ? (theme.colors?.secondary || '#00b894') : '#6c757d'};
+    transition: color 0.15s;
     
     &:hover {
-        color: ${({ $active, theme }) => $active ? theme.colors?.secondary : theme.colors?.text };
+        color: ${({ theme }) => theme.colors?.secondary || '#00b894'};
+    }
+
+    > svg {
+        width: 16px;
+        height: 16px;
     }
 `;
 
 const SortSelectContainer = styled.div`
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-top: -5px;
 `;
 
 const SortSelect = styled.select`
-    padding: 7px 59px 7px 12px;
+    appearance: none;
+    padding: 8px 32px 8px 16px;
     border-radius: 8px;
-    border: 1px solid ${({ theme }) => theme.colors?.darkGrey };
+    border: 1px solid #ced4da;
     background-color: white;
     font-family: inherit;
-    font-size: 0.95rem;
-    color: ${({ theme }) => theme.colors?.darkGrey };
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #495057;
     outline: none;
     cursor: pointer;
-    transition: border-color 0.2s;
+    
+    &:hover {
+        background-color: #f8f9fa;
+    }
+`;
+
+const SortIconWrapper = styled.div`
+    position: absolute;
+    right: 12px;
+    pointer-events: none;
+    color: #495057;
+    display: flex;
+    align-items: center;
 `;
 
 const ModalButton = styled.button`
@@ -622,6 +666,91 @@ const ModalButton = styled.button`
         transform: translateY(-2px);
     }
 `;
+
+const ToolbarActions = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 12px;
+`;
+
+const ToolbarButton = styled.button`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: ${({ disabled }) => disabled ? 'default' : 'pointer'};
+    opacity: ${({ disabled }) => disabled ? 0.8 : 1};
+    transition: all 0.2s;
+    
+    &.primary {
+        background-color: ${({ theme }) => theme.colors?.secondary || '#00b894'};
+        color: white;
+        border: 1px solid ${({ theme }) => theme.colors?.secondary || '#00b894'};
+    }
+    
+    &.outline {
+        background-color: white;
+        color: #495057;
+        border: 1px solid #ced4da;
+    }
+`;
+
+const FilterContainer = styled.div`
+    position: relative;
+    display: flex;
+    align-items: center;
+`;
+
+const FilterDropdown = styled.div`
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0; 
+    background: white;
+    border: 1px solid #ced4da;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    padding: 15px;
+    z-index: 100;
+    width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    cursor: default;
+`;
+
+const FilterTag = styled.div`
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    background-color: ${({ $active, theme }) => $active ? (theme.colors?.secondary || '#00b894') : '#f4f5f7'};
+    color: ${({ $active }) => $active ? 'white' : '#495057'};
+    transition: all 0.2s;
+
+    &:hover {
+        background-color: ${({ $active, theme }) => $active ? (theme.colors?.secondary || '#00b894') : '#e2e6ea'};
+        opacity: ${({ $active }) => $active ? 0.8 : 1};
+    }
+`;
+
+const ActiveFilterBadge = styled.span`
+    background-color: ${({ theme }) => theme.colors?.secondary || '#00b894'};
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    margin-left: 6px;
+`;
+
 
 const StackedCardsIcon = () => (
     <svg viewBox="0 0 140 100" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
@@ -685,8 +814,21 @@ const FlashcardsPage = () => {
     const [newCards, setNewCards] = useState([{ question: "", answer: "" }]);
     const hasEmptyCard = newCards.some(card => card.question.trim() === "" && card.answer.trim() === "");
 
-    const [setSortOption, setSetSortOption] = useState("oldest");
-    const [cardSortOption, setCardSortOption] = useState("oldest");
+    const [setSortOption, setSetSortOption] = useState(() => {
+        return localStorage.getItem("flashcardSetsSortOption") || "oldest";
+    });
+
+    const [cardSortOption, setCardSortOption] = useState(() => {
+        return localStorage.getItem("flashcardsSortOption") || "oldest";
+    });
+
+    //zapisywanie w localstorage ostatniego wyboru sortowania
+    useEffect(() => {
+        localStorage.setItem("flashcardSetsSortOption", setSortOption);
+    }, [setSortOption]);
+    useEffect(() => {
+        localStorage.setItem("flashcardsSortOption", cardSortOption);
+    }, [cardSortOption]);
 
     const [isExitAddModeModalOpen, setIsExitAddModeModalOpen] = useState(false);
 
@@ -696,19 +838,33 @@ const FlashcardsPage = () => {
     const [isSearchLoading, setIsSearchLoading] = useState(false);
 
     const [setToDelete, setSetToDelete] = useState(null);
+    const [cardToDelete, setCardToDelete] = useState(null);
+
+    const [isConfirmingTrashClear, setIsConfirmingTrashClear] = useState(false);
+
+    const [selectedTagsFilter, setSelectedTagsFilter] = useState([]);
+    const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
+
+    const [duplicateWarning, setDuplicateWarning] = useState(null);
+
+    const [isSelectMode, setIsSelectMode] = useState(false);
+    const [selectedCards, setSelectedCards] = useState([]);
+    
+    // stany dla kopiowania
+    const [isBulkCopyModalOpen, setIsBulkCopyModalOpen] = useState(false);
+    const [bulkTargetSetId, setBulkTargetSetId] = useState("");
+    const [bulkNewSetName, setBulkNewSetName] = useState("");
+    const [bulkApplyTags, setBulkApplyTags] = useState(false);
 
     const fetchData = async () => {
         setErrorMessage("");
         
-        if (isTrashView) {
-            setSets([]);
-            return;
-        }
-
-        const setsRes = await getAllFlashcardSets();
+        const setsRes = isTrashView ? await getAllDeletedFlashcardSets() : await getAllFlashcardSets();
         
         if (!setsRes.errorCode) {
-            setSets(setsRes.sets || []);
+            // wymuszamy aby sets zawsze było tablicą
+            const safeSets = Array.isArray(setsRes.sets) ? setsRes.sets : (Array.isArray(setsRes) ? setsRes : []);
+            setSets(safeSets);
         } else {
             if (setsRes.errorCode === "TOKEN_UNDEFINED") navigate("/", { replace: true });
             else setErrorMessage(setsRes.message);
@@ -777,7 +933,16 @@ const FlashcardsPage = () => {
     }, [searchQuery, sets]); 
 
     const getSortedSets = () => {
-        const sorted = [...sets];
+        let sorted = [...sets];
+
+        //LOGIKA FILTROWANIA PO TAGACH (zakładamy że zestaw musi mieć WSZYSTKIE wybrane tagi)
+        if (selectedTagsFilter.length > 0) {
+            sorted = sorted.filter(set =>
+                selectedTagsFilter.every(tag => set.tags?.includes(tag))
+            );
+        }
+
+        //LOGIKA SORTOWANIA
         if (setSortOption === "oldest") {
             sorted.sort((a, b) => a.id - b.id);
         } else if (setSortOption === "newest") {
@@ -820,10 +985,41 @@ const FlashcardsPage = () => {
         setNewCards(updated);
     };
 
-    const handleSaveNewCards = async () => {
+    const handleSaveNewCards = async (ignoreDuplicates = false) => {
         setErrorMessage("");
-        let addedCount = 0;
+        
+        if (!ignoreDuplicates) {
+            let duplicates = [];
+            
+            for (const newCard of newCards) {
+                const rawStripped = stripHtml(newCard.question).trim();
+                const plainNewQuestion = rawStripped.toLowerCase();
+                
+                if (!plainNewQuestion) continue;
 
+                sets.forEach(set => {
+                    if (set.cards && Array.isArray(set.cards)) {
+                        set.cards.forEach(existingCard => {
+                            const plainExistingQuestion = stripHtml(existingCard.contentFirstSide || existingCard.question || "").trim().toLowerCase();
+                            
+                            if (plainNewQuestion === plainExistingQuestion) {
+                                duplicates.push({ 
+                                    question: rawStripped,
+                                    setName: set.name 
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+
+            if (duplicates.length > 0) {
+                setDuplicateWarning(duplicates);
+                return; 
+            }
+        }
+
+        let addedCount = 0;
         const inheritedTags = currentSet?.tags ? [...currentSet.tags] : [];
 
         for (const card of newCards) {
@@ -835,11 +1031,15 @@ const FlashcardsPage = () => {
         }
 
         if (addedCount > 0) {
-            setSuccessMessage(`Pomyślnie dodano!`);
-            fetchData();
-            setIsAddingMode(false);
-            setNewCards([{ question: "", answer: "" }]);
-            setTimeout(() => setSuccessMessage(""), 3000);
+            setSuccessMessage("Zapisano!");
+            setDuplicateWarning(null); 
+            
+            setTimeout(() => {
+                fetchData();
+                setIsAddingMode(false);
+                setNewCards([{ question: "", answer: "" }]);
+                setSuccessMessage("");
+            }, 1000);
         } else {
             setErrorMessage("Nie dodano żadnej fiszki (puste pola).");
         }
@@ -870,36 +1070,52 @@ const FlashcardsPage = () => {
             if (res.errorCode === "TOKEN_UNDEFINED") { navigate("/", { replace: true }); return; }
             setErrorMessage(res.message);
         } else {
-            setSuccessMessage("Fiszka zaktualizowana!");
-            fetchData();
+            setSuccessMessage("Zapisano!");
             setTimeout(() => {
+                fetchData();
                 setIsCardEditModalOpen(false);
                 setSuccessMessage("");
             }, 1000);
         }
     };
 
-    const handleDeleteCard = async (id) => {
-        const isConfirmed = window.confirm("Czy na pewno chcesz usunąć tę fiszkę?");
-        if (!isConfirmed) return;
-        const res = await deleteCard(id);
+    const confirmDeleteCard = (id) => {
+        setCardToDelete(id);
+    };
+
+    const executeDeleteCard = async () => {
+        if (!cardToDelete) return;
+        
+        const res = await deleteCard(cardToDelete);
         if (res.errorCode) {
             if (res.errorCode === "TOKEN_UNDEFINED") { navigate("/", { replace: true }); return; }
             setErrorMessage(res.message);
-        } else fetchData();
+        } else {
+            fetchData();
+        }
+        setCardToDelete(null);
     };
 
     const handleInlineCardTagAdd = async (card, tagToAdd) => {
         if (card.tags?.includes(tagToAdd)) return; 
-        const updatedTags = [...(card.tags || []), tagToAdd];
-        const res = await editCard(card.id, card.contentFirstSide || card.question, card.contentFlipSide || card.answer, parseInt(activeSetId), updatedTags);
-        if (!res.errorCode) fetchData();
+        
+        const res = await addFlashcardTag(card.id, tagToAdd);
+        if (!res.errorCode) {
+            fetchData();
+        } else {
+            if (res.errorCode === "TOKEN_UNDEFINED") navigate("/", { replace: true });
+            else setErrorMessage(res.message);
+        }
     };
 
     const handleInlineCardTagRemove = async (card, tagToRemove) => {
-        const updatedTags = (card.tags || []).filter(t => t !== tagToRemove);
-        const res = await editCard(card.id, card.contentFirstSide || card.question, card.contentFlipSide || card.answer, parseInt(activeSetId), updatedTags);
-        if (!res.errorCode) fetchData();
+        const res = await removeFlashcardTag(card.id, tagToRemove);
+        if (!res.errorCode) {
+            fetchData();
+        } else {
+            if (res.errorCode === "TOKEN_UNDEFINED") navigate("/", { replace: true });
+            else setErrorMessage(res.message);
+        }
     };
 
     const handleRenameSetInline = async (set, newName) => {
@@ -947,7 +1163,11 @@ const FlashcardsPage = () => {
 
     const executeDeleteSet = async () => {
         if (!setToDelete) return;
-        const res = await deleteFlashcardSet(setToDelete); 
+        
+        const res = isTrashView 
+            ? await hardDeleteFlashcardSet(setToDelete) 
+            : await deleteFlashcardSet(setToDelete); 
+            
         if (res.errorCode) {
             if (res.errorCode === "TOKEN_UNDEFINED") { navigate("/", { replace: true }); return; }
             setErrorMessage(res.message);
@@ -955,6 +1175,39 @@ const FlashcardsPage = () => {
             fetchData();
         }
         setSetToDelete(null);
+    };
+
+    const handleRestoreSet = async (id) => {
+        setErrorMessage("");
+        const res = await restoreFlashcardSet(id);
+        if (res.errorCode) {
+            if (res.errorCode === "TOKEN_UNDEFINED") navigate("/", { replace: true });
+            else setErrorMessage(res.message);
+        } else {
+            fetchData();
+        }
+    };
+
+    const handleClearTrash = async () => {
+        setErrorMessage("");
+        
+        const safeSetsForTrash = Array.isArray(sets) ? sets : [];
+        const idsToDelete = safeSetsForTrash.map(s => s.id);
+        
+        if (idsToDelete.length === 0) {
+            setIsConfirmingTrashClear(false);
+            return;
+        }
+
+        const res = await clearFlashcardSetsTrash(idsToDelete);
+        
+        if (res.errorCode) {
+            if (res.errorCode === "TOKEN_UNDEFINED") navigate("/", { replace: true });
+            else setErrorMessage(res.message);
+        } else {
+            setIsConfirmingTrashClear(false);
+            fetchData();
+        }
     };
 
     const handleSaveNewSet = async (e) => {
@@ -972,9 +1225,9 @@ const FlashcardsPage = () => {
             if (res.errorCode === "TOKEN_UNDEFINED") navigate("/", { replace: true });
             else setErrorMessage(res.message);
         } else {
-            setSuccessMessage("Zestaw utworzony!");
-            fetchData();
+            setSuccessMessage("Zapisano!");
             setTimeout(() => {
+                fetchData();
                 setIsSetModalOpen(false);
                 setSuccessMessage("");
             }, 1000);
@@ -998,12 +1251,86 @@ const FlashcardsPage = () => {
         navigate(`/learning/fast/${id}`);
     };
 
+    const allAvailableTags = [...new Set(sets.flatMap(set => set.tags || []))].sort();
+
+
+    const getCardsCountWord = (count) => {
+        if (count === 1) return 'fiszka';
+        const lastDigit = count % 10;
+        const lastTwoDigits = count % 100;
+        if (lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 12 || lastTwoDigits > 14)) {
+            return 'fiszki';
+        }
+        return 'fiszek';
+    };
+
+    const toggleCardSelection = (card) => {
+        setSelectedCards(prev => {
+            const isAlreadySelected = prev.some(c => c.id === card.id);
+            if (isAlreadySelected) return prev.filter(c => c.id !== card.id);
+            return [...prev, card];
+        });
+    };
+
+    const handleBulkDelete = async () => {
+        if (!window.confirm(`Czy na pewno chcesz trwale usunąć zaznaczone fiszki (${selectedCards.length})?`)) return;
+        
+        await Promise.all(selectedCards.map(c => deleteCard(c.id)));
+        
+        setIsSelectMode(false);
+        setSelectedCards([]);
+        fetchData();
+        setSuccessMessage("Usunięto!");
+        setTimeout(() => setSuccessMessage(""), 2000);
+    };
+
+    const handleBulkCopy = async () => {
+        setErrorMessage("");
+        let targetId = bulkTargetSetId;
+        let targetTags = [];
+
+        if (!targetId) { setErrorMessage("Wybierz zestaw docelowy"); return; }
+
+        if (targetId === "NEW") {
+            if (!bulkNewSetName.trim()) { setErrorMessage("Podaj nazwę nowego zestawu"); return; }
+            const res = await addFlashcardSet(bulkNewSetName.trim(), [], "/");
+            if (res.errorCode) { setErrorMessage(res.message); return; }
+            targetId = res.id;
+        } else if (bulkApplyTags) {
+            const targetSet = sets.find(s => s.id === parseInt(targetId));
+            if (targetSet && targetSet.tags) targetTags = targetSet.tags;
+        }
+
+        const cardRequests = selectedCards.map(card => {
+            const finalTags = bulkApplyTags ? [...new Set([...(card.tags || []), ...targetTags])] : (card.tags || []);
+            return {
+                contentFirstSide: card.contentFirstSide || card.question,
+                contentFlipSide: card.contentFlipSide || card.answer,
+                setId: parseInt(targetId),
+                cardTags: finalTags,
+                isForced: false
+            };
+        });
+
+        const res = await addListOfCardsToSet(targetId, cardRequests);
+        if (res.errorCode) {
+            setErrorMessage(res.message);
+        } else {
+            setIsBulkCopyModalOpen(false);
+            setIsSelectMode(false);
+            setSelectedCards([]);
+            fetchData();
+            setSuccessMessage("Skopiowano pomyślnie!");
+            setTimeout(() => setSuccessMessage(""), 2000);
+        }
+    };
 
     return (
         <Layout>
             <StyledContainer onClick={() => {
                 setActiveMenuId(null);
                 setIsSearchFocused(false);
+                setIsFilterMenuOpen(false);
             }}>
                 <StyledUserHeader>
                     {!activeSetId ? (
@@ -1113,35 +1440,102 @@ const FlashcardsPage = () => {
 
                 </StyledUserHeader>
 
-                {/* ZAKŁADKI U GÓRY */}
+                {/* ZAKŁADKI I TOOLBAR U GÓRY */}
                 {!activeSetId && (
-                    <StyledTabs>
-                        <StyledTab $active={!isTrashView} onClick={() => navigate("/learning")}>
-                            <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                                <path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5v-4h2v4a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM2.5 14V7.707l5.5-5.5 5.5 5.5V14H10v-4a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v4z" />
-                            </svg>
-                            Moje zestawy fiszek
-                        </StyledTab>
-                        <StyledTab $active={isTrashView} onClick={() => navigate("/learning/trash")}>
-                            <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                                <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
-                            </svg>
-                            Kosz
-                        </StyledTab>
+                    <StyledToolbar>
+                        <StyledTabsContainer>
+                            <StyledTab $active={!isTrashView} onClick={() => navigate("/learning")}>
+                                <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5v-4h2v4a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM2.5 14V7.707l5.5-5.5 5.5 5.5V14H10v-4a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v4z" />
+                                </svg>
+                                Moje zestawy fiszek
+                            </StyledTab>
+                            <StyledTab $active={isTrashView} onClick={() => navigate("/learning/trash")}>
+                                <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
+                                </svg>
+                                Kosz
+                            </StyledTab>
+                        </StyledTabsContainer>
 
-                        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                        <ToolbarActions>
+                            {!isTrashView && (
+                                <FilterContainer>
+                                    <ToolbarButton 
+                                        className="outline" 
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setIsFilterMenuOpen(!isFilterMenuOpen);
+                                        }}
+                                    >
+                                        <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                                            <path fillRule="evenodd" d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3m-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1z"/>
+                                        </svg>
+                                        Filtruj
+                                        {selectedTagsFilter.length > 0 && (
+                                            <ActiveFilterBadge>{selectedTagsFilter.length}</ActiveFilterBadge>
+                                        )}
+                                    </ToolbarButton>
+
+                                    {/* MENU FILTRÓW */}
+                                    {isFilterMenuOpen && (
+                                        <FilterDropdown onClick={e => e.stopPropagation()}>
+                                            <Text bold="true" text="Filtruj po tagach" style={{ fontSize: '0.95rem', margin: '0 0 5px 5px' }} />
+                                            
+                                            {allAvailableTags.length === 0 ? (
+                                                <Text text="Brak tagów w Twoich zestawach." style={{ fontSize: '0.85rem', color: '#888', marginLeft: '5px' }} />
+                                            ) : (
+                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                                    {allAvailableTags.map(tag => {
+                                                        const isActive = selectedTagsFilter.includes(tag);
+                                                        return (
+                                                            <FilterTag
+                                                                key={tag}
+                                                                $active={isActive}
+                                                                onClick={() => {
+                                                                    if (isActive) {
+                                                                        setSelectedTagsFilter(prev => prev.filter(t => t !== tag));
+                                                                    } else {
+                                                                        setSelectedTagsFilter(prev => [...prev, tag]);
+                                                                    }
+                                                                }}
+                                                            >
+                                                                {tag}
+                                                            </FilterTag>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+
+                                            {selectedTagsFilter.length > 0 && (
+                                                <div 
+                                                    style={{ fontSize: '0.8rem', color: '#e74c3c', cursor: 'pointer', marginTop: '10px', textAlign: 'center', fontWeight: 'bold' }}
+                                                    onClick={() => setSelectedTagsFilter([])}
+                                                >
+                                                    Wyczyść filtry
+                                                </div>
+                                            )}
+                                        </FilterDropdown>
+                                    )}
+                                </FilterContainer>
+                            )}
+
                             {sets.length > 0 && !isTrashView && (
-                                <SortSelectContainer style={{ marginLeft: 0 }}>
-                                    <Text text="Sortuj:" style={{ fontWeight: '600', color: '#666', fontSize: '0.9rem' }} />
+                                <SortSelectContainer>
                                     <SortSelect value={setSortOption} onChange={e => setSetSortOption(e.target.value)}>
-                                        <option value="oldest">Od najstarszych</option>
-                                        <option value="newest">Od najnowszych</option>
-                                        <option value="alphabetical">Alfabetycznie (A-Z)</option>
+                                        <option value="oldest">↑ Sortuj: Od najstarszych</option>
+                                        <option value="newest">↓ Sortuj: Od najnowszych</option>
+                                        <option value="alphabetical">↓ Sortuj: Alfabetycznie (A-Z)</option>
                                     </SortSelect>
+                                    <SortIconWrapper>
+                                        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                                            <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+                                        </svg>
+                                    </SortIconWrapper>
                                 </SortSelectContainer>
                             )}
-                        </div>
-                    </StyledTabs>
+                        </ToolbarActions>
+                    </StyledToolbar>
                 )}
 
                 {/* NAGŁÓWEK WIDOKU ZESTAWU */}
@@ -1185,14 +1579,25 @@ const FlashcardsPage = () => {
                                     )}
                                 </div>
 
+                                <ToolbarButton 
+                                    className="outline" 
+                                    onClick={() => { setIsSelectMode(!isSelectMode); setSelectedCards([]); }}
+                                >
+                                    {isSelectMode ? "Anuluj zaznaczanie" : "Zaznacz fiszki"}
+                                </ToolbarButton>
+
                                 {currentSet?.cards && currentSet.cards.length > 0 && (
                                     <SortSelectContainer style={{ marginLeft: 'auto' }}>
-                                        <Text text="Sortuj:" style={{ fontWeight: '600', color: '#666', fontSize: '0.9rem' }} />
                                         <SortSelect value={cardSortOption} onChange={e => setCardSortOption(e.target.value)}>
-                                            <option value="oldest">Od najstarszych</option>
-                                            <option value="newest">Od najnowszych</option>
-                                            <option value="alphabetical">Alfabetycznie (A-Z)</option>
+                                            <option value="oldest">↑ Sortuj: Od najstarszych</option>
+                                            <option value="newest">↓ Sortuj: Od najnowszych</option>
+                                            <option value="alphabetical">↓ Sortuj: Alfabetycznie (A-Z)</option>
                                         </SortSelect>
+                                        <SortIconWrapper>
+                                            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                                                <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+                                            </svg>
+                                        </SortIconWrapper>
                                     </SortSelectContainer>
                                 )}
                             </SetHeaderControls>
@@ -1201,7 +1606,6 @@ const FlashcardsPage = () => {
                 )}
 
                 {errorMessage && !isSetModalOpen && !isCardEditModalOpen && <Text color="danger" text={errorMessage} />}
-                {successMessage && !isSetModalOpen && !isCardEditModalOpen && <Text style={{ color: 'green', textAlign: 'center', marginBottom: '20px' }} text={successMessage} />}
 
                 {/* LISTA ZESTAWÓW */}
                 {!activeSetId && (
@@ -1226,6 +1630,7 @@ const FlashcardsPage = () => {
                                 <SetItemWrapper 
                                     key={set.id} 
                                     $disabled={isTrashView}
+                                    $isActive={activeMenuId === set.id}
                                     onClick={() => {
                                         if (!isTrashView) navigate(`/learning/set/${set.id}`);
                                     }}
@@ -1235,7 +1640,12 @@ const FlashcardsPage = () => {
                                     </SetIconContainer>
                                     <StyledItemHeaderWrapper>
                                         <Text as="h4" bold="true" text={set.name} style={{ marginBottom: '10px' }} />
-                        
+
+                                        <Text 
+                                            text={`${set.cards?.length || 0} ${getCardsCountWord(set.cards?.length || 0)}`} 
+                                            style={{ color: '#888', fontSize: '0.85rem', fontWeight: '500' }} 
+                                        />
+                                        
                                         <StyledItemHeader onClick={(e) => {
                                             e.stopPropagation();
                                             if (activeMenuId !== set.id) {
@@ -1254,7 +1664,7 @@ const FlashcardsPage = () => {
                                                     <input
                                                         autoFocus
                                                         defaultValue={set.name}
-                                                        maxLength={50}
+                                                        maxLength={55}
                                                         onBlur={(e) => {
                                                             const newName = e.target.value;
                                                             if (newName.trim() && newName.trim() !== set.name) {
@@ -1324,13 +1734,6 @@ const FlashcardsPage = () => {
                                         </StyledItemHeader>
                                     </StyledItemHeaderWrapper>
                                     
-                                    {set.tags && set.tags.length > 0 && (
-                                        <TagsContainer style={{ marginTop: 'auto', paddingTop: '10px' }}>
-                                            {set.tags.map((tag, i) => (
-                                                <StyledTag key={i} $inactive>{tag}</StyledTag>
-                                            ))}
-                                        </TagsContainer>
-                                    )}
                                 </SetItemWrapper>
                             ))
                         )}
@@ -1356,9 +1759,13 @@ const FlashcardsPage = () => {
                                     question={card.contentFirstSide || card.question}
                                     answer={card.contentFlipSide || card.answer}
                                     onEdit={() => openEditCardModal(card)}
-                                    onDelete={() => handleDeleteCard(card.id)}
+                                    onDelete={() => confirmDeleteCard(card.id)}
                                     onTagAdd={handleInlineCardTagAdd}
                                     onTagRemove={handleInlineCardTagRemove}
+                                    
+                                    isSelectMode={isSelectMode}
+                                    isSelected={selectedCards.some(c => c.id === card.id)}
+                                    onToggleSelect={() => toggleCardSelection(card)}
                                 />
                             ))
                         )}
@@ -1372,20 +1779,20 @@ const FlashcardsPage = () => {
                             <CardInputRow key={index}>
                                 <CardInputSide>
                                     <SideLabel>Przód:</SideLabel>
-                                    <StyledCardTextarea
+                                    <FlashcardEditor 
                                         maxLength={1020}
-                                        placeholder="Wprowadź pytanie..."
                                         value={card.question}
-                                        onChange={(e) => updateNewCard(index, 'question', e.target.value)}
+                                        placeholder="Wprowadź pytanie lub wpisz /"
+                                        onChange={(htmlContent) => updateNewCard(index, 'question', htmlContent)}
                                     />
                                 </CardInputSide>
                                 <CardInputSide>
                                     <SideLabel>Tył:</SideLabel>
-                                    <StyledCardTextarea
+                                    <FlashcardEditor 
                                         maxLength={1020}
-                                        placeholder="Wprowadź odpowiedź..."
                                         value={card.answer}
-                                        onChange={(e) => updateNewCard(index, 'answer', e.target.value)}
+                                        placeholder="Wprowadź odpowiedź lub wpisz /"
+                                        onChange={(htmlContent) => updateNewCard(index, 'answer', htmlContent)}
                                     />
                                 </CardInputSide>
                             </CardInputRow>
@@ -1425,22 +1832,28 @@ const FlashcardsPage = () => {
                             {errorMessage && <Text color="danger" text={errorMessage} />}
                             
                             <Text text="Pytanie:" style={{ marginTop: '20px' }} />
-                            <StyledModalTextArea
+                            <FlashcardEditor
                                 maxLength={1020}
-                                placeholder="Wpisz pytanie..."
                                 value={editQuestion}
-                                onChange={(e) => setEditQuestion(e.target.value)}
+                                placeholder="Wpisz pytanie..."
+                                onChange={(htmlContent) => setEditQuestion(htmlContent)}
                             />
 
-                            <Text text="Odpowiedź:" />
-                            <StyledModalTextArea
+                            <Text text="Odpowiedź:" style={{ marginTop: '20px' }} />
+                            <FlashcardEditor
                                 maxLength={1020}
-                                placeholder="Wpisz odpowiedź..."
                                 value={editAnswer}
-                                onChange={(e) => setEditAnswer(e.target.value)}
+                                placeholder="Wpisz odpowiedź..."
+                                onChange={(htmlContent) => setEditAnswer(htmlContent)}
                             />
 
-                            <SubmitButton text="Zapisz zmiany" color="dark" onClick={handleEditSingleCard} />
+                            <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
+                                <SubmitButton 
+                                    text={successMessage ? "✔ Zapisano!" : "Zapisz zmiany"} 
+                                    color={successMessage ? "secondary" : "dark"} 
+                                    onClick={handleEditSingleCard} 
+                                />
+                            </div>
                         </StyledPopup>
                     </>
                 )}
@@ -1452,7 +1865,6 @@ const FlashcardsPage = () => {
                         <StyledPopup onClick={e => e.stopPropagation()}>
                             <Text bold="true" as="h2" text={editingSetId ? "Edytuj zestaw" : "Nowy zestaw fiszek"} />
                             {errorMessage && <Text color="danger" text={errorMessage} />}
-                            {successMessage && <Text style={{ color: 'green' }} text={successMessage} />}
 
                             <div style={{ marginTop: '30px', marginBottom: '20px' }}>
                                 <Input
@@ -1462,7 +1874,7 @@ const FlashcardsPage = () => {
                                     placeholder="Nazwa zestawu"
                                     value={setName}
                                     onChange={(e) => {
-                                        if (e.target.value.length <= 50) {
+                                        if (e.target.value.length <= 55) {
                                             setSetName(e.target.value);
                                         }
                                     }}
@@ -1479,7 +1891,13 @@ const FlashcardsPage = () => {
                                 />
                             </div>
 
-                            <SubmitButton text="Utwórz zestaw" color="dark" onClick={handleSaveNewSet} />
+                            <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                <SubmitButton 
+                                    text={successMessage ? "✔ Zapisano!" : (editingSetId ? "Zapisz zmiany" : "Utwórz zestaw")} 
+                                    color={successMessage ? "secondary" : "dark"} 
+                                    onClick={handleSaveNewSet} 
+                                />
+                            </div>
                         </StyledPopup>
                     </>
                 )}
@@ -1515,7 +1933,7 @@ const FlashcardsPage = () => {
                         <StyledPopup onClick={e => e.stopPropagation()} style={{ textAlign: 'center' }}>
                             <Text bold="true" as="h2" text="Usuń zestaw" />
                             <Text 
-                                text="Czy na pewno chcesz usunąć ten zestaw? Tej operacji nie można cofnąć." 
+                                text="Czy na pewno chcesz usunąć ten zestaw?" 
                                 style={{ margin: '20px 0 30px 0', color: '#666' }} 
                             />
 
@@ -1524,6 +1942,174 @@ const FlashcardsPage = () => {
                                     Usuń
                                 </ModalButton>
                                 <ModalButton type="button" onClick={() => setSetToDelete(null)}>
+                                    Anuluj
+                                </ModalButton>
+                            </div>
+                        </StyledPopup>
+                    </>
+                )}
+
+                {/* MODAL OSTRZEGAJĄCY O DUPLIKATACH */}
+                {duplicateWarning && (
+                    <>
+                        <ModalOverlay onClick={() => setDuplicateWarning(null)} />
+                        <StyledPopup onClick={e => e.stopPropagation()} style={{ textAlign: 'center' }}>
+                            <Text bold="true" as="h2" text="Uwaga: Znaleziono duplikaty!" />
+                            <Text text="Fiszki z takimi pytaniami już istnieją w Twoich zestawach:" style={{ margin: '15px 0', color: '#666' }} />
+
+                            <div style={{ textAlign: 'left', background: '#f4f5f7', padding: '15px', borderRadius: '10px', maxHeight: '150px', overflowY: 'auto', marginBottom: '25px' }}>
+                                {duplicateWarning.map((dup, index) => (
+                                    <div key={index} style={{ marginBottom: '8px', fontSize: '0.9rem' }}>
+                                        <strong>{dup.question}</strong> <span style={{ color: '#888' }}>(w: {dup.setName})</span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <Text text="Czy na pewno chcesz dodać je ponownie?" style={{ marginBottom: '20px', fontWeight: '600' }} />
+
+                            <div style={{ display: "flex", justifyContent: 'center', gap: "15px" }}>
+                                <ModalButton type="button" onClick={() => setDuplicateWarning(null)}>
+                                    Anuluj
+                                </ModalButton>
+                                <ModalButton type="button" $danger onClick={() => handleSaveNewCards(true)}>
+                                    Zapisz mimo to
+                                </ModalButton>
+                            </div>
+                        </StyledPopup>
+                    </>
+                )}
+
+                {/* PŁYWAJĄCY PASEK ZAZNACZENIA */}
+                {isSelectMode && selectedCards.length > 0 && (
+                    <div style={{
+                        position: 'fixed', bottom: '40px', left: '50%', transform: 'translateX(-50%)',
+                        backgroundColor: '#2c3e50', color: 'white', padding: '15px 30px',
+                        borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '20px',
+                        boxShadow: '0 10px 30px rgba(0,0,0,0.2)', zIndex: 1000
+                    }}>
+                        <span style={{ fontWeight: '600', fontSize: '1.1rem' }}>Zaznaczono: {selectedCards.length}</span>
+                        <ModalButton style={{ background: '#00b894', color: 'white' }} onClick={() => setIsBulkCopyModalOpen(true)}>Kopiuj do...</ModalButton>
+                        <ModalButton $danger onClick={handleBulkDelete}>Usuń</ModalButton>
+                        
+                        <ModalButton 
+                            style={{ background: 'transparent', color: '#ccc', padding: '12px 10px' }} 
+                            onClick={() => {
+                                setIsSelectMode(false);
+                                setSelectedCards([]);
+                            }}
+                        >
+                            Anuluj
+                        </ModalButton>
+                    </div>
+                )}
+
+                {/* MODAL KOPIOWANIA FISZEK */}
+                {isBulkCopyModalOpen && (
+                    <>
+                        <ModalOverlay onClick={() => setIsBulkCopyModalOpen(false)} />
+                        <StyledPopup onClick={e => e.stopPropagation()}>
+                            <Text bold="true" as="h2" text={`Kopiowanie ${selectedCards.length} fiszek`} />
+                            {errorMessage && <Text color="danger" text={errorMessage} style={{ marginBottom: '10px' }} />}
+                            
+                            <Text text="Wybierz zestaw docelowy:" style={{ marginTop: '20px', marginBottom: '10px' }} />
+                            <SortSelect 
+                                style={{ width: '100%', padding: '12px', marginBottom: '20px', border: '1px solid #ccc' }}
+                                value={bulkTargetSetId} 
+                                onChange={e => setBulkTargetSetId(e.target.value)}
+                            >
+                                <option value="" disabled>-- Wybierz zestaw --</option>
+                                <option value="NEW" style={{ fontWeight: 'bold' }}>+ Utwórz nowy zestaw</option>
+                                {sets.filter(s => s.id !== activeSetId).map(s => (
+                                    <option key={s.id} value={s.id}>{s.name}</option>
+                                ))}
+                            </SortSelect>
+
+                            {bulkTargetSetId === "NEW" && (
+                                <Input
+                                    autoFocus
+                                    placeholder="Nazwa nowego zestawu"
+                                    value={bulkNewSetName}
+                                    onChange={e => setBulkNewSetName(e.target.value)}
+                                    style={{ marginBottom: '20px' }}
+                                />
+                            )}
+
+                            {bulkTargetSetId && bulkTargetSetId !== "NEW" && (
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', marginBottom: '30px', fontWeight: '500' }}>
+                                    <input 
+                                        type="checkbox" 
+                                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                                        checked={bulkApplyTags} 
+                                        onChange={(e) => setBulkApplyTags(e.target.checked)} 
+                                    />
+                                    Dodaj tagi docelowego zestawu jako tagi fiszki
+                                </label>
+                            )}
+
+                            <div style={{ display: "flex", justifyContent: 'center', gap: "15px", marginTop: '20px' }}>
+                                <ModalButton type="button" onClick={handleBulkCopy} style={{ background: '#00b894', color: 'white' }}>
+                                    Skopiuj fiszki
+                                </ModalButton>
+                                <ModalButton type="button" onClick={() => setIsBulkCopyModalOpen(false)}>
+                                    Anuluj
+                                </ModalButton>
+                            </div>
+                        </StyledPopup>
+                    </>
+                )}
+
+                {/* MODAL USUWANIA FISZKI */}
+                {cardToDelete && (
+                    <>
+                        <ModalOverlay onClick={() => setCardToDelete(null)} />
+                        <StyledPopup onClick={e => e.stopPropagation()} style={{ textAlign: 'center' }}>
+                            <Text bold="true" as="h2" text="Usuń fiszkę" />
+                            <Text 
+                                text="Czy na pewno chcesz usunąć tę fiszkę?" 
+                                style={{ margin: '20px 0 30px 0', color: '#666' }} 
+                            />
+
+                            <div style={{ display: "flex", justifyContent: 'center', gap: "15px" }}>
+                                <ModalButton type="button" $danger onClick={executeDeleteCard}>
+                                    Usuń
+                                </ModalButton>
+                                <ModalButton type="button" onClick={() => setCardToDelete(null)}>
+                                    Anuluj
+                                </ModalButton>
+                            </div>
+                        </StyledPopup>
+                    </>
+                )}
+
+                {/* PRZYCISK WYCZYSZCZENIA KOSZA */}
+                {isTrashView && sets.length > 0 && (
+                    <FloatingActionButton 
+                        style={{ backgroundColor: '#e74c3c' }} 
+                        title="Wyczyść kosz permanentnie" 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setIsConfirmingTrashClear(true);
+                        }}
+                    >
+                        <svg viewBox="0 0 16 16" fill="white" width="32" height="32">
+                            <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
+                        </svg>
+                    </FloatingActionButton>
+                )}
+
+                {/* MODAL POTWIERDZENIA CZYSZCZENIA KOSZA */}
+                {isConfirmingTrashClear && (
+                    <>
+                        <ModalOverlay onClick={() => setIsConfirmingTrashClear(false)} />
+                        <StyledPopup onClick={(e) => e.stopPropagation()} style={{ textAlign: 'center' }}>
+                            <Text bold="true" as="h2" text="Wyczyścić kosz?" />
+                            <Text text="Czy na pewno chcesz usunąć wszystkie zestawy wraz z ich fiszkiami z kosza? Tej operacji nie można cofnąć." style={{ margin: '20px 0', color: '#666' }} />
+                            
+                            <div style={{ display: "flex", justifyContent: 'center', gap: "15px", marginTop: "30px" }}>
+                                <ModalButton type="button" $danger onClick={handleClearTrash}>
+                                    Wyczyść kosz
+                                </ModalButton>
+                                <ModalButton type="button" onClick={() => setIsConfirmingTrashClear(false)}>
                                     Anuluj
                                 </ModalButton>
                             </div>

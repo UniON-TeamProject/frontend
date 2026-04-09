@@ -41,19 +41,31 @@ const StyledName = styled.h2`
 
 const StyledBreadcrumbPath = styled.div`
     display:flex;
+    flex-wrap: wrap;
     align-items:center;
     font-size:0.95rem;
-    gap:5px;
-    >p{
-        cursor:pointer;
+    gap:8px;
+    .crumb-item {
+        margin: 0;
+        display: flex;
+        align-items: center;
+        color: ${({ theme }) => theme.colors.text};
     }
-    >p.separator{
-        cursor:default;
-        color:${({ theme }) => theme.colors.darkGrey};
+    .separator {
+        cursor: default;
+        color: ${({ theme }) => theme.colors.darkGrey};
     }
-    >p.current{
-        font-weight:700;
-        cursor:default;
+    .current {
+        font-weight: 700;
+        cursor: default;
+    }
+    .clickable {
+        cursor: pointer;
+        transition: color 0.2s;
+        
+        &:hover {
+            color: ${({ theme }) => theme.colors.secondary};
+        }
     }
 `
 
@@ -157,6 +169,7 @@ const StyledItem = styled.div`
     position: relative;
     cursor: pointer;
     transition: transform 0.2s;
+    z-index: ${({ $isActive }) => $isActive ? 50 : 1};
 `
 
 const StyledNoteImage = styled.div`
@@ -184,8 +197,10 @@ const StyledFolderImage = styled.div`
 const StyledItemHeaderWrapper = styled.div`
     text-align:center;
     word-break:break-word;
-  
-
+    width: 100%;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
 `
 
 const StyledItemHeader = styled.span`
@@ -286,11 +301,12 @@ const StyledItemOption = styled.button`
 `
 
 const TagsContainer = styled.div`
-  width:100%;
   display:flex;
   flex-flow:row wrap;
   align-items:center;
   margin-bottom:10px;
+  box-sizing: border-box;
+  gap: 6px;
 
   >p{
     color:${({ theme }) => theme.colors.darkGrey};
@@ -327,17 +343,28 @@ const StyledTag = styled.div`
 `
 
 const StyledAddTagButton = styled.div`
-    padding: 2px 10px;
-    margin: 0 3px;
+    padding: 4px 12px;
     background-color: transparent;
     border: 1px dashed #ccc;
-    border-radius: 7px;
+    border-radius: 8px;
     color: #666;
-    font-weight: 500;
+    font-weight: 600;
+    font-size: 0.8rem;
     cursor: pointer;
-    font-size: 0.9rem;
-    &:hover { border-color: #666; color: #333; }
-`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+
+    white-space: nowrap; 
+    display: inline-flex;
+    
+    &:hover { 
+        background-color: #f4f4f4; 
+        color: #333;
+        border-color: #333;
+    }
+`;
 
 const StyledTagInput = styled.input`
     padding: 4px 10px;
@@ -418,31 +445,38 @@ const StyledSearchInput = styled.div`
     position: relative;
     display: flex;
     align-items: center;
-    background-color: ${({ theme }) => theme.colors.white};
-    border: 1px solid ${({ theme }) => theme.colors.darkGrey};
-    border-radius: 8px;
-    padding: 6px 12px;
+    background-color: #f4f5f7;
+    border: 1px solid transparent;
+    border-radius: 20px;
+    padding: 8px 16px;
     gap: 8px;
-    transition: border-color 0.2s;
+    transition: all 0.2s;
+
+    border-color: ${({ theme }) => theme.colors?.secondary };
+    
     &:focus-within {
-        border-color: ${({ theme }) => theme.colors.secondary};
+        background-color: ${({ theme }) => theme.colors?.white || '#fff'};
+        border-color: ${({ theme }) => theme.colors?.secondary || '#00b894'};
     }
+    
     > input {
         border: none;
         background: transparent;
         outline: none;
-        color: ${({ theme }) => theme.colors.text};
+        color: ${({ theme }) => theme.colors?.text};
         font-size: 0.95rem;
-        width: 180px;
+        width: 200px;
+        
         &::placeholder {
-            color: ${({ theme }) => theme.colors.darkGrey};
+            color: #a0a0a0;
         }
     }
+    
     > svg {
-        color: ${({ theme }) => theme.colors.darkGrey};
+        color: #a0a0a0;
         flex-shrink: 0;
     }
-`
+`;
 
 const StyledSearchDropdown = styled.div`
     position: absolute;
@@ -514,30 +548,31 @@ const StyledSearchEmpty = styled.div`
     text-align: center;
 `
 
-const StyledTabs = styled.div`
+const StyledTabsContainer = styled.div`
     display: flex;
     align-items: center;
-    border-bottom: 2px solid ${({ theme }) => theme.colors?.darkGrey || '#ccc'};
-    margin-bottom: 30px;
-    width: 100%;
-`
+    gap: 25px;
+`;
 
 const StyledTab = styled.div`
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 20px;
-    font-size: 0.85rem;
+    gap: 8px;
+    font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
-    color: ${({ $active, theme }) => $active ? theme.colors.secondary : theme.colors.textLight};
-    border-bottom: 2px solid ${({ $active, theme }) => $active ? theme.colors.secondary : 'transparent'};
-    margin-bottom: -2px;
-    transition: color 0.15s, border-color 0.15s;
+    color: ${({ $active, theme }) => $active ? (theme.colors?.secondary || '#00b894') : '#6c757d'};
+    transition: color 0.15s;
+    
     &:hover {
-        color: ${({ $active, theme }) => $active ? theme.colors.secondary : theme.colors.text};
+        color: ${({ theme }) => theme.colors?.secondary || '#00b894'};
     }
-`
+
+    > svg {
+        width: 16px;
+        height: 16px;
+    }
+`;
 
 const StyledSearchDivider = styled.div`
     height: 1px;
@@ -546,41 +581,152 @@ const StyledSearchDivider = styled.div`
 `
 
 const SortSelectContainer = styled.div`
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-top: -5px;
 `;
 
 const SortSelect = styled.select`
-    padding: 7px 55px 7px 12px;
+    appearance: none;
+    padding: 8px 32px 8px 16px;
     border-radius: 8px;
-    border: 1px solid ${({ theme }) => theme.colors?.darkGrey || '#ccc'};
+    border: 1px solid #ced4da;
     background-color: white;
     font-family: inherit;
-    font-size: 0.95rem;
-    color: ${({ theme }) => theme.colors?.darkGrey || '#999'};
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #495057;
     outline: none;
     cursor: pointer;
-    transition: border-color 0.2s;
+    
+    &:hover {
+        background-color: #f8f9fa;
+    }
+`;
+
+const SortIconWrapper = styled.div`
+    position: absolute;
+    right: 12px;
+    pointer-events: none;
+    color: #495057;
+    display: flex;
+    align-items: center;
 `;
 
 const BackButton = styled.div`
     cursor: pointer;
     display: flex;
     align-items: center;
-    font-size: 1.1rem;
+    font-size: 1.3rem;
     font-weight: 600;
-    color: ${({ theme }) => theme.colors?.darkGrey || '#666'};
+    color: ${({ theme }) => theme.colors?.darkGrey};
     transition: color 0.2s;
+
+    user-select: none;
+    -webkit-user-select: none;
     
     &:hover {
-        color: ${({ theme }) => theme.colors?.text || '#000'};
+        color: ${({ theme }) => theme.colors?.text};
     }
     
     > svg {
         margin-right: 8px;
     }
+`;
+
+const StyledToolbar = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #d1d5db;
+    padding-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 15px;
+`;
+
+const ToolbarActions = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 12px;
+`;
+
+const ToolbarButton = styled.button`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: ${({ disabled }) => disabled ? 'default' : 'pointer'};
+    opacity: ${({ disabled }) => disabled ? 0.8 : 1};
+    transition: all 0.2s;
+    
+    &.primary {
+        background-color: ${({ theme }) => theme.colors?.secondary || '#00b894'};
+        color: white;
+        border: 1px solid ${({ theme }) => theme.colors?.secondary || '#00b894'};
+    }
+    
+    &.outline {
+        background-color: white;
+        color: #495057;
+        border: 1px solid #ced4da;
+    }
+`;
+
+const FilterContainer = styled.div`
+    position: relative;
+    display: flex;
+    align-items: center;
+`;
+
+const FilterDropdown = styled.div`
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: white;
+    border: 1px solid #ced4da;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    padding: 15px;
+    z-index: 100;
+    width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    cursor: default;
+`;
+
+const FilterTag = styled.div`
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    background-color: ${({ $active, theme }) => $active ? (theme.colors?.secondary || '#00b894') : '#f4f5f7'};
+    color: ${({ $active }) => $active ? 'white' : '#495057'};
+    transition: all 0.2s;
+
+    &:hover {
+        background-color: ${({ $active, theme }) => $active ? (theme.colors?.secondary || '#00b894') : '#e2e6ea'};
+        opacity: ${({ $active }) => $active ? 0.8 : 1};
+    }
+`;
+
+const ActiveFilterBadge = styled.span`
+    background-color: ${({ theme }) => theme.colors?.secondary || '#00b894'};
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    margin-left: 6px;
 `;
 
 const EllipsisIcon = () => (
@@ -641,7 +787,30 @@ const Notes = () => {
     const [isSearchLoading, setIsSearchLoading] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
-    const [sortOption, setSortOption] = useState("recent");
+    const [isSuccess, setIsSuccess] = useState(false);
+
+    //czytamy z localstorage ostatni wybor i zapamietujemy
+    const [sortOption, setSortOption] = useState(() => {
+        return localStorage.getItem("notesSortOption") || "recent";
+    });
+    useEffect(() => {
+        localStorage.setItem("notesSortOption", sortOption);
+    }, [sortOption]);
+
+    const [selectedTagsFilter, setSelectedTagsFilter] = useState([]);
+    const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
+
+    const allAvailableTags = [...new Set([
+        ...subFolders.flatMap(f => f.tags || []),
+        ...notes.flatMap(n => n.tags || [])
+    ])].sort();
+
+    const filterByTags = (items) => {
+        if (selectedTagsFilter.length === 0) return items;
+        return items.filter(item => 
+            selectedTagsFilter.every(tag => item.tags?.includes(tag))
+        );
+    };
 
     const handleFetchItemTags = async (id, type) => {
         const suggestedId = type === 'folder' ? id : currentFolder?.id;
@@ -719,13 +888,18 @@ const Notes = () => {
         const res = movingItem.type === 'note'
             ? await moveNote(movingItem.id, selectedMovePath)
             : await moveFolder(movingItem.id, selectedMovePath);
+            
         if (res.errorCode) {
             if (res.errorCode === "TOKEN_UNDEFINED") navigate("/", { replace: true });
             setMoveErrorMessage(res.message);
         } else {
-            setIsMoving(false);
-            setMovingItem(null);
-            await refreshCurrentView();
+            setIsSuccess(true);
+            setTimeout(async () => {
+                setIsSuccess(false);
+                setIsMoving(false);
+                setMovingItem(null);
+                await refreshCurrentView();
+            }, 1000);
         }
     };
 
@@ -870,14 +1044,18 @@ const Notes = () => {
         const res = await addNote(noteName.trim(), getCurrentPath());
         if (res.errorCode) {
             setAddNoteErrorMessage(res.message);
-            if (res.errorCode == "TOKEN_UNDEFINED")
-                navigate("/", { replace: true });
+            if (res.errorCode == "TOKEN_UNDEFINED") navigate("/", { replace: true });
+        } else {
+            const newNoteId = res.id; 
+            
+            setIsSuccess(true);
+            setTimeout(() => {
+                setIsSuccess(false);
+                setIsAddingNote(false);
+                setNoteName("");
+                navigate(`/note/${newNoteId}`); 
+            }, 1000);
         }
-        else {
-            setIsAddingNote(false);
-            navigate(`/note/${res.id}`)
-        }
-        setNoteName("");
     }
 
     const handleDeleteNote = async (id) => {
@@ -974,16 +1152,18 @@ const Notes = () => {
         const res = await addFolder(folderName.trim(), getCurrentPath(), chosenTags);
         if (res.errorCode) {
             setAddFolderErrorMessage(res.message);
-            if (res.errorCode == "TOKEN_UNDEFINED")
-                navigate("/", { replace: true });
+            if (res.errorCode == "TOKEN_UNDEFINED") navigate("/", { replace: true });
+        } else {
+            setIsSuccess(true);
+            setTimeout(async () => {
+                setIsSuccess(false);
+                setIsAddingFolder(false);
+                setFolderName("");
+                setChosenTags([]);
+                setSuggestedTags([]);
+                await refreshCurrentView();
+            }, 1000);
         }
-        else {
-            setIsAddingFolder(false);
-        }
-        setFolderName("");
-        setChosenTags([]);
-        setSuggestedTags([]);
-        await refreshCurrentView();
     }
 
     useEffect(() => {
@@ -1042,6 +1222,16 @@ const Notes = () => {
         return sorted;
     };
 
+    const getElementsCountWord = (count) => {
+        if (count === 1) return 'element';
+        const lastDigit = count % 10;
+        const lastTwoDigits = count % 100;
+        if (lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 12 || lastTwoDigits > 14)) {
+            return 'elementy';
+        }
+        return 'elementów';
+    };
+
     return (
         <Layout>
             <StyledContainer onClick={() => {
@@ -1059,16 +1249,17 @@ const Notes = () => {
                 setIsMoving(false);
                 setMovingItem(null);
                 setMoveErrorMessage("");
+                setIsFilterMenuOpen(false);
             }}>
                 <StyledUserHeader>
                     {pathSegments.length === 0 ? (
                         <StyledName>Notatki</StyledName>
                     ) : (
-                        <BackButton onClick={() => handleBreadcrumbClick(-1)}>
+                        <BackButton onClick={() => handleBreadcrumbClick(breadcrumbs.length - 2)}>
                             <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
                                 <path fillRule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z" />
                             </svg>
-                            Powrót do katalogu głównego
+                            Powrót
                         </BackButton>
                     )}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: 'auto' }}>
@@ -1146,54 +1337,71 @@ const Notes = () => {
                     </div>
                 </StyledUserHeader>
                 {errorMessage && <Text color="danger" text={errorMessage} />}
-                <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-                <StyledTabs>
-                    <StyledTab $active={!isTrashView} onClick={() => navigate("/notes")}>
-                        <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5v-4h2v4a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM2.5 14V7.707l5.5-5.5 5.5 5.5V14H10v-4a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v4z" />
-                        </svg>
-                        Moje pliki
-                    </StyledTab>
-                    <StyledTab $active={isTrashView} onClick={() => navigate("/notes/trash")}>
-                        <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
-                        </svg>
-                        Kosz
-                    </StyledTab>
+                <StyledToolbar>
+                    <StyledTabsContainer>
+                        <StyledTab $active={!isTrashView} onClick={() => navigate("/notes")}>
+                            <svg fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139q.323-.119.684-.12h5.396z" />
+                            </svg>
+                            Moje pliki
+                        </StyledTab>
+                        <StyledTab $active={isTrashView} onClick={() => navigate("/notes/trash")}>
+                            <svg fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
+                            </svg>
+                            Kosz
+                        </StyledTab>
+                    </StyledTabsContainer>
 
-                    <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                    <ToolbarActions>
+                        {!isTrashView && (
+                            <>
+                                <ToolbarButton className="outline" disabled title="ni ma">
+                                    <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                                        <path fillRule="evenodd" d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3m-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1z"/>
+                                    </svg>
+                                    Filtruj
+                                </ToolbarButton>
+                            </>
+                        )}
+
                         {(subFolders.length > 0 || notes.length > 0) && (
                             <SortSelectContainer>
-                                <Text text="Sortuj:" style={{ fontWeight: '600', color: '#666', fontSize: '0.9rem', margin: 0 }} />
                                 <SortSelect value={sortOption} onChange={e => setSortOption(e.target.value)}>
-                                    <option value="recent">Ostatnio edytowane</option>
-                                    <option value="newest">Od najnowszych</option>
-                                    <option value="oldest">Od najstarszych</option>
-                                    <option value="alphabetical">Alfabetycznie (A-Z)</option>
+                                    <option value="recent">↓ Sortuj: Ostatnio edytowane</option>
+                                    <option value="newest">↓ Sortuj: Od najnowszych</option>
+                                    <option value="oldest">↑ Sortuj: Od najstarszych</option>
+                                    <option value="alphabetical">↓ Sortuj: Alfabetycznie (A-Z)</option>
                                 </SortSelect>
+                                <SortIconWrapper>
+                                    <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                                        <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+                                    </svg>
+                                </SortIconWrapper>
                             </SortSelectContainer>
                         )}
-                    </div>
-                </StyledTabs>
+                    </ToolbarActions>
+                </StyledToolbar>
+                <div style={{ minHeight: '35px', marginBottom: '5px', display: 'flex', alignItems: 'center' }}>
+                    {(currentFolder || (isTrashView && breadcrumbs.length > 0)) && (
+                        <StyledBreadcrumbPath>
+                            <p className="crumb-item clickable" onClick={() => handleBreadcrumbClick(-1)}>
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style={{ transform: 'translateY(-1px)' }}>
+                                    <path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5v-4h2v4a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM2.5 14V7.707l5.5-5.5 5.5 5.5V14H10v-4a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v4z" />
+                                </svg>
+                            </p>
+                            {breadcrumbs.map((crumb, index) => (
+                                <React.Fragment key={index}>
+                                    <p className="crumb-item separator">/</p>
+                                    {index === breadcrumbs.length - 1
+                                        ? <p className="crumb-item current">{crumb}</p>
+                                        : <p className="crumb-item clickable" onClick={() => handleBreadcrumbClick(index)}>{crumb}</p>
+                                    }
+                                </React.Fragment>
+                            ))}
+                        </StyledBreadcrumbPath>
+                    )}
                 </div>
-                {(currentFolder || (isTrashView && breadcrumbs.length > 0)) && (
-                    <StyledBreadcrumbPath style={{ marginTop: '8px' }}>
-                        <p onClick={() => handleBreadcrumbClick(-1)}>
-                            <svg width="17" height="17" fill="currentColor" viewBox="0 0 16 16">
-                                <path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5v-4h2v4a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM2.5 14V7.707l5.5-5.5 5.5 5.5V14H10v-4a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v4z" />
-                            </svg>
-                        </p>
-                        {breadcrumbs.map((name, index) => (
-                            <React.Fragment key={index}>
-                                <p className="separator">/</p>
-                                {index === breadcrumbs.length - 1
-                                    ? <p className="current">{name}</p>
-                                    : <p onClick={() => handleBreadcrumbClick(index)}>{name}</p>
-                                }
-                            </React.Fragment>
-                        ))}
-                    </StyledBreadcrumbPath>
-                )}
                 <ContentContainer>
                     {!isLoading && subFolders.length === 0 && notes.length === 0 && (
                         <div style={{ width: '100%', padding: '60px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', color: 'inherit', opacity: 0.4 }}>
@@ -1214,17 +1422,31 @@ const Notes = () => {
                             )}
                         </div>
                     )}
-                    {getVisualSortedItems(subFolders.filter(f => f.name.toLowerCase().includes(searchQuery.toLowerCase()))).map((folder) => (
-                        <StyledItem key={`folder-${folder.id}`}>
-                            <StyledFolderImage onClick={() => handleOpenFolder(folder)}>
-                                <svg fill="currentColor" viewBox="0 0 16 16">
-                                    <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139q.323-.119.684-.12h5.396z" />
-                                </svg>
-                            </StyledFolderImage>
-                            <StyledItemHeaderWrapper>
-                                <div onClick={() => handleOpenFolder(folder)} style={{ cursor: 'pointer' }}>
-                                    <Text as="h4" bold="true" text={folder.name} style={{ marginBottom: '10px' }} />
-                                </div>
+                    {getVisualSortedItems(filterByTags(subFolders.filter(f => f.name.toLowerCase().includes(searchQuery.toLowerCase())))).map((folder) => {
+                        const totalItems = folder.itemsCount; 
+
+                        // TU TRZEBA DODAĆ COUNTERA OD BACKENDU !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                        return (
+                            <StyledItem
+                                key={`folder-${folder.id}`}
+                                $isActive={activeFolderOptionsId === folder.id}
+                                >
+                                <StyledFolderImage onClick={() => handleOpenFolder(folder)}>
+                                    <svg fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139q.323-.119.684-.12h5.396z" />
+                                    </svg>
+                                </StyledFolderImage>
+                                <StyledItemHeaderWrapper>
+                                    <div onClick={() => handleOpenFolder(folder)} style={{ cursor: 'pointer' }}>
+                                        <Text as="h4" bold="true" text={folder.name} style={{ marginBottom: '4px' }} />
+                                        
+                                        {totalItems !== undefined && (
+                                            <Text 
+                                                text={`${totalItems} ${getElementsCountWord(totalItems)}`} 
+                                                style={{ color: '#888', fontSize: '0.85rem', fontWeight: '500' }} 
+                                            />
+                                        )}
+                                    </div>
                                 
                                 <StyledItemHeader onClick={(e) => {
                                     e.stopPropagation();
@@ -1253,7 +1475,7 @@ const Notes = () => {
                                                 <DropdownSectionLabel>Nazwa</DropdownSectionLabel>
                                                 <input
                                                     value={editingName}
-                                                    maxLength={50}
+                                                    maxLength={55}
                                                     onChange={e => setEditingName(e.target.value)}
                                                     onKeyDown={e => {
                                                         if (e.key === 'Enter' && editingName.trim() && editingName !== folder.name) {
@@ -1288,6 +1510,10 @@ const Notes = () => {
                                                                     setNewItemTag('');
                                                                     setIsAddingItemTag(false);
                                                                 }
+                                                                if (e.key === 'Escape') {
+                                                                    setIsAddingItemTag(false);
+                                                                    setNewItemTag('');
+                                                                }
                                                             }}
                                                             onBlur={() => setIsAddingItemTag(false)}
                                                         />
@@ -1312,12 +1538,16 @@ const Notes = () => {
                                 </StyledItemHeader>
                             </StyledItemHeaderWrapper>
                         </StyledItem>
-                    ))}
-                    {getVisualSortedItems(notes.filter(d => d.name.toLowerCase().includes(searchQuery.toLowerCase()))).map((d) => {
+                    );
+                })}
+                    {getVisualSortedItems(filterByTags(notes.filter(d => d.name.toLowerCase().includes(searchQuery.toLowerCase())))).map((d) => {
                         const dateObj = new Date(d.editTime ?? d.lastEdited);
                         const formattedDate = dateObj.toLocaleString('pl-PL', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
                         return (
-                            <StyledItem key={d.id}>
+                            <StyledItem
+                                key={d.id}
+                                $isActive={activeNoteOptionsId === d.id}
+                                >
                                 <StyledNoteImage onClick={() => { if (!isTrashView) navigate(`/note/${d.id}`) }}>
                                     {/* <svg fill="currentColor" viewBox="0 0 16 16">
                                         <path fillRule="evenodd" d="M0 .5A.5.5 0 0 1 .5 0h4a.5.5 0 0 1 0 1h-4A.5.5 0 0 1 0 .5m0 2A.5.5 0 0 1 .5 2h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m9 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m-9 2A.5.5 0 0 1 .5 4h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m5 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m7 0a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-12 2A.5.5 0 0 1 .5 6h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5m8 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m-8 2A.5.5 0 0 1 .5 8h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m7 0a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-7 2a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1h-8a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5" />
@@ -1360,7 +1590,7 @@ const Notes = () => {
                                                     <DropdownSectionLabel>Nazwa</DropdownSectionLabel>
                                                     <input
                                                         value={editingName}
-                                                        maxLength={50}
+                                                        maxLength={55}
                                                         onChange={e => setEditingName(e.target.value)}
                                                         onKeyDown={e => {
                                                             if (e.key === 'Enter' && editingName.trim() && editingName !== d.name) {
@@ -1423,7 +1653,7 @@ const Notes = () => {
                                         </StyledItemOptions>
                                     </StyledItemHeader>
                                 </StyledItemHeaderWrapper>
-                                <Text as="h6" text={formattedDate} />
+                                <Text as="h6" text={formattedDate} style={{ marginTop: 'auto' }} />
                             </StyledItem>
                         )
                     })}
@@ -1444,7 +1674,7 @@ const Notes = () => {
                                     name="name"
                                     placeholder="Nazwa dokumentu"
                                     value={noteName}
-                                    maxLength={50}
+                                    maxLength={55}
                                     mode={noteNameErrorMessage ? "error" : "normal"}
                                     onChange={(e) => {
                                         setNoteName(e.target.value);
@@ -1462,13 +1692,17 @@ const Notes = () => {
                             </div>
                             
                             <div style={{ display: 'flex', justifyContent: 'center' }}>
-                                <SubmitButton text="Stwórz" color="dark" onClick={(e) => {
-                                    e.preventDefault();
-                                    const trimmed = noteName.trim();
-                                    if (!trimmed) { setNoteNameErrorMessage("Wypełnij pole"); return; }
-                                    if (!noteNameRegex.test(trimmed)) { setNoteNameErrorMessage("Nazwa może zawierać tylko litery, cyfry, spacje, _ i -"); return; }
-                                    handleAddNote();
-                                }} />
+                                <SubmitButton 
+                                    text={isSuccess ? "✔ Utworzono!" : "Stwórz"} 
+                                    color={isSuccess ? "secondary" : "dark"} 
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        const trimmed = noteName.trim();
+                                        if (!trimmed) { setNoteNameErrorMessage("Wypełnij pole"); return; }
+                                        if (!noteNameRegex.test(trimmed)) { setNoteNameErrorMessage("Nazwa może zawierać tylko litery, cyfry, spacje, _ i -"); return; }
+                                        handleAddNote();
+                                    }} 
+                                />
                             </div>
                         </StyledPopup>
                     </>
@@ -1489,7 +1723,7 @@ const Notes = () => {
                                     name="name"
                                     placeholder="Nazwa folderu"
                                     value={folderName}
-                                    maxLength={50}
+                                    maxLength={55}
                                     mode={folderNameErrorMessage ? "error" : "normal"}
                                     onChange={(e) => {
                                         setFolderName(e.target.value);
@@ -1553,12 +1787,16 @@ const Notes = () => {
                             </TagsContainer>
 
                             <div style={{ display: 'flex', justifyContent: 'center' }}>
-                                <SubmitButton text="Stwórz" color="dark" onClick={(e) => {
-                                    e.preventDefault();
-                                    const nameEmpty = !folderName.trim();
-                                    if (nameEmpty) setFolderNameErrorMessage("Wypełnij pole");
-                                    if (!nameEmpty) handleAddFolder();
-                                }} />
+                                <SubmitButton 
+                                    text={isSuccess ? "✔ Utworzono!" : "Stwórz"} 
+                                    color={isSuccess ? "secondary" : "dark"} 
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        const nameEmpty = !folderName.trim();
+                                        if (nameEmpty) setFolderNameErrorMessage("Wypełnij pole");
+                                        if (!nameEmpty) handleAddFolder();
+                                    }} 
+                                />
                             </div>
                         </StyledPopup>
                     </>
@@ -1611,8 +1849,12 @@ const Notes = () => {
                                 {renderMoveTree(moveTree)}
                             </div>
                             <div style={{ display: "flex", justifyContent: 'center', gap: "15px" }}>
-                                <SubmitButton text="Zatwierdź" color="dark" onClick={handleMove}
-                                    style={{ opacity: selectedMovePath === null ? 0.5 : 1, pointerEvents: selectedMovePath === null ? 'none' : 'auto' }} />
+                                <SubmitButton 
+                                    text={isSuccess ? "✔ Przeniesiono!" : "Zatwierdź"} 
+                                    color={isSuccess ? "secondary" : "dark"} 
+                                    onClick={handleMove}
+                                    style={{ opacity: selectedMovePath === null ? 0.5 : 1, pointerEvents: selectedMovePath === null ? 'none' : 'auto' }} 
+                                />
                                 <SubmitButton text="Anuluj" color="dark" light onClick={() => {
                                     setIsMoving(false);
                                     setMovingItem(null);

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getToken, parseJwt, removeToken } from '../token';
 import Layout from '../components/organisms/Layout';
-import { getAllFlashcardSets, getAllNotes, getAllFolders } from '../api';
+import { getAllNotes, getAllFolders, getRecentFlashcardSets, getFlashcardSetStats } from '../api';
 
 
 const StyledContainer = styled.div`
@@ -288,13 +288,31 @@ const Home = () => {
 
         const fetchData = async () => {
             try {
-                const setsData = await getAllFlashcardSets();
-                const notesData = await getAllNotes();
-                const foldersData = await getAllFolders();
+                const [notesData, foldersData, recentSetsData] = await Promise.all([
+                    getAllNotes(),
+                    getAllFolders(),
+                    getRecentFlashcardSets()
+                ]);
 
-                const setsArray = Array.isArray(setsData) ? setsData : (setsData.sets || []);
                 const notesArray = Array.isArray(notesData) ? notesData : (notesData.notes || []);
                 const foldersArray = Array.isArray(foldersData) ? foldersData : (foldersData.folders || []);
+                const setsArray = recentSetsData.errorCode ? [] : (recentSetsData.sets || []);
+
+                const setsWithStats = await Promise.all(setsArray.map(async (set) => {
+                    console.log("Zestaw z backendu:", set);
+                    const statsRes = await getFlashcardSetStats(set.id);
+                    
+                    let rawStats = parseFloat(statsRes.stats);
+                    if (isNaN(rawStats)) rawStats = 0; 
+                    let progressPercent = rawStats <= 1 && rawStats > 0 ? rawStats * 100 : rawStats; 
+                    
+                    const activityVal = set.lastActivityTime ?? set.lastActivity ?? set.editTime ?? set.updatedAt ?? set.createTime;
+                    const timestamp = parseDateFromBackend(activityVal);
+
+                    return { ...set, progress: progressPercent || 0, _sortTime: timestamp };
+                }));
+
+                setsWithStats.sort((a, b) => b._sortTime - a._sortTime);
 
                 const sortedFolders = [...foldersArray]
                     .filter(f => f.name !== "/")
@@ -304,16 +322,13 @@ const Home = () => {
                     .sort((a, b) => {
                         const dateA = new Date(a.editTime ?? a.lastEdited ?? a.createTime ?? 0).getTime();
                         const dateB = new Date(b.editTime ?? b.lastEdited ?? b.createTime ?? 0).getTime();
-                        if (!dateA || isNaN(dateA) || dateA === 0) return (b.id || 0) - (a.id || 0); // fallback na ID
+                        if (!dateA || isNaN(dateA) || dateA === 0) return (b.id || 0) - (a.id || 0); 
                         return dateB - dateA;
                     });
 
-                setRecentSets(setsArray.slice(0, 3));
-
+                setRecentSets(setsWithStats.slice(0, 3)); 
                 setRecentNotes(sortedNotes.slice(0, 3)); 
                 setRecentFolders(sortedFolders.slice(0, 4));
-                
-
                 setAllFoldersList(foldersArray);
             } catch (error) {
                 console.error("Błąd pobierania danych:", error);
@@ -322,6 +337,14 @@ const Home = () => {
 
         fetchData();
     }, [navigate]);
+
+
+    const formatActivityDate = (timestamp) => {
+        if (!timestamp || timestamp === 0) return "Brak aktywności";
+        const date = new Date(timestamp);
+        return date.toLocaleDateString('pl-PL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+    };
+
 
     const getFolderFullPath = (folder) => {
         if (!folder || folder.name === "/") return "";
@@ -367,6 +390,15 @@ const Home = () => {
         return emptySlots;
     };
 
+    const parseDateFromBackend = (dateVal) => {
+        if (!dateVal) return 0;
+        if (Array.isArray(dateVal) && dateVal.length >= 3) {
+            return new Date(dateVal[0], dateVal[1] - 1, dateVal[2], dateVal[3] || 0, dateVal[4] || 0, dateVal[5] || 0).getTime();
+        }
+        const parsed = new Date(dateVal).getTime();
+        return isNaN(parsed) ? 0 : parsed;
+    };
+
     return (
         <Layout>
             <StyledContainer>
@@ -374,7 +406,6 @@ const Home = () => {
                 <StyledHeader>
                     <StyledName>Witaj, {username || "użytkowniku"}!</StyledName>
                     <HeaderRight>
-                        {/* <SearchInput placeholder="Wyszukaj..." /> */}
                         <StyledLogoutButton onClick={() => { removeToken(); navigate("/"); }}>
                             Wyloguj
                         </StyledLogoutButton>
@@ -389,18 +420,27 @@ const Home = () => {
                         <FiszkiBox>
                             <CardTitle>Wróć do nauki</CardTitle>
                             <ItemList>
-                                {recentSets.map((set) => (
-                                    <ListItem key={set.id} onClick={() => navigate(`/learning/set/${set.id}`)}>
-                                        <ItemInfo>
-                                            <ItemTitle>{set.name}</ItemTitle>
-                                            <ItemSub>Ostatnia aktywność: </ItemSub>
-                                        </ItemInfo>
-                                        {/*    STATYSTYKI !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */}
-                                        <ItemMeta>
-                                            <ProgressBar><ProgressGreen style={{width:'50%'}} /><ProgressBlue style={{width:'50%'}} /></ProgressBar>
-                                        </ItemMeta>
-                                    </ListItem>
-                                ))}
+                                {recentSets.map((set) => {
+                                    const validProgress = isNaN(set.progress) ? 0 : set.progress;
+                                    const greenWidth = Math.min(Math.max(validProgress, 0), 100);
+                                    const blueWidth = 100 - greenWidth;
+
+                                    return (
+                                        <ListItem key={set.id} onClick={() => navigate(`/learning/fast/${set.id}`)}>
+                                            <ItemInfo>
+                                                <ItemTitle>{set.name}</ItemTitle>
+                                                <ItemSub>Ostatnia aktywność: {formatActivityDate(set._sortTime)}</ItemSub>
+                                            </ItemInfo>
+                                            
+                                            <ItemMeta>
+                                                <ProgressBar>
+                                                    <ProgressGreen style={{ width: `${greenWidth}%` }} />
+                                                    <ProgressBlue style={{ width: `${blueWidth}%` }} />
+                                                </ProgressBar>
+                                            </ItemMeta>
+                                        </ListItem>
+                                    );
+                                })}
                                 {renderEmptySlots(recentSets.length, 3)}
                             </ItemList>
                             <MoreButton onClick={() => navigate("/learning")}>Więcej...</MoreButton>

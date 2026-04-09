@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { generateCardsFromNote, addListOfCardsToSet, getAllFlashcardSets, addFlashcardSet } from '../../api';
+import Text from '../atoms/Text';
+import FlashcardEditor from './FlashcardEditor';
 
 const NEW_SET = '__new__';
 
@@ -21,59 +23,69 @@ const Overlay = styled.div`
   z-index: 1100;
 `;
 
-const ModalBox = styled.div`
+const StyledPopup = styled.div`
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 1101;
-  width: min(860px, 94vw);
+  width: 800px;
+  max-width: 94vw;
   max-height: 85vh;
-  background: ${({ theme }) => theme.colors.white};
-  border-radius: 16px;
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18);
+  background-color: ${({ theme }) => theme.colors?.white || '#fff'};
+  padding: 40px 50px;
+  border-radius: 25px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   animation: ${fadeIn} 0.2s ease;
+
+  @media(max-width:768px){
+      padding: 30px 20px;
+      width: 95%;
+  }
 `;
 
+
+
 const ModalHeader = styled.div`
-  padding: 18px 24px 14px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid ${({ theme }) => theme.colors.lightGrey};
+  margin-bottom: 20px;
   flex-shrink: 0;
 `;
 
+/*
 const ModalTitle = styled.h2`
   font-size: 1.1rem;
   font-weight: 700;
   color: ${({ theme }) => theme.colors.text};
   margin: 0;
 `;
+*/
 
 const CloseBtn = styled.button`
   background: none;
   border: none;
   cursor: pointer;
-  color: ${({ theme }) => theme.colors.textLight};
-  font-size: 1.4rem;
+  color: ${({ theme }) => theme.colors?.darkGrey || '#888'};
+  font-size: 1.8rem;
   line-height: 1;
   padding: 2px 6px;
   border-radius: 6px;
-  &:hover { background: ${({ theme }) => theme.colors.lightGrey}; color: ${({ theme }) => theme.colors.text}; }
+  transition: color 0.2s;
+  &:hover { color: ${({ theme }) => theme.colors?.danger || '#e74c3c'}; }
 `;
 
 
 const ActionBar = styled.div`
-  padding: 14px 24px;
-  border-bottom: 1px solid ${({ theme }) => theme.colors.lightGrey};
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: 15px;
+  margin-bottom: 20px;
   flex-shrink: 0;
+  z-index: 50;
 `;
 
 const SetSelectorArea = styled.div`
@@ -83,95 +95,114 @@ const SetSelectorArea = styled.div`
 
 const SetSelect = styled.button`
   width: 100%;
-  border: 1px solid ${({ theme }) => theme.colors.darkGrey};
+  border: 1px solid ${({ theme }) => theme.colors?.darkGrey || '#ccc'};
   border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 0.9rem;
+  padding: 10px 15px;
+  font-size: 0.95rem;
+  font-weight: 600;
   font-family: inherit;
-  color: ${({ theme }) => theme.colors.text};
-  background: ${({ theme }) => theme.colors.lightGrey};
+  color: ${({ theme }) => theme.colors?.text || '#333'};
+  background: ${({ theme }) => theme.colors?.lightGrey || '#f8f9fa'};
   text-align: left;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  &:focus { outline: none; border-color: ${({ theme }) => theme.colors.secondary}; }
-  svg { width: 12px; height: 12px; flex-shrink: 0; color: ${({ theme }) => theme.colors.textLight}; }
+  transition: border-color 0.2s;
+  &:focus { outline: none; border-color: ${({ theme }) => theme.colors?.secondary || '#00b894'}; }
+  svg { width: 14px; height: 14px; flex-shrink: 0; color: ${({ theme }) => theme.colors?.textLight || '#888'}; }
 `;
 
 const SetDropdown = styled.div`
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + 8px);
   left: 0;
   right: 0;
-  background: ${({ theme }) => theme.colors.white};
-  border-radius: 10px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.13);
-  padding: 3px;
-  z-index: 50;
-  max-height: 200px;
+  background: ${({ theme }) => theme.colors?.white };
+  border: 1px solid ${({ theme }) => theme.colors?.darkGrey };
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  padding: 8px;
+  z-index: 1000;
+  max-height: 250px;
   overflow-y: auto;
 `;
 
 const SetDropdownItem = styled.button`
   width: 100%;
   border: none;
-  border-radius: 7px;
+  border-radius: 8px;
   cursor: pointer;
-  padding: 8px 12px;
+  padding: 10px 12px;
   text-align: left;
-  font-size: 0.88rem;
-  font-weight: ${({ $new }) => $new ? '700' : '500'};
-  color: ${({ $new, theme }) => $new ? theme.colors.secondary : theme.colors.text};
-  background: ${({ $active, theme }) => $active ? theme.colors.primary : theme.colors.white};
+  font-size: 0.9rem;
+  font-weight: ${({ $new }) => $new ? '700' : '600'};
+  color: ${({ $new, theme }) => $new ? (theme.colors?.secondary ) : (theme.colors?.text )};
+  background: ${({ $active, theme }) => $active ? (theme.colors?.lightGrey ) : 'transparent'};
   font-family: inherit;
-  &:hover { background: ${({ theme }) => theme.colors.primary}; }
+  transition: background 0.2s;
+  &:hover { background: ${({ theme }) => theme.colors?.lightGrey }; }
 `;
 
 const SetNameInput = styled.input`
   width: 100%;
-  margin-top: 8px;
-  border: 1px solid ${({ $error, theme }) => $error ? theme.colors.danger : theme.colors.darkGrey};
+  margin-top: 10px;
+  border: 1px solid ${({ $error, theme }) => $error ? (theme.colors?.danger ) : (theme.colors?.darkGrey )};
   border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 0.88rem;
+  padding: 10px 15px;
+  font-size: 0.95rem;
   font-family: inherit;
-  color: ${({ theme }) => theme.colors.text};
-  background: ${({ theme }) => theme.colors.lightGrey};
+  color: ${({ theme }) => theme.colors?.text };
+  background: ${({ theme }) => theme.colors?.lightGrey };
   box-sizing: border-box;
-  &:focus { outline: none; border-color: ${({ $error, theme }) => $error ? theme.colors.danger : theme.colors.secondary}; }
+  &:focus { outline: none; border-color: ${({ $error, theme }) => $error ? (theme.colors?.danger ) : (theme.colors?.secondary )}; }
 `;
 
-const ErrorMsg = styled.p`
-  font-size: 0.78rem;
-  color: ${({ theme }) => theme.colors.danger};
-  margin: 4px 0 0 0;
-`;
-
-const SaveBtn = styled.button`
-  white-space: nowrap;
-  padding: 9px 20px;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
+const ErrorText = styled.p`
+  color: ${({ theme }) => theme.colors?.danger };
+  font-size: 1rem;
   font-weight: 600;
-  font-family: inherit;
-  cursor: ${({ disabled }) => disabled ? 'not-allowed' : 'pointer'};
-  opacity: ${({ disabled }) => disabled ? 0.5 : 1};
+  margin: 0;
+`;
+
+const SuccessText = styled.p`
+  color: ${({ theme }) => theme.colors?.success };
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+`;
+
+const ModalButton = styled.button`
   background: ${({ theme }) => theme.colors.dark};
   color: ${({ theme }) => theme.colors.white};
-  transition: opacity 0.15s;
-  align-self: flex-start;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: ${(props) => props.disabled ? 'not-allowed' : 'pointer'};
+  opacity: ${(props) => props.disabled ? 0.5 : 1};
+  transition: all 0.2s;
+  white-space: nowrap;
+  
+  &:hover {
+      opacity: ${(props) => props.disabled ? 0.5 : 0.9};
+  }
 `;
 
 
 const ModalContent = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: 20px 24px;
+  padding-right: 5px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  
+  &::-webkit-scrollbar { width: 6px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: #ddd; border-radius: 10px; }
+  &::-webkit-scrollbar-thumb:hover { background: #ccc; }
 `;
 
 const CenteredState = styled.div`
@@ -180,56 +211,31 @@ const CenteredState = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  gap: 15px;
   min-height: 200px;
-  color: ${({ theme }) => theme.colors.textLight};
-  font-size: 0.95rem;
+  color: ${({ theme }) => theme.colors?.textLight };
+  font-size: 1rem;
   text-align: center;
 `;
 
 const SpinnerSvg = styled.svg`
   animation: ${spin} 0.8s linear infinite;
-  width: 36px;
-  height: 36px;
-  color: ${({ theme }) => theme.colors.secondary};
+  width: 40px;
+  height: 40px;
+  color: ${({ theme }) => theme.colors?.secondary };
 `;
 
-const ErrorText = styled.p`
-  color: ${({ theme }) => theme.colors.danger};
-  font-size: 0.95rem;
-  margin: 0;
-`;
-
-const SuccessText = styled.p`
-  color: ${({ theme }) => theme.colors.success};
-  font-size: 1rem;
-  font-weight: 600;
-  margin: 0;
-`;
-
-const CloseAfterDoneBtn = styled.button`
-  margin-top: 8px;
-  padding: 9px 24px;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  background: ${({ theme }) => theme.colors.dark};
-  color: ${({ theme }) => theme.colors.white};
-`;
 
 const CardEntry = styled.div`
-  border: 1.5px solid ${({ theme }) => theme.colors.darkGrey};
+  border: 1px solid ${({ theme }) => theme.colors.darkGrey};
   border-radius: 12px;
-  padding: 14px;
+  padding: 15px;
   background: ${({ theme }) => theme.colors.white};
 `;
 
 const CardRow = styled.div`
   display: flex;
-  gap: 16px;
+  gap: 15px;
   align-items: flex-start;
 `;
 
@@ -241,24 +247,25 @@ const CardSide = styled.div`
 `;
 
 const CardLabel = styled.span`
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: ${({ theme }) => theme.colors.textLight};
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
 `;
 
 const CardTextarea = styled.textarea`
   border: 1px solid ${({ theme }) => theme.colors.darkGrey};
   border-radius: 8px;
-  padding: 8px 10px;
-  font-size: 0.88rem;
+  padding: 10px 12px;
+  font-size: 0.9rem;
   resize: vertical;
-  min-height: 68px;
+  min-height: 70px;
   font-family: inherit;
   color: ${({ theme }) => theme.colors.text};
   background: ${({ theme }) => theme.colors.lightGrey};
   line-height: 1.4;
+  transition: border-color 0.2s;
   &:focus { outline: none; border-color: ${({ theme }) => theme.colors.secondary}; background: ${({ theme }) => theme.colors.white}; }
 `;
 
@@ -267,14 +274,28 @@ const RemoveBtn = styled.button`
   border: none;
   cursor: pointer;
   color: ${({ theme }) => theme.colors.darkGrey};
-  font-size: 1.3rem;
+  font-size: 1.5rem;
   line-height: 1;
-  padding: 2px 4px;
+  padding: 2px 5px;
   border-radius: 4px;
   align-self: flex-start;
   flex-shrink: 0;
+  transition: color 0.2s;
   &:hover { color: ${({ theme }) => theme.colors.danger}; }
 `;
+
+const getCardsWord = (count) => {
+  if (count === 1) return 'fiszkę';
+  
+  const lastDigit = count % 10;
+  const lastTwoDigits = count % 100;
+  
+  if (lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 12 || lastTwoDigits > 14)) {
+    return 'fiszki';
+  }
+  
+  return 'fiszek';
+};
 
 function AIFlashcardModal({ isOpen, onClose, noteId }) {
   const [phase, setPhase] = useState('idle'); // idle | loading | ready | saving | done | error
@@ -385,10 +406,10 @@ function AIFlashcardModal({ isOpen, onClose, noteId }) {
   return (
     <>
       <Overlay onClick={onClose} />
-      <ModalBox>
+      <StyledPopup>
 
         <ModalHeader>
-          <ModalTitle>Wygenerowane fiszki AI</ModalTitle>
+          <Text as="h2" bold text="Wygenerowane fiszki AI" style={{ margin: 0, fontSize: '1.5rem' }} />
           <CloseBtn onClick={onClose} aria-label="Zamknij">×</CloseBtn>
         </ModalHeader>
 
@@ -426,7 +447,7 @@ function AIFlashcardModal({ isOpen, onClose, noteId }) {
               {selectedSetId === NEW_SET && (
                 <>
                   <SetNameInput
-                    placeholder="Nazwa nowego zestawu"
+                    placeholder="Wpisz nazwę nowego zestawu..."
                     value={setName}
                     onChange={e => setSetName(e.target.value)}
                     $error={setNameConflict}
@@ -437,12 +458,15 @@ function AIFlashcardModal({ isOpen, onClose, noteId }) {
               {errorMessage && <ErrorMsg>{errorMessage}</ErrorMsg>}
             </SetSelectorArea>
 
-            <SaveBtn
+            <ModalButton
+              $primary
               disabled={!isReady || validCards.length === 0 || phase === 'saving'}
               onClick={handleSave}
             >
-              {phase === 'saving' ? 'Zapisywanie...' : `Dodaj ${validCards.length} fiszek`}
-            </SaveBtn>
+              {phase === 'saving' 
+                ? 'Zapisywanie...' 
+                : `Zapisz ${validCards.length} ${getCardsWord(validCards.length)}`}
+            </ModalButton>
           </ActionBar>
         )}
 
@@ -464,8 +488,8 @@ function AIFlashcardModal({ isOpen, onClose, noteId }) {
 
           {phase === 'done' && (
             <CenteredState>
-              <SuccessText>Fiszki zostały dodane do zestawu!</SuccessText>
-              <CloseAfterDoneBtn onClick={onClose}>Zamknij</CloseAfterDoneBtn>
+              <SuccessText>Fiszki zostały pomyślnie dodane do zestawu!</SuccessText>
+              <ModalButton onClick={onClose} style={{ marginTop: '20px' }}>Zamknij</ModalButton>
             </CenteredState>
           )}
 
@@ -473,32 +497,30 @@ function AIFlashcardModal({ isOpen, onClose, noteId }) {
             <CardEntry key={index}>
               <CardRow>
                 <CardSide>
-                  <CardLabel>Przód:</CardLabel>
-                  <CardTextarea
+                  <CardLabel>Przód fiszki:</CardLabel>
+                  <FlashcardEditor
                     value={card.front}
-                    placeholder="Przód fiszki"
-                    onChange={e => updateCard(index, 'front', e.target.value)}
+                    placeholder="Wpisz pytanie lub użyj '/'..."
+                    onChange={val => updateCard(index, 'front', val)}
                   />
                 </CardSide>
                 <CardSide>
-                  <CardLabel>Tył:</CardLabel>
-                  <CardTextarea
+                  <CardLabel>Tył fiszki:</CardLabel>
+                  <FlashcardEditor
                     value={card.back}
-                    placeholder="Tył fiszki"
-                    onChange={e => updateCard(index, 'back', e.target.value)}
+                    placeholder="Wpisz odpowiedź lub użyj '/'..."
+                    onChange={val => updateCard(index, 'back', val)}
                   />
                 </CardSide>
                 <RemoveBtn onClick={() => removeCard(index)} aria-label="Usuń fiszkę">
-                  <svg fill="currentColor" viewBox="0 0 16 16" width="16" height="16">
-                    <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708" />
-                  </svg>
+                  ×
                 </RemoveBtn>
               </CardRow>
             </CardEntry>
           ))}
         </ModalContent>
 
-      </ModalBox>
+      </StyledPopup>
     </>
   );
 }
