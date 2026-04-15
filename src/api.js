@@ -1749,18 +1749,21 @@ export async function removeRegularTagFromEvent(eventId, tagName) {
   }
 }
 
-export async function addEvent(title, description, eventTags, regularTags, start, end, color, isDeadline) {
+export async function addEvent(title, description, eventTags, regularTags, start, end, color, isDeadline, recurrenceRule = null, recurringEventTags = null) {
   const token = getToken();
   if (!token)
     return { event: null, errorCode: "TOKEN_UNDEFINED", message: "Brak tokena, zaloguj się ponownie" };
   try {
+    const body = { title, description, eventTags, regularTags, start, end, color, isDeadline };
+    if (recurrenceRule) body.recurrenceRule = recurrenceRule;
+    if (recurringEventTags) body.recurringEventTags = recurringEventTags;
     const resp = await fetch(`${API_HOST}/addEvent`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ title, description, eventTags, regularTags, start, end, color, isDeadline }),
+      body: JSON.stringify(body),
     });
     const authErr = checkUnauthorized(resp);
     if (authErr) return authErr;
@@ -1811,6 +1814,77 @@ export async function deleteEventApi(id) {
     if (resp.ok) return { errorCode: "", message: "" };
     const data = await resp.json().catch(() => ({}));
     return { errorCode: data.errorCode || "ERROR", message: data.message || "Nie udało się usunąć eventu" };
+  } catch {
+    return { errorCode: "CONNECTION_ERROR", message: "Nie udało się połączyć z serwerem" };
+  }
+}
+
+export async function editThisAndFollowingApi(eventId, title, description, eventTags, regularTags, start, end, color, isDeadline, recurrenceRule) {
+  const token = getToken();
+  if (!token)
+    return { events: [], errorCode: "TOKEN_UNDEFINED", message: "Brak tokena, zaloguj się ponownie" };
+  try {
+    const body = { title, description, eventTags, recurringEventTags: eventTags, regularTags, start, end, color, isDeadline, recurrenceRule };
+    const resp = await fetch(`${API_HOST}/editThisAndFollowing/${eventId}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+    if (resp.ok) {
+      const events = await resp.json();
+      return { events, errorCode: "", message: "" };
+    }
+    const data = await resp.json().catch(() => ({}));
+    return { events: [], errorCode: data.errorCode || "ERROR", message: data.message || "Nie udało się edytować serii" };
+  } catch {
+    return { events: [], errorCode: "CONNECTION_ERROR", message: "Nie udało się połączyć z serwerem" };
+  }
+}
+
+export async function editAllInSeriesApi(eventId, title, description, eventTags, regularTags, start, end, color, isDeadline) {
+  const token = getToken();
+  if (!token)
+    return { errorCode: "TOKEN_UNDEFINED", message: "Brak tokena, zaloguj się ponownie" };
+  try {
+    const resp = await fetch(`${API_HOST}/editAllInSeries/${eventId}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ title, description, eventTags, regularTags, start, end, color, isDeadline }),
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+    if (resp.ok) return { errorCode: "", message: "" };
+    const data = await resp.json().catch(() => ({}));
+    return { errorCode: data.errorCode || "ERROR", message: data.message || "Nie udało się edytować serii" };
+  } catch {
+    return { errorCode: "CONNECTION_ERROR", message: "Nie udało się połączyć z serwerem" };
+  }
+}
+
+export async function deleteAllInSeriesApi(eventId) {
+  const token = getToken();
+  if (!token)
+    return { errorCode: "TOKEN_UNDEFINED", message: "Brak tokena, zaloguj się ponownie" };
+  try {
+    const resp = await fetch(`${API_HOST}/deleteAllInSeries/${eventId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+    if (resp.ok) return { errorCode: "", message: "" };
+    const data = await resp.json().catch(() => ({}));
+    return { errorCode: data.errorCode || "ERROR", message: data.message || "Nie udało się usunąć serii" };
   } catch {
     return { errorCode: "CONNECTION_ERROR", message: "Nie udało się połączyć z serwerem" };
   }

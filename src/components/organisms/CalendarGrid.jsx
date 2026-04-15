@@ -2,17 +2,17 @@ import { useState, useEffect, useRef } from "react";
 import styled, { keyframes } from "styled-components";
 
 const TAG_CONFIG = {
-  "Egzamin": { label: "Egzamin", icon: "📝" },
-  "Kolos": { label: "Kolos", icon: "📋" },
-  "Wykład": { label: "Wykład", icon: "🎓" },
-  "Wyjazd": { label: "Wyjazd", icon: "🧳" },
+  Egzamin: { label: "Egzamin", icon: "📝" },
+  Kolos: { label: "Kolos", icon: "📋" },
+  Wykład: { label: "Wykład", icon: "🎓" },
+  Wyjazd: { label: "Wyjazd", icon: "🧳" },
   "Praca domowa": { label: "Praca domowa", icon: "📚" },
   "Zajęcia terenowe": { label: "Zajęcia terenowe", icon: "🌿" },
-  "Korepetycje": { label: "Korepetycje", icon: "👨‍🏫" },
-  "Praca": { label: "Praca", icon: "💼" },
-  "Piwo": { label: "Piwo", icon: "🍺" },
-  "USOS": { label: "USOS", icon: "🎓" },
-  "deadline": { label: "Deadline", icon: "⏰" },
+  Korepetycje: { label: "Korepetycje", icon: "👨‍🏫" },
+  Praca: { label: "Praca", icon: "💼" },
+  Piwo: { label: "Piwo", icon: "🍺" },
+  USOS: { label: "USOS", icon: "🎓" },
+  deadline: { label: "Deadline", icon: "⏰" },
 };
 
 const EVENT_COLORS = [
@@ -32,17 +32,21 @@ const EVENT_COLORS = [
 const DAYS_PL = ["Nd", "Pon", "Wt", "Śr", "Czw", "Pt", "Sob"];
 
 function getColorById(colorId) {
-  return EVENT_COLORS.find(c => c.id === colorId) || EVENT_COLORS[0];
+  return EVENT_COLORS.find((c) => c.id === colorId) || EVENT_COLORS[0];
 }
 
 function isSameDay(a, b) {
-  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
 }
 
 function getWeekStart(date) {
   const dd = new Date(date);
   const day = dd.getDay();
-  const diff = (day === 0 ? -6 : 1 - day);
+  const diff = day === 0 ? -6 : 1 - day;
   dd.setDate(dd.getDate() + diff);
   dd.setHours(0, 0, 0, 0);
   return dd;
@@ -73,9 +77,11 @@ function getMonthDays(year, month) {
 }
 
 function resolveEventConflicts(events) {
-  const sorted = [...events].sort((a, b) => a.startHour * 60 + a.startMin - (b.startHour * 60 + b.startMin));
+  const sorted = [...events].sort(
+    (a, b) => a.startHour * 60 + a.startMin - (b.startHour * 60 + b.startMin)
+  );
   const columns = [];
-  sorted.forEach(ev => {
+  sorted.forEach((ev) => {
     let placed = false;
     for (let col = 0; col < columns.length; col++) {
       const lastInCol = columns[col][columns[col].length - 1];
@@ -91,15 +97,15 @@ function resolveEventConflicts(events) {
   });
   const result = {};
   columns.forEach((col, colIdx) => {
-    col.forEach(ev => {
+    col.forEach((ev) => {
       result[ev.id] = { col: colIdx, totalCols: columns.length };
     });
   });
-  sorted.forEach(ev => {
+  sorted.forEach((ev) => {
     const evStart = ev.startHour * 60 + ev.startMin;
     const evEnd = ev.endHour * 60 + ev.endMin;
     let maxCol = result[ev.id].col;
-    sorted.forEach(other => {
+    sorted.forEach((other) => {
       if (other.id === ev.id) return;
       const oStart = other.startHour * 60 + other.startMin;
       const oEnd = other.endHour * 60 + other.endMin;
@@ -116,132 +122,42 @@ function isMultiDay(ev) {
   return ev.endDate && !isSameDay(ev.date, ev.endDate);
 }
 
-function shouldShowAsBanner(ev) {
-  return isMultiDay(ev);
-}
-
 function dayInRange(day, start, end) {
-  const d = new Date(day); d.setHours(0, 0, 0, 0);
-  const s = new Date(start); s.setHours(0, 0, 0, 0);
-  const e = new Date(end); e.setHours(0, 0, 0, 0);
+  const d = new Date(day);
+  d.setHours(0, 0, 0, 0);
+  const s = new Date(start);
+  s.setHours(0, 0, 0, 0);
+  const e = new Date(end);
+  e.setHours(0, 0, 0, 0);
   return d >= s && d <= e;
 }
 
-function isOccurrenceStart(type, diffDays, ev) {
-  const origin = new Date(ev.date);
-  origin.setHours(0, 0, 0, 0);
-
-  switch (type) {
-    case "daily":
-      return true;
-    case "weekly":
-      return diffDays % 7 === 0;
-    case "biweekly":
-      return diffDays % 14 === 0;
-    case "monthly": {
-      const target = new Date(origin);
-      target.setDate(target.getDate() + diffDays);
-      return target.getDate() === origin.getDate();
-    }
-    case "yearly": {
-      const target = new Date(origin);
-      target.setDate(target.getDate() + diffDays);
-      return target.getDate() === origin.getDate() && target.getMonth() === origin.getMonth();
-    }
-    case "custom": {
-      const interval = ev.customInterval || 1;
-      const unit = ev.customUnit || "weeks";
-      if (unit === "days") return diffDays % interval === 0;
-      if (unit === "weeks") {
-        const diffWeeks = diffDays / 7;
-        if (ev.customDays && ev.customDays.length > 0) {
-          const target = new Date(origin);
-          target.setDate(target.getDate() + diffDays);
-          const targetDow = target.getDay();
-          if (!ev.customDays.includes(targetDow)) return false;
-          const originWeekStart = getWeekStart(origin);
-          const targetWeekStart = getWeekStart(target);
-          const weekDiff = Math.round((targetWeekStart - originWeekStart) / (7 * 24 * 60 * 60 * 1000));
-          return weekDiff % interval === 0;
-        }
-        return Number.isInteger(diffWeeks) && diffWeeks % interval === 0;
-      }
-      if (unit === "months") {
-        const target = new Date(origin);
-        target.setDate(target.getDate() + diffDays);
-        if (target.getDate() !== origin.getDate()) return false;
-        const monthDiff = (target.getFullYear() - origin.getFullYear()) * 12 + (target.getMonth() - origin.getMonth());
-        return monthDiff > 0 && monthDiff % interval === 0;
-      }
-      if (unit === "years") {
-        const target = new Date(origin);
-        target.setDate(target.getDate() + diffDays);
-        if (target.getDate() !== origin.getDate() || target.getMonth() !== origin.getMonth()) return false;
-        const yearDiff = target.getFullYear() - origin.getFullYear();
-        return yearDiff > 0 && yearDiff % interval === 0;
-      }
-      return false;
-    }
-    default:
-      return diffDays % 7 === 0;
-  }
-}
-
 function eventOccursOnDay(ev, day) {
-  if (ev.excludedDates && ev.excludedDates.length > 0) {
-    const dayStr = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`;
-    if (ev.excludedDates.includes(dayStr)) return false;
-  }
-  if (isMultiDay(ev) && !ev.recurrent) {
+  if (isMultiDay(ev)) {
     return dayInRange(day, ev.date, ev.endDate);
   }
-  if (isSameDay(ev.date, day)) return true;
-  if (!ev.recurrent) return false;
-
-  const origin = new Date(ev.date);
-  origin.setHours(0, 0, 0, 0);
-  const target = new Date(day);
-  target.setHours(0, 0, 0, 0);
-  if (target < origin) return false;
-
-  const diffTime = target - origin;
-  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-  const duration = isMultiDay(ev)
-    ? Math.round((new Date(ev.endDate).setHours(0, 0, 0, 0) - new Date(ev.date).setHours(0, 0, 0, 0)) / (1000 * 60 * 60 * 24))
-    : 0;
-
-  const type = ev.recurrenceType || "weekly";
-
-  const matchesWithDuration = (occurrenceStartMatches) => {
-    if (!occurrenceStartMatches && duration > 0) {
-      for (let offset = 1; offset <= duration; offset++) {
-        const checkDate = new Date(target);
-        checkDate.setDate(checkDate.getDate() - offset);
-        if (checkDate < origin) break;
-        const checkDiff = Math.round((checkDate - origin) / (1000 * 60 * 60 * 24));
-        if (isOccurrenceStart(type, checkDiff, ev)) return true;
-      }
-      return false;
-    }
-    return occurrenceStartMatches;
-  };
-
-  return matchesWithDuration(isOccurrenceStart(type, diffDays, ev));
+  return isSameDay(ev.date, day);
 }
 
 function getEventsForDay(events, day) {
-  return events.filter(ev => eventOccursOnDay(ev, day)).sort((a, b) => {
-    if (a.allDay !== b.allDay) return a.allDay ? -1 : 1;
-    const aMin = (a.startHour || 0) * 60 + (a.startMin || 0);
-    const bMin = (b.startHour || 0) * 60 + (b.startMin || 0);
-    return aMin - bMin;
-  });
+  return events
+    .filter((ev) => eventOccursOnDay(ev, day))
+    .sort((a, b) => {
+      if (a.allDay !== b.allDay) return a.allDay ? -1 : 1;
+      const aMin = (a.startHour || 0) * 60 + (a.startMin || 0);
+      const bMin = (b.startHour || 0) * 60 + (b.startMin || 0);
+      return aMin - bMin;
+    });
 }
 
 function getDeadlineUrgency(events, day) {
   const now = new Date();
   now.setHours(0, 0, 0, 0);
-  const dayTime = new Date(day.getFullYear(), day.getMonth(), day.getDate()).getTime();
+  const dayTime = new Date(
+    day.getFullYear(),
+    day.getMonth(),
+    day.getDate()
+  ).getTime();
   const nowTime = now.getTime();
   if (dayTime < nowTime) return 0;
   const MAX_DAYS = 14;
@@ -250,15 +166,20 @@ function getDeadlineUrgency(events, day) {
     if (!ev.isDeadline) continue;
     if (!eventOccursOnDay(ev, day)) continue;
     const daysLeft = Math.round((dayTime - nowTime) / 86400000);
-    if (daysLeft > MAX_DAYS) { maxUrgency = Math.max(maxUrgency, 0.15); continue; }
-    const urgency = daysLeft === 0 ? 1 : Math.max(0.15, 1 - daysLeft / MAX_DAYS);
+    if (daysLeft > MAX_DAYS) {
+      maxUrgency = Math.max(maxUrgency, 0.15);
+      continue;
+    }
+    const urgency =
+      daysLeft === 0 ? 1 : Math.max(0.15, 1 - daysLeft / MAX_DAYS);
     if (urgency > maxUrgency) maxUrgency = urgency;
   }
   return maxUrgency;
 }
 
 function getEventStyle(ev) {
-  if (ev.isDeadline) return { bg: "rgb(252, 235, 235)", dark: "rgb(226, 75, 74)" };
+  if (ev.isDeadline)
+    return { bg: "rgb(252, 235, 235)", dark: "rgb(226, 75, 74)" };
   const color = getColorById(ev.colorId);
   return { bg: color.bg, dark: color.dark };
 }
@@ -271,7 +192,7 @@ const MonthGrid = styled.div`
   display: flex;
   flex-direction: column;
   padding: 16px 24px;
-  gap: ${({ $weeks }) => $weeks > 5 ? 3 : 6}px;
+  gap: ${({ $weeks }) => ($weeks > 5 ? 3 : 6)}px;
   overflow: hidden;
 `;
 
@@ -293,28 +214,35 @@ const DayLabel = styled.div`
 `;
 
 const MonthCell = styled.div`
-  background: ${({ $today, theme }) => $today ? "#e6eadb" : theme.colors.white};
-  border: ${({ $selected, theme }) => $selected ? `2px solid ${theme.colors.secondary}` : `1px solid ${theme.colors.borderMuted}`};
+  background: ${({ $today, theme }) =>
+    $today ? "#e6eadb" : theme.colors.white};
+  border: ${({ $selected, theme }) =>
+    $selected
+      ? `2px solid ${theme.colors.secondary}`
+      : `1px solid ${theme.colors.borderMuted}`};
   border-radius: 10px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-  padding: ${({ $compact }) => $compact ? "3px 5px" : "6px 7px"};
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  padding: ${({ $compact }) => ($compact ? "3px 5px" : "6px 7px")};
   cursor: pointer;
-  opacity: ${({ $outOfMonth }) => $outOfMonth ? 0.4 : 1};
+  opacity: ${({ $outOfMonth }) => ($outOfMonth ? 0.4 : 1)};
   transition: all 0.15s;
   display: flex;
   flex-direction: column;
   position: relative;
   min-height: 0;
   overflow: hidden;
-  &:hover { border-color: ${({ theme }) => theme.colors.secondaryLight}; }
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.secondaryLight};
+  }
 `;
 
 const CellDate = styled.div`
   font-size: 13px;
-  font-weight: ${({ $today }) => $today ? 700 : 600};
-  color: ${({ $today, theme }) => $today ? "#2d8a4e" : theme.colors.textMuted};
+  font-weight: ${({ $today }) => ($today ? 700 : 600)};
+  color: ${({ $today, theme }) =>
+    $today ? "#2d8a4e" : theme.colors.textMuted};
   font-family: monospace;
-  margin-bottom: ${({ $compact }) => $compact ? 4 : 10}px;
+  margin-bottom: ${({ $compact }) => ($compact ? 4 : 10)}px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -325,7 +253,8 @@ const DeadlineDot = styled.div`
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: ${({ $urgency }) => `rgba(226, 75, 74, ${0.25 + $urgency * 0.75})`};
+  background: ${({ $urgency }) =>
+    `rgba(226, 75, 74, ${0.25 + $urgency * 0.75})`};
   flex-shrink: 0;
 `;
 
@@ -382,7 +311,7 @@ const MonthWeekRow = styled.div`
   position: relative;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: ${({ $compact }) => $compact ? 4 : 8}px;
+  gap: ${({ $compact }) => ($compact ? 4 : 8)}px;
   flex: 1;
   min-height: 0;
 `;
@@ -394,12 +323,16 @@ const SpanningBar = styled.div`
   gap: 3px;
   padding: 1px 6px;
   border-radius: ${({ $isStart, $isEnd }) =>
-    $isStart && $isEnd ? "3px" :
-      $isStart ? "3px 0 0 3px" :
-        $isEnd ? "0 3px 3px 0" :
-          "0"};
+    $isStart && $isEnd
+      ? "3px"
+      : $isStart
+      ? "3px 0 0 3px"
+      : $isEnd
+      ? "0 3px 3px 0"
+      : "0"};
   background: ${({ $bg }) => $bg};
-  border-left: ${({ $isStart, $dark }) => $isStart ? `2px solid ${$dark}` : "none"};
+  border-left: ${({ $isStart, $dark }) =>
+    $isStart ? `2px solid ${$dark}` : "none"};
   height: 28px;
   white-space: nowrap;
   overflow: hidden;
@@ -441,7 +374,9 @@ const WeekHeaderCell = styled.div`
   border-left: none;
   cursor: pointer;
   transition: background 0.15s;
-  &:hover { background: ${({ theme }) => theme.colors.primary}40; }
+  &:hover {
+    background: ${({ theme }) => theme.colors.primary}40;
+  }
 `;
 
 const WeekDayName = styled.div`
@@ -449,7 +384,8 @@ const WeekDayName = styled.div`
   font-weight: 600;
   letter-spacing: 0.6px;
   text-transform: uppercase;
-  color: ${({ $today, theme }) => $today ? theme.colors.secondary : theme.colors.textLight};
+  color: ${({ $today, theme }) =>
+    $today ? theme.colors.secondary : theme.colors.textLight};
 `;
 
 const WeekDayNum = styled.div`
@@ -463,9 +399,14 @@ const WeekDayNum = styled.div`
   align-items: center;
   justify-content: center;
   margin: 2px auto 0;
-  background: ${({ $today, theme }) => $today ? theme.colors.secondary : "transparent"};
-  color: ${({ $today, $selected, theme }) => $today ? "#fff" : $selected ? theme.colors.secondary : theme.colors.text};
-  box-shadow: ${({ $today, $selected, theme }) => !$today && $selected ? `inset 0 0 0 2px ${theme.colors.secondary}` : "none"};
+  background: ${({ $today, theme }) =>
+    $today ? theme.colors.secondary : "transparent"};
+  color: ${({ $today, $selected, theme }) =>
+    $today ? "#fff" : $selected ? theme.colors.secondary : theme.colors.text};
+  box-shadow: ${({ $today, $selected, theme }) =>
+    !$today && $selected
+      ? `inset 0 0 0 2px ${theme.colors.secondary}`
+      : "none"};
   border: none;
   transition: box-shadow 0.15s, color 0.15s;
 `;
@@ -476,9 +417,16 @@ const WeekBody = styled.div`
   display: grid;
   grid-template-columns: 52px repeat(7, 1fr);
   position: relative;
-  &::-webkit-scrollbar { width: 4px; }
-  &::-webkit-scrollbar-track { background: transparent; }
-  &::-webkit-scrollbar-thumb { background: ${({ theme }) => theme.colors.darkGrey}; border-radius: 2px; }
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: ${({ theme }) => theme.colors.darkGrey};
+    border-radius: 2px;
+  }
 `;
 
 const TimeCol = styled.div`
@@ -507,10 +455,15 @@ const TimeLabel = styled.span`
 const DayCol = styled.div`
   position: relative;
   border-left: 1px solid ${({ theme }) => theme.colors.borderMuted};
-  background: ${({ $selected, theme }) => $selected ? `color-mix(in srgb, ${theme.colors.secondary} 6%, transparent)` : "transparent"};
+  background: ${({ $selected, theme }) =>
+    $selected
+      ? `color-mix(in srgb, ${theme.colors.secondary} 6%, transparent)`
+      : "transparent"};
   cursor: pointer;
   transition: background 0.15s;
-  &:hover { background: ${({ theme }) => theme.colors.primary}40; }
+  &:hover {
+    background: ${({ theme }) => theme.colors.primary}40;
+  }
 `;
 
 const HourLine = styled.div`
@@ -527,7 +480,7 @@ const NowLine = styled.div`
   background: ${({ theme }) => theme.colors.secondary};
   z-index: 3;
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     left: -4px;
     top: -4px;
@@ -614,10 +567,18 @@ const AllDayEvent = styled.div`
   border-left: 3px solid ${({ $dark }) => $dark};
   transition: filter 0.15s;
   animation: ${fadeIn} 0.3s ease;
-  &:hover { filter: brightness(0.93); }
+  &:hover {
+    filter: brightness(0.93);
+  }
 `;
 
-const CalendarGrid = ({ view, currentDate, events, selectedDate = null, onDayClick }) => {
+const CalendarGrid = ({
+  view,
+  currentDate,
+  events,
+  selectedDate = null,
+  onDayClick,
+}) => {
   const [nowPos, setNowPos] = useState(() => {
     const now = new Date();
     return now.getHours() * 60 + now.getMinutes();
@@ -644,7 +605,9 @@ const CalendarGrid = ({ view, currentDate, events, selectedDate = null, onDayCli
   useEffect(() => {
     const el = monthGridRef.current;
     if (!el) return;
-    const ro = new ResizeObserver(([entry]) => setMonthGridHeight(entry.contentRect.height));
+    const ro = new ResizeObserver(([entry]) =>
+      setMonthGridHeight(entry.contentRect.height)
+    );
     ro.observe(el);
     return () => ro.disconnect();
   });
@@ -656,28 +619,35 @@ const CalendarGrid = ({ view, currentDate, events, selectedDate = null, onDayCli
     }
   };
 
-  // WEEK VIEW 
-
+  // WEEK VIEW
   const renderWeekView = () => {
     const weekStart = getWeekStart(currentDate);
     const days = getWeekDays(weekStart);
     const hours = Array.from({ length: 24 }, (_, i) => i);
     const nowDate = new Date();
-    const isCurrentWeek = days.some(dd => isSameDay(dd, nowDate));
+    const isCurrentWeek = days.some((dd) => isSameDay(dd, nowDate));
 
     const allDayBanners = [];
     const seenAllDay = new Set();
-    events.forEach(ev => {
-      if (!shouldShowAsBanner(ev)) return;
+    events.forEach((ev) => {
+      if (!isMultiDay(ev)) return;
       if (seenAllDay.has(ev.id)) return;
-      const evStart = new Date(ev.date); evStart.setHours(0, 0, 0, 0);
-      const evEnd = new Date(ev.endDate); evEnd.setHours(0, 0, 0, 0);
-      const weekEndD = new Date(days[6]); weekEndD.setHours(0, 0, 0, 0);
-      const weekStartD = new Date(days[0]); weekStartD.setHours(0, 0, 0, 0);
+      const evStart = new Date(ev.date);
+      evStart.setHours(0, 0, 0, 0);
+      const evEnd = new Date(ev.endDate);
+      evEnd.setHours(0, 0, 0, 0);
+      const weekEndD = new Date(days[6]);
+      weekEndD.setHours(0, 0, 0, 0);
+      const weekStartD = new Date(days[0]);
+      weekStartD.setHours(0, 0, 0, 0);
       if (evEnd < weekStartD || evStart > weekEndD) return;
       seenAllDay.add(ev.id);
-      const startCol = evStart < weekStartD ? 0 : days.findIndex(dd => isSameDay(dd, evStart));
-      const endCol = evEnd > weekEndD ? 6 : days.findIndex(dd => isSameDay(dd, evEnd));
+      const startCol =
+        evStart < weekStartD
+          ? 0
+          : days.findIndex((dd) => isSameDay(dd, evStart));
+      const endCol =
+        evEnd > weekEndD ? 6 : days.findIndex((dd) => isSameDay(dd, evEnd));
       if (startCol === -1 || endCol === -1) return;
       allDayBanners.push({ ev, startCol, endCol, span: endCol - startCol + 1 });
     });
@@ -685,8 +655,8 @@ const CalendarGrid = ({ view, currentDate, events, selectedDate = null, onDayCli
     const getDayEventsForColumn = (day) => {
       const allEvs = getEventsForDay(events, day);
       return allEvs
-        .filter(ev => !shouldShowAsBanner(ev))
-        .map(ev => {
+        .filter((ev) => !isMultiDay(ev))
+        .map((ev) => {
           if (!isMultiDay(ev)) return ev;
           const isFirstDay = isSameDay(day, ev.date);
           const isLastDay = isSameDay(day, ev.endDate);
@@ -710,8 +680,12 @@ const CalendarGrid = ({ view, currentDate, events, selectedDate = null, onDayCli
             const isSelected = selectedDate && isSameDay(selectedDate, day);
             return (
               <WeekHeaderCell key={i} onClick={() => handleDayClick(day)}>
-                <WeekDayName $today={isToday}>{DAYS_PL[day.getDay()]}</WeekDayName>
-                <WeekDayNum $today={isToday} $selected={isSelected}>{day.getDate()}</WeekDayNum>
+                <WeekDayName $today={isToday}>
+                  {DAYS_PL[day.getDay()]}
+                </WeekDayName>
+                <WeekDayNum $today={isToday} $selected={isSelected}>
+                  {day.getDate()}
+                </WeekDayNum>
               </WeekHeaderCell>
             );
           })}
@@ -746,9 +720,11 @@ const CalendarGrid = ({ view, currentDate, events, selectedDate = null, onDayCli
 
         <WeekBody ref={weekBodyRef}>
           <TimeCol>
-            {hours.map(h => (
+            {hours.map((h) => (
               <TimeSlot key={h}>
-                {h > 0 && <TimeLabel>{String(h).padStart(2, "0")}:00</TimeLabel>}
+                {h > 0 && (
+                  <TimeLabel>{String(h).padStart(2, "0")}:00</TimeLabel>
+                )}
               </TimeSlot>
             ))}
           </TimeCol>
@@ -765,12 +741,20 @@ const CalendarGrid = ({ view, currentDate, events, selectedDate = null, onDayCli
                 $selected={selectedDate && isSameDay(selectedDate, day)}
                 onClick={() => handleDayClick(day)}
               >
-                {hours.map(h => <HourLine key={h} />)}
+                {hours.map((h) => (
+                  <HourLine key={h} />
+                ))}
                 {isToday && isCurrentWeek && <NowLine $top={nowPos} />}
-                {dayEvs.map(ev => {
+                {dayEvs.map((ev) => {
                   const top = ev.startHour * 60 + ev.startMin;
-                  const height = Math.max(24, (ev.endHour * 60 + ev.endMin) - top);
-                  const { col, totalCols } = layout[ev.id] || { col: 0, totalCols: 1 };
+                  const height = Math.max(
+                    24,
+                    ev.endHour * 60 + ev.endMin - top
+                  );
+                  const { col, totalCols } = layout[ev.id] || {
+                    col: 0,
+                    totalCols: 1,
+                  };
                   const colW = 96 / totalCols;
                   const left = `${2 + col * colW}%`;
                   const width = `${colW - 2}%`;
@@ -779,15 +763,20 @@ const CalendarGrid = ({ view, currentDate, events, selectedDate = null, onDayCli
                   return (
                     <EventBlock
                       key={ev._sliceId || ev.id}
-                      $top={top} $height={height}
-                      $left={left} $width={width}
-                      $bg={style.bg} $borderColor={style.dark}
+                      $top={top}
+                      $height={height}
+                      $left={left}
+                      $width={width}
+                      $bg={style.bg}
+                      $borderColor={style.dark}
                     >
                       <EventTitle $dark={style.dark}>{ev.title}</EventTitle>
                       {height > 30 && (
                         <EventTags>
-                          {ev.tags.map(t => (
-                            <EventTagIcon key={t}>{TAG_CONFIG[t]?.icon}</EventTagIcon>
+                          {ev.tags.map((t) => (
+                            <EventTagIcon key={t}>
+                              {TAG_CONFIG[t]?.icon}
+                            </EventTagIcon>
                           ))}
                         </EventTags>
                       )}
@@ -802,7 +791,7 @@ const CalendarGrid = ({ view, currentDate, events, selectedDate = null, onDayCli
     );
   };
 
-  // MONTH VIEW 
+  // MONTH VIEW
   const renderMonthView = () => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -819,26 +808,36 @@ const CalendarGrid = ({ view, currentDate, events, selectedDate = null, onDayCli
     return (
       <MonthGrid ref={monthGridRef}>
         <DayLabels>
-          {["Pon", "Wt", "Śr", "Czw", "Pt", "Sob", "Nd"].map(dd => (
+          {["Pon", "Wt", "Śr", "Czw", "Pt", "Sob", "Nd"].map((dd) => (
             <DayLabel key={dd}>{dd}</DayLabel>
           ))}
         </DayLabels>
         {weeks.map((weekDays, weekIdx) => {
-          const weekStartD = new Date(weekDays[0]); weekStartD.setHours(0, 0, 0, 0);
-          const weekEndD = new Date(weekDays[6]); weekEndD.setHours(0, 0, 0, 0);
+          const weekStartD = new Date(weekDays[0]);
+          weekStartD.setHours(0, 0, 0, 0);
+          const weekEndD = new Date(weekDays[6]);
+          weekEndD.setHours(0, 0, 0, 0);
           const spanningEvents = [];
           const seenIds = new Set();
 
-          events.forEach(ev => {
+          events.forEach((ev) => {
             if (!isMultiDay(ev)) return;
             if (seenIds.has(ev.id)) return;
-            const evStart = new Date(ev.date); evStart.setHours(0, 0, 0, 0);
-            const evEnd = new Date(ev.endDate); evEnd.setHours(0, 0, 0, 0);
+            const evStart = new Date(ev.date);
+            evStart.setHours(0, 0, 0, 0);
+            const evEnd = new Date(ev.endDate);
+            evEnd.setHours(0, 0, 0, 0);
             if (evEnd < weekStartD || evStart > weekEndD) return;
             seenIds.add(ev.id);
 
-            const startCol = evStart < weekStartD ? 0 : weekDays.findIndex(dd => isSameDay(dd, evStart));
-            const endCol = evEnd > weekEndD ? 6 : weekDays.findIndex(dd => isSameDay(dd, evEnd));
+            const startCol =
+              evStart < weekStartD
+                ? 0
+                : weekDays.findIndex((dd) => isSameDay(dd, evStart));
+            const endCol =
+              evEnd > weekEndD
+                ? 6
+                : weekDays.findIndex((dd) => isSameDay(dd, evEnd));
             if (startCol === -1 || endCol === -1) return;
             const isStart = evStart >= weekStartD;
             const isEnd = evEnd <= weekEndD;
@@ -846,11 +845,12 @@ const CalendarGrid = ({ view, currentDate, events, selectedDate = null, onDayCli
           });
 
           const lanes = [];
-          spanningEvents.forEach(item => {
+          spanningEvents.forEach((item) => {
             let placed = false;
             for (let lane = 0; lane < lanes.length; lane++) {
               const conflict = lanes[lane].some(
-                other => item.startCol <= other.endCol && item.endCol >= other.startCol
+                (other) =>
+                  item.startCol <= other.endCol && item.endCol >= other.startCol
               );
               if (!conflict) {
                 lanes[lane].push(item);
@@ -865,66 +865,110 @@ const CalendarGrid = ({ view, currentDate, events, selectedDate = null, onDayCli
             }
           });
 
-          const multiDayIds = new Set(spanningEvents.map(s => s.ev.id));
+          const multiDayIds = new Set(spanningEvents.map((s) => s.ev.id));
 
           return (
             <MonthWeekRow key={weekIdx}>
-              {spanningEvents.map(({ ev, startCol, endCol, lane, isStart, isEnd }) => {
-                const style = getEventStyle(ev);
-                const icons = (ev.tags || []).map(t => TAG_CONFIG[t]?.icon).filter(Boolean);
-                const span = endCol - startCol + 1;
-                const marginStart = isStart ? 6 : 0;
-                const marginEnd = isEnd ? 6 : 0;
-                const leftCalc = `calc(${(startCol / 7) * 100}% + ${startCol > 0 ? `${(startCol * GAP) / 7}px` : "0px"} + ${marginStart}px)`;
-                const widthCalc = `calc(${(span / 7) * 100}% - ${((7 - span) * GAP) / 7}px - ${marginStart + marginEnd}px)`;
-                const topOffset = 36 + lane * 33;
+              {spanningEvents.map(
+                ({ ev, startCol, endCol, lane, isStart, isEnd }) => {
+                  const style = getEventStyle(ev);
+                  const icons = (ev.tags || [])
+                    .map((t) => TAG_CONFIG[t]?.icon)
+                    .filter(Boolean);
+                  const span = endCol - startCol + 1;
+                  const marginStart = isStart ? 8 : 0;
+                  const marginEnd = isEnd ? 6 : 0;
+                  const leftCalc = `calc(${(startCol / 7) * 100}% + ${
+                    startCol > 0 ? `${(startCol * GAP) / 7}px` : "0px"
+                  } + ${marginStart}px)`;
+                  const widthCalc = `calc(${(span / 7) * 100}% - ${
+                    ((7 - span) * GAP) / 7
+                  }px - ${marginStart + marginEnd}px)`;
+                  const compactRow = weeks.length > 5;
+                  const baseTop = compactRow ? 27 : 37;
+                  const topOffset = baseTop + lane * 33;
 
-                return (
-                  <SpanningBar
-                    key={`${ev.id}-w${weekIdx}`}
-                    $bg={style.bg}
-                    $dark={style.dark}
-                    $isStart={isStart}
-                    $isEnd={isEnd}
-                    style={{ left: leftCalc, width: widthCalc, top: `${topOffset}px` }}
-                  >
-                    <SpanningBarTitle $dark={style.dark}>{ev.title}</SpanningBarTitle>
-                    {isEnd && icons.length > 0 && (
-                      <CellEventIcons>
-                        {icons.slice(0, 2).map((ic, idx) => <span key={idx}>{ic}</span>)}
-                        {icons.length > 2 && <span style={{ fontSize: 9, color: style.dark }}>…</span>}
-                      </CellEventIcons>
-                    )}
-                  </SpanningBar>
-                );
-              })}
+                  return (
+                    <SpanningBar
+                      key={`${ev.id}-w${weekIdx}`}
+                      $bg={style.bg}
+                      $dark={style.dark}
+                      $isStart={isStart}
+                      $isEnd={isEnd}
+                      style={{
+                        left: leftCalc,
+                        width: widthCalc,
+                        top: `${topOffset}px`,
+                      }}
+                    >
+                      <SpanningBarTitle $dark={style.dark}>
+                        {ev.title}
+                      </SpanningBarTitle>
+                      {isEnd && icons.length > 0 && (
+                        <CellEventIcons>
+                          {icons.slice(0, 2).map((ic, idx) => (
+                            <span key={idx}>{ic}</span>
+                          ))}
+                          {icons.length > 2 && (
+                            <span style={{ fontSize: 9, color: style.dark }}>
+                              …
+                            </span>
+                          )}
+                        </CellEventIcons>
+                      )}
+                    </SpanningBar>
+                  );
+                }
+              )}
               {weekDays.map((day, dayIdx) => {
                 const isToday = isSameDay(day, nowDate);
                 const outOfMonth = day.getMonth() !== month;
                 const urgency = getDeadlineUrgency(events, day);
-                const dayEvs = getEventsForDay(events, day)
-                  .filter(ev => !multiDayIds.has(ev.id));
-                const lanesOnDay = spanningEvents.filter(s => dayIdx >= s.startCol && dayIdx <= s.endCol);
-                const maxLane = lanesOnDay.length > 0 ? Math.max(...lanesOnDay.map(s => s.lane)) + 1 : 0;
-                const spanPadding = maxLane > 0 ? maxLane * 33 : 0;
+                const dayEvs = getEventsForDay(events, day).filter(
+                  (ev) => !multiDayIds.has(ev.id)
+                );
+                const lanesOnDay = spanningEvents.filter(
+                  (s) => dayIdx >= s.startCol && dayIdx <= s.endCol
+                );
+                const maxLane =
+                  lanesOnDay.length > 0
+                    ? Math.max(...lanesOnDay.map((s) => s.lane)) + 1
+                    : 0;
                 const compact = weeks.length > 5;
+                const spanPadding = maxLane > 0 ? 2 + maxLane * 33 : 0;
                 const gridGap = compact ? 3 : 6;
                 const dayLabelsHeight = 30;
                 const totalGaps = (weeks.length - 1) * gridGap;
-                const rowHeight = (monthGridHeight - dayLabelsHeight - totalGaps) / weeks.length;
+                const rowHeight =
+                  (monthGridHeight - dayLabelsHeight - totalGaps) /
+                  weeks.length;
                 const cellPadding = compact ? 6 : 12;
                 const dateHeight = compact ? 17 : 23;
-                const availableForEvents = rowHeight - cellPadding - dateHeight - spanPadding;
+                const availableForEvents =
+                  rowHeight - cellPadding - dateHeight - spanPadding;
                 const eventSlotHeight = 33;
                 const moreLabeHeight = 18;
                 const totalEventsCount = lanesOnDay.length + dayEvs.length;
-                const rawSlots = Math.floor(availableForEvents / eventSlotHeight);
+                const rawSlots = Math.floor(
+                  availableForEvents / eventSlotHeight
+                );
                 const hasOverflow = totalEventsCount > rawSlots;
-                const MAX_TOTAL = Math.max(1, hasOverflow
-                  ? Math.floor((availableForEvents - moreLabeHeight) / eventSlotHeight)
-                  : rawSlots);
+                const calculatedMax = Math.max(
+                  1,
+                  hasOverflow
+                    ? Math.floor(
+                        (availableForEvents - moreLabeHeight) / eventSlotHeight
+                      )
+                    : rawSlots
+                );
+                const MAX_TOTAL = compact
+                  ? Math.min(calculatedMax, 2)
+                  : calculatedMax;
                 const slotsUsedBySpanning = lanesOnDay.length;
-                const slotsForSingleDay = Math.max(0, MAX_TOTAL - slotsUsedBySpanning);
+                const slotsForSingleDay = Math.max(
+                  0,
+                  MAX_TOTAL - slotsUsedBySpanning
+                );
                 const visible = dayEvs.slice(0, slotsForSingleDay);
                 const hiddenCount = totalEventsCount - MAX_TOTAL;
 
@@ -941,24 +985,46 @@ const CalendarGrid = ({ view, currentDate, events, selectedDate = null, onDayCli
                       {day.getDate()}
                       {urgency > 0 && <DeadlineDot $urgency={urgency} />}
                     </CellDate>
-                    {spanPadding > 0 && <div style={{ height: spanPadding, flexShrink: 0 }} />}
+                    {spanPadding > 0 && (
+                      <div style={{ height: spanPadding, flexShrink: 0 }} />
+                    )}
                     <CellEvents>
-                      {visible.map(ev => {
+                      {visible.map((ev) => {
                         const style = getEventStyle(ev);
-                        const icons = (ev.tags || []).map(t => TAG_CONFIG[t]?.icon).filter(Boolean);
+                        const icons = (ev.tags || [])
+                          .map((t) => TAG_CONFIG[t]?.icon)
+                          .filter(Boolean);
                         return (
-                          <CellEventBar key={ev.id} $bg={style.bg} $dark={style.dark}>
-                            <CellEventTitle $dark={style.dark}>{ev.title}</CellEventTitle>
+                          <CellEventBar
+                            key={ev.id}
+                            $bg={style.bg}
+                            $dark={style.dark}
+                          >
+                            <CellEventTitle $dark={style.dark}>
+                              {ev.title}
+                            </CellEventTitle>
                             {icons.length > 0 && (
                               <CellEventIcons>
-                                {icons.slice(0, 2).map((ic, idx) => <span key={idx}>{ic}</span>)}
-                                {icons.length > 2 && <span style={{ fontSize: 9, color: style.dark }}>…</span>}
+                                {icons.slice(0, 2).map((ic, idx) => (
+                                  <span key={idx}>{ic}</span>
+                                ))}
+                                {icons.length > 2 && (
+                                  <span
+                                    style={{ fontSize: 9, color: style.dark }}
+                                  >
+                                    …
+                                  </span>
+                                )}
                               </CellEventIcons>
                             )}
                           </CellEventBar>
                         );
                       })}
-                      {hiddenCount > 0 && <CellMore $today={isToday}>+{hiddenCount} więcej</CellMore>}
+                      {hiddenCount > 0 && (
+                        <CellMore $today={isToday}>
+                          +{hiddenCount} więcej
+                        </CellMore>
+                      )}
                     </CellEvents>
                   </MonthCell>
                 );
@@ -973,12 +1039,123 @@ const CalendarGrid = ({ view, currentDate, events, selectedDate = null, onDayCli
   return view === "week" ? renderWeekView() : renderMonthView();
 };
 
+function mapRecurrenceRule(rule) {
+  const defaults = {
+    recurrenceType: "weekly",
+    customInterval: 1,
+    customUnit: "weeks",
+    customDays: [],
+    recurrenceEndType: "never",
+    recurrenceEndDate: "",
+    recurrenceOccurrences: 10,
+  };
+  if (!rule) return defaults;
+
+  const freq = (rule.frequency || "").toUpperCase();
+  const interval = rule.interval || 1;
+
+  let endType = "never",
+    endDate = "",
+    occurrences = 10;
+  if (rule.recurrenceEnd) {
+    endType = "date";
+    endDate = rule.recurrenceEnd;
+  } else if (rule.occurrences && rule.occurrences > 0) {
+    endType = "after";
+    occurrences = rule.occurrences;
+  }
+  const endFields = {
+    recurrenceEndType: endType,
+    recurrenceEndDate: endDate,
+    recurrenceOccurrences: occurrences,
+  };
+
+  if (freq === "DAILY" && interval === 1)
+    return {
+      recurrenceType: "daily",
+      customInterval: 1,
+      customUnit: "days",
+      customDays: [],
+      ...endFields,
+    };
+  if (freq === "WEEKLY" && interval === 1 && !rule.daysOfWeek)
+    return {
+      recurrenceType: "weekly",
+      customInterval: 1,
+      customUnit: "weeks",
+      customDays: [],
+      ...endFields,
+    };
+  if (freq === "WEEKLY" && interval === 2 && !rule.daysOfWeek)
+    return {
+      recurrenceType: "biweekly",
+      customInterval: 2,
+      customUnit: "weeks",
+      customDays: [],
+      ...endFields,
+    };
+  if (freq === "MONTHLY" && interval === 1)
+    return {
+      recurrenceType: "monthly",
+      customInterval: 1,
+      customUnit: "months",
+      customDays: [],
+      ...endFields,
+    };
+  if (freq === "YEARLY" && interval === 1)
+    return {
+      recurrenceType: "yearly",
+      customInterval: 1,
+      customUnit: "years",
+      customDays: [],
+      ...endFields,
+    };
+
+  const FREQ_TO_UNIT = {
+    DAILY: "days",
+    WEEKLY: "weeks",
+    MONTHLY: "months",
+    YEARLY: "years",
+  };
+  const customUnit = FREQ_TO_UNIT[freq] || "weeks";
+  const customDays =
+    customUnit === "weeks" && rule.daysOfWeek
+      ? rule.daysOfWeek.split(",").map((d) => {
+          const n = parseInt(d);
+          return n === 7 ? 0 : n;
+        })
+      : [];
+  return {
+    recurrenceType: "custom",
+    customInterval: interval,
+    customUnit,
+    customDays,
+    ...endFields,
+  };
+}
+
 function mapBackendEvent(ev) {
   const start = new Date(ev.start || ev.startTime);
   const end = new Date(ev.end || ev.endTime);
-  const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const startDay = new Date(
+    start.getFullYear(),
+    start.getMonth(),
+    start.getDate()
+  );
   const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
   const multiDay = startDay.getTime() !== endDay.getTime();
+  const recurring = !!ev.recurrenceRule;
+  const recurrence = recurring
+    ? mapRecurrenceRule(ev.recurrenceRule)
+    : {
+        recurrenceType: "weekly",
+        customInterval: 1,
+        customUnit: "weeks",
+        customDays: [],
+        recurrenceEndType: "never",
+        recurrenceEndDate: "",
+        recurrenceOccurrences: 10,
+      };
   return {
     id: `backend-${ev.id}`,
     backendId: ev.id,
@@ -990,16 +1167,41 @@ function mapBackendEvent(ev) {
     startMin: start.getMinutes(),
     endHour: end.getHours(),
     endMin: end.getMinutes(),
-    tags: ev.eventTags ? [...ev.eventTags].filter(t => TAG_CONFIG[t] && t !== "deadline") : [],
-    customTags: ev.eventTags ? [...ev.eventTags].filter(t => !TAG_CONFIG[t] && t !== "deadline") : [],
+    tags: ev.eventTags
+      ? [...ev.eventTags].filter((t) => TAG_CONFIG[t] && t !== "deadline")
+      : [],
+    customTags: ev.eventTags
+      ? [...ev.eventTags].filter((t) => !TAG_CONFIG[t] && t !== "deadline")
+      : [],
     regularTags: ev.regularTags ? [...ev.regularTags] : [],
     isDeadline: !!ev.isDeadline,
     recurrent: false,
+    isPartOfSeries: recurring,
+    recurrenceType: recurrence.recurrenceType,
+    customInterval: recurrence.customInterval,
+    customUnit: recurrence.customUnit,
+    customDays: recurrence.customDays,
+    recurrenceEndType: recurrence.recurrenceEndType,
+    recurrenceEndDate: recurrence.recurrenceEndDate,
+    recurrenceOccurrences: recurrence.recurrenceOccurrences,
     colorId: ev.color || "blue",
-    allDay: multiDay && start.getHours() === 0 && start.getMinutes() === 0 && end.getHours() === 0 && end.getMinutes() === 0,
+    allDay:
+      start.getHours() === 0 &&
+      start.getMinutes() === 0 &&
+      end.getHours() === 23 &&
+      end.getMinutes() === 59,
   };
 }
 
-export { TAG_CONFIG, EVENT_COLORS, DAYS_PL, getColorById, isSameDay, getEventsForDay, getWeekStart, getWeekDays, getMonthDays, isMultiDay, dayInRange, eventOccursOnDay, isOccurrenceStart, getDeadlineUrgency, getEventStyle, shouldShowAsBanner, resolveEventConflicts, mapBackendEvent };
+export {
+  TAG_CONFIG,
+  EVENT_COLORS,
+  DAYS_PL,
+  getEventsForDay,
+  getWeekStart,
+  isMultiDay,
+  getEventStyle,
+  mapBackendEvent,
+};
 
 export default CalendarGrid;

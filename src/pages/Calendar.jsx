@@ -3,7 +3,7 @@ import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/organisms/Layout";
 import { theme } from "../styles/theme";
-import { getUsosAuthUrl, addRegularTagToEvent, removeRegularTagFromEvent, addEvent, editEventApi, deleteEventApi, getEventsBetween, getContentByTag, getAllNotes, getAllFlashcardSets } from "../api";
+import { getUsosAuthUrl, addRegularTagToEvent, removeRegularTagFromEvent, addEvent, editEventApi, deleteEventApi, editThisAndFollowingApi, editAllInSeriesApi, deleteAllInSeriesApi, getEventsBetween, getContentByTag } from "../api";
 import CalendarGrid, { TAG_CONFIG, EVENT_COLORS, DAYS_PL, getEventsForDay, getWeekStart, isMultiDay, getEventStyle, mapBackendEvent } from "../components/organisms/CalendarGrid";
 
 const MONTHS_PL = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
@@ -26,7 +26,6 @@ const Main = styled.div`
   display: flex;
   flex-direction: column;
   min-width: 0;
-  animation: ${fadeIn} 0.4s ease;
 `;
 
 const PageHeader = styled.div`
@@ -303,7 +302,7 @@ const AddBtn = styled.button`
 
 // ── SIDEBAR ───────────────────────────────────────────────────────────────────
 const DetailSidebar = styled.div`
-  width: ${({ $open, theme }) => $open ? "280px" : "0"};
+  width: ${({ $open, theme }) => $open ? "350px" : "0"};
   overflow: hidden;
   transition: width 0.3s ease;
   background: ${({ theme }) => theme.colors.white};
@@ -314,7 +313,7 @@ const DetailSidebar = styled.div`
 `;
 
 const SidebarInner = styled.div`
-  width: 280px;
+  width: 350px;
   padding: 20px 16px;
   display: flex;
   flex-direction: column;
@@ -513,7 +512,7 @@ const SidebarSectionLabel = styled.div`
 
 // ── FORM SIDEBAR ──────────────────────────────────────────────────────────────
 const FormSidebar = styled.div`
-  width: ${({ $open, theme }) => $open ? "380px" : "0"};
+  width: ${({ $open, theme }) => $open ? "350px" : "0"};
   overflow: hidden;
   transition: width 0.3s ease;
   background: ${({ theme }) => theme.colors.white};
@@ -524,7 +523,7 @@ const FormSidebar = styled.div`
 `;
 
 const FormSidebarInner = styled.div`
-  width: 380px;
+  width: 350px;
   padding: 20px 18px;
   display: flex;
   flex-direction: column;
@@ -694,6 +693,34 @@ const DayOfWeekBtn = styled.button`
   &:hover { border-color: ${({ theme }) => theme.colors.secondaryLight}; }
 `;
 
+const RecurrenceEndSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid ${({ theme }) => theme.colors.darkGrey};
+`;
+
+const RecurrenceEndOptions = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+`;
+
+const RecurrenceEndOption = styled.button`
+  padding: 7px 6px;
+  border: 1.5px solid ${({ $active, theme }) => $active ? theme.colors.secondary : theme.colors.darkGrey};
+  border-radius: 8px;
+  background: ${({ $active, theme }) => $active ? theme.colors.primary : "transparent"};
+  color: ${({ $active, theme }) => $active ? theme.colors.secondary : theme.colors.textMuted};
+  font-size: 11px;
+  font-weight: ${({ $active }) => $active ? 600 : 400};
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+  &:hover { border-color: ${({ theme }) => theme.colors.secondaryLight}; }
+`;
+
 const ColorSwatchRow = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -710,6 +737,13 @@ const ColorSwatch = styled.button`
   padding: 0;
   transition: transform 0.1s, border-color 0.15s;
   &:hover { transform: scale(1.15); }
+`;
+
+const FieldError = styled.span`
+  font-size: 11px;
+  color: rgb(226, 75, 74);
+  font-weight: 500;
+  margin-top: 2px;
 `;
 
 const PopupActions = styled.div`
@@ -921,6 +955,35 @@ function describeRecurrence(ev) {
   return "cyklicznie";
 }
 
+function buildRecurrenceRule(form) {
+  if (!form.recurrent) return null;
+  const type = form.recurrenceType || "weekly";
+
+  const UNIT_TO_FREQUENCY = { days: "DAILY", weeks: "WEEKLY", months: "MONTHLY", years: "YEARLY" };
+  const PRESET_MAP = {
+    daily:    { frequency: "DAILY",   interval: 1, daysOfWeek: null },
+    weekly:   { frequency: "WEEKLY",  interval: 1, daysOfWeek: null },
+    biweekly: { frequency: "WEEKLY",  interval: 2, daysOfWeek: null },
+    monthly:  { frequency: "MONTHLY", interval: 1, daysOfWeek: null },
+    yearly:   { frequency: "YEARLY",  interval: 1, daysOfWeek: null },
+  };
+
+  const recurrenceEnd = form.recurrenceEndType === "date" && form.recurrenceEndDate ? form.recurrenceEndDate : null;
+  const occurrences = form.recurrenceEndType === "after" && form.recurrenceOccurrences > 0 ? form.recurrenceOccurrences : 0;
+
+  if (type === "custom") {
+    const frequency = UNIT_TO_FREQUENCY[form.customUnit] || "WEEKLY";
+    const interval = form.customInterval || 1;
+    const daysOfWeek = (form.customUnit === "weeks" && form.customDays?.length > 0)
+      ? form.customDays.map(jsDay => jsDay === 0 ? 7 : jsDay).join(",")
+      : null;
+    return { frequency, interval, daysOfWeek, recurrenceEnd, occurrences };
+  }
+
+  const preset = PRESET_MAP[type];
+  if (!preset) return null;
+  return { ...preset, recurrenceEnd, occurrences };
+}
 
 const defaultFormState = {
   title: "", description: "", date: "", endDate: "", startTime: "", endTime: "", allDay: false, tags: [],
@@ -931,6 +994,9 @@ const defaultFormState = {
   customInterval: 1,
   customUnit: "weeks",
   customDays: [],
+  recurrenceEndType: "never",
+  recurrenceEndDate: "",
+  recurrenceOccurrences: 10,
   colorId: "blue",
   customTags: [],
   docTags: [],
@@ -940,7 +1006,6 @@ const defaultFormState = {
   newDocTagLabel: "",
 };
 
-// ─── SAMPLE DATA ─────────────────────────────────────────────────────────────
 function toLocalDateTimeISO(date, hour, min) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -964,7 +1029,8 @@ const Calendar = () => {
   const [formErrors, setFormErrors] = useState({});
   const [editEvent, setEditEvent] = useState(null); // { event, occurrenceDate }
   const [scopeAction, setScopeAction] = useState(null); // { type: "edit"|"delete", event, occurrenceDate }
-  const [confirmDelete, setConfirmDelete] = useState(null); // event to confirm deletion
+  const [pendingSave, setPendingSave] = useState(null); // { startISO, endISO } - saved form data waiting for scope choice
+  const [confirmDelete, setConfirmDelete] = useState(null); // { event, occurrenceDate, scope? }
   const [addingRegularTag, setAddingRegularTag] = useState(null); // eventId for which we're adding a tag
   const [newRegularTag, setNewRegularTag] = useState("");
   const [filterTags, setFilterTags] = useState([]);
@@ -975,40 +1041,38 @@ const Calendar = () => {
   const searchInputRef = useRef(null);
   const [docTagPopup, setDocTagPopup] = useState(null); // { tag, notes, sets }
   const [docTagLoading, setDocTagLoading] = useState(false);
+  const [tagScopePopup, setTagScopePopup] = useState(null); // { allTags, saveRegularTags, recurrenceRule, startISO, endISO, parsedDate, parsedEndDate, sh, sm, eh, em }
 
 
+
+  const refreshEvents = async () => {
+    let startDate, endDate;
+    if (view === "week") {
+      const ws = getWeekStart(currentDate);
+      const margin = new Date(ws);
+      margin.setDate(margin.getDate() - 7);
+      const we = new Date(ws);
+      we.setDate(we.getDate() + 13);
+      startDate = toLocalDateTimeISO(margin, 0, 0);
+      endDate = toLocalDateTimeISO(we, 23, 59);
+    } else {
+      const first = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      const margin = new Date(first);
+      margin.setDate(margin.getDate() - 7);
+      const last = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+      const marginEnd = new Date(last);
+      marginEnd.setDate(marginEnd.getDate() + 7);
+      startDate = toLocalDateTimeISO(margin, 0, 0);
+      endDate = toLocalDateTimeISO(marginEnd, 23, 59);
+    }
+    const res = await getEventsBetween(startDate, endDate);
+    if (res.errorCode === "" && res.events) {
+      setEvents(res.events.map(mapBackendEvent));
+    }
+  };
 
   useEffect(() => {
-    const fetchEvents = async () => {
-      let startDate, endDate;
-      if (view === "week") {
-        const ws = getWeekStart(currentDate);
-        const margin = new Date(ws);
-        margin.setDate(margin.getDate() - 7);
-        const we = new Date(ws);
-        we.setDate(we.getDate() + 13);
-        startDate = toLocalDateTimeISO(margin, 0, 0);
-        endDate = toLocalDateTimeISO(we, 23, 59);
-      } else {
-        const first = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-        const margin = new Date(first);
-        margin.setDate(margin.getDate() - 7);
-        const last = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-        const marginEnd = new Date(last);
-        marginEnd.setDate(marginEnd.getDate() + 7);
-        startDate = toLocalDateTimeISO(margin, 0, 0);
-        endDate = toLocalDateTimeISO(marginEnd, 23, 59);
-      }
-      const res = await getEventsBetween(startDate, endDate);
-      if (res.errorCode === "" && res.events) {
-        const backendEvents = res.events.map(mapBackendEvent);
-        setEvents(prev => {
-          const localOnly = prev.filter(e => !e.backendId);
-          return [...localOnly, ...backendEvents];
-        });
-      }
-    };
-    fetchEvents();
+    refreshEvents();
   }, [currentDate, view]);
 
   const handleDocTagClick = async (tagName) => {
@@ -1137,11 +1201,14 @@ const Calendar = () => {
       startTime: `${String(ev.startHour).padStart(2, "0")}:${String(ev.startMin).padStart(2, "0")}`,
       endTime: `${String(ev.endHour).padStart(2, "0")}:${String(ev.endMin).padStart(2, "0")}`,
       tags: [...ev.tags],
-      recurrent: ev.recurrent,
+      recurrent: ev.recurrent || ev.isPartOfSeries,
       recurrenceType: ev.recurrenceType || "weekly",
       customInterval: ev.customInterval || 1,
       customUnit: ev.customUnit || "weeks",
       customDays: ev.customDays ? [...ev.customDays] : [],
+      recurrenceEndType: ev.recurrenceEndType || "never",
+      recurrenceEndDate: ev.recurrenceEndDate || "",
+      recurrenceOccurrences: ev.recurrenceOccurrences || 10,
       colorId: ev.colorId || "blue",
       customTags: ev.customTags ? [...ev.customTags] : [],
       docTags: ev.regularTags ? [...ev.regularTags] : (ev.docTags ? [...ev.docTags] : []),
@@ -1153,81 +1220,88 @@ const Calendar = () => {
     setPopup(true);
   };
 
-  const handleEditClick = (ev, occurrenceDate) => {
-    if (ev.recurrent) {
-      setScopeAction({ type: "edit", event: ev, occurrenceDate });
-    } else {
-      openEditPopup(ev, occurrenceDate);
-    }
-  };
-
   const handleDeleteClick = async (ev, occurrenceDate) => {
-    if (ev.recurrent) {
+    if (ev.recurrent || ev.isPartOfSeries) {
       setScopeAction({ type: "delete", event: ev, occurrenceDate });
     } else {
       if (ev.backendId) {
         const res = await deleteEventApi(ev.backendId);
         if (res.errorCode && res.errorCode !== "") return;
+        await refreshEvents();
       }
-      setEvents(prev => prev.filter(e => e.id !== ev.id));
-      setSidebar(s => {
-        if (!s) return null;
-        const remaining = s.events.filter(e => e.id !== ev.id);
-        return remaining.length ? { ...s, events: remaining } : null;
-      });
+      setSidebar(null);
     }
   };
 
-  const handleScopeChoice = (scope) => {
+  const executeEditSave = async (scope) => {
+    if (!editEvent || !editEvent.event.backendId || !pendingSave) return;
+    const { startISO, endISO } = pendingSave;
+    const allTags = [...form.tags, ...(form.customTags || [])].filter(t => t !== "deadline");
+    const saveRegularTags = form.docTags || [];
+
+    if (scope === "all") {
+      const res = await editAllInSeriesApi(editEvent.event.backendId, form.title, form.description, allTags, saveRegularTags, startISO, endISO, form.colorId, form.isDeadline);
+      if (res.errorCode && res.errorCode !== "") return;
+    } else if (scope === "thisAndFollowing") {
+      const recurrenceRule = buildRecurrenceRule(form);
+      const res = await editThisAndFollowingApi(editEvent.event.backendId, form.title, form.description, allTags, saveRegularTags, startISO, endISO, form.colorId, form.isDeadline, recurrenceRule);
+      if (res.errorCode && res.errorCode !== "") return;
+    } else {
+      const res = await editEventApi(editEvent.event.backendId, form.title, form.description, allTags, saveRegularTags, startISO, endISO, form.colorId, form.isDeadline);
+      if (res.errorCode && res.errorCode !== "") return;
+    }
+    await refreshEvents();
+    setSidebar(null);
+    setEditEvent(null);
+    setPendingSave(null);
+    setForm({ ...defaultFormState });
+    setPopup(false);
+  };
+
+  const handleScopeChoice = async (scope) => {
     if (!scopeAction) return;
     const { type, event: ev, occurrenceDate } = scopeAction;
 
     if (type === "edit") {
-      if (scope === "this") {
-        // Create a one-off copy for this occurrence, add exclusion to original
-        const exDate = formatDateForInput(occurrenceDate);
-        setEvents(prev => prev.map(e => {
-          if (e.id !== ev.id) return e;
-          return { ...e, excludedDates: [...(e.excludedDates || []), exDate] };
-        }));
-        const singleCopy = {
-          ...ev,
-          id: Date.now(),
-          date: new Date(occurrenceDate),
-          recurrent: false,
-          excludedDates: undefined,
-        };
-        setEvents(prev => [...prev, singleCopy]);
-        openEditPopup(singleCopy, occurrenceDate);
-      } else {
-        openEditPopup(ev, ev.date);
-      }
+      setScopeAction(null);
+      await executeEditSave(scope);
+      return;
     }
 
     if (type === "delete") {
-      if (scope === "this") {
-        const exDate = formatDateForInput(occurrenceDate);
-        setEvents(prev => prev.map(e => {
-          if (e.id !== ev.id) return e;
-          return { ...e, excludedDates: [...(e.excludedDates || []), exDate] };
-        }));
-      } else {
-        setEvents(prev => prev.filter(e => e.id !== ev.id));
-      }
-      setSidebar(s => {
-        if (!s) return null;
-        const remaining = getEventsForDay(
-          scope === "all" ? events.filter(e => e.id !== ev.id) : events,
-          s.date
-        );
-        return remaining.length ? { ...s, events: remaining } : null;
-      });
+      setScopeAction(null);
+      setConfirmDelete({ event: ev, occurrenceDate, scope });
+      return;
     }
 
     setScopeAction(null);
   };
 
-  //  REGULAR TAG HANDLERS 
+  const handleTagScopeChoice = async (scope) => {
+    if (!tagScopePopup) return;
+    const { allTags, saveRegularTags, recurrenceRule, startISO, endISO } = tagScopePopup;
+
+    let eventTags, recurringEventTags;
+    if (scope === "all") {
+      // Tags assigned to all events in the series
+      eventTags = allTags;
+      recurringEventTags = allTags;
+    } else {
+      // Tags assigned only to the first event
+      eventTags = allTags;
+      recurringEventTags = null;
+    }
+
+    const res = await addEvent(form.title, form.description, eventTags, saveRegularTags, startISO, endISO, form.colorId, form.isDeadline, recurrenceRule, recurringEventTags);
+    setTagScopePopup(null);
+    if (res.errorCode && res.errorCode !== "") return;
+
+    await refreshEvents();
+    setForm({ ...defaultFormState });
+    setPopup(false);
+  };
+
+  //  REGULAR TAG HANDLERS
   const handleAddRegularTag = async (ev) => {
     const value = newRegularTag.trim();
     setNewRegularTag("");
@@ -1298,7 +1372,7 @@ const Calendar = () => {
             <SidebarEventCard key={ev.id} $bg={style.bg} $border={style.dark}>
               <SidebarCardHeader>
                 <SidebarEventName $dark={style.dark} style={{ marginBottom: 0 }}>{ev.title}</SidebarEventName>
-                <SidebarEditBtn onClick={() => handleEditClick(ev, date)}>Edytuj</SidebarEditBtn>
+                <SidebarEditBtn onClick={() => openEditPopup(ev, date)}>Edytuj</SidebarEditBtn>
               </SidebarCardHeader>
               <SidebarEventMeta $dark={style.dark}>
                 {isMultiDay(ev) && ev.allDay
@@ -1309,7 +1383,7 @@ const Calendar = () => {
                       ? "Całodniowy"
                       : `${String(ev.startHour).padStart(2, "0")}:${String(ev.startMin).padStart(2, "0")} – ${String(ev.endHour).padStart(2, "0")}:${String(ev.endMin).padStart(2, "0")}`
                 }
-                {ev.recurrent && ` · 🔁 ${describeRecurrence(ev)}`}
+                {(ev.recurrent || ev.isPartOfSeries) && ` · 🔁 ${ev.recurrent ? describeRecurrence(ev) : "cyklicznie"}`}
               </SidebarEventMeta>
 
               {ev.description && (
@@ -1368,11 +1442,40 @@ const Calendar = () => {
 
     const handleSave = async () => {
       const errors = {};
-      if (!form.title.trim()) errors.title = true;
-      if (!form.date) errors.date = true;
-      if (!form.allDay && !form.startTime) errors.startTime = true;
-      if (!form.allDay && !form.endTime) errors.endTime = true;
-      if (form.multiDay && !form.endDate) errors.endDate = true;
+      if (!form.title.trim()) errors.title = "Tytuł jest wymagany";
+      if (!form.date) errors.date = "Data rozpoczęcia jest wymagana";
+      if (!form.allDay && !form.startTime) errors.startTime = "Godzina rozpoczęcia jest wymagana";
+      if (!form.allDay && !form.endTime) errors.endTime = "Godzina zakończenia jest wymagana";
+      if (form.multiDay && !form.endDate) errors.endDate = "Data zakończenia jest wymagana";
+
+      // Validate time format (HH:MM, 00-23:00-59)
+      const validTime = (t) => {
+        if (!t) return false;
+        const m = t.match(/^(\d{2}):(\d{2})$/);
+        if (!m) return false;
+        const h = parseInt(m[1]), min = parseInt(m[2]);
+        return h >= 0 && h <= 23 && min >= 0 && min <= 59;
+      };
+      if (!form.allDay && form.startTime && !validTime(form.startTime)) {
+        errors.startTime = "Niepoprawna godzina (HH:MM, 00:00–23:59)";
+      }
+      if (!form.allDay && form.endTime && !validTime(form.endTime)) {
+        errors.endTime = "Niepoprawna godzina (HH:MM, 00:00–23:59)";
+      }
+
+      // Validate date/time logic
+      if (form.date && form.endDate && form.multiDay) {
+        if (form.endDate < form.date) {
+          errors.endDate = "Data zakończenia nie może być wcześniejsza niż data rozpoczęcia";
+        }
+      }
+      if (!form.allDay && form.startTime && form.endTime && !errors.startTime && !errors.endTime) {
+        const sameDay = !form.multiDay || (form.date === form.endDate);
+        if (sameDay && form.endTime <= form.startTime) {
+          errors.endTime = "Godzina zakończenia musi być późniejsza niż godzina rozpoczęcia";
+        }
+      }
+
       if (Object.keys(errors).length > 0) {
         setFormErrors(errors);
         return;
@@ -1387,81 +1490,50 @@ const Calendar = () => {
       const endISO = toLocalDateTimeISO(parsedEndDate || parsedDate, eh, em);
 
       if (editEvent) {
-        // Edit existing event
-        const updatedEvent = {
-          ...editEvent.event,
-          title: form.title,
-          description: form.description,
-          date: parsedDate,
-          endDate: parsedEndDate,
-          allDay: form.allDay,
-          isDeadline: form.isDeadline,
-          startHour: sh, startMin: sm,
-          endHour: eh, endMin: em,
-          tags: form.tags,
-          customTags: form.customTags,
-          docTags: form.docTags,
-          regularTags: form.docTags || [],
-          recurrent: form.recurrent,
-          recurrenceType: form.recurrenceType,
-          customInterval: form.customInterval,
-          customUnit: form.customUnit,
-          customDays: [...form.customDays],
-          colorId: form.colorId,
-        };
-
         if (editEvent.event.backendId) {
+          // If part of series, ask user about scope before saving
+          if (editEvent.event.isPartOfSeries) {
+            setPendingSave({ startISO, endISO });
+            setScopeAction({ type: "edit", event: editEvent.event, occurrenceDate: editEvent.occurrenceDate });
+            return;
+          }
+
           const allTags = [...form.tags, ...(form.customTags || [])].filter(t => t !== "deadline");
           const saveRegularTags = form.docTags || [];
-          const res = await editEventApi(editEvent.event.backendId, form.title, form.description, allTags, saveRegularTags, startISO, endISO, form.colorId, form.isDeadline);
-          if (res.errorCode && res.errorCode !== "") return;
-        }
+          const recurrenceRule = buildRecurrenceRule(form);
 
-        setEvents(prev => prev.map(e => e.id === editEvent.event.id ? updatedEvent : e));
-        setSidebar(s => {
-          if (!s) return null;
-          const dayEvs = getEventsForDay(
-            events.map(e => e.id === editEvent.event.id ? updatedEvent : e),
-            s.date
-          );
-          return dayEvs.length ? { ...s, events: dayEvs } : null;
-        });
+          if (recurrenceRule && !editEvent.event.isPartOfSeries) {
+            // Converting single event to recurring: delete old, create new series
+            const delRes = await deleteEventApi(editEvent.event.backendId);
+            if (delRes.errorCode && delRes.errorCode !== "") return;
+            const addRes = await addEvent(form.title, form.description, allTags, saveRegularTags, startISO, endISO, form.colorId, form.isDeadline, recurrenceRule);
+            if (addRes.errorCode && addRes.errorCode !== "") return;
+          } else {
+            const res = await editEventApi(editEvent.event.backendId, form.title, form.description, allTags, saveRegularTags, startISO, endISO, form.colorId, form.isDeadline);
+            if (res.errorCode && res.errorCode !== "") return;
+          }
+          await refreshEvents();
+        }
+        setSidebar(null);
         setEditEvent(null);
       } else {
         // Add new event
         const allTags = [...form.tags, ...(form.customTags || [])].filter(t => t !== "deadline");
         const saveRegularTags = form.docTags || [];
-        const res = await addEvent(form.title, form.description, allTags, saveRegularTags, startISO, endISO, form.colorId, form.isDeadline);
-        if (res.errorCode && res.errorCode !== "") return;
+        const recurrenceRule = buildRecurrenceRule(form);
 
-        const backendEv = res.event;
-        const newEvent = {
-          id: backendEv ? `backend-${backendEv.id}` : Date.now(),
-          backendId: backendEv ? backendEv.id : undefined,
-          title: form.title,
-          description: form.description,
-          date: parsedDate,
-          endDate: parsedEndDate,
-          allDay: form.allDay,
-          isDeadline: form.isDeadline,
-          startHour: sh, startMin: sm,
-          endHour: eh, endMin: em,
-          tags: form.tags,
-          customTags: form.customTags,
-          docTags: form.docTags,
-          regularTags: form.docTags || [],
-          recurrent: form.recurrent,
-          recurrenceType: form.recurrenceType,
-          customInterval: form.customInterval,
-          customUnit: form.customUnit,
-          customDays: [...form.customDays],
-          colorId: form.colorId,
-        };
-        setEvents(prev => {
-          const updated = [...prev, newEvent];
-          setSidebar({ date: parsedDate, events: getEventsForDay(updated, parsedDate) });
-          return updated;
-        });
+        // If recurring event has tags, ask user about tag scope
+        if (recurrenceRule && allTags.length > 0) {
+          setTagScopePopup({
+            allTags, saveRegularTags, recurrenceRule, startISO, endISO,
+            parsedDate, parsedEndDate, sh, sm, eh, em,
+          });
+          return;
+        }
+
+        const res = await addEvent(form.title, form.description, allTags, saveRegularTags, startISO, endISO, form.colorId, form.isDeadline, recurrenceRule);
+        if (res.errorCode && res.errorCode !== "") return;
+        await refreshEvents();
       }
 
       setForm({ ...defaultFormState });
@@ -1499,6 +1571,7 @@ const Calendar = () => {
             value={form.title}
             onChange={e => { setForm(f => ({ ...f, title: e.target.value })); setFormErrors(e => ({ ...e, title: false })); }}
           />
+          {formErrors.title && <FieldError>{formErrors.title}</FieldError>}
         </FormGroup>
 
         <FormGroup>
@@ -1520,6 +1593,7 @@ const Calendar = () => {
             value={form.date}
             onChange={e => { setForm(f => ({ ...f, date: e.target.value })); setFormErrors(e => ({ ...e, date: false })); }}
           />
+          {formErrors.date && <FieldError>{formErrors.date}</FieldError>}
         </FormGroup>
 
         <FormGroup>
@@ -1540,6 +1614,7 @@ const Calendar = () => {
               value={form.endDate}
               onChange={e => { setForm(f => ({ ...f, endDate: e.target.value })); setFormErrors(e => ({ ...e, endDate: false })); }}
             />
+            {formErrors.endDate && <FieldError>{formErrors.endDate}</FieldError>}
           </>)}
         </FormGroup>
 
@@ -1586,6 +1661,7 @@ const Calendar = () => {
                 }}
               />
             </Row2>
+            {(formErrors.startTime || formErrors.endTime) && <FieldError>{formErrors.startTime || formErrors.endTime}</FieldError>}
           </FormGroup>
         )}
 
@@ -1746,6 +1822,49 @@ const Calendar = () => {
                   )}
                 </>
               )}
+              <RecurrenceEndSection>
+                <span style={{ fontSize: 12, color: theme.colors.textMuted, marginBottom: 4 }}>Kończy się</span>
+                <RecurrenceEndOptions>
+                  <RecurrenceEndOption
+                    $active={form.recurrenceEndType === "never"}
+                    onClick={() => setForm(f => ({ ...f, recurrenceEndType: "never" }))}
+                  >
+                    Nigdy
+                  </RecurrenceEndOption>
+                  <RecurrenceEndOption
+                    $active={form.recurrenceEndType === "date"}
+                    onClick={() => setForm(f => ({ ...f, recurrenceEndType: "date" }))}
+                  >
+                    W dniu
+                  </RecurrenceEndOption>
+                  <RecurrenceEndOption
+                    $active={form.recurrenceEndType === "after"}
+                    onClick={() => setForm(f => ({ ...f, recurrenceEndType: "after" }))}
+                  >
+                    Po
+                  </RecurrenceEndOption>
+                </RecurrenceEndOptions>
+                {form.recurrenceEndType === "date" && (
+                  <SmallInput
+                    as="input"
+                    type="date"
+                    value={form.recurrenceEndDate}
+                    onChange={e => setForm(f => ({ ...f, recurrenceEndDate: e.target.value }))}
+                    style={{ width: "100%", marginTop: 6, textAlign: "left" }}
+                  />
+                )}
+                {form.recurrenceEndType === "after" && (
+                  <CustomRecurrenceRow style={{ marginTop: 6 }}>
+                    <SmallInput
+                      type="number"
+                      min={1}
+                      value={form.recurrenceOccurrences}
+                      onChange={e => setForm(f => ({ ...f, recurrenceOccurrences: Math.max(1, parseInt(e.target.value) || 1) }))}
+                    />
+                    <span style={{ fontSize: 12, color: theme.colors.textMuted }}>wystąpień</span>
+                  </CustomRecurrenceRow>
+                )}
+              </RecurrenceEndSection>
             </>
           )}
         </FormGroup>
@@ -1761,7 +1880,13 @@ const Calendar = () => {
         </label>
 
         <PopupActions>
-          {editEvent && <DeleteBtn onClick={() => setConfirmDelete(editEvent)}>Usuń</DeleteBtn>}
+          {editEvent && <DeleteBtn onClick={() => {
+            if (editEvent.event.isPartOfSeries) {
+              setScopeAction({ type: "delete", event: editEvent.event, occurrenceDate: editEvent.occurrenceDate });
+            } else {
+              setConfirmDelete({ event: editEvent.event, occurrenceDate: editEvent.occurrenceDate });
+            }
+          }}>Usuń</DeleteBtn>}
           <CancelBtn onClick={handleClose}>Anuluj</CancelBtn>
           <SaveBtn onClick={handleSave}>{editEvent ? "Zapisz" : "Dodaj event"}</SaveBtn>
         </PopupActions>
@@ -1949,15 +2074,29 @@ const Calendar = () => {
         {confirmDelete && (
           <ScopeOverlay onClick={(e) => e.target === e.currentTarget && setConfirmDelete(null)}>
             <ScopeBox>
-              <ScopeTitle>Czy na pewno chcesz usunąć to wydarzenie?</ScopeTitle>
+              <ScopeTitle>
+                {confirmDelete.scope === "all"
+                  ? "Czy na pewno chcesz usunąć wszystkie wystąpienia?"
+                  : "Czy na pewno chcesz usunąć to wydarzenie?"}
+              </ScopeTitle>
               <ScopeBtn
-                onClick={() => {
-                  const ev = confirmDelete;
-                  handleDeleteClick(ev.event, ev.occurrenceDate);
+                onClick={async () => {
+                  const { event: ev, scope } = confirmDelete;
+                  if (ev.backendId) {
+                    const res = scope === "all"
+                      ? await deleteAllInSeriesApi(ev.backendId)
+                      : await deleteEventApi(ev.backendId);
+                    if (res.errorCode && res.errorCode !== "") {
+                      setConfirmDelete(null);
+                      return;
+                    }
+                  }
+                  await refreshEvents();
                   setConfirmDelete(null);
                   setEditEvent(null);
                   setForm({ ...defaultFormState });
                   setPopup(false);
+                  setSidebar(null);
                 }}
                 style={{ color: "rgb(226, 75, 74)", fontWeight: 600, textAlign: "center" }}
               >
@@ -1979,10 +2118,34 @@ const Calendar = () => {
               <ScopeBtn onClick={() => handleScopeChoice("this")}>
                 Tylko to wystąpienie
               </ScopeBtn>
+              {scopeAction.type === "edit" && (
+                <ScopeBtn onClick={() => handleScopeChoice("thisAndFollowing")}>
+                  To i przyszłe wydarzenia
+                </ScopeBtn>
+              )}
               <ScopeBtn onClick={() => handleScopeChoice("all")}>
-                {scopeAction.type === "edit" ? "Wszystkie wystąpienia" : "Wszystkie wystąpienia"}
+                Wszystkie wystąpienia
               </ScopeBtn>
-              <CancelBtn onClick={() => setScopeAction(null)} style={{ width: "100%", marginTop: 4 }}>
+              <CancelBtn onClick={() => { setScopeAction(null); setPendingSave(null); }} style={{ width: "100%", marginTop: 4 }}>
+                Anuluj
+              </CancelBtn>
+            </ScopeBox>
+          </ScopeOverlay>
+        )}
+        {tagScopePopup && (
+          <ScopeOverlay onClick={(e) => e.target === e.currentTarget && setTagScopePopup(null)}>
+            <ScopeBox>
+              <ScopeTitle>Przypisanie tagów</ScopeTitle>
+              <p style={{ fontSize: 13, color: theme.colors.textMuted, margin: "0 0 12px", textAlign: "center" }}>
+                Czy tagi mają być przypisane do wszystkich wystąpień w serii, czy tylko do tego wydarzenia?
+              </p>
+              <ScopeBtn onClick={() => handleTagScopeChoice("all")}>
+                Wszystkie wystąpienia
+              </ScopeBtn>
+              <ScopeBtn onClick={() => handleTagScopeChoice("this")}>
+                Tylko to wydarzenie
+              </ScopeBtn>
+              <CancelBtn onClick={() => setTagScopePopup(null)} style={{ width: "100%", marginTop: 4 }}>
                 Anuluj
               </CancelBtn>
             </ScopeBox>
