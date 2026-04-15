@@ -43,6 +43,7 @@ function App() {
           <Route path="/learning/set/:setId" element={<FlashcardsPage />} />
           <Route path="/learning/fast/:setId" element={<FastLearningPage />} />
           <Route path="/learning/fsrs/:setId" element={<FSRSLearningPage />} />
+          <Route path="/learning/trash" element={<FlashcardsPage />} />
         </Routes>
       </BrowserRouter>
     </>

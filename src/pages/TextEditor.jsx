@@ -48,7 +48,7 @@ const StyledHeader = styled.div`
 
 const StyledTitleInput = styled.input`
   width:65%;
-  padding:20px 0 10px 0;
+  padding: 10px 0 10px 0;
   margin: 0;
   border:none;
   font-size: 3rem;
@@ -62,7 +62,7 @@ const StyledTitleInput = styled.input`
   }
   @media(max-width:768px){
     width:100%;
-    padding:0 10px;
+    padding: 35px 10px 10px 10px;
   }
 `
 
@@ -264,23 +264,40 @@ const ContentContainer = styled.div`
 }
 `
 
+const TopControlsWrapper = styled.div`
+  width: 65%;
+  display: flex;
+  align-items: center;
+  padding-top: ${({ $collapsed }) => $collapsed ? "15px" : "35px"};
+  transition: padding 0.35s ease;
+  z-index: 11;
+  
+  @media(max-width: 768px) {
+    width: 100%;
+    padding: 15px 10px 0 10px;
+  }
+`
+
 const ReturnButton = styled.div`
-    position:absolute;
-    top: ${({ $collapsed }) => $collapsed ? "30px" : "45px"};
-    left:calc((100% - 65%) / 2 - 35px);
-    z-index:11;
-    display:flex;
-    align-items:center;
-    cursor:pointer;
-    transition: top 0.35s ease;
-    svg{
-        height:24px;
-        width:24px;
-        color:${({ theme }) => theme.colors.dark};
-    }
-    @media(max-width:768px){
-        left:10px;
-    }
+  display:flex;
+  align-items:center;
+  cursor:pointer;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors?.darkGrey || '#666'};
+  transition: color 0.2s;
+  user-select: none;
+  -webkit-user-select: none;
+  
+  &:hover {
+      color: ${({ theme }) => theme.colors?.text || '#000'};
+  }
+  
+  svg {
+      height: 20px;
+      width: 20px;
+      margin-right: 8px;
+  }
 `
 
 const CollapsingSection = styled.div`
@@ -714,11 +731,16 @@ const TextEditor = () => {
                 Stwórz fiszki AI
               </FlashcardToggleButton>
             </div>
-            <ReturnButton $collapsed={isScrolled} onClick={() => history.back()}>
-              <svg fill="currentColor" viewBox="0 0 16 16">
-                <path fillRule="evenodd" d="M12 8a.5.5 0 0 1-.5.5H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5a.5.5 0 0 1 .5.5" />
-              </svg>
-            </ReturnButton>
+
+            <TopControlsWrapper $collapsed={isScrolled}>
+                <ReturnButton onClick={() => history.back()}>
+                  <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                    <path fillRule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z" />
+                  </svg>
+                  Powrót
+                </ReturnButton>
+            </TopControlsWrapper>
+
             <FlashcardCreatorSidebar
               isOpen={isSidebarOpen}
               onClose={() => setIsSidebarOpen(false)}
