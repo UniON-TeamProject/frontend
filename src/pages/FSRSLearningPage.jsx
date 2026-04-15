@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
-import { getFsrsCards, sendFsrsAnswer, editCard } from "../api";
+import { getFsrsCards, sendFsrsAnswer, editCard, getCardDues } from "../api";
 import { getToken } from "../token";
 import SubmitButton from "../components/atoms/SubmitButton";
 import Input from "../components/atoms/Input";
@@ -135,6 +135,7 @@ const SeeAnswerHint = styled.div`
 const CardBack = styled(CardFace)` 
   transform: rotateY(180deg); 
   background: white; 
+  overflow: hidden; 
 `;
 
 const FlipBackButton = styled.button`
@@ -214,19 +215,19 @@ const PillDivider = styled.div`
 const RatingScaleContainer = styled.div`
   display: flex; 
   justify-content: space-between; 
-  align-items: center; 
+  align-items: flex-start; 
   position: absolute; 
-  bottom: 50px; 
+  bottom: 40px; 
   left: 80px; 
   right: 80px;
 
   &::before { 
     content: ''; 
     position: absolute; 
-    top: 12px; 
-    left: 0; 
-    right: 0; 
-    height: 3px; 
+    top: 13px; 
+    left: 20px; 
+    right: 20px; 
+    height: 3px;
     background: #e0e0e0; 
     z-index: 0; 
     border-radius: 2px;
@@ -240,20 +241,23 @@ const RatingNode = styled.div`
   cursor: pointer; 
   z-index: 1; 
   transition: transform 0.2s; 
+  width: 80px;
 
   &:hover { 
-    transform: scale(1.15); 
+    transform: scale(1.05); 
   } 
 `;
 
 const NodeCircle = styled.div` 
-  width: 26px; 
-  height: 26px; 
+  width: 28px; 
+  height: 28px; 
   border-radius: 50%; 
-  background-color: white; 
-  margin-bottom: 12px; 
-  border: 4px solid ${(props) => props.$color}; 
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+  background-color: ${(props) => props.$color}; 
+  margin-bottom: 8px; 
+  position: relative;
+  z-index: 2;
+  transition: box-shadow 0.3s ease;
+  box-shadow: ${(props) => props.$isHovered ? `0 0 25px 12px ${props.$color}90` : 'none'};
 `;
 
 const NodeLabel = styled.span` 
@@ -386,6 +390,13 @@ const CheckboxContainer = styled.label`
   }
 `;
 
+const NodeTime = styled.span`
+  font-size: 13px;
+  font-weight: 500;
+  color: #aaa;
+  height: 15px;
+`;
+
 export default function FsrsLearningPage() {
   const { setId } = useParams();
   const navigate = useNavigate();
@@ -406,6 +417,10 @@ export default function FsrsLearningPage() {
   const [modalSuccess, setModalSuccess] = useState("");
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
 
+  const [cardDues, setCardDues] = useState(null);
+
+  const [hoveredRating, setHoveredRating] = useState(null);
+
   useEffect(() => {
     if (!getToken()) { navigate("/", { replace: true }); return; }
     const fetchCards = async () => {
@@ -417,6 +432,19 @@ export default function FsrsLearningPage() {
     };
     fetchCards();
   }, [setId]);
+
+  useEffect(() => {
+    if (cards.length > 0 && currentIndex < cards.length) {
+      const fetchDues = async () => {
+        setCardDues(null);
+        const res = await getCardDues(cards[currentIndex].id);
+        if (!res.errorCode) {
+          setCardDues(res.data);
+        }
+      };
+      fetchDues();
+    }
+  }, [currentIndex, cards]);
 
   const handleRating = async (ratingValue, e) => {
     e.stopPropagation();
@@ -457,16 +485,48 @@ export default function FsrsLearningPage() {
   };
 
   const handleConfirmExit = () => {
-    e.preventDefault();
     if (rememberExitChoice) {
       localStorage.setItem("skipExitModal", "true");
     }
     navigate(`/learning/set/${setId}`);
   };
 
+  const currentCard = cards[currentIndex];
+
+
+  const openInfoModal = async (e) => {
+    e.stopPropagation();
+    setIsInfoModalOpen(true);
+    setCardDues(null);
+
+    const res = await getCardDues(cards[currentIndex].id);
+    if (!res.errorCode) {
+        setCardDues(res.data);
+    } else {
+        setCardDues("Błąd pobierania danych");
+    }
+  };
+
+  const formatDueTime = (timeStr) => {
+    if (!timeStr) return "";
+    const match = timeStr.match(/(\d+)\s*dni\s*(\d+)\s*hr\s*(\d+)\s*min/);
+    if (!match) return timeStr;
+
+    const d = parseInt(match[1], 10);
+    const h = parseInt(match[2], 10);
+    const m = parseInt(match[3], 10);
+
+    if (d > 0) return d === 1 ? "1 dzień" : `${d} dni`;
+    if (h > 0) return h === 1 ? "1 godz." : `${h} godz.`;
+    if (m > 0) return `${m} min`;
+    return "< 1 min";
+  };
+
+
+
+
   if (isLoading) return <PageContainer><h3>Pobieram powtórki na dziś...</h3></PageContainer>;
   
-  // LOGIKA ZAKOŃCZENIA SESJI FSRS - ZAWSZE ŁAPIE 0 FISZEK ORAZ ZROBIENIE WSZYSTKICH!
   if (currentIndex >= cards.length || cards.length === 0) {
       return (
         <PageContainer>
@@ -480,7 +540,7 @@ export default function FsrsLearningPage() {
             <EndScreenOverlay>
               <EndScreenModal>
                 <h2>To wszystko na dziś!</h2>
-                <p>{cards.length === 0 ? "Nie masz na dziś zaplanowanych powtórek z tego zestawu. Wróć jutro!" : "Wszystko zrobione! Wróć jutro."}</p>
+                <p>{cards.length === 0 ? "Wróć niedługo po nowe powtórki!" : "Wszystko zrobione! Wróć niedługo po nowe powtórki!."}</p>
                 <EndScreenButton type="button" onClick={() => navigate(`/learning/set/${setId}`)}>
                   Wróć do zestawu
                 </EndScreenButton>
@@ -489,8 +549,6 @@ export default function FsrsLearningPage() {
         </PageContainer>
       );
   }
-
-  const currentCard = cards[currentIndex];
 
   return (
     <PageContainer>
@@ -509,37 +567,57 @@ export default function FsrsLearningPage() {
           <CardWrapper $isFlipped={isFlipped} onClick={() => { if (!isFlipped) setIsFlipped(true); }}>
             
             <CardFace>
-              <div className="content">{currentCard.contentFirstSide}</div>
+              <div className="content" dangerouslySetInnerHTML={{ __html: currentCard.contentFirstSide }} />
               <SeeAnswerHint>Kliknij, aby zobaczyć odpowiedź</SeeAnswerHint>
             </CardFace>
 
-            <CardBack>
+            <CardBack $hoveredRating={hoveredRating}>
               <FlipBackButton type="button" onClick={(e) => { e.stopPropagation(); setIsFlipped(false); }} title="Odwróć z powrotem">
                 <svg fill="currentColor" viewBox="0 0 16 16"><path fillRule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2v1z"/><path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466z"/></svg>
               </FlipBackButton>
 
-              <div className="content" style={{marginBottom: '60px'}}>{currentCard.contentFlipSide}</div>
+              <div className="content" style={{marginBottom: '60px'}} dangerouslySetInnerHTML={{ __html: currentCard.contentFlipSide}} />
 
               {isFlipped && (
                 <RatingScaleContainer onClick={e => e.stopPropagation()}>
-                  <RatingNode onClick={(e) => handleRating(1, e)}>
-                    <NodeCircle $color="#e74c3c" />
+                  <RatingNode 
+                    onClick={(e) => handleRating(1, e)}
+                    onMouseEnter={() => setHoveredRating(1)}
+                    onMouseLeave={() => setHoveredRating(null)}
+                  >
+                    <NodeCircle $color="#e74c3c" $isHovered={hoveredRating === 1} />
                     <NodeLabel>Trudne</NodeLabel>
+                    <NodeTime>{cardDues ? formatDueTime(cardDues.again) : "..."}</NodeTime>
                   </RatingNode>
 
-                  <RatingNode onClick={(e) => handleRating(2, e)}>
-                    <NodeCircle $color="#e67e22" />
+                  <RatingNode 
+                    onClick={(e) => handleRating(2, e)}
+                    onMouseEnter={() => setHoveredRating(2)}
+                    onMouseLeave={() => setHoveredRating(null)}
+                  >
+                    <NodeCircle $color="#e67e22" $isHovered={hoveredRating === 2} />
                     <NodeLabel>Średnie</NodeLabel>
+                    <NodeTime>{cardDues ? formatDueTime(cardDues.hard) : "..."}</NodeTime>
                   </RatingNode>
 
-                  <RatingNode onClick={(e) => handleRating(3, e)}>
-                    <NodeCircle $color="#f1c40f" />
-                    <NodeLabel>Dobre</NodeLabel>
-                  </RatingNode>
-
-                  <RatingNode onClick={(e) => handleRating(4, e)}>
-                    <NodeCircle $color="#2ecc71" />
+                  <RatingNode 
+                    onClick={(e) => handleRating(3, e)}
+                    onMouseEnter={() => setHoveredRating(3)}
+                    onMouseLeave={() => setHoveredRating(null)}
+                  >
+                    <NodeCircle $color="#f1c40f" $isHovered={hoveredRating === 3} />
                     <NodeLabel>Łatwe</NodeLabel>
+                    <NodeTime>{cardDues ? formatDueTime(cardDues.good) : "..."}</NodeTime>
+                  </RatingNode>
+
+                  <RatingNode 
+                    onClick={(e) => handleRating(4, e)}
+                    onMouseEnter={() => setHoveredRating(4)}
+                    onMouseLeave={() => setHoveredRating(null)}
+                  >
+                    <NodeCircle $color="#2ecc71" $isHovered={hoveredRating === 4} />
+                    <NodeLabel>Umiem!</NodeLabel>
+                    <NodeTime>{cardDues ? formatDueTime(cardDues.easy) : "..."}</NodeTime>
                   </RatingNode>
                 </RatingScaleContainer>
               )}
@@ -554,7 +632,7 @@ export default function FsrsLearningPage() {
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
           </PillButton>
           <PillDivider />
-          <PillButton type="button" onClick={(e) => { e.stopPropagation(); setIsInfoModalOpen(true); }} title="Tagi / Informacje">
+          <PillButton type="button" onClick={openInfoModal} title="Tagi / Informacje">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           </PillButton>
         </PillMenu>
@@ -638,6 +716,13 @@ export default function FsrsLearningPage() {
                     )}
                   </div>
                   <p style={{ fontSize: '0.85rem', color: '#999', marginTop: '20px' }}>Możesz zmienić tagi używając przycisku edycji.</p>
+
+                  <div style={{ marginTop: '20px', padding: '15px', background: '#f4f5f7', borderRadius: '10px', fontSize: '0.9rem', textAlign: 'left' }}>
+                    <strong style={{ color: '#333' }}>Kiedy ta fiszka wróci? (Symulacja ocen)</strong>
+                    <p style={{ marginTop: '10px', color: '#666', fontFamily: 'monospace', wordWrap: 'break-word' }}>
+                        {cardDues === null ? "Obliczam harmonogram..." : JSON.stringify(cardDues, null, 2)}
+                    </p>
+                </div>
               </StyledPopup>
           </>
       )}

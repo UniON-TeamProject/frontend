@@ -2000,7 +2000,6 @@ export async function hardDeleteFlashcardSet(setId) {
   }
 }
 
-// SYMULACJA CZYSZCZENIA KOSZA ??
 export async function clearFlashcardSetsTrash(setIdsArray) {
   const promises = setIdsArray.map(id => hardDeleteFlashcardSet(id));
   const results = await Promise.all(promises);
@@ -2052,4 +2051,48 @@ export async function getFlashcardSetStats(setId) {
     } catch {
         return { stats: 0, errorCode: "CONNECTION_ERROR" };
     }
+}
+
+export async function getCardDues(cardId) {
+  const token = getToken();
+  if (!token) return { data: null, errorCode: "TOKEN_UNDEFINED" };
+
+  try {
+    const resp = await fetch(`${API_HOST}/getCardsDues/${cardId}`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return { data: null, ...authErr };
+
+    if (resp.ok) {
+      const data = await resp.json();
+      return { data, errorCode: "" };
+    }
+    return { data: null, errorCode: "FETCH_ERROR" };
+  } catch {
+    return { data: null, errorCode: "CONNECTION_ERROR" };
+  }
+}
+
+export async function getFolderItemsCount(folderId) {
+  const token = getToken();
+  if (!token) return { count: 0, errorCode: "TOKEN_UNDEFINED" };
+
+  try {
+    const resp = await fetch(`${API_HOST}/folders/countFiles/${folderId}`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return { count: 0, ...authErr };
+
+    if (resp.ok) {
+      const count = await resp.json();
+      return { count, errorCode: "" };
+    }
+    return { count: 0, errorCode: "FETCH_ERROR" };
+  } catch {
+    return { count: 0, errorCode: "CONNECTION_ERROR" };
+  }
 }

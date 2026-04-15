@@ -2,7 +2,7 @@ import styled from 'styled-components';
 import React, { useState, useEffect } from 'react';
 import SubmitButton from '../components/atoms/SubmitButton'
 import Text from '../components/atoms/Text'
-import { addNote, deleteNote, clearTrash, restoreNote, getFolderSuggestedTags, addFolder, deleteFolder, restoreFolder, clearFolderTrash, renameNote, renameFolder, getAllDeletedNotes, getAllDeletedFolders, resolveFolderByPath, getNoteTags, addNoteTag, removeNoteTag, getNoteSuggestedTags, getFolderTags, addFolderTag, removeFolderTag, moveNote, moveFolder, getAllFolders, getAllNotes } from '../api';
+import { addNote, deleteNote, clearTrash, restoreNote, getFolderSuggestedTags, addFolder, deleteFolder, restoreFolder, clearFolderTrash, renameNote, renameFolder, getAllDeletedNotes, getAllDeletedFolders, resolveFolderByPath, getNoteTags, addNoteTag, removeNoteTag, getNoteSuggestedTags, getFolderTags, addFolderTag, removeFolderTag, moveNote, moveFolder, getAllFolders, getAllNotes, getFolderItemsCount } from '../api';
 import { useNavigate, useParams } from 'react-router-dom'
 import { getToken, parseJwt } from '../token'
 import Input from '../components/atoms/Input';
@@ -789,6 +789,8 @@ const Notes = () => {
 
     const [isSuccess, setIsSuccess] = useState(false);
 
+    const [folderCounts, setFolderCounts] = useState({});
+
     //czytamy z localstorage ostatni wybor i zapamietujemy
     const [sortOption, setSortOption] = useState(() => {
         return localStorage.getItem("notesSortOption") || "recent";
@@ -1196,6 +1198,26 @@ const Notes = () => {
         fetchForCurrentUrl();
     }, [urlPath])
 
+    useEffect(() => {
+        const fetchCounts = async () => {
+            const counts = {};
+            const promises = subFolders.map(async (folder) => {
+                const res = await getFolderItemsCount(folder.id);
+                if (!res.errorCode) {
+                    counts[folder.id] = res.count;
+                }
+            });
+            
+            await Promise.all(promises);
+            setFolderCounts(counts);
+        };
+
+        if (subFolders && subFolders.length > 0) {
+            fetchCounts();
+        } else {
+            setFolderCounts({});
+        }
+    }, [subFolders]);
 
     const getVisualSortedItems = (items) => {
         const sorted = [...items];
@@ -1223,13 +1245,13 @@ const Notes = () => {
     };
 
     const getElementsCountWord = (count) => {
-        if (count === 1) return 'element';
+        if (count === 1) return 'plik';
         const lastDigit = count % 10;
         const lastTwoDigits = count % 100;
         if (lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 12 || lastTwoDigits > 14)) {
-            return 'elementy';
+            return 'pliki';
         }
-        return 'elementów';
+        return 'plików';
     };
 
     return (
@@ -1423,9 +1445,8 @@ const Notes = () => {
                         </div>
                     )}
                     {getVisualSortedItems(filterByTags(subFolders.filter(f => f.name.toLowerCase().includes(searchQuery.toLowerCase())))).map((folder) => {
-                        const totalItems = folder.itemsCount; 
+                        const totalItems = folderCounts[folder.id];
 
-                        // TU TRZEBA DODAĆ COUNTERA OD BACKENDU !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         return (
                             <StyledItem
                                 key={`folder-${folder.id}`}
@@ -1438,7 +1459,7 @@ const Notes = () => {
                                 </StyledFolderImage>
                                 <StyledItemHeaderWrapper>
                                     <div onClick={() => handleOpenFolder(folder)} style={{ cursor: 'pointer' }}>
-                                        <Text as="h4" bold="true" text={folder.name} style={{ marginBottom: '4px' }} />
+                                        <Text as="h4" bold="true" text={folder.name} style={{ marginBottom: '4px', fontSize: '1.05rem' }} />
                                         
                                         {totalItems !== undefined && (
                                             <Text 
@@ -1560,7 +1581,7 @@ const Notes = () => {
                                 </StyledNoteImage>
                                 <StyledItemHeaderWrapper>
                                     <div onClick={() => { if (!isTrashView) navigate(`/note/${d.id}`) }} style={{ cursor: 'pointer' }}>
-                                        <Text as="h4" bold="true" text={d.name} style={{ marginBottom: '10px' }} />
+                                        <Text as="h4" bold="true" text={d.name} style={{ marginBottom: '10px', fontSize: '1.05rem' }} />
                                     </div>
                                     
                                     <StyledItemHeader onClick={(e) => {
@@ -1738,7 +1759,7 @@ const Notes = () => {
                                     }}
                                 />
                             </div>
-                            <TagsContainer style={{ justifyContent: 'center', marginBottom: '30px' }}>
+                            <TagsContainer style={{ justifyContent: 'flex-start', marginBottom: '30px' }}>
                                 <p>Tagi: </p>
                                 {[...new Set([...suggestedTags, ...chosenTags])].map((tag, index) => {
                                     const isActive = chosenTags.includes(tag);

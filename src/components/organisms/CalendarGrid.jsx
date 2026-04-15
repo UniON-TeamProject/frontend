@@ -617,10 +617,10 @@ const AllDayEvent = styled.div`
   &:hover { filter: brightness(0.93); }
 `;
 
-const CalendarGrid = ({ view, currentDate, events, selectedDate = null, onDayClick }) => {
+const CalendarGrid = ({ view, currentDate, events, selectedDate = null, onDayClick, startHour = 0, endHour = 24, dashboardMode = false }) => {
   const [nowPos, setNowPos] = useState(() => {
     const now = new Date();
-    return now.getHours() * 60 + now.getMinutes();
+    return (now.getHours() - startHour) * 60 + now.getMinutes();
   });
   const weekBodyRef = useRef(null);
   const monthGridRef = useRef(null);
@@ -629,11 +629,11 @@ const CalendarGrid = ({ view, currentDate, events, selectedDate = null, onDayCli
   useEffect(() => {
     const update = () => {
       const now = new Date();
-      setNowPos(now.getHours() * 60 + now.getMinutes());
+      setNowPos((now.getHours() - startHour) * 60 + now.getMinutes());
     };
     const id = setInterval(update, 60000);
     return () => clearInterval(id);
-  }, []);
+  }, [startHour]);
 
   useEffect(() => {
     if (weekBodyRef.current) {
@@ -661,7 +661,7 @@ const CalendarGrid = ({ view, currentDate, events, selectedDate = null, onDayCli
   const renderWeekView = () => {
     const weekStart = getWeekStart(currentDate);
     const days = getWeekDays(weekStart);
-    const hours = Array.from({ length: 24 }, (_, i) => i);
+    const hours = Array.from({ length: endHour - startHour }, (_, i) => i + startHour);
     const nowDate = new Date();
     const isCurrentWeek = days.some(dd => isSameDay(dd, nowDate));
 
@@ -768,8 +768,21 @@ const CalendarGrid = ({ view, currentDate, events, selectedDate = null, onDayCli
                 {hours.map(h => <HourLine key={h} />)}
                 {isToday && isCurrentWeek && <NowLine $top={nowPos} />}
                 {dayEvs.map(ev => {
-                  const top = ev.startHour * 60 + ev.startMin;
-                  const height = Math.max(24, (ev.endHour * 60 + ev.endMin) - top);
+                  const topMins = ev.startHour * 60 + ev.startMin;
+                  const endMins = ev.endHour * 60 + ev.endMin;
+                  const widgetStart = startHour * 60;
+                  const widgetEnd = endHour * 60;
+
+                  if (endMins <= widgetStart || topMins >= widgetEnd) return null;
+
+                  const clampedStart = Math.max(widgetStart, Math.min(topMins, widgetEnd));
+                  const clampedEnd = Math.max(widgetStart, Math.min(endMins, widgetEnd));
+
+                  const top = clampedStart - widgetStart;
+                  const height = Math.max(24, clampedEnd - clampedStart);
+
+                  if (clampedEnd <= widgetStart || clampedStart >= widgetEnd) return null;
+                  
                   const { col, totalCols } = layout[ev.id] || { col: 0, totalCols: 1 };
                   const colW = 96 / totalCols;
                   const left = `${2 + col * colW}%`;
@@ -877,7 +890,7 @@ const CalendarGrid = ({ view, currentDate, events, selectedDate = null, onDayCli
                 const marginEnd = isEnd ? 6 : 0;
                 const leftCalc = `calc(${(startCol / 7) * 100}% + ${startCol > 0 ? `${(startCol * GAP) / 7}px` : "0px"} + ${marginStart}px)`;
                 const widthCalc = `calc(${(span / 7) * 100}% - ${((7 - span) * GAP) / 7}px - ${marginStart + marginEnd}px)`;
-                const topOffset = 36 + lane * 33;
+                const topOffset = 36 + lane * eventSlotHeight;
 
                 return (
                   <SpanningBar
@@ -886,10 +899,16 @@ const CalendarGrid = ({ view, currentDate, events, selectedDate = null, onDayCli
                     $dark={style.dark}
                     $isStart={isStart}
                     $isEnd={isEnd}
-                    style={{ left: leftCalc, width: widthCalc, top: `${topOffset}px` }}
+                    style={{ 
+                        left: leftCalc, 
+                        width: widthCalc, 
+                        top: `${topOffset}px`, 
+                        height: dashboardMode ? '6px' : '28px',
+                        padding: dashboardMode ? 0 : '1px 6px' 
+                    }}
                   >
-                    <SpanningBarTitle $dark={style.dark}>{ev.title}</SpanningBarTitle>
-                    {isEnd && icons.length > 0 && (
+                    {!dashboardMode && <SpanningBarTitle $dark={style.dark}>{ev.title}</SpanningBarTitle>}
+                    {!dashboardMode && isEnd && icons.length > 0 && (
                       <CellEventIcons>
                         {icons.slice(0, 2).map((ic, idx) => <span key={idx}>{ic}</span>)}
                         {icons.length > 2 && <span style={{ fontSize: 9, color: style.dark }}>…</span>}
@@ -915,14 +934,19 @@ const CalendarGrid = ({ view, currentDate, events, selectedDate = null, onDayCli
                 const cellPadding = compact ? 6 : 12;
                 const dateHeight = compact ? 17 : 23;
                 const availableForEvents = rowHeight - cellPadding - dateHeight - spanPadding;
-                const eventSlotHeight = 33;
-                const moreLabeHeight = 18;
+                const eventSlotHeight = dashboardMode ? 8 : 33;
+                const moreLabeHeight = dashboardMode ? 14 : 18;
                 const totalEventsCount = lanesOnDay.length + dayEvs.length;
                 const rawSlots = Math.floor(availableForEvents / eventSlotHeight);
                 const hasOverflow = totalEventsCount > rawSlots;
-                const MAX_TOTAL = Math.max(1, hasOverflow
-                  ? Math.floor((availableForEvents - moreLabeHeight) / eventSlotHeight)
-                  : rawSlots);
+                let MAX_TOTAL;
+                if (dashboardMode) {
+                    MAX_TOTAL = 2; 
+                } else {
+                    MAX_TOTAL = Math.max(1, hasOverflow
+                        ? Math.floor((availableForEvents - moreLabeHeight) / eventSlotHeight)
+                        : rawSlots);
+                }
                 const slotsUsedBySpanning = lanesOnDay.length;
                 const slotsForSingleDay = Math.max(0, MAX_TOTAL - slotsUsedBySpanning);
                 const visible = dayEvs.slice(0, slotsForSingleDay);
@@ -947,9 +971,19 @@ const CalendarGrid = ({ view, currentDate, events, selectedDate = null, onDayCli
                         const style = getEventStyle(ev);
                         const icons = (ev.tags || []).map(t => TAG_CONFIG[t]?.icon).filter(Boolean);
                         return (
-                          <CellEventBar key={ev.id} $bg={style.bg} $dark={style.dark}>
-                            <CellEventTitle $dark={style.dark}>{ev.title}</CellEventTitle>
-                            {icons.length > 0 && (
+                          <CellEventBar 
+                            key={ev.id} 
+                            $bg={style.bg} 
+                            $dark={style.dark} 
+                            style={{ 
+                                minHeight: dashboardMode ? '6px' : '28px',
+                                height: dashboardMode ? '6px' : 'auto', 
+                                padding: dashboardMode ? 0 : '1px 4px',
+                                marginBottom: dashboardMode ? '2px' : 0 
+                            }}
+                          >
+                            {!dashboardMode && <CellEventTitle $dark={style.dark}>{ev.title}</CellEventTitle>}
+                            {!dashboardMode && icons.length > 0 && (
                               <CellEventIcons>
                                 {icons.slice(0, 2).map((ic, idx) => <span key={idx}>{ic}</span>)}
                                 {icons.length > 2 && <span style={{ fontSize: 9, color: style.dark }}>…</span>}
@@ -958,7 +992,20 @@ const CalendarGrid = ({ view, currentDate, events, selectedDate = null, onDayCli
                           </CellEventBar>
                         );
                       })}
-                      {hiddenCount > 0 && <CellMore $today={isToday}>+{hiddenCount} więcej</CellMore>}
+                      
+                      {hiddenCount > 0 && (
+                        <div style={{
+                            textAlign: 'center',
+                            fontSize: dashboardMode ? '10px' : '12px',
+                            fontWeight: '700',
+                            color: '#8b948e', 
+                            marginTop: '1px',
+                            lineHeight: 1
+                        }}>
+                           {dashboardMode ? `+${hiddenCount}` : `+${hiddenCount} więcej`}
+                        </div>
+                      )}
+
                     </CellEvents>
                   </MonthCell>
                 );

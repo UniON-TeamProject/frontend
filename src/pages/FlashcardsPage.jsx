@@ -8,7 +8,8 @@ import {
     resetFlashcardSetProgress,
     getAllDeletedFlashcardSets, restoreFlashcardSet, hardDeleteFlashcardSet, clearFlashcardSetsTrash,
     addFlashcardTag, removeFlashcardTag,
-    addListOfCardsToSet
+    addListOfCardsToSet,
+    getFlashcardSetStats
 } from '../api';
 import { getToken } from '../token';
 import Flashcard from '../components/organisms/Flashcard';
@@ -751,6 +752,79 @@ const ActiveFilterBadge = styled.span`
     margin-left: 6px;
 `;
 
+const HelpIcon = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background-color: #e2e6ea;
+    color: #6c757d;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-left: 10px;
+
+    &:hover {
+        background-color: #ced4da;
+        color: #343a40;
+        transform: scale(1.1);
+    }
+`;
+
+const ModeCard = styled.div`
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+    text-align: left;
+
+    h3 {
+        margin-top: 0;
+        margin-bottom: 8px;
+        color: #212529;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1.1rem;
+    }
+
+    p {
+        margin: 0;
+        color: #495057;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+`;
+
+const CloseButton = styled.button`
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: #a0a0a0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    
+    &:hover {
+        color: #333;
+        transform: scale(1.1);
+    }
+    
+    svg {
+        width: 24px;
+        height: 24px;
+    }
+`;
+
 
 const StackedCardsIcon = () => (
     <svg viewBox="0 0 140 100" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
@@ -855,6 +929,11 @@ const FlashcardsPage = () => {
     const [bulkTargetSetId, setBulkTargetSetId] = useState("");
     const [bulkNewSetName, setBulkNewSetName] = useState("");
     const [bulkApplyTags, setBulkApplyTags] = useState(false);
+
+    const [isLearningInfoModalOpen, setIsLearningInfoModalOpen] = useState(false);
+
+    const [isResetConfirmModalOpen, setIsResetConfirmModalOpen] = useState(false);
+    const [pendingMode, setPendingMode] = useState(null); //fast lub fsrs
 
     const fetchData = async () => {
         setErrorMessage("");
@@ -1234,20 +1313,8 @@ const FlashcardsPage = () => {
         }
     };
 
-    const handleStartNewFastLearning = async (id) => {
+    const handleStartNewFastLearning = (id) => {
         setErrorMessage("");
-        
-        const res = await resetFlashcardSetProgress(id);
-        
-        if (res && res.errorCode) {
-            if (res.errorCode === "TOKEN_UNDEFINED") {
-                navigate("/", { replace: true });
-            } else {
-                setErrorMessage(res.message);
-            }
-            return;
-        }
-
         navigate(`/learning/fast/${id}`);
     };
 
@@ -1322,6 +1389,40 @@ const FlashcardsPage = () => {
             fetchData();
             setSuccessMessage("Skopiowano pomyślnie!");
             setTimeout(() => setSuccessMessage(""), 2000);
+        }
+    };
+
+    const handleModeSelection = async (mode) => {
+        setIsLearningMenuOpen(false);
+        setPendingMode(mode);
+
+        // sprawdzamy po statystykach czy sesja nauki trwa 
+        const res = await getFlashcardSetStats(currentSet.id);
+        
+        // jesli uzytkownik juz cos umie czyli learnedCards > 0, pytamy o reset
+        if (!res.errorCode && res.stats > 0) {
+            setIsResetConfirmModalOpen(true);
+        } else {
+            // jesli nie, po prostu wchodzimy do nauki
+            goToLearning(mode);
+        }
+    };
+
+    const goToLearning = (mode) => {
+        if (mode === 'fast') {
+            navigate(`/learning/fast/${currentSet.id}`);
+        } else {
+            navigate(`/learning/fsrs/${currentSet.id}`);
+        }
+    };
+
+    const handleResetAndStart = async () => {
+        const res = await resetFlashcardSetProgress(currentSet.id);
+        if (!res.errorCode) {
+            setIsResetConfirmModalOpen(false);
+            goToLearning(pendingMode);
+        } else {
+            setErrorMessage("Nie udało się zresetować zestawu.");
         }
     };
 
@@ -1558,7 +1659,7 @@ const FlashcardsPage = () => {
                                     Wznów ostatnią sesję (szybka nauka)
                                 </ActionBanner>
 
-                                <div style={{ position: 'relative' }}>
+                                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                                     <StartLearningButton onClick={(e) => { e.stopPropagation(); setIsLearningMenuOpen(!isLearningMenuOpen); }}>
                                         Rozpocznij naukę
                                         <svg style={{ marginLeft: '8px' }} width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
@@ -1566,40 +1667,56 @@ const FlashcardsPage = () => {
                                         </svg>
                                     </StartLearningButton>
 
+                                    <HelpIcon onClick={(e) => { e.stopPropagation(); setIsLearningInfoModalOpen(true); }} title="Jak działają tryby nauki?">
+                                        ?
+                                    </HelpIcon>
+
                                     {isLearningMenuOpen && (
                                         <StyledItemOptions style={{ top: 'calc(100% + 5px)', left: 'auto', right: '0', transform: 'none' }}>
-                                            
-                                            <StyledItemOption onClick={() => handleStartNewFastLearning(currentSet?.id)}>
+                                            <StyledItemOption onClick={() => handleModeSelection('fast')}>
                                                 Szybka nauka
                                             </StyledItemOption>
-                                            <StyledItemOption onClick={() => navigate(`/learning/fsrs/${currentSet?.id}`)}>
-                                                Trwała nauka (FSRS)
+                                            <StyledItemOption onClick={() => handleModeSelection('fsrs')}>
+                                                Trwała nauka
                                             </StyledItemOption>
                                         </StyledItemOptions>
                                     )}
                                 </div>
 
-                                <ToolbarButton 
-                                    className="outline" 
-                                    onClick={() => { setIsSelectMode(!isSelectMode); setSelectedCards([]); }}
-                                >
-                                    {isSelectMode ? "Anuluj zaznaczanie" : "Zaznacz fiszki"}
-                                </ToolbarButton>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginLeft: 'auto' }}>
+                                    
+                                    <ToolbarButton 
+                                        className="outline" 
+                                        disabled={!currentSet?.cards || currentSet.cards.length === 0}
+                                        onClick={() => { 
+                                            if (!currentSet?.cards || currentSet.cards.length === 0) return;
+                                            setIsSelectMode(!isSelectMode); 
+                                            setSelectedCards([]); 
+                                        }}
+                                        title={(!currentSet?.cards || currentSet.cards.length === 0) ? "Brak fiszek do zaznaczenia" : ""}
+                                    >
+                                        <svg fill="currentColor" viewBox="0 0 16 16" width="14" height="14" style={{ opacity: (!currentSet?.cards || currentSet.cards.length === 0) ? 0.5 : 1 }}>
+                                            <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z"/>
+                                            <path d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425z"/>
+                                        </svg>
+                                        {isSelectMode ? "Anuluj zaznaczanie" : "Zaznacz fiszki"}
+                                    </ToolbarButton>
 
-                                {currentSet?.cards && currentSet.cards.length > 0 && (
-                                    <SortSelectContainer style={{ marginLeft: 'auto' }}>
-                                        <SortSelect value={cardSortOption} onChange={e => setCardSortOption(e.target.value)}>
-                                            <option value="oldest">↑ Sortuj: Od najstarszych</option>
-                                            <option value="newest">↓ Sortuj: Od najnowszych</option>
-                                            <option value="alphabetical">↓ Sortuj: Alfabetycznie (A-Z)</option>
-                                        </SortSelect>
-                                        <SortIconWrapper>
-                                            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
-                                                <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
-                                            </svg>
-                                        </SortIconWrapper>
-                                    </SortSelectContainer>
-                                )}
+                                    {currentSet?.cards && currentSet.cards.length > 0 && (
+                                        <SortSelectContainer>
+                                            <SortSelect value={cardSortOption} onChange={e => setCardSortOption(e.target.value)}>
+                                                <option value="oldest">↑ Sortuj: Od najstarszych</option>
+                                                <option value="newest">↓ Sortuj: Od najnowszych</option>
+                                                <option value="alphabetical">↓ Sortuj: Alfabetycznie (A-Z)</option>
+                                            </SortSelect>
+                                            <SortIconWrapper>
+                                                <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                                                    <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+                                                </svg>
+                                            </SortIconWrapper>
+                                        </SortSelectContainer>
+                                    )}
+                                </div>
                             </SetHeaderControls>
                         )}
                     </>
@@ -1983,7 +2100,7 @@ const FlashcardsPage = () => {
                 {isSelectMode && selectedCards.length > 0 && (
                     <div style={{
                         position: 'fixed', bottom: '40px', left: '50%', transform: 'translateX(-50%)',
-                        backgroundColor: '#2c3e50', color: 'white', padding: '15px 30px',
+                        backgroundColor: 'white', color: 'rgb(112, 122, 115)', padding: '15px 30px',
                         borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '20px',
                         boxShadow: '0 10px 30px rgba(0,0,0,0.2)', zIndex: 1000
                     }}>
@@ -2111,6 +2228,74 @@ const FlashcardsPage = () => {
                                 </ModalButton>
                                 <ModalButton type="button" onClick={() => setIsConfirmingTrashClear(false)}>
                                     Anuluj
+                                </ModalButton>
+                            </div>
+                        </StyledPopup>
+                    </>
+                )}
+
+                {/* MODAL INFORMACYJNY O TRYBACH NAUKI */}
+                {isLearningInfoModalOpen && (
+                    <>
+                        <ModalOverlay onClick={() => setIsLearningInfoModalOpen(false)} />
+                        <StyledPopup onClick={e => e.stopPropagation()} style={{ textAlign: 'center', width: '650px' }}>
+                            <Text bold="true" as="h2" text="Jak chcesz się uczyć?" style={{ marginBottom: '25px' }} />
+                            
+                            <ModeCard>
+                                <h3>
+                                    Szybka nauka
+                                </h3>
+                                <p>
+                                    Idealna przed jutrzejszym kolokwium! Przeglądasz wszystkie fiszki w zestawie jedną po drugiej. Fiszki, których "nie umiesz", będą wracać na koniec kolejki, aż zaliczysz wszystkie.
+                                </p>
+                            </ModeCard>
+
+                            <ModeCard>
+                                <h3>
+                                    Trwała nauka (FSRS)
+                                </h3>
+                                <p>
+                                    Zbuduj swoją pamięć! Inteligentny algorytm sam decyduje, kiedy powinieneś powtórzyć daną fiszkę, tuż zanim zdążysz ją zapomnieć. <b>Oceniasz poziom trudności fiszki, a system optymalizuje Twój harmonogram nauki.</b>
+                                </p>
+                            </ModeCard>
+
+                            <div style={{ display: "flex", justifyContent: 'center', marginTop: "30px" }}>
+                                <ModalButton type="button" onClick={() => setIsLearningInfoModalOpen(false)}>
+                                    Rozumiem
+                                </ModalButton>
+                            </div>
+                        </StyledPopup>
+                    </>
+                )}
+
+                {/* RESET SESJI */}
+                {isResetConfirmModalOpen && (
+                    <>
+                        <ModalOverlay onClick={() => setIsResetConfirmModalOpen(false)} />
+                        <StyledPopup onClick={e => e.stopPropagation()} style={{ textAlign: 'center' }}>
+                            
+                            <CloseButton type="button" onClick={() => setIsResetConfirmModalOpen(false)} title="Zamknij">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </CloseButton>
+                            <Text bold="true" as="h2" text="Trwająca sesja" />
+                            <Text text="Masz już rozpoczętą sesję nauki w tym zestawie. Co chcesz zrobić?" style={{ margin: '20px 0 30px 0', color: '#666' }} />
+
+                            <div style={{ display: "flex", flexDirection: 'column', gap: "15px", alignItems: 'center' }}>
+                                <ModalButton 
+                                    type="button"
+                                    style={{ width: '85%', padding: '14px', fontSize: '1.05rem' }}
+                                    onClick={() => { setIsResetConfirmModalOpen(false); goToLearning(pendingMode); }} 
+                                >
+                                    Kontynuuj naukę
+                                </ModalButton>
+                                <ModalButton 
+                                    type="button"
+                                    style={{ width: '85%', padding: '14px', background: 'transparent', border: '2px solid #e74c3c', color: '#e74c3c', fontSize: '1.05rem' }}
+                                    onClick={handleResetAndStart}
+                                >
+                                    Zacznij od nowa (zresetuj postępy)
                                 </ModalButton>
                             </div>
                         </StyledPopup>

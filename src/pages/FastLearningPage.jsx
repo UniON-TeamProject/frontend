@@ -399,6 +399,44 @@ const CheckboxContainer = styled.label`
   }
 `;
 
+const PreviousButton = styled.button`
+  position: fixed;
+  left: 40px;
+  top: 46%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: 2px solid #e5e7eb; 
+  border-radius: 16px;
+  padding: 15px 25px;
+  font-size: 1rem;
+  font-weight: 650;
+  color: #777; 
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.2s;
+  z-index: 100;
+
+  &:hover {
+    transform: translateY(-50%) scale(1.05);
+    color: #222;
+    border-color: #ccc;
+    background: rgba(0,0,0,0.02); 
+  }
+
+  svg { width: 22px; height: 22px; }
+
+  @media (max-width: 1200px) {
+    position: static;
+    transform: none;
+    margin-bottom: 20px;
+    &:hover {
+      transform: scale(1.02);
+    }
+  }
+`;
+
 const shuffleArray = (array) => {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -415,6 +453,7 @@ export default function FastLearningPage() {
 
   const [cards, setCards] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [history, setHistory] = useState([]); 
   const [isFlipped, setIsFlipped] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [hoverSide, setHoverSide] = useState(null);
@@ -460,7 +499,10 @@ export default function FastLearningPage() {
     
     await sendFastLearningAnswer(currentCard.id, isCorrect ? 1 : 0);
 
-    //jeśli "nie umiem", wrzuć KOPIĘ fiszki na sam koniec tablicy
+    //zapisujemy w historii nasz wybor
+    setHistory(prev => [...prev, isCorrect]);
+
+    // jeśli "nie umiem", wrzuć KOPIĘ fiszki na sam koniec tablicy
     if (!isCorrect) {
         setCards(prevCards => [...prevCards, { ...currentCard }]); 
     }
@@ -468,6 +510,25 @@ export default function FastLearningPage() {
     setIsFlipped(false);
     setHoverSide(null);
     setCurrentIndex((prev) => prev + 1);
+  };
+
+  const handlePrevious = () => {
+    if (currentIndex === 0) return;
+
+    const lastAnswerWasCorrect = history[history.length - 1];
+
+    //usuwamy ostatni krok z historii
+    setHistory(prev => prev.slice(0, -1));
+
+    //!! jeśli ostatnia odpowiedz brzmiała nie umiem to usuwamy kopię fiszki z końca talii
+    if (!lastAnswerWasCorrect) {
+        setCards(prev => prev.slice(0, -1));
+    }
+
+    //cofamy licznik o 1 w dol i ustawiamy fiszkę frontem do góry
+    setCurrentIndex(prev => prev - 1);
+    setIsFlipped(false);
+    setHoverSide(null);
   };
 
  const openEditModal = (e) => {
@@ -553,6 +614,15 @@ export default function FastLearningPage() {
       </TopBar>
 
       <AppContainer>
+        {/* PRZYCISK COFANIA */}
+        {currentIndex > 0 && (
+          <PreviousButton onClick={handlePrevious}>
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            Poprzednia fiszka
+          </PreviousButton>
+        )}
         {/* PODPOWIEDZI NAD FISZKĄ */}
         <HintsContainer $visible={isFlipped && !isFinished}>
             <span className="bad">Nie umiem &larr; Kliknij w lewo</span>
@@ -563,7 +633,7 @@ export default function FastLearningPage() {
           <CardWrapper $isFlipped={isFlipped && !isFinished} onClick={() => { if (!isFlipped && !isFinished) setIsFlipped(true); }}>
             
             <CardFace>
-              <div className="content">{currentCard?.contentFirstSide}</div>
+              <div className="content" dangerouslySetInnerHTML={{ __html: currentCard?.contentFirstSide }} />
               <SeeAnswerHint>Kliknij, aby zobaczyć odpowiedź</SeeAnswerHint>
             </CardFace>
 
@@ -579,18 +649,8 @@ export default function FastLearningPage() {
                 <svg fill="currentColor" viewBox="0 0 16 16"><path fillRule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2v1z"/><path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466z"/></svg>
               </FlipBackButton>
 
-              <div className="content">{currentCard?.contentFlipSide}</div>
+              <div className="content" dangerouslySetInnerHTML={{ __html: currentCard?.contentFlipSide }} />
 
-              {!isFinished && (
-                  <ActionButtonsOverlay>
-                    <button type="button" className="bad" onClick={(e) => handleAnswer(false, e)}>
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
-                    <button type="button" className="good" onClick={(e) => handleAnswer(true, e)}>
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                    </button>
-                  </ActionButtonsOverlay>
-              )}
             </CardBack>
           </CardWrapper>
         </CardContainer>
