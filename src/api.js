@@ -1,5 +1,5 @@
 import { API_HOST } from "./config";
-import { getToken, removeToken } from "./token";
+import { getToken, removeToken, saveToken } from "./token";
 
 function checkUnauthorized(resp) {
   if (resp.status === 401 || resp.status === 403) {
@@ -2350,5 +2350,289 @@ export async function getFolderItemsCount(folderId) {
     return { count: 0, errorCode: "FETCH_ERROR" };
   } catch {
     return { count: 0, errorCode: "CONNECTION_ERROR" };
+  }
+}
+
+async function parseErrorBody(resp) {
+  try {
+    const data = await resp.json();
+    return {
+      errorCode: data.errorCode || "ERROR",
+      message: data.message || "",
+    };
+  } catch {
+    return { errorCode: "ERROR", message: "" };
+  }
+}
+
+export async function getProfile() {
+  const token = getToken();
+  if (!token)
+    return {
+      username: "",
+      email: "",
+      avatarId: 0,
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+  try {
+    const resp = await fetch(`${API_HOST}/profile`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return { username: "", email: "", avatarId: 0, ...authErr };
+
+    if (resp.ok) {
+      const data = await resp.json();
+      return {
+        username: data.username,
+        email: data.email,
+        avatarId: data.avatarId ?? 0,
+        errorCode: "",
+        message: "",
+      };
+    }
+    const err = await parseErrorBody(resp);
+    return {
+      username: "",
+      email: "",
+      avatarId: 0,
+      errorCode: err.errorCode,
+      message: err.message || "Nie udało się pobrać profilu",
+    };
+  } catch {
+    return {
+      username: "",
+      email: "",
+      avatarId: 0,
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
+    };
+  }
+}
+
+export async function changeUsername(newUsername) {
+  const token = getToken();
+  if (!token)
+    return {
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+  try {
+    const resp = await fetch(`${API_HOST}/changeUsername`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ newUsername }),
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data.newToken) {
+        const isPersistent = !!localStorage.getItem("token");
+        saveToken(data.newToken, isPersistent);
+      }
+      return {
+        username: data.username,
+        errorCode: "",
+        message: "Nazwa użytkownika została zaktualizowana.",
+      };
+    }
+    const err = await parseErrorBody(resp);
+    return {
+      errorCode: err.errorCode,
+      message: err.message || "Nie udało się zmienić nazwy użytkownika",
+    };
+  } catch {
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
+    };
+  }
+}
+
+export async function changeEmail(newEmail) {
+  const token = getToken();
+  if (!token)
+    return {
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+  try {
+    const resp = await fetch(`${API_HOST}/changeEmail`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ newEmail }),
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+
+    if (resp.ok) {
+      return {
+        errorCode: "",
+        message: "Wysłaliśmy kod weryfikacyjny na nowy adres e-mail.",
+      };
+    }
+    const err = await parseErrorBody(resp);
+    return {
+      errorCode: err.errorCode,
+      message: err.message || "Nie udało się zmienić adresu e-mail",
+    };
+  } catch {
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
+    };
+  }
+}
+
+export async function confirmEmailChange(email, verificationCode) {
+  const token = getToken();
+  if (!token)
+    return {
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+  try {
+    const resp = await fetch(`${API_HOST}/confirmEmailChange`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, token: verificationCode }),
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+
+    if (resp.ok) {
+      return { errorCode: "", message: "Adres e-mail został zaktualizowany." };
+    }
+    const err = await parseErrorBody(resp);
+    return {
+      errorCode: err.errorCode,
+      message: err.message || "Nie udało się potwierdzić zmiany adresu e-mail",
+    };
+  } catch {
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
+    };
+  }
+}
+
+export async function changePassword(oldPassword, newPassword) {
+  const token = getToken();
+  if (!token)
+    return {
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+  try {
+    const resp = await fetch(`${API_HOST}/changePassword`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ oldPassword, newPassword }),
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+
+    if (resp.ok) {
+      return { errorCode: "", message: "Hasło zostało zmienione." };
+    }
+    const err = await parseErrorBody(resp);
+    return {
+      errorCode: err.errorCode,
+      message: err.message || "Nie udało się zmienić hasła",
+    };
+  } catch {
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
+    };
+  }
+}
+
+export async function changeAvatar(avatarId) {
+  const token = getToken();
+  if (!token)
+    return {
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+  try {
+    const resp = await fetch(`${API_HOST}/changeAvatar`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ avatarId }),
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+
+    if (resp.ok) {
+      return { errorCode: "", message: "Awatar został zaktualizowany." };
+    }
+    const err = await parseErrorBody(resp);
+    return {
+      errorCode: err.errorCode,
+      message: err.message || "Nie udało się zmienić awatara",
+    };
+  } catch {
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
+    };
+  }
+}
+
+export async function deleteAccount(password) {
+  const token = getToken();
+  if (!token)
+    return {
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+  try {
+    const resp = await fetch(`${API_HOST}/deleteAccount`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ password }),
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+
+    if (resp.ok) {
+      return { errorCode: "", message: "Konto zostało usunięte." };
+    }
+    const err = await parseErrorBody(resp);
+    return {
+      errorCode: err.errorCode,
+      message: err.message || "Nie udało się usunąć konta",
+    };
+  } catch {
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
+    };
   }
 }
