@@ -3,10 +3,44 @@ import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/organisms/Layout";
 import { theme } from "../styles/theme";
-import { getUsosAuthUrl, addRegularTagToEvent, removeRegularTagFromEvent, addEvent, editEventApi, deleteEventApi, editThisAndFollowingApi, editAllInSeriesApi, deleteAllInSeriesApi, getEventsBetween, getContentByTag } from "../api";
-import CalendarGrid, { TAG_CONFIG, EVENT_COLORS, DAYS_PL, getEventsForDay, getWeekStart, isMultiDay, getEventStyle, mapBackendEvent } from "../components/organisms/CalendarGrid";
+import {
+  getUsosAuthUrl,
+  addRegularTagToEvent,
+  removeRegularTagFromEvent,
+  addEvent,
+  editEventApi,
+  deleteEventApi,
+  editThisAndFollowingApi,
+  editAllInSeriesApi,
+  deleteAllInSeriesApi,
+  getEventsBetween,
+  getContentByTag,
+} from "../api";
+import CalendarGrid, {
+  TAG_CONFIG,
+  EVENT_COLORS,
+  DAYS_PL,
+  getEventsForDay,
+  getWeekStart,
+  isMultiDay,
+  getEventStyle,
+  mapBackendEvent,
+} from "../components/organisms/CalendarGrid";
 
-const MONTHS_PL = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
+const MONTHS_PL = [
+  "Styczeń",
+  "Luty",
+  "Marzec",
+  "Kwiecień",
+  "Maj",
+  "Czerwiec",
+  "Lipiec",
+  "Sierpień",
+  "Wrzesień",
+  "Październik",
+  "Listopad",
+  "Grudzień",
+];
 
 const fadeIn = keyframes`from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}`;
 const slideIn = keyframes`from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}`;
@@ -65,7 +99,9 @@ const MultiselectInput = styled.div`
   width: 260px;
   padding: 5px 10px;
   border-radius: 8px;
-  border: 1px solid ${({ $open, theme }) => $open ? theme.colors.secondary : theme.colors.darkGrey};
+  border: 1px solid
+    ${({ $open, theme }) =>
+      $open ? theme.colors.secondary : theme.colors.darkGrey};
   background: ${({ theme }) => theme.colors.pageBg};
   font-size: 13px;
   font-family: inherit;
@@ -75,7 +111,9 @@ const MultiselectInput = styled.div`
   gap: 4px;
   overflow: hidden;
   transition: border-color 0.15s;
-  &:hover { border-color: ${({ theme }) => theme.colors.secondaryLight}; }
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.secondaryLight};
+  }
 `;
 
 const ChipsScroll = styled.div`
@@ -87,7 +125,9 @@ const ChipsScroll = styled.div`
   min-width: 0;
   flex-direction: row-reverse;
   scrollbar-width: none;
-  &::-webkit-scrollbar { display: none; }
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
 const SelectedChip = styled.span`
@@ -112,7 +152,9 @@ const SelectedChipRemove = styled.button`
   padding: 0;
   line-height: 1;
   opacity: 0.5;
-  &:hover { opacity: 1; }
+  &:hover {
+    opacity: 1;
+  }
 `;
 
 const MultiselectTextInput = styled.input`
@@ -125,7 +167,9 @@ const MultiselectTextInput = styled.input`
   flex: 1;
   min-width: 60px;
   padding: 2px 0;
-  &::placeholder { color: ${({ theme }) => theme.colors.textLight}; }
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.textLight};
+  }
 `;
 
 const MultiselectArrow = styled.span`
@@ -150,7 +194,9 @@ const SearchDropdown = styled.div`
 
 const DropdownSection = styled.div`
   margin-bottom: 8px;
-  &:last-child { margin-bottom: 0; }
+  &:last-child {
+    margin-bottom: 0;
+  }
 `;
 
 const DropdownSectionLabel = styled.div`
@@ -172,20 +218,25 @@ const DropdownItem = styled.div`
   font-size: 12px;
   color: ${({ theme }) => theme.colors.text};
   transition: background 0.1s;
-  &:hover { background: ${({ theme }) => theme.colors.primary}; }
+  &:hover {
+    background: ${({ theme }) => theme.colors.primary};
+  }
 `;
 
 const DropdownCheck = styled.span`
   width: 16px;
   height: 16px;
   border-radius: 4px;
-  border: 1.5px solid ${({ $checked, theme }) => $checked ? theme.colors.secondary : theme.colors.darkGrey};
-  background: ${({ $checked, theme }) => $checked ? theme.colors.secondary : "transparent"};
+  border: 1.5px solid
+    ${({ $checked, theme }) =>
+      $checked ? theme.colors.secondary : theme.colors.darkGrey};
+  background: ${({ $checked, theme }) =>
+    $checked ? theme.colors.secondary : "transparent"};
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 10px;
-  color: #fff;
+  color: ${({ theme }) => theme.colors.white};
   flex-shrink: 0;
   transition: all 0.15s;
 `;
@@ -195,7 +246,6 @@ const DropdownDivider = styled.div`
   background: ${({ theme }) => theme.colors.borderMuted};
   margin: 6px 0;
 `;
-
 
 const Header = styled.div`
   display: flex;
@@ -220,7 +270,10 @@ const NavBtn = styled.button`
   font-size: 14px;
   color: ${({ theme }) => theme.colors.textMuted};
   transition: all 0.15s;
-  &:hover { background: ${({ theme }) => theme.colors.primary}; color: ${({ theme }) => theme.colors.text}; }
+  &:hover {
+    background: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.text};
+  }
 `;
 
 const MonthTitle = styled.h2`
@@ -250,7 +303,9 @@ const ViewDropdownBtn = styled.button`
   color: ${({ theme }) => theme.colors.text};
   cursor: pointer;
   transition: border-color 0.15s;
-  &:hover { border-color: ${({ theme }) => theme.colors.secondary}; }
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.secondary};
+  }
 `;
 
 const ViewDropdownList = styled.div`
@@ -262,7 +317,7 @@ const ViewDropdownList = styled.div`
   border-radius: 8px;
   padding: 4px;
   z-index: 10;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   min-width: 100%;
 `;
 
@@ -271,22 +326,26 @@ const ViewDropdownItem = styled.button`
   width: 100%;
   padding: 6px 12px;
   font-size: 12px;
-  font-weight: ${({ $active, theme }) => $active ? 600 : 400};
+  font-weight: ${({ $active, theme }) => ($active ? 600 : 400)};
   font-family: inherit;
   border: none;
   border-radius: 6px;
-  background: ${({ $active, theme }) => $active ? theme.colors.primary : "transparent"};
-  color: ${({ $active, theme }) => $active ? theme.colors.secondary : theme.colors.text};
+  background: ${({ $active, theme }) =>
+    $active ? theme.colors.primary : "transparent"};
+  color: ${({ $active, theme }) =>
+    $active ? theme.colors.secondary : theme.colors.text};
   cursor: pointer;
   text-align: left;
   transition: background 0.1s;
-  &:hover { background: ${({ theme }) => theme.colors.primary}; }
+  &:hover {
+    background: ${({ theme }) => theme.colors.primary};
+  }
 `;
 
 const AddBtn = styled.button`
   padding: 7px 16px;
   background: ${({ theme }) => theme.colors.secondary};
-  color: #fff;
+  color: ${({ theme }) => theme.colors.white};
   border: none;
   border-radius: 8px;
   font-size: 13px;
@@ -297,16 +356,19 @@ const AddBtn = styled.button`
   align-items: center;
   gap: 6px;
   transition: all 0.2s;
-  &:hover { background: ${({ theme }) => theme.colors.secondaryLight}; }
+  &:hover {
+    background: ${({ theme }) => theme.colors.secondaryLight};
+  }
 `;
 
 // ── SIDEBAR ───────────────────────────────────────────────────────────────────
 const DetailSidebar = styled.div`
-  width: ${({ $open, theme }) => $open ? "350px" : "0"};
+  width: ${({ $open, theme }) => ($open ? "350px" : "0")};
   overflow: hidden;
   transition: width 0.3s ease;
   background: ${({ theme }) => theme.colors.white};
-  border-left: ${({ $open, theme }) => $open ? `1px solid ${theme.colors.darkGrey}` : "none"};
+  border-left: ${({ $open, theme }) =>
+    $open ? `1px solid ${theme.colors.darkGrey}` : "none"};
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -346,7 +408,9 @@ const CloseBtn = styled.button`
   align-items: center;
   justify-content: center;
   border-radius: 4px;
-  &:hover { background: ${({ theme }) => theme.colors.primary}; }
+  &:hover {
+    background: ${({ theme }) => theme.colors.primary};
+  }
 `;
 
 const SidebarDateLabel = styled.div`
@@ -416,7 +480,9 @@ const RegularTagRemove = styled.button`
   padding: 0;
   line-height: 1;
   opacity: 0.6;
-  &:hover { opacity: 1; }
+  &:hover {
+    opacity: 1;
+  }
 `;
 
 const DocTagChip = styled.button`
@@ -433,13 +499,15 @@ const DocTagChip = styled.button`
   cursor: pointer;
   font-family: inherit;
   transition: background 0.15s;
-  &:hover { background: #d2e3fc; }
+  &:hover {
+    background: #d2e3fc;
+  }
 `;
 
 const DocTagPopupOverlay = styled.div`
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.3);
+  background: rgba(0, 0, 0, 0.3);
   z-index: 100;
   display: flex;
   align-items: center;
@@ -455,7 +523,7 @@ const DocTagPopupBox = styled.div`
   max-width: 480px;
   max-height: 70vh;
   overflow-y: auto;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
   animation: ${scaleIn} 0.2s ease;
 `;
 
@@ -488,7 +556,9 @@ const DocTagPopupItem = styled.a`
   color: ${({ theme }) => theme.colors.text};
   text-decoration: none;
   transition: background 0.1s;
-  &:hover { background: ${({ theme }) => theme.colors.primary}; }
+  &:hover {
+    background: ${({ theme }) => theme.colors.primary};
+  }
 `;
 
 const DocTagPopupEmpty = styled.div`
@@ -512,11 +582,12 @@ const SidebarSectionLabel = styled.div`
 
 // ── FORM SIDEBAR ──────────────────────────────────────────────────────────────
 const FormSidebar = styled.div`
-  width: ${({ $open, theme }) => $open ? "350px" : "0"};
+  width: ${({ $open, theme }) => ($open ? "350px" : "0")};
   overflow: hidden;
   transition: width 0.3s ease;
   background: ${({ theme }) => theme.colors.white};
-  border-left: ${({ $open, theme }) => $open ? `1px solid ${theme.colors.darkGrey}` : "none"};
+  border-left: ${({ $open, theme }) =>
+    $open ? `1px solid ${theme.colors.darkGrey}` : "none"};
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -562,7 +633,9 @@ const Label = styled.label`
 const Input = styled.input`
   width: 100%;
   padding: 9px 12px;
-  border: 1px solid ${({ $error, theme }) => $error ? theme.colors.danger : theme.colors.darkGrey};
+  border: 1px solid
+    ${({ $error, theme }) =>
+      $error ? theme.colors.danger : theme.colors.darkGrey};
   border-radius: 8px;
   font-size: 13px;
   font-family: inherit;
@@ -570,7 +643,10 @@ const Input = styled.input`
   color: ${({ theme }) => theme.colors.text};
   outline: none;
   transition: border 0.15s;
-  &:focus { border-color: ${({ $error, theme }) => $error ? theme.colors.danger : theme.colors.secondary}; }
+  &:focus {
+    border-color: ${({ $error, theme }) =>
+      $error ? theme.colors.danger : theme.colors.secondary};
+  }
 `;
 
 const Row2 = styled.div`
@@ -588,14 +664,18 @@ const TagGrid = styled.div`
 const TagToggle = styled.button`
   padding: 5px 10px;
   border-radius: 20px;
-  border: 1.5px solid ${({ $selected, theme }) => $selected ? theme.colors.secondary : theme.colors.darkGrey};
-  background: ${({ $selected, theme }) => $selected ? theme.colors.primary : "transparent"};
-  color: ${({ $selected, theme }) => $selected ? theme.colors.secondary : theme.colors.textMuted};
+  border: 1.5px solid
+    ${({ $selected, theme }) =>
+      $selected ? theme.colors.secondary : theme.colors.darkGrey};
+  background: ${({ $selected, theme }) =>
+    $selected ? theme.colors.primary : "transparent"};
+  color: ${({ $selected, theme }) =>
+    $selected ? theme.colors.secondary : theme.colors.textMuted};
   font-size: 12px;
   font-family: inherit;
   cursor: pointer;
   transition: all 0.15s;
-  font-weight: ${({ $selected, theme }) => $selected ? 600 : 400};
+  font-weight: ${({ $selected, theme }) => ($selected ? 600 : 400)};
 `;
 
 const RecurRow = styled.div`
@@ -606,12 +686,16 @@ const RecurRow = styled.div`
 const RecurBtn = styled.button`
   flex: 1;
   padding: 8px;
-  border: 1.5px solid ${({ $active, theme }) => $active ? theme.colors.secondary : theme.colors.darkGrey};
+  border: 1.5px solid
+    ${({ $active, theme }) =>
+      $active ? theme.colors.secondary : theme.colors.darkGrey};
   border-radius: 8px;
-  background: ${({ $active, theme }) => $active ? theme.colors.primary : "transparent"};
-  color: ${({ $active, theme }) => $active ? theme.colors.secondary : theme.colors.textMuted};
+  background: ${({ $active, theme }) =>
+    $active ? theme.colors.primary : "transparent"};
+  color: ${({ $active, theme }) =>
+    $active ? theme.colors.secondary : theme.colors.textMuted};
   font-size: 12px;
-  font-weight: ${({ $active, theme }) => $active ? 600 : 400};
+  font-weight: ${({ $active, theme }) => ($active ? 600 : 400)};
   font-family: inherit;
   cursor: pointer;
   transition: all 0.15s;
@@ -626,16 +710,22 @@ const RecurrenceSelect = styled.div`
 
 const RecurrenceOption = styled.button`
   padding: 8px 6px;
-  border: 1.5px solid ${({ $active, theme }) => $active ? theme.colors.secondary : theme.colors.darkGrey};
+  border: 1.5px solid
+    ${({ $active, theme }) =>
+      $active ? theme.colors.secondary : theme.colors.darkGrey};
   border-radius: 8px;
-  background: ${({ $active, theme }) => $active ? theme.colors.primary : "transparent"};
-  color: ${({ $active, theme }) => $active ? theme.colors.secondary : theme.colors.textMuted};
+  background: ${({ $active, theme }) =>
+    $active ? theme.colors.primary : "transparent"};
+  color: ${({ $active, theme }) =>
+    $active ? theme.colors.secondary : theme.colors.textMuted};
   font-size: 11px;
-  font-weight: ${({ $active, theme }) => $active ? 600 : 400};
+  font-weight: ${({ $active, theme }) => ($active ? 600 : 400)};
   font-family: inherit;
   cursor: pointer;
   transition: all 0.15s;
-  &:hover { border-color: ${({ theme }) => theme.colors.secondaryLight}; }
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.secondaryLight};
+  }
 `;
 
 const CustomRecurrenceRow = styled.div`
@@ -656,7 +746,9 @@ const SmallInput = styled.input`
   color: ${({ theme }) => theme.colors.text};
   outline: none;
   text-align: center;
-  &:focus { border-color: ${({ theme }) => theme.colors.secondary}; }
+  &:focus {
+    border-color: ${({ theme }) => theme.colors.secondary};
+  }
 `;
 
 const SmallSelect = styled.select`
@@ -669,7 +761,9 @@ const SmallSelect = styled.select`
   color: ${({ theme }) => theme.colors.text};
   outline: none;
   cursor: pointer;
-  &:focus { border-color: ${({ theme }) => theme.colors.secondary}; }
+  &:focus {
+    border-color: ${({ theme }) => theme.colors.secondary};
+  }
 `;
 
 const DayOfWeekGrid = styled.div`
@@ -682,15 +776,21 @@ const DayOfWeekBtn = styled.button`
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 1.5px solid ${({ $active, theme }) => $active ? theme.colors.secondary : theme.colors.darkGrey};
-  background: ${({ $active, theme }) => $active ? theme.colors.primary : "transparent"};
-  color: ${({ $active, theme }) => $active ? theme.colors.secondary : theme.colors.textMuted};
+  border: 1.5px solid
+    ${({ $active, theme }) =>
+      $active ? theme.colors.secondary : theme.colors.darkGrey};
+  background: ${({ $active, theme }) =>
+    $active ? theme.colors.primary : "transparent"};
+  color: ${({ $active, theme }) =>
+    $active ? theme.colors.secondary : theme.colors.textMuted};
   font-size: 11px;
-  font-weight: ${({ $active, theme }) => $active ? 700 : 500};
+  font-weight: ${({ $active, theme }) => ($active ? 700 : 500)};
   font-family: inherit;
   cursor: pointer;
   transition: all 0.15s;
-  &:hover { border-color: ${({ theme }) => theme.colors.secondaryLight}; }
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.secondaryLight};
+  }
 `;
 
 const RecurrenceEndSection = styled.div`
@@ -709,16 +809,22 @@ const RecurrenceEndOptions = styled.div`
 
 const RecurrenceEndOption = styled.button`
   padding: 7px 6px;
-  border: 1.5px solid ${({ $active, theme }) => $active ? theme.colors.secondary : theme.colors.darkGrey};
+  border: 1.5px solid
+    ${({ $active, theme }) =>
+      $active ? theme.colors.secondary : theme.colors.darkGrey};
   border-radius: 8px;
-  background: ${({ $active, theme }) => $active ? theme.colors.primary : "transparent"};
-  color: ${({ $active, theme }) => $active ? theme.colors.secondary : theme.colors.textMuted};
+  background: ${({ $active, theme }) =>
+    $active ? theme.colors.primary : "transparent"};
+  color: ${({ $active, theme }) =>
+    $active ? theme.colors.secondary : theme.colors.textMuted};
   font-size: 11px;
-  font-weight: ${({ $active }) => $active ? 600 : 400};
+  font-weight: ${({ $active }) => ($active ? 600 : 400)};
   font-family: inherit;
   cursor: pointer;
   transition: all 0.15s;
-  &:hover { border-color: ${({ theme }) => theme.colors.secondaryLight}; }
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.secondaryLight};
+  }
 `;
 
 const ColorSwatchRow = styled.div`
@@ -731,12 +837,15 @@ const ColorSwatch = styled.button`
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  border: 2.5px solid ${({ $selected, $dark }) => $selected ? $dark : "transparent"};
+  border: 2.5px solid
+    ${({ $selected, $dark }) => ($selected ? $dark : "transparent")};
   background: ${({ $bg, theme }) => $bg};
   cursor: pointer;
   padding: 0;
   transition: transform 0.1s, border-color 0.15s;
-  &:hover { transform: scale(1.15); }
+  &:hover {
+    transform: scale(1.15);
+  }
 `;
 
 const FieldError = styled.span`
@@ -762,7 +871,9 @@ const CancelBtn = styled.button`
   font-size: 13px;
   font-family: inherit;
   cursor: pointer;
-  &:hover { background: ${({ theme }) => theme.colors.primary}; }
+  &:hover {
+    background: ${({ theme }) => theme.colors.primary};
+  }
 `;
 
 const SaveBtn = styled.button`
@@ -770,12 +881,14 @@ const SaveBtn = styled.button`
   border-radius: 8px;
   border: none;
   background: ${({ theme }) => theme.colors.secondary};
-  color: #fff;
+  color: ${({ theme }) => theme.colors.white};
   font-size: 13px;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  &:hover { background: ${({ theme }) => theme.colors.secondaryLight}; }
+  &:hover {
+    background: ${({ theme }) => theme.colors.secondaryLight};
+  }
 `;
 
 const DeleteBtn = styled.button`
@@ -783,13 +896,15 @@ const DeleteBtn = styled.button`
   border-radius: 8px;
   border: none;
   background: ${({ theme }) => theme.colors.danger};
-  color: #fff;
+  color: ${({ theme }) => theme.colors.white};
   font-size: 13px;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
   margin-right: auto;
-  &:hover { background: ${({ theme }) => theme.colors.danger} }
+  &:hover {
+    background: ${({ theme }) => theme.colors.danger};
+  }
 `;
 
 const SidebarEditBtn = styled.button`
@@ -802,7 +917,10 @@ const SidebarEditBtn = styled.button`
   font-family: inherit;
   cursor: pointer;
   transition: all 0.15s;
-  &:hover { background: ${({ theme }) => theme.colors.primary}; color: ${({ theme }) => theme.colors.text}; }
+  &:hover {
+    background: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.text};
+  }
 `;
 
 const CustomTagChip = styled.div`
@@ -825,7 +943,9 @@ const CustomTagRemove = styled.div`
   font-size: 13px;
   line-height: 1;
   opacity: 0.7;
-  &:hover { opacity: 1; }
+  &:hover {
+    opacity: 1;
+  }
 `;
 
 const AddTagBtn = styled.div`
@@ -841,7 +961,9 @@ const AddTagBtn = styled.div`
   display: flex;
   align-items: center;
   transition: all 0.15s;
-  &:hover { background: ${({ theme }) => theme.colors.primary}; }
+  &:hover {
+    background: ${({ theme }) => theme.colors.primary};
+  }
 `;
 
 const CustomTagInput = styled.input`
@@ -855,8 +977,12 @@ const CustomTagInput = styled.input`
   font-family: inherit;
   background: #e8f0fe;
   color: #1a56db;
-  &:focus { outline: none; }
-  &::placeholder { color: rgba(255,255,255,0.6); }
+  &:focus {
+    outline: none;
+  }
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+  }
 `;
 
 const ScopeOverlay = styled.div`
@@ -899,7 +1025,10 @@ const ScopeBtn = styled.button`
   cursor: pointer;
   text-align: left;
   transition: all 0.15s;
-  &:hover { border-color: ${({ theme }) => theme.colors.secondary}; background: ${({ theme }) => theme.colors.primary}; }
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.secondary};
+    background: ${({ theme }) => theme.colors.primary};
+  }
 `;
 
 const SidebarCardHeader = styled.div`
@@ -908,7 +1037,6 @@ const SidebarCardHeader = styled.div`
   justify-content: space-between;
   margin-bottom: 4px;
 `;
-
 
 // ─── RECURRENCE HELPERS ──────────────────────────────────────────────────────
 const RECURRENCE_PRESETS = [
@@ -941,11 +1069,11 @@ function describeRecurrence(ev) {
   if (type === "custom") {
     const interval = ev.customInterval || 1;
     const unit = ev.customUnit || "weeks";
-    const unitLabel = CUSTOM_UNITS.find(u => u.value === unit)?.label || unit;
+    const unitLabel = CUSTOM_UNITS.find((u) => u.value === unit)?.label || unit;
     let desc = `co ${interval} ${unitLabel}`;
     if (unit === "weeks" && ev.customDays?.length > 0) {
       const dayNames = ev.customDays
-        .map(jsDay => DOW_LABELS[DOW_JS.indexOf(jsDay)])
+        .map((jsDay) => DOW_LABELS[DOW_JS.indexOf(jsDay)])
         .filter(Boolean)
         .join(", ");
       if (dayNames) desc += `, ${dayNames}`;
@@ -959,24 +1087,36 @@ function buildRecurrenceRule(form) {
   if (!form.recurrent) return null;
   const type = form.recurrenceType || "weekly";
 
-  const UNIT_TO_FREQUENCY = { days: "DAILY", weeks: "WEEKLY", months: "MONTHLY", years: "YEARLY" };
+  const UNIT_TO_FREQUENCY = {
+    days: "DAILY",
+    weeks: "WEEKLY",
+    months: "MONTHLY",
+    years: "YEARLY",
+  };
   const PRESET_MAP = {
-    daily:    { frequency: "DAILY",   interval: 1, daysOfWeek: null },
-    weekly:   { frequency: "WEEKLY",  interval: 1, daysOfWeek: null },
-    biweekly: { frequency: "WEEKLY",  interval: 2, daysOfWeek: null },
-    monthly:  { frequency: "MONTHLY", interval: 1, daysOfWeek: null },
-    yearly:   { frequency: "YEARLY",  interval: 1, daysOfWeek: null },
+    daily: { frequency: "DAILY", interval: 1, daysOfWeek: null },
+    weekly: { frequency: "WEEKLY", interval: 1, daysOfWeek: null },
+    biweekly: { frequency: "WEEKLY", interval: 2, daysOfWeek: null },
+    monthly: { frequency: "MONTHLY", interval: 1, daysOfWeek: null },
+    yearly: { frequency: "YEARLY", interval: 1, daysOfWeek: null },
   };
 
-  const recurrenceEnd = form.recurrenceEndType === "date" && form.recurrenceEndDate ? form.recurrenceEndDate : null;
-  const occurrences = form.recurrenceEndType === "after" && form.recurrenceOccurrences > 0 ? form.recurrenceOccurrences : 0;
+  const recurrenceEnd =
+    form.recurrenceEndType === "date" && form.recurrenceEndDate
+      ? form.recurrenceEndDate
+      : null;
+  const occurrences =
+    form.recurrenceEndType === "after" && form.recurrenceOccurrences > 0
+      ? form.recurrenceOccurrences
+      : 0;
 
   if (type === "custom") {
     const frequency = UNIT_TO_FREQUENCY[form.customUnit] || "WEEKLY";
     const interval = form.customInterval || 1;
-    const daysOfWeek = (form.customUnit === "weeks" && form.customDays?.length > 0)
-      ? form.customDays.map(jsDay => jsDay === 0 ? 7 : jsDay).join(",")
-      : null;
+    const daysOfWeek =
+      form.customUnit === "weeks" && form.customDays?.length > 0
+        ? form.customDays.map((jsDay) => (jsDay === 0 ? 7 : jsDay)).join(",")
+        : null;
     return { frequency, interval, daysOfWeek, recurrenceEnd, occurrences };
   }
 
@@ -986,7 +1126,14 @@ function buildRecurrenceRule(form) {
 }
 
 const defaultFormState = {
-  title: "", description: "", date: "", endDate: "", startTime: "", endTime: "", allDay: false, tags: [],
+  title: "",
+  description: "",
+  date: "",
+  endDate: "",
+  startTime: "",
+  endTime: "",
+  allDay: false,
+  tags: [],
   isDeadline: false,
   multiDay: false,
   recurrent: false,
@@ -1017,7 +1164,9 @@ function toLocalDateTimeISO(date, hour, min) {
 
 const Calendar = () => {
   const routerNavigate = useNavigate();
-  const [view, setView] = useState(() => localStorage.getItem("calendarView") || "week");
+  const [view, setView] = useState(
+    () => localStorage.getItem("calendarView") || "week"
+  );
   const [viewOpen, setViewOpen] = useState(false);
   const viewDropRef = useRef(null);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -1044,8 +1193,6 @@ const Calendar = () => {
   const [docTagLoading, setDocTagLoading] = useState(false);
   const [tagScopePopup, setTagScopePopup] = useState(null); // { allTags, saveRegularTags, recurrenceRule, startISO, endISO, parsedDate, parsedEndDate, sh, sm, eh, em }
 
-
-
   const refreshEvents = async () => {
     let startDate, endDate;
     if (view === "week") {
@@ -1057,10 +1204,18 @@ const Calendar = () => {
       startDate = toLocalDateTimeISO(margin, 0, 0);
       endDate = toLocalDateTimeISO(we, 23, 59);
     } else {
-      const first = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      const first = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        1
+      );
       const margin = new Date(first);
       margin.setDate(margin.getDate() - 7);
-      const last = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+      const last = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() + 1,
+        0
+      );
       const marginEnd = new Date(last);
       marginEnd.setDate(marginEnd.getDate() + 7);
       startDate = toLocalDateTimeISO(margin, 0, 0);
@@ -1102,7 +1257,6 @@ const Calendar = () => {
     }
   };
 
-
   // Close search dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -1112,13 +1266,15 @@ const Calendar = () => {
     };
     if (searchOpen) {
       document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [searchOpen]);
 
   useEffect(() => {
     const handleClick = (e) => {
-      if (viewDropRef.current && !viewDropRef.current.contains(e.target)) setViewOpen(false);
+      if (viewDropRef.current && !viewDropRef.current.contains(e.target))
+        setViewOpen(false);
     };
     if (viewOpen) {
       document.addEventListener("mousedown", handleClick);
@@ -1131,46 +1287,64 @@ const Calendar = () => {
     const predefined = new Set();
     const custom = new Set();
     const regular = new Set();
-    events.forEach(ev => {
-      (ev.tags || []).forEach(t => { if (TAG_CONFIG[t]) predefined.add(t); });
-      (ev.customTags || []).forEach(ct => custom.add(ct));
-      (ev.regularTags || []).forEach(rt => regular.add(rt));
+    events.forEach((ev) => {
+      (ev.tags || []).forEach((t) => {
+        if (TAG_CONFIG[t]) predefined.add(t);
+      });
+      (ev.customTags || []).forEach((ct) => custom.add(ct));
+      (ev.regularTags || []).forEach((rt) => regular.add(rt));
     });
     const result = [];
-    predefined.forEach(key => {
-      result.push({ type: "category", key, label: TAG_CONFIG[key].label, icon: TAG_CONFIG[key].icon });
+    predefined.forEach((key) => {
+      result.push({
+        type: "category",
+        key,
+        label: TAG_CONFIG[key].label,
+        icon: TAG_CONFIG[key].icon,
+      });
     });
-    custom.forEach(ct => {
+    custom.forEach((ct) => {
       result.push({ type: "category", key: `custom:${ct}`, label: ct });
     });
-    regular.forEach(rt => {
+    regular.forEach((rt) => {
       result.push({ type: "tag", key: `regular:${rt}`, label: rt });
     });
     return result;
   };
 
   const toggleFilterTag = (tagKey) => {
-    setFilterTags(prev =>
-      prev.includes(tagKey) ? prev.filter(t => t !== tagKey) : [...prev, tagKey]
+    setFilterTags((prev) =>
+      prev.includes(tagKey)
+        ? prev.filter((t) => t !== tagKey)
+        : [...prev, tagKey]
     );
   };
 
   // Filter events based on selected tags and custom search
   const filteredEvents = (() => {
     if (filterTags.length === 0 && !customTagSearch.trim()) return events;
-    return events.filter(ev => {
+    return events.filter((ev) => {
       // Check category/tag filters
       if (filterTags.length > 0) {
         const evPredefined = ev.tags || [];
-        const evCustomKeys = (ev.customTags || []).map(ct => `custom:${ct}`);
-        const evRegularKeys = (ev.regularTags || []).map(rt => `regular:${rt}`);
-        const matchesTag = filterTags.some(ft => evPredefined.includes(ft) || evCustomKeys.includes(ft) || evRegularKeys.includes(ft));
+        const evCustomKeys = (ev.customTags || []).map((ct) => `custom:${ct}`);
+        const evRegularKeys = (ev.regularTags || []).map(
+          (rt) => `regular:${rt}`
+        );
+        const matchesTag = filterTags.some(
+          (ft) =>
+            evPredefined.includes(ft) ||
+            evCustomKeys.includes(ft) ||
+            evRegularKeys.includes(ft)
+        );
         if (matchesTag) return true;
       }
       // Check custom text search against regularTags
       if (customTagSearch.trim()) {
         const search = customTagSearch.trim().toLowerCase();
-        const matchesRegular = (ev.regularTags || []).some(t => t.toLowerCase().includes(search));
+        const matchesRegular = (ev.regularTags || []).some((t) =>
+          t.toLowerCase().includes(search)
+        );
         if (matchesRegular) return true;
       }
       // If both filters are active but neither matched
@@ -1182,7 +1356,10 @@ const Calendar = () => {
   const navigate = (dir) => {
     const dd = new Date(currentDate);
     if (view === "week") dd.setDate(dd.getDate() + dir * 7);
-    else { dd.setDate(1); dd.setMonth(dd.getMonth() + dir); }
+    else {
+      dd.setDate(1);
+      dd.setMonth(dd.getMonth() + dir);
+    }
     setCurrentDate(dd);
   };
 
@@ -1204,8 +1381,12 @@ const Calendar = () => {
       allDay: !!ev.allDay,
       isDeadline: !!ev.isDeadline,
       multiDay: !!ev.endDate,
-      startTime: `${String(ev.startHour).padStart(2, "0")}:${String(ev.startMin).padStart(2, "0")}`,
-      endTime: `${String(ev.endHour).padStart(2, "0")}:${String(ev.endMin).padStart(2, "0")}`,
+      startTime: `${String(ev.startHour).padStart(2, "0")}:${String(
+        ev.startMin
+      ).padStart(2, "0")}`,
+      endTime: `${String(ev.endHour).padStart(2, "0")}:${String(
+        ev.endMin
+      ).padStart(2, "0")}`,
       tags: [...ev.tags],
       recurrent: ev.recurrent || ev.isPartOfSeries,
       recurrenceType: ev.recurrenceType || "weekly",
@@ -1217,7 +1398,11 @@ const Calendar = () => {
       recurrenceOccurrences: ev.recurrenceOccurrences || 10,
       colorId: ev.colorId || "blue",
       customTags: ev.customTags ? [...ev.customTags] : [],
-      docTags: ev.regularTags ? [...ev.regularTags] : (ev.docTags ? [...ev.docTags] : []),
+      docTags: ev.regularTags
+        ? [...ev.regularTags]
+        : ev.docTags
+        ? [...ev.docTags]
+        : [],
       newTagLabel: "",
       showNewDocTag: false,
       newDocTagLabel: "",
@@ -1242,18 +1427,51 @@ const Calendar = () => {
   const executeEditSave = async (scope) => {
     if (!editEvent || !editEvent.event.backendId || !pendingSave) return;
     const { startISO, endISO } = pendingSave;
-    const allTags = [...form.tags, ...(form.customTags || [])].filter(t => t !== "deadline");
+    const allTags = [...form.tags, ...(form.customTags || [])].filter(
+      (t) => t !== "deadline"
+    );
     const saveRegularTags = form.docTags || [];
 
     if (scope === "all") {
-      const res = await editAllInSeriesApi(editEvent.event.backendId, form.title, form.description, allTags, saveRegularTags, startISO, endISO, form.colorId, form.isDeadline);
+      const res = await editAllInSeriesApi(
+        editEvent.event.backendId,
+        form.title,
+        form.description,
+        allTags,
+        saveRegularTags,
+        startISO,
+        endISO,
+        form.colorId,
+        form.isDeadline
+      );
       if (res.errorCode && res.errorCode !== "") return;
     } else if (scope === "thisAndFollowing") {
       const recurrenceRule = buildRecurrenceRule(form);
-      const res = await editThisAndFollowingApi(editEvent.event.backendId, form.title, form.description, allTags, saveRegularTags, startISO, endISO, form.colorId, form.isDeadline, recurrenceRule);
+      const res = await editThisAndFollowingApi(
+        editEvent.event.backendId,
+        form.title,
+        form.description,
+        allTags,
+        saveRegularTags,
+        startISO,
+        endISO,
+        form.colorId,
+        form.isDeadline,
+        recurrenceRule
+      );
       if (res.errorCode && res.errorCode !== "") return;
     } else {
-      const res = await editEventApi(editEvent.event.backendId, form.title, form.description, allTags, saveRegularTags, startISO, endISO, form.colorId, form.isDeadline);
+      const res = await editEventApi(
+        editEvent.event.backendId,
+        form.title,
+        form.description,
+        allTags,
+        saveRegularTags,
+        startISO,
+        endISO,
+        form.colorId,
+        form.isDeadline
+      );
       if (res.errorCode && res.errorCode !== "") return;
     }
     await refreshEvents();
@@ -1285,7 +1503,14 @@ const Calendar = () => {
 
   const handleTagScopeChoice = async (scope) => {
     if (!tagScopePopup) return;
-    const { allTags, saveRegularTags, recurrenceRule, startISO, endISO, deleteBeforeId } = tagScopePopup;
+    const {
+      allTags,
+      saveRegularTags,
+      recurrenceRule,
+      startISO,
+      endISO,
+      deleteBeforeId,
+    } = tagScopePopup;
 
     let eventTags, recurringEventTags;
     if (scope === "all") {
@@ -1307,7 +1532,18 @@ const Calendar = () => {
       }
     }
 
-    const res = await addEvent(form.title, form.description, eventTags, saveRegularTags, startISO, endISO, form.colorId, form.isDeadline, recurrenceRule, recurringEventTags);
+    const res = await addEvent(
+      form.title,
+      form.description,
+      eventTags,
+      saveRegularTags,
+      startISO,
+      endISO,
+      form.colorId,
+      form.isDeadline,
+      recurrenceRule,
+      recurringEventTags
+    );
     setTagScopePopup(null);
     if (res.errorCode && res.errorCode !== "") return;
 
@@ -1327,15 +1563,21 @@ const Calendar = () => {
 
     const res = await addRegularTagToEvent(ev.backendId, value);
     if (res.errorCode === "") {
-      setEvents(prev => prev.map(e =>
-        e.id === ev.id ? { ...e, regularTags: [...(e.regularTags || []), value] } : e
-      ));
-      setSidebar(s => {
+      setEvents((prev) =>
+        prev.map((e) =>
+          e.id === ev.id
+            ? { ...e, regularTags: [...(e.regularTags || []), value] }
+            : e
+        )
+      );
+      setSidebar((s) => {
         if (!s) return null;
         return {
           ...s,
-          events: s.events.map(e =>
-            e.id === ev.id ? { ...e, regularTags: [...(e.regularTags || []), value] } : e
+          events: s.events.map((e) =>
+            e.id === ev.id
+              ? { ...e, regularTags: [...(e.regularTags || []), value] }
+              : e
           ),
         };
       });
@@ -1346,15 +1588,29 @@ const Calendar = () => {
     if (!ev.backendId) return;
     const res = await removeRegularTagFromEvent(ev.backendId, tagName);
     if (res.errorCode === "") {
-      setEvents(prev => prev.map(e =>
-        e.id === ev.id ? { ...e, regularTags: (e.regularTags || []).filter(t => t !== tagName) } : e
-      ));
-      setSidebar(s => {
+      setEvents((prev) =>
+        prev.map((e) =>
+          e.id === ev.id
+            ? {
+                ...e,
+                regularTags: (e.regularTags || []).filter((t) => t !== tagName),
+              }
+            : e
+        )
+      );
+      setSidebar((s) => {
         if (!s) return null;
         return {
           ...s,
-          events: s.events.map(e =>
-            e.id === ev.id ? { ...e, regularTags: (e.regularTags || []).filter(t => t !== tagName) } : e
+          events: s.events.map((e) =>
+            e.id === ev.id
+              ? {
+                  ...e,
+                  regularTags: (e.regularTags || []).filter(
+                    (t) => t !== tagName
+                  ),
+                }
+              : e
           ),
         };
       });
@@ -1365,7 +1621,9 @@ const Calendar = () => {
   const renderSidebar = () => {
     if (!sidebar) return null;
     const { date, events: evs } = sidebar;
-    const sorted = [...evs].sort((a, b) => a.startHour * 60 + a.startMin - (b.startHour * 60 + b.startMin));
+    const sorted = [...evs].sort(
+      (a, b) => a.startHour * 60 + a.startMin - (b.startHour * 60 + b.startMin)
+    );
 
     return (
       <SidebarInner>
@@ -1376,51 +1634,105 @@ const Calendar = () => {
         <SidebarDateLabel>
           {date.getDate()} {MONTHS_PL[date.getMonth()]}
         </SidebarDateLabel>
-        <div style={{ fontSize: 11, color: theme.colors.textMuted, fontWeight: 500 }}>
-          {DAYS_PL[date.getDay()]}, {evs.length} {evs.length === 1 ? "wydarzenie" : "wydarzenia"}
+        <div
+          style={{
+            fontSize: 11,
+            color: theme.colors.textMuted,
+            fontWeight: 500,
+          }}
+        >
+          {DAYS_PL[date.getDay()]}, {evs.length}{" "}
+          {evs.length === 1 ? "wydarzenie" : "wydarzenia"}
         </div>
-        {sorted.map(ev => {
+        {sorted.map((ev) => {
           const style = getEventStyle(ev);
-          const predefinedTags = (ev.tags || []).filter(t => TAG_CONFIG[t]);
-          const otherTags = (ev.tags || []).filter(t => !TAG_CONFIG[t]);
+          const predefinedTags = (ev.tags || []).filter((t) => TAG_CONFIG[t]);
+          const otherTags = (ev.tags || []).filter((t) => !TAG_CONFIG[t]);
 
           return (
             <SidebarEventCard key={ev.id} $bg={style.bg} $border={style.dark}>
               <SidebarCardHeader>
-                <SidebarEventName $dark={style.dark} style={{ marginBottom: 0 }}>{ev.title}</SidebarEventName>
-                <SidebarEditBtn onClick={() => openEditPopup(ev, date)}>Edytuj</SidebarEditBtn>
+                <SidebarEventName
+                  $dark={style.dark}
+                  style={{ marginBottom: 0 }}
+                >
+                  {ev.title}
+                </SidebarEventName>
+                <SidebarEditBtn onClick={() => openEditPopup(ev, date)}>
+                  Edytuj
+                </SidebarEditBtn>
               </SidebarCardHeader>
               <SidebarEventMeta $dark={style.dark}>
                 {isMultiDay(ev) && ev.allDay
-                  ? `${ev.date.getDate()} ${MONTHS_PL[ev.date.getMonth()].slice(0, 3)} – ${ev.endDate.getDate()} ${MONTHS_PL[ev.endDate.getMonth()].slice(0, 3)} · Całodniowy`
+                  ? `${ev.date.getDate()} ${MONTHS_PL[ev.date.getMonth()].slice(
+                      0,
+                      3
+                    )} – ${ev.endDate.getDate()} ${MONTHS_PL[
+                      ev.endDate.getMonth()
+                    ].slice(0, 3)} · Całodniowy`
                   : isMultiDay(ev)
-                    ? `${ev.date.getDate()} ${MONTHS_PL[ev.date.getMonth()].slice(0, 3)} ${String(ev.startHour).padStart(2, "0")}:${String(ev.startMin).padStart(2, "0")} – ${ev.endDate.getDate()} ${MONTHS_PL[ev.endDate.getMonth()].slice(0, 3)} ${String(ev.endHour).padStart(2, "0")}:${String(ev.endMin).padStart(2, "0")}`
-                    : (ev.startHour === 0 && ev.startMin === 0 && ev.endHour === 23 && ev.endMin === 59)
-                      ? "Całodniowy"
-                      : `${String(ev.startHour).padStart(2, "0")}:${String(ev.startMin).padStart(2, "0")} – ${String(ev.endHour).padStart(2, "0")}:${String(ev.endMin).padStart(2, "0")}`
-                }
-                {(ev.recurrent || ev.isPartOfSeries) && ` · 🔁 ${ev.recurrent ? describeRecurrence(ev) : "cyklicznie"}`}
+                  ? `${ev.date.getDate()} ${MONTHS_PL[ev.date.getMonth()].slice(
+                      0,
+                      3
+                    )} ${String(ev.startHour).padStart(2, "0")}:${String(
+                      ev.startMin
+                    ).padStart(2, "0")} – ${ev.endDate.getDate()} ${MONTHS_PL[
+                      ev.endDate.getMonth()
+                    ].slice(0, 3)} ${String(ev.endHour).padStart(
+                      2,
+                      "0"
+                    )}:${String(ev.endMin).padStart(2, "0")}`
+                  : ev.startHour === 0 &&
+                    ev.startMin === 0 &&
+                    ev.endHour === 23 &&
+                    ev.endMin === 59
+                  ? "Całodniowy"
+                  : `${String(ev.startHour).padStart(2, "0")}:${String(
+                      ev.startMin
+                    ).padStart(2, "0")} – ${String(ev.endHour).padStart(
+                      2,
+                      "0"
+                    )}:${String(ev.endMin).padStart(2, "0")}`}
+                {(ev.recurrent || ev.isPartOfSeries) &&
+                  ` · 🔁 ${
+                    ev.recurrent ? describeRecurrence(ev) : "cyklicznie"
+                  }`}
               </SidebarEventMeta>
 
               {ev.description && (
-                <div style={{ fontSize: 12, color: theme.colors.textMuted, lineHeight: 1.4, marginTop: 2, overflowWrap: "break-word", wordBreak: "break-word" }}>
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: theme.colors.textMuted,
+                    lineHeight: 1.4,
+                    marginTop: 2,
+                    overflowWrap: "break-word",
+                    wordBreak: "break-word",
+                  }}
+                >
                   {ev.description}
                 </div>
               )}
 
-              {(predefinedTags.length > 0 || (ev.customTags || []).length > 0 || otherTags.length > 0) && (
+              {(predefinedTags.length > 0 ||
+                (ev.customTags || []).length > 0 ||
+                otherTags.length > 0) && (
                 <SidebarTagRow>
-                  {predefinedTags.map(t => (
+                  {predefinedTags.map((t) => (
                     <SidebarTag key={t} $bg={style.bg} $dark={style.dark}>
                       {TAG_CONFIG[t].icon} {TAG_CONFIG[t].label}
                     </SidebarTag>
                   ))}
-                  {(ev.customTags || []).map(ct => (
-                    <SidebarTag key={`ct-${ct}`} $bg={style.bg} $dark={style.dark}>
+                  {(ev.customTags || []).map((ct) => (
+                    <SidebarTag
+                      key={`ct-${ct}`}
+                      $bg={style.bg}
+                      $dark={style.dark}
+                    >
                       {ct}
                     </SidebarTag>
                   ))}
-                  {otherTags.map(t => (
+                  {otherTags.map((t) => (
                     <SidebarTag key={t} $bg={style.bg} $dark={style.dark}>
                       {t}
                     </SidebarTag>
@@ -1432,7 +1744,7 @@ const Calendar = () => {
                 <SidebarSection>
                   <SidebarSectionLabel>Tagi</SidebarSectionLabel>
                   <SidebarTagRow>
-                    {(ev.regularTags || []).map(t => (
+                    {(ev.regularTags || []).map((t) => (
                       <DocTagChip key={t} onClick={() => handleDocTagClick(t)}>
                         {t}
                       </DocTagChip>
@@ -1447,12 +1759,14 @@ const Calendar = () => {
     );
   };
 
-  // ADD POPUP 
+  // ADD POPUP
   const renderPopup = () => {
     const toggleTag = (tag) => {
-      setForm(f => ({
+      setForm((f) => ({
         ...f,
-        tags: f.tags.includes(tag) ? f.tags.filter(t => t !== tag) : [...f.tags, tag]
+        tags: f.tags.includes(tag)
+          ? f.tags.filter((t) => t !== tag)
+          : [...f.tags, tag],
       }));
     };
 
@@ -1460,16 +1774,20 @@ const Calendar = () => {
       const errors = {};
       if (!form.title.trim()) errors.title = "Tytuł jest wymagany";
       if (!form.date) errors.date = "Data rozpoczęcia jest wymagana";
-      if (!form.allDay && !form.startTime) errors.startTime = "Godzina rozpoczęcia jest wymagana";
-      if (!form.allDay && !form.endTime) errors.endTime = "Godzina zakończenia jest wymagana";
-      if (form.multiDay && !form.endDate) errors.endDate = "Data zakończenia jest wymagana";
+      if (!form.allDay && !form.startTime)
+        errors.startTime = "Godzina rozpoczęcia jest wymagana";
+      if (!form.allDay && !form.endTime)
+        errors.endTime = "Godzina zakończenia jest wymagana";
+      if (form.multiDay && !form.endDate)
+        errors.endDate = "Data zakończenia jest wymagana";
 
       // Validate time format (HH:MM, 00-23:00-59)
       const validTime = (t) => {
         if (!t) return false;
         const m = t.match(/^(\d{2}):(\d{2})$/);
         if (!m) return false;
-        const h = parseInt(m[1]), min = parseInt(m[2]);
+        const h = parseInt(m[1]),
+          min = parseInt(m[2]);
         return h >= 0 && h <= 23 && min >= 0 && min <= 59;
       };
       if (!form.allDay && form.startTime && !validTime(form.startTime)) {
@@ -1482,13 +1800,21 @@ const Calendar = () => {
       // Validate date/time logic
       if (form.date && form.endDate && form.multiDay) {
         if (form.endDate < form.date) {
-          errors.endDate = "Data zakończenia nie może być wcześniejsza niż data rozpoczęcia";
+          errors.endDate =
+            "Data zakończenia nie może być wcześniejsza niż data rozpoczęcia";
         }
       }
-      if (!form.allDay && form.startTime && form.endTime && !errors.startTime && !errors.endTime) {
-        const sameDay = !form.multiDay || (form.date === form.endDate);
+      if (
+        !form.allDay &&
+        form.startTime &&
+        form.endTime &&
+        !errors.startTime &&
+        !errors.endTime
+      ) {
+        const sameDay = !form.multiDay || form.date === form.endDate;
         if (sameDay && form.endTime <= form.startTime) {
-          errors.endTime = "Godzina zakończenia musi być późniejsza niż godzina rozpoczęcia";
+          errors.endTime =
+            "Godzina zakończenia musi być późniejsza niż godzina rozpoczęcia";
         }
       }
 
@@ -1497,11 +1823,20 @@ const Calendar = () => {
         return;
       }
       setFormErrors({});
-      const [sh, sm] = form.allDay ? [0, 0] : form.startTime.split(":").map(Number);
-      const [eh, em] = form.allDay ? [23, 59] : form.endTime.split(":").map(Number);
+      const [sh, sm] = form.allDay
+        ? [0, 0]
+        : form.startTime.split(":").map(Number);
+      const [eh, em] = form.allDay
+        ? [23, 59]
+        : form.endTime.split(":").map(Number);
       const [fy, fm, fd] = form.date.split("-").map(Number);
       const parsedDate = new Date(fy, fm - 1, fd);
-      const parsedEndDate = form.endDate ? (() => { const [ey, em2, ed] = form.endDate.split("-").map(Number); return new Date(ey, em2 - 1, ed); })() : null;
+      const parsedEndDate = form.endDate
+        ? (() => {
+            const [ey, em2, ed] = form.endDate.split("-").map(Number);
+            return new Date(ey, em2 - 1, ed);
+          })()
+        : null;
       const startISO = toLocalDateTimeISO(parsedDate, sh, sm);
       const endISO = toLocalDateTimeISO(parsedEndDate || parsedDate, eh, em);
 
@@ -1510,11 +1845,17 @@ const Calendar = () => {
           // If part of series, ask user about scope before saving
           if (editEvent.event.isPartOfSeries) {
             setPendingSave({ startISO, endISO });
-            setScopeAction({ type: "edit", event: editEvent.event, occurrenceDate: editEvent.occurrenceDate });
+            setScopeAction({
+              type: "edit",
+              event: editEvent.event,
+              occurrenceDate: editEvent.occurrenceDate,
+            });
             return;
           }
 
-          const allTags = [...form.tags, ...(form.customTags || [])].filter(t => t !== "deadline");
+          const allTags = [...form.tags, ...(form.customTags || [])].filter(
+            (t) => t !== "deadline"
+          );
           const saveRegularTags = form.docTags || [];
           const recurrenceRule = buildRecurrenceRule(form);
 
@@ -1523,18 +1864,47 @@ const Calendar = () => {
             // If tags present, ask about tag scope first (tags on first only vs all)
             if (allTags.length > 0) {
               setTagScopePopup({
-                allTags, saveRegularTags, recurrenceRule, startISO, endISO,
-                parsedDate, parsedEndDate, sh, sm, eh, em,
+                allTags,
+                saveRegularTags,
+                recurrenceRule,
+                startISO,
+                endISO,
+                parsedDate,
+                parsedEndDate,
+                sh,
+                sm,
+                eh,
+                em,
                 deleteBeforeId: editEvent.event.backendId,
               });
               return;
             }
             const delRes = await deleteEventApi(editEvent.event.backendId);
             if (delRes.errorCode && delRes.errorCode !== "") return;
-            const addRes = await addEvent(form.title, form.description, allTags, saveRegularTags, startISO, endISO, form.colorId, form.isDeadline, recurrenceRule);
+            const addRes = await addEvent(
+              form.title,
+              form.description,
+              allTags,
+              saveRegularTags,
+              startISO,
+              endISO,
+              form.colorId,
+              form.isDeadline,
+              recurrenceRule
+            );
             if (addRes.errorCode && addRes.errorCode !== "") return;
           } else {
-            const res = await editEventApi(editEvent.event.backendId, form.title, form.description, allTags, saveRegularTags, startISO, endISO, form.colorId, form.isDeadline);
+            const res = await editEventApi(
+              editEvent.event.backendId,
+              form.title,
+              form.description,
+              allTags,
+              saveRegularTags,
+              startISO,
+              endISO,
+              form.colorId,
+              form.isDeadline
+            );
             if (res.errorCode && res.errorCode !== "") return;
           }
           await refreshEvents();
@@ -1543,20 +1913,41 @@ const Calendar = () => {
         setEditEvent(null);
       } else {
         // Add new event
-        const allTags = [...form.tags, ...(form.customTags || [])].filter(t => t !== "deadline");
+        const allTags = [...form.tags, ...(form.customTags || [])].filter(
+          (t) => t !== "deadline"
+        );
         const saveRegularTags = form.docTags || [];
         const recurrenceRule = buildRecurrenceRule(form);
 
         // If recurring event has tags, ask user about tag scope
         if (recurrenceRule && allTags.length > 0) {
           setTagScopePopup({
-            allTags, saveRegularTags, recurrenceRule, startISO, endISO,
-            parsedDate, parsedEndDate, sh, sm, eh, em,
+            allTags,
+            saveRegularTags,
+            recurrenceRule,
+            startISO,
+            endISO,
+            parsedDate,
+            parsedEndDate,
+            sh,
+            sm,
+            eh,
+            em,
           });
           return;
         }
 
-        const res = await addEvent(form.title, form.description, allTags, saveRegularTags, startISO, endISO, form.colorId, form.isDeadline, recurrenceRule);
+        const res = await addEvent(
+          form.title,
+          form.description,
+          allTags,
+          saveRegularTags,
+          startISO,
+          endISO,
+          form.colorId,
+          form.isDeadline,
+          recurrenceRule
+        );
         if (res.errorCode && res.errorCode !== "") return;
         await refreshEvents();
       }
@@ -1594,7 +1985,10 @@ const Calendar = () => {
             $error={formErrors.title}
             placeholder="Np. Wykład z matematyki"
             value={form.title}
-            onChange={e => { setForm(f => ({ ...f, title: e.target.value })); setFormErrors(e => ({ ...e, title: false })); }}
+            onChange={(e) => {
+              setForm((f) => ({ ...f, title: e.target.value }));
+              setFormErrors((e) => ({ ...e, title: false }));
+            }}
           />
           {formErrors.title && <FieldError>{formErrors.title}</FieldError>}
         </FormGroup>
@@ -1605,7 +1999,9 @@ const Calendar = () => {
             as="textarea"
             placeholder="Opis wydarzenia (opcjonalny)"
             value={form.description}
-            onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, description: e.target.value }))
+            }
             style={{ minHeight: 60, resize: "vertical" }}
           />
         </FormGroup>
@@ -1616,42 +2012,98 @@ const Calendar = () => {
             $error={formErrors.date}
             type="date"
             value={form.date}
-            onChange={e => { setForm(f => ({ ...f, date: e.target.value })); setFormErrors(e => ({ ...e, date: false })); }}
+            onChange={(e) => {
+              setForm((f) => ({ ...f, date: e.target.value }));
+              setFormErrors((e) => ({ ...e, date: false }));
+            }}
           />
           {formErrors.date && <FieldError>{formErrors.date}</FieldError>}
         </FormGroup>
 
         <FormGroup>
-          <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              cursor: "pointer",
+            }}
+          >
             <input
               type="checkbox"
               checked={form.multiDay}
-              onChange={e => setForm(f => ({ ...f, multiDay: e.target.checked, endDate: e.target.checked ? f.endDate : "" }))}
-              style={{ width: 16, height: 16, accentColor: theme.colors.secondary }}
+              onChange={(e) =>
+                setForm((f) => ({
+                  ...f,
+                  multiDay: e.target.checked,
+                  endDate: e.target.checked ? f.endDate : "",
+                }))
+              }
+              style={{
+                width: 16,
+                height: 16,
+                accentColor: theme.colors.secondary,
+              }}
             />
-            <span style={{ fontSize: 13, fontWeight: 500, color: theme.colors.text }}>Wielodniowy</span>
+            <span
+              style={{
+                fontSize: 13,
+                fontWeight: 500,
+                color: theme.colors.text,
+              }}
+            >
+              Wielodniowy
+            </span>
           </label>
-          {form.multiDay && (<>
-            <Label style={{ marginTop: 6 }}>Data zakończenia</Label>
-            <Input
-              $error={formErrors.endDate}
-              type="date"
-              value={form.endDate}
-              onChange={e => { setForm(f => ({ ...f, endDate: e.target.value })); setFormErrors(e => ({ ...e, endDate: false })); }}
-            />
-            {formErrors.endDate && <FieldError>{formErrors.endDate}</FieldError>}
-          </>)}
+          {form.multiDay && (
+            <>
+              <Label style={{ marginTop: 6 }}>Data zakończenia</Label>
+              <Input
+                $error={formErrors.endDate}
+                type="date"
+                value={form.endDate}
+                onChange={(e) => {
+                  setForm((f) => ({ ...f, endDate: e.target.value }));
+                  setFormErrors((e) => ({ ...e, endDate: false }));
+                }}
+              />
+              {formErrors.endDate && (
+                <FieldError>{formErrors.endDate}</FieldError>
+              )}
+            </>
+          )}
         </FormGroup>
 
         <FormGroup>
-          <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              cursor: "pointer",
+            }}
+          >
             <input
               type="checkbox"
               checked={form.allDay}
-              onChange={e => setForm(f => ({ ...f, allDay: e.target.checked }))}
-              style={{ width: 16, height: 16, accentColor: theme.colors.secondary }}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, allDay: e.target.checked }))
+              }
+              style={{
+                width: 16,
+                height: 16,
+                accentColor: theme.colors.secondary,
+              }}
             />
-            <span style={{ fontSize: 13, fontWeight: 500, color: theme.colors.text }}>Całodniowy</span>
+            <span
+              style={{
+                fontSize: 13,
+                fontWeight: 500,
+                color: theme.colors.text,
+              }}
+            >
+              Całodniowy
+            </span>
           </label>
         </FormGroup>
 
@@ -1664,12 +2116,17 @@ const Calendar = () => {
                 type="text"
                 placeholder="HH:MM"
                 value={form.startTime}
-                onChange={e => {
+                onChange={(e) => {
                   let v = e.target.value.replace(/[^0-9:]/g, "");
-                  if (v.length === 2 && !v.includes(":") && form.startTime.length < 2) v += ":";
+                  if (
+                    v.length === 2 &&
+                    !v.includes(":") &&
+                    form.startTime.length < 2
+                  )
+                    v += ":";
                   if (v.length > 5) v = v.slice(0, 5);
-                  setForm(f => ({ ...f, startTime: v }));
-                  setFormErrors(e2 => ({ ...e2, startTime: false }));
+                  setForm((f) => ({ ...f, startTime: v }));
+                  setFormErrors((e2) => ({ ...e2, startTime: false }));
                 }}
               />
               <Input
@@ -1677,37 +2134,57 @@ const Calendar = () => {
                 type="text"
                 placeholder="HH:MM"
                 value={form.endTime}
-                onChange={e => {
+                onChange={(e) => {
                   let v = e.target.value.replace(/[^0-9:]/g, "");
-                  if (v.length === 2 && !v.includes(":") && form.endTime.length < 2) v += ":";
+                  if (
+                    v.length === 2 &&
+                    !v.includes(":") &&
+                    form.endTime.length < 2
+                  )
+                    v += ":";
                   if (v.length > 5) v = v.slice(0, 5);
-                  setForm(f => ({ ...f, endTime: v }));
-                  setFormErrors(e2 => ({ ...e2, endTime: false }));
+                  setForm((f) => ({ ...f, endTime: v }));
+                  setFormErrors((e2) => ({ ...e2, endTime: false }));
                 }}
               />
             </Row2>
-            {(formErrors.startTime || formErrors.endTime) && <FieldError>{formErrors.startTime || formErrors.endTime}</FieldError>}
+            {(formErrors.startTime || formErrors.endTime) && (
+              <FieldError>
+                {formErrors.startTime || formErrors.endTime}
+              </FieldError>
+            )}
           </FormGroup>
         )}
 
         <FormGroup>
           <Label>Kategorie</Label>
           <TagGrid>
-            {Object.entries(TAG_CONFIG).filter(([key]) => key !== "deadline").map(([key, val]) => (
-              <TagToggle
-                key={key}
-                $selected={form.tags.includes(key)}
-                $bg={val.color}
-                $dark={val.dark}
-                onClick={() => toggleTag(key)}
-              >
-                {val.icon} {val.label}
-              </TagToggle>
-            ))}
-            {form.customTags.map(ct => (
+            {Object.entries(TAG_CONFIG)
+              .filter(([key]) => key !== "deadline")
+              .map(([key, val]) => (
+                <TagToggle
+                  key={key}
+                  $selected={form.tags.includes(key)}
+                  $bg={val.color}
+                  $dark={val.dark}
+                  onClick={() => toggleTag(key)}
+                >
+                  {val.icon} {val.label}
+                </TagToggle>
+              ))}
+            {form.customTags.map((ct) => (
               <CustomTagChip key={ct}>
                 {ct}
-                <CustomTagRemove onClick={() => setForm(f => ({ ...f, customTags: f.customTags.filter(t => t !== ct) }))}>x</CustomTagRemove>
+                <CustomTagRemove
+                  onClick={() =>
+                    setForm((f) => ({
+                      ...f,
+                      customTags: f.customTags.filter((t) => t !== ct),
+                    }))
+                  }
+                >
+                  x
+                </CustomTagRemove>
               </CustomTagChip>
             ))}
             {form.showNewTag ? (
@@ -1715,20 +2192,38 @@ const Calendar = () => {
                 autoFocus
                 placeholder="tag..."
                 value={form.newTagLabel}
-                onChange={e => setForm(f => ({ ...f, newTagLabel: e.target.value }))}
-                onKeyDown={e => {
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, newTagLabel: e.target.value }))
+                }
+                onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
                     const label = form.newTagLabel.trim();
                     if (!label) return;
-                    setForm(f => ({ ...f, customTags: [...f.customTags, label], newTagLabel: "", showNewTag: false }));
+                    setForm((f) => ({
+                      ...f,
+                      customTags: [...f.customTags, label],
+                      newTagLabel: "",
+                      showNewTag: false,
+                    }));
                   }
-                  if (e.key === "Escape") setForm(f => ({ ...f, showNewTag: false, newTagLabel: "" }));
+                  if (e.key === "Escape")
+                    setForm((f) => ({
+                      ...f,
+                      showNewTag: false,
+                      newTagLabel: "",
+                    }));
                 }}
-                onBlur={() => setForm(f => ({ ...f, showNewTag: false, newTagLabel: "" }))}
+                onBlur={() =>
+                  setForm((f) => ({ ...f, showNewTag: false, newTagLabel: "" }))
+                }
               />
             ) : (
-              <AddTagBtn onClick={() => setForm(f => ({ ...f, showNewTag: true }))}>+</AddTagBtn>
+              <AddTagBtn
+                onClick={() => setForm((f) => ({ ...f, showNewTag: true }))}
+              >
+                +
+              </AddTagBtn>
             )}
           </TagGrid>
         </FormGroup>
@@ -1736,10 +2231,19 @@ const Calendar = () => {
         <FormGroup>
           <Label>Tagi</Label>
           <TagGrid>
-            {form.docTags.map(dt => (
+            {form.docTags.map((dt) => (
               <DocTagChip key={dt} as="span" style={{ cursor: "default" }}>
                 {dt}
-                <CustomTagRemove onClick={() => setForm(f => ({ ...f, docTags: f.docTags.filter(t => t !== dt) }))}>x</CustomTagRemove>
+                <CustomTagRemove
+                  onClick={() =>
+                    setForm((f) => ({
+                      ...f,
+                      docTags: f.docTags.filter((t) => t !== dt),
+                    }))
+                  }
+                >
+                  x
+                </CustomTagRemove>
               </DocTagChip>
             ))}
             {form.showNewDocTag ? (
@@ -1747,20 +2251,42 @@ const Calendar = () => {
                 autoFocus
                 placeholder="nazwa..."
                 value={form.newDocTagLabel}
-                onChange={e => setForm(f => ({ ...f, newDocTagLabel: e.target.value }))}
-                onKeyDown={e => {
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, newDocTagLabel: e.target.value }))
+                }
+                onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
                     const label = form.newDocTagLabel.trim();
                     if (!label) return;
-                    setForm(f => ({ ...f, docTags: [...f.docTags, label], newDocTagLabel: "", showNewDocTag: false }));
+                    setForm((f) => ({
+                      ...f,
+                      docTags: [...f.docTags, label],
+                      newDocTagLabel: "",
+                      showNewDocTag: false,
+                    }));
                   }
-                  if (e.key === "Escape") setForm(f => ({ ...f, showNewDocTag: false, newDocTagLabel: "" }));
+                  if (e.key === "Escape")
+                    setForm((f) => ({
+                      ...f,
+                      showNewDocTag: false,
+                      newDocTagLabel: "",
+                    }));
                 }}
-                onBlur={() => setForm(f => ({ ...f, showNewDocTag: false, newDocTagLabel: "" }))}
+                onBlur={() =>
+                  setForm((f) => ({
+                    ...f,
+                    showNewDocTag: false,
+                    newDocTagLabel: "",
+                  }))
+                }
               />
             ) : (
-              <AddTagBtn onClick={() => setForm(f => ({ ...f, showNewDocTag: true }))}>+</AddTagBtn>
+              <AddTagBtn
+                onClick={() => setForm((f) => ({ ...f, showNewDocTag: true }))}
+              >
+                +
+              </AddTagBtn>
             )}
           </TagGrid>
         </FormGroup>
@@ -1768,14 +2294,14 @@ const Calendar = () => {
         <FormGroup>
           <Label>Kolor</Label>
           <ColorSwatchRow>
-            {EVENT_COLORS.map(c => (
+            {EVENT_COLORS.map((c) => (
               <ColorSwatch
                 key={c.id}
                 type="button"
                 $bg={c.bg}
                 $dark={c.dark}
                 $selected={form.colorId === c.id}
-                onClick={() => setForm(f => ({ ...f, colorId: c.id }))}
+                onClick={() => setForm((f) => ({ ...f, colorId: c.id }))}
               />
             ))}
           </ColorSwatchRow>
@@ -1784,21 +2310,29 @@ const Calendar = () => {
         <FormGroup>
           <Label>Powtarzanie</Label>
           <RecurRow>
-            <RecurBtn $active={!form.recurrent} onClick={() => setForm(f => ({ ...f, recurrent: false }))}>
+            <RecurBtn
+              $active={!form.recurrent}
+              onClick={() => setForm((f) => ({ ...f, recurrent: false }))}
+            >
               Jednorazowo
             </RecurBtn>
-            <RecurBtn $active={form.recurrent} onClick={() => setForm(f => ({ ...f, recurrent: true }))}>
+            <RecurBtn
+              $active={form.recurrent}
+              onClick={() => setForm((f) => ({ ...f, recurrent: true }))}
+            >
               Cyklicznie
             </RecurBtn>
           </RecurRow>
           {form.recurrent && (
             <>
               <RecurrenceSelect>
-                {RECURRENCE_PRESETS.map(opt => (
+                {RECURRENCE_PRESETS.map((opt) => (
                   <RecurrenceOption
                     key={opt.value}
                     $active={form.recurrenceType === opt.value}
-                    onClick={() => setForm(f => ({ ...f, recurrenceType: opt.value }))}
+                    onClick={() =>
+                      setForm((f) => ({ ...f, recurrenceType: opt.value }))
+                    }
                   >
                     {opt.label}
                   </RecurrenceOption>
@@ -1807,19 +2341,39 @@ const Calendar = () => {
               {form.recurrenceType === "custom" && (
                 <>
                   <CustomRecurrenceRow>
-                    <span style={{ fontSize: 12, color: theme.colors.textMuted }}>Co</span>
+                    <span
+                      style={{ fontSize: 12, color: theme.colors.textMuted }}
+                    >
+                      Co
+                    </span>
                     <SmallInput
                       type="number"
                       min={1}
                       value={form.customInterval}
-                      onChange={e => setForm(f => ({ ...f, customInterval: Math.max(1, parseInt(e.target.value) || 1) }))}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          customInterval: Math.max(
+                            1,
+                            parseInt(e.target.value) || 1
+                          ),
+                        }))
+                      }
                     />
                     <SmallSelect
                       value={form.customUnit}
-                      onChange={e => setForm(f => ({ ...f, customUnit: e.target.value, customDays: [] }))}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          customUnit: e.target.value,
+                          customDays: [],
+                        }))
+                      }
                     >
-                      {CUSTOM_UNITS.map(u => (
-                        <option key={u.value} value={u.value}>{u.label}</option>
+                      {CUSTOM_UNITS.map((u) => (
+                        <option key={u.value} value={u.value}>
+                          {u.label}
+                        </option>
                       ))}
                     </SmallSelect>
                   </CustomRecurrenceRow>
@@ -1832,12 +2386,14 @@ const Calendar = () => {
                           <DayOfWeekBtn
                             key={jsDay}
                             $active={active}
-                            onClick={() => setForm(f => ({
-                              ...f,
-                              customDays: active
-                                ? f.customDays.filter(d => d !== jsDay)
-                                : [...f.customDays, jsDay]
-                            }))}
+                            onClick={() =>
+                              setForm((f) => ({
+                                ...f,
+                                customDays: active
+                                  ? f.customDays.filter((d) => d !== jsDay)
+                                  : [...f.customDays, jsDay],
+                              }))
+                            }
                           >
                             {label}
                           </DayOfWeekBtn>
@@ -1848,23 +2404,37 @@ const Calendar = () => {
                 </>
               )}
               <RecurrenceEndSection>
-                <span style={{ fontSize: 12, color: theme.colors.textMuted, marginBottom: 4 }}>Kończy się</span>
+                <span
+                  style={{
+                    fontSize: 12,
+                    color: theme.colors.textMuted,
+                    marginBottom: 4,
+                  }}
+                >
+                  Kończy się
+                </span>
                 <RecurrenceEndOptions>
                   <RecurrenceEndOption
                     $active={form.recurrenceEndType === "never"}
-                    onClick={() => setForm(f => ({ ...f, recurrenceEndType: "never" }))}
+                    onClick={() =>
+                      setForm((f) => ({ ...f, recurrenceEndType: "never" }))
+                    }
                   >
                     Nigdy
                   </RecurrenceEndOption>
                   <RecurrenceEndOption
                     $active={form.recurrenceEndType === "date"}
-                    onClick={() => setForm(f => ({ ...f, recurrenceEndType: "date" }))}
+                    onClick={() =>
+                      setForm((f) => ({ ...f, recurrenceEndType: "date" }))
+                    }
                   >
                     W dniu
                   </RecurrenceEndOption>
                   <RecurrenceEndOption
                     $active={form.recurrenceEndType === "after"}
-                    onClick={() => setForm(f => ({ ...f, recurrenceEndType: "after" }))}
+                    onClick={() =>
+                      setForm((f) => ({ ...f, recurrenceEndType: "after" }))
+                    }
                   >
                     Po
                   </RecurrenceEndOption>
@@ -1874,7 +2444,12 @@ const Calendar = () => {
                     as="input"
                     type="date"
                     value={form.recurrenceEndDate}
-                    onChange={e => setForm(f => ({ ...f, recurrenceEndDate: e.target.value }))}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        recurrenceEndDate: e.target.value,
+                      }))
+                    }
                     style={{ width: "100%", marginTop: 6, textAlign: "left" }}
                   />
                 )}
@@ -1884,9 +2459,21 @@ const Calendar = () => {
                       type="number"
                       min={1}
                       value={form.recurrenceOccurrences}
-                      onChange={e => setForm(f => ({ ...f, recurrenceOccurrences: Math.max(1, parseInt(e.target.value) || 1) }))}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          recurrenceOccurrences: Math.max(
+                            1,
+                            parseInt(e.target.value) || 1
+                          ),
+                        }))
+                      }
                     />
-                    <span style={{ fontSize: 12, color: theme.colors.textMuted }}>wystąpień</span>
+                    <span
+                      style={{ fontSize: 12, color: theme.colors.textMuted }}
+                    >
+                      wystąpień
+                    </span>
                   </CustomRecurrenceRow>
                 )}
               </RecurrenceEndSection>
@@ -1894,26 +2481,55 @@ const Calendar = () => {
           )}
         </FormGroup>
 
-        <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", marginBottom: 12 }}>
+        <label
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            cursor: "pointer",
+            marginBottom: 12,
+          }}
+        >
           <input
             type="checkbox"
             checked={form.isDeadline}
-            onChange={e => setForm(f => ({ ...f, isDeadline: e.target.checked }))}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, isDeadline: e.target.checked }))
+            }
             style={{ width: 16, height: 16, accentColor: "rgb(226, 75, 74)" }}
           />
-          <span style={{ fontSize: 13, fontWeight: 500, color: theme.colors.text }}>Deadline</span>
+          <span
+            style={{ fontSize: 13, fontWeight: 500, color: theme.colors.text }}
+          >
+            Deadline
+          </span>
         </label>
 
         <PopupActions>
-          {editEvent && <DeleteBtn onClick={() => {
-            if (editEvent.event.isPartOfSeries) {
-              setScopeAction({ type: "delete", event: editEvent.event, occurrenceDate: editEvent.occurrenceDate });
-            } else {
-              setConfirmDelete({ event: editEvent.event, occurrenceDate: editEvent.occurrenceDate });
-            }
-          }}>Usuń</DeleteBtn>}
+          {editEvent && (
+            <DeleteBtn
+              onClick={() => {
+                if (editEvent.event.isPartOfSeries) {
+                  setScopeAction({
+                    type: "delete",
+                    event: editEvent.event,
+                    occurrenceDate: editEvent.occurrenceDate,
+                  });
+                } else {
+                  setConfirmDelete({
+                    event: editEvent.event,
+                    occurrenceDate: editEvent.occurrenceDate,
+                  });
+                }
+              }}
+            >
+              Usuń
+            </DeleteBtn>
+          )}
           <CancelBtn onClick={handleClose}>Anuluj</CancelBtn>
-          <SaveBtn onClick={handleSave}>{editEvent ? "Zapisz" : "Dodaj event"}</SaveBtn>
+          <SaveBtn onClick={handleSave}>
+            {editEvent ? "Zapisz" : "Dodaj event"}
+          </SaveBtn>
         </PopupActions>
       </FormSidebarInner>
     );
@@ -1927,7 +2543,9 @@ const Calendar = () => {
       if (weekStart.getMonth() === weekEnd.getMonth()) {
         return `${MONTHS_PL[weekStart.getMonth()]} ${weekStart.getFullYear()}`;
       }
-      return `${MONTHS_PL[weekStart.getMonth()]} – ${MONTHS_PL[weekEnd.getMonth()]} ${weekEnd.getFullYear()}`;
+      return `${MONTHS_PL[weekStart.getMonth()]} – ${
+        MONTHS_PL[weekEnd.getMonth()]
+      } ${weekEnd.getFullYear()}`;
     }
     return `${MONTHS_PL[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
   };
@@ -1945,26 +2563,52 @@ const Calendar = () => {
             </PageHeaderCenter>
             <PageHeaderRight>
               <SearchContainer ref={searchRef}>
-                <MultiselectInput $open={searchOpen} onClick={() => { setSearchOpen(true); setTimeout(() => searchInputRef.current?.focus(), 0); }}>
+                <MultiselectInput
+                  $open={searchOpen}
+                  onClick={() => {
+                    setSearchOpen(true);
+                    setTimeout(() => searchInputRef.current?.focus(), 0);
+                  }}
+                >
                   {(() => {
                     const available = getAvailableTags();
                     const allSelected = [
-                      ...filterTags.map(ft => {
-                        const tag = available.find(t => t.key === ft);
-                        return { key: ft, label: tag ? (tag.icon ? `${tag.icon} ${tag.label}` : tag.label) : ft, type: "tag" };
+                      ...filterTags.map((ft) => {
+                        const tag = available.find((t) => t.key === ft);
+                        return {
+                          key: ft,
+                          label: tag
+                            ? tag.icon
+                              ? `${tag.icon} ${tag.label}`
+                              : tag.label
+                            : ft,
+                          type: "tag",
+                        };
                       }),
-                      ...(customTagSearch.trim() ? [{ key: "__custom__", label: `"${customTagSearch.trim()}"`, type: "custom" }] : []),
+                      ...(customTagSearch.trim()
+                        ? [
+                            {
+                              key: "__custom__",
+                              label: `"${customTagSearch.trim()}"`,
+                              type: "custom",
+                            },
+                          ]
+                        : []),
                     ];
                     return (
                       <ChipsScroll>
-                        {[...allSelected].reverse().map(s => (
+                        {[...allSelected].reverse().map((s) => (
                           <SelectedChip key={s.key}>
                             {s.label}
-                            <SelectedChipRemove onClick={e => {
-                              e.stopPropagation();
-                              if (s.type === "custom") setCustomTagSearch("");
-                              else toggleFilterTag(s.key);
-                            }}>×</SelectedChipRemove>
+                            <SelectedChipRemove
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (s.type === "custom") setCustomTagSearch("");
+                                else toggleFilterTag(s.key);
+                              }}
+                            >
+                              ×
+                            </SelectedChipRemove>
                           </SelectedChip>
                         ))}
                       </ChipsScroll>
@@ -1972,107 +2616,229 @@ const Calendar = () => {
                   })()}
                   <MultiselectTextInput
                     ref={searchInputRef}
-                    placeholder={filterTags.length === 0 && !customTagSearch.trim() ? "Filtruj wyniki..." : ""}
+                    placeholder={
+                      filterTags.length === 0 && !customTagSearch.trim()
+                        ? "Filtruj wyniki..."
+                        : ""
+                    }
                     value={searchText}
-                    onChange={e => { setSearchText(e.target.value); if (!searchOpen) setSearchOpen(true); }}
+                    onChange={(e) => {
+                      setSearchText(e.target.value);
+                      if (!searchOpen) setSearchOpen(true);
+                    }}
                     onFocus={() => setSearchOpen(true)}
-                    onClick={e => e.stopPropagation()}
-                    onKeyDown={e => {
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => {
                       if (e.key === "Enter" && searchText.trim()) {
                         setCustomTagSearch(searchText.trim());
                         setSearchText("");
                         setSearchOpen(false);
                       }
                       if (e.key === "Backspace" && !searchText) {
-                        if (customTagSearch.trim()) { setCustomTagSearch(""); }
-                        else if (filterTags.length > 0) { setFilterTags(prev => prev.slice(0, -1)); }
+                        if (customTagSearch.trim()) {
+                          setCustomTagSearch("");
+                        } else if (filterTags.length > 0) {
+                          setFilterTags((prev) => prev.slice(0, -1));
+                        }
                       }
-                      if (e.key === "Escape") { setSearchOpen(false); setSearchText(""); searchInputRef.current?.blur(); }
+                      if (e.key === "Escape") {
+                        setSearchOpen(false);
+                        setSearchText("");
+                        searchInputRef.current?.blur();
+                      }
                     }}
                   />
                   <MultiselectArrow>{searchOpen ? "▲" : "▼"}</MultiselectArrow>
                 </MultiselectInput>
-                {searchOpen && (() => {
-                  const available = getAvailableTags();
-                  const query = searchText.toLowerCase();
-                  const categoryTags = available.filter(t => t.type === "category" && (!query || t.label.toLowerCase().includes(query)));
-                  const regularTags = available.filter(t => t.type === "tag" && (!query || t.label.toLowerCase().includes(query)));
-                  const hasResults = categoryTags.length > 0 || regularTags.length > 0;
-                  return (
-                    <SearchDropdown onMouseDown={e => e.preventDefault()}>
-                      {categoryTags.length > 0 && (
-                        <DropdownSection>
-                          <DropdownSectionLabel>Kategorie</DropdownSectionLabel>
-                          {categoryTags.map(t => (
-                            <DropdownItem key={t.key} onClick={() => { toggleFilterTag(t.key); setSearchText(""); setTimeout(() => searchInputRef.current?.focus(), 0); }}>
-                              <DropdownCheck $checked={filterTags.includes(t.key)}>
-                                {filterTags.includes(t.key) && "✓"}
-                              </DropdownCheck>
-                              {t.icon ? `${t.icon} ` : ""}{t.label}
+                {searchOpen &&
+                  (() => {
+                    const available = getAvailableTags();
+                    const query = searchText.toLowerCase();
+                    const categoryTags = available.filter(
+                      (t) =>
+                        t.type === "category" &&
+                        (!query || t.label.toLowerCase().includes(query))
+                    );
+                    const regularTags = available.filter(
+                      (t) =>
+                        t.type === "tag" &&
+                        (!query || t.label.toLowerCase().includes(query))
+                    );
+                    const hasResults =
+                      categoryTags.length > 0 || regularTags.length > 0;
+                    return (
+                      <SearchDropdown onMouseDown={(e) => e.preventDefault()}>
+                        {categoryTags.length > 0 && (
+                          <DropdownSection>
+                            <DropdownSectionLabel>
+                              Kategorie
+                            </DropdownSectionLabel>
+                            {categoryTags.map((t) => (
+                              <DropdownItem
+                                key={t.key}
+                                onClick={() => {
+                                  toggleFilterTag(t.key);
+                                  setSearchText("");
+                                  setTimeout(
+                                    () => searchInputRef.current?.focus(),
+                                    0
+                                  );
+                                }}
+                              >
+                                <DropdownCheck
+                                  $checked={filterTags.includes(t.key)}
+                                >
+                                  {filterTags.includes(t.key) && "✓"}
+                                </DropdownCheck>
+                                {t.icon ? `${t.icon} ` : ""}
+                                {t.label}
+                              </DropdownItem>
+                            ))}
+                          </DropdownSection>
+                        )}
+                        {regularTags.length > 0 && (
+                          <DropdownSection>
+                            <DropdownSectionLabel>Tagi</DropdownSectionLabel>
+                            {regularTags.map((t) => (
+                              <DropdownItem
+                                key={t.key}
+                                onClick={() => {
+                                  toggleFilterTag(t.key);
+                                  setSearchText("");
+                                  setTimeout(
+                                    () => searchInputRef.current?.focus(),
+                                    0
+                                  );
+                                }}
+                              >
+                                <DropdownCheck
+                                  $checked={filterTags.includes(t.key)}
+                                >
+                                  {filterTags.includes(t.key) && "✓"}
+                                </DropdownCheck>
+                                {t.label}
+                              </DropdownItem>
+                            ))}
+                          </DropdownSection>
+                        )}
+                        {!hasResults && searchText.trim() && (
+                          <DropdownSection>
+                            <DropdownItem
+                              onClick={() => {
+                                setCustomTagSearch(searchText.trim());
+                                setSearchText("");
+                                setSearchOpen(false);
+                              }}
+                              style={{ color: theme.colors.secondary }}
+                            >
+                              Szukaj „{searchText.trim()}" w tagach ↵
                             </DropdownItem>
-                          ))}
-                        </DropdownSection>
-                      )}
-                      {regularTags.length > 0 && (
-                        <DropdownSection>
-                          <DropdownSectionLabel>Tagi</DropdownSectionLabel>
-                          {regularTags.map(t => (
-                            <DropdownItem key={t.key} onClick={() => { toggleFilterTag(t.key); setSearchText(""); setTimeout(() => searchInputRef.current?.focus(), 0); }}>
-                              <DropdownCheck $checked={filterTags.includes(t.key)}>
-                                {filterTags.includes(t.key) && "✓"}
-                              </DropdownCheck>
-                              {t.label}
-                            </DropdownItem>
-                          ))}
-                        </DropdownSection>
-                      )}
-                      {!hasResults && searchText.trim() && (
-                        <DropdownSection>
-                          <DropdownItem
-                            onClick={() => { setCustomTagSearch(searchText.trim()); setSearchText(""); setSearchOpen(false); }}
-                            style={{ color: theme.colors.secondary }}
-                          >
-                            Szukaj „{searchText.trim()}" w tagach ↵
-                          </DropdownItem>
-                        </DropdownSection>
-                      )}
-                    </SearchDropdown>
-                  );
-                })()}
+                          </DropdownSection>
+                        )}
+                      </SearchDropdown>
+                    );
+                  })()}
               </SearchContainer>
             </PageHeaderRight>
           </PageHeader>
 
           <Header>
-            <AddBtn onClick={handleUsosImport} style={{ background: "transparent", color: theme.colors.text, marginLeft: 0, paddingLeft: 0, paddingRight: 0 }}>
-              <img src="/icons/usos2.png" alt="USOS" style={{ width: 18, height: 18, borderRadius: 6 }} />
+            <AddBtn
+              onClick={handleUsosImport}
+              style={{
+                background: "transparent",
+                color: theme.colors.text,
+                marginLeft: 0,
+                paddingLeft: 0,
+                paddingRight: 0,
+              }}
+            >
+              <img
+                src="/icons/usos2.png"
+                alt="USOS"
+                style={{ width: 18, height: 18, borderRadius: 6 }}
+              />
               Importuj z USOS
             </AddBtn>
 
-            <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
-              <AddBtn onClick={() => {
-                const selectedDay = sidebar ? new Date(sidebar.date) : new Date(currentDate);
-                const yyyy = selectedDay.getFullYear();
-                const mm = String(selectedDay.getMonth() + 1).padStart(2, "0");
-                const dd = String(selectedDay.getDate()).padStart(2, "0");
-                setForm(f => ({ ...defaultFormState, date: `${yyyy}-${mm}-${dd}` }));
-                setEditEvent(null);
-                setPopup(true);
-              }}>
+            <div
+              style={{
+                marginLeft: "auto",
+                display: "flex",
+                gap: 8,
+                alignItems: "center",
+              }}
+            >
+              <AddBtn
+                onClick={() => {
+                  const selectedDay = sidebar
+                    ? new Date(sidebar.date)
+                    : new Date(currentDate);
+                  const yyyy = selectedDay.getFullYear();
+                  const mm = String(selectedDay.getMonth() + 1).padStart(
+                    2,
+                    "0"
+                  );
+                  const dd = String(selectedDay.getDate()).padStart(2, "0");
+                  setForm((f) => ({
+                    ...defaultFormState,
+                    date: `${yyyy}-${mm}-${dd}`,
+                  }));
+                  setEditEvent(null);
+                  setPopup(true);
+                }}
+              >
                 + Dodaj
               </AddBtn>
-              <AddBtn onClick={() => { const today = new Date(); setCurrentDate(today); setSidebar({ date: today, events: getEventsForDay(filteredEvents, today) }); }} style={{ background: theme.colors.white, color: theme.colors.text, border: `1px solid ${theme.colors.borderMuted}` }}>
+              <AddBtn
+                onClick={() => {
+                  const today = new Date();
+                  setCurrentDate(today);
+                  setSidebar({
+                    date: today,
+                    events: getEventsForDay(filteredEvents, today),
+                  });
+                }}
+                style={{
+                  background: theme.colors.white,
+                  color: theme.colors.text,
+                  border: `1px solid ${theme.colors.borderMuted}`,
+                }}
+              >
                 Dziś
               </AddBtn>
               <ViewDropdownWrap ref={viewDropRef}>
-                <ViewDropdownBtn type="button" onClick={() => setViewOpen(o => !o)}>
+                <ViewDropdownBtn
+                  type="button"
+                  onClick={() => setViewOpen((o) => !o)}
+                >
                   {view === "week" ? "Tydzień" : "Miesiąc"}
-                  <span style={{ fontSize: 9, color: theme.colors.textLight }}>{viewOpen ? "▲" : "▼"}</span>
+                  <span style={{ fontSize: 9, color: theme.colors.textLight }}>
+                    {viewOpen ? "▲" : "▼"}
+                  </span>
                 </ViewDropdownBtn>
                 {viewOpen && (
                   <ViewDropdownList>
-                    <ViewDropdownItem $active={view === "week"} onClick={() => { setView("week"); localStorage.setItem("calendarView", "week"); setViewOpen(false); }}>Tydzień</ViewDropdownItem>
-                    <ViewDropdownItem $active={view === "month"} onClick={() => { setView("month"); localStorage.setItem("calendarView", "month"); setViewOpen(false); }}>Miesiąc</ViewDropdownItem>
+                    <ViewDropdownItem
+                      $active={view === "week"}
+                      onClick={() => {
+                        setView("week");
+                        localStorage.setItem("calendarView", "week");
+                        setViewOpen(false);
+                      }}
+                    >
+                      Tydzień
+                    </ViewDropdownItem>
+                    <ViewDropdownItem
+                      $active={view === "month"}
+                      onClick={() => {
+                        setView("month");
+                        localStorage.setItem("calendarView", "month");
+                        setViewOpen(false);
+                      }}
+                    >
+                      Miesiąc
+                    </ViewDropdownItem>
                   </ViewDropdownList>
                 )}
               </ViewDropdownWrap>
@@ -2084,7 +2850,9 @@ const Calendar = () => {
             currentDate={currentDate}
             events={filteredEvents}
             selectedDate={sidebar ? sidebar.date : null}
-            onDayClick={(day, dayEvents) => setSidebar({ date: day, events: dayEvents })}
+            onDayClick={(day, dayEvents) =>
+              setSidebar({ date: day, events: dayEvents })
+            }
           />
         </Main>
 
@@ -2092,26 +2860,42 @@ const Calendar = () => {
           {renderSidebar()}
         </DetailSidebar>
 
-        <FormSidebar $open={popup}>
-          {popup && renderPopup()}
-        </FormSidebar>
+        <FormSidebar $open={popup}>{popup && renderPopup()}</FormSidebar>
 
         {confirmUsosImport && (
-          <ScopeOverlay onClick={(e) => e.target === e.currentTarget && setConfirmUsosImport(false)}>
+          <ScopeOverlay
+            onClick={(e) =>
+              e.target === e.currentTarget && setConfirmUsosImport(false)
+            }
+          >
             <ScopeBox>
-              <ScopeTitle>
-                Import planu z USOS
-              </ScopeTitle>
-              <div style={{ padding: "0 16px 12px", fontSize: 13, color: theme.colors.textMuted, textAlign: "center", lineHeight: 1.4 }}>
-                Jeśli masz już zaimportowany plan z USOS, zostanie on nadpisany nowym- wszystkie dotychczasowe wydarzenia USOS zostaną usunięte.
+              <ScopeTitle>Import planu z USOS</ScopeTitle>
+              <div
+                style={{
+                  padding: "0 16px 12px",
+                  fontSize: 13,
+                  color: theme.colors.textMuted,
+                  textAlign: "center",
+                  lineHeight: 1.4,
+                }}
+              >
+                Jeśli masz już zaimportowany plan z USOS, zostanie on nadpisany
+                nowym- wszystkie dotychczasowe wydarzenia USOS zostaną usunięte.
               </div>
               <ScopeBtn
                 onClick={doUsosImport}
-                style={{ color: "rgb(226, 75, 74)", fontWeight: 600, textAlign: "center" }}
+                style={{
+                  color: "rgb(226, 75, 74)",
+                  fontWeight: 600,
+                  textAlign: "center",
+                }}
               >
                 Znam ryzyko, kontynuuj
               </ScopeBtn>
-              <CancelBtn onClick={() => setConfirmUsosImport(false)} style={{ width: "100%", marginTop: 4 }}>
+              <CancelBtn
+                onClick={() => setConfirmUsosImport(false)}
+                style={{ width: "100%", marginTop: 4 }}
+              >
                 Anuluj
               </CancelBtn>
             </ScopeBox>
@@ -2119,7 +2903,11 @@ const Calendar = () => {
         )}
 
         {confirmDelete && (
-          <ScopeOverlay onClick={(e) => e.target === e.currentTarget && setConfirmDelete(null)}>
+          <ScopeOverlay
+            onClick={(e) =>
+              e.target === e.currentTarget && setConfirmDelete(null)
+            }
+          >
             <ScopeBox>
               <ScopeTitle>
                 {confirmDelete.scope === "all"
@@ -2130,9 +2918,10 @@ const Calendar = () => {
                 onClick={async () => {
                   const { event: ev, scope } = confirmDelete;
                   if (ev.backendId) {
-                    const res = scope === "all"
-                      ? await deleteAllInSeriesApi(ev.backendId)
-                      : await deleteEventApi(ev.backendId);
+                    const res =
+                      scope === "all"
+                        ? await deleteAllInSeriesApi(ev.backendId)
+                        : await deleteEventApi(ev.backendId);
                     if (res.errorCode && res.errorCode !== "") {
                       setConfirmDelete(null);
                       return;
@@ -2145,11 +2934,18 @@ const Calendar = () => {
                   setPopup(false);
                   setSidebar(null);
                 }}
-                style={{ color: "rgb(226, 75, 74)", fontWeight: 600, textAlign: "center" }}
+                style={{
+                  color: "rgb(226, 75, 74)",
+                  fontWeight: 600,
+                  textAlign: "center",
+                }}
               >
                 Usuń
               </ScopeBtn>
-              <CancelBtn onClick={() => setConfirmDelete(null)} style={{ width: "100%", marginTop: 4 }}>
+              <CancelBtn
+                onClick={() => setConfirmDelete(null)}
+                style={{ width: "100%", marginTop: 4 }}
+              >
                 Anuluj
               </CancelBtn>
             </ScopeBox>
@@ -2157,10 +2953,16 @@ const Calendar = () => {
         )}
 
         {scopeAction && (
-          <ScopeOverlay onClick={(e) => e.target === e.currentTarget && setScopeAction(null)}>
+          <ScopeOverlay
+            onClick={(e) =>
+              e.target === e.currentTarget && setScopeAction(null)
+            }
+          >
             <ScopeBox>
               <ScopeTitle>
-                {scopeAction.type === "edit" ? "Edytuj wydarzenie cykliczne" : "Usuń wydarzenie cykliczne"}
+                {scopeAction.type === "edit"
+                  ? "Edytuj wydarzenie cykliczne"
+                  : "Usuń wydarzenie cykliczne"}
               </ScopeTitle>
               <ScopeBtn onClick={() => handleScopeChoice("this")}>
                 Tylko to wystąpienie
@@ -2173,18 +2975,36 @@ const Calendar = () => {
               <ScopeBtn onClick={() => handleScopeChoice("all")}>
                 Wszystkie wystąpienia
               </ScopeBtn>
-              <CancelBtn onClick={() => { setScopeAction(null); setPendingSave(null); }} style={{ width: "100%", marginTop: 4 }}>
+              <CancelBtn
+                onClick={() => {
+                  setScopeAction(null);
+                  setPendingSave(null);
+                }}
+                style={{ width: "100%", marginTop: 4 }}
+              >
                 Anuluj
               </CancelBtn>
             </ScopeBox>
           </ScopeOverlay>
         )}
         {tagScopePopup && (
-          <ScopeOverlay onClick={(e) => e.target === e.currentTarget && setTagScopePopup(null)}>
+          <ScopeOverlay
+            onClick={(e) =>
+              e.target === e.currentTarget && setTagScopePopup(null)
+            }
+          >
             <ScopeBox>
               <ScopeTitle>Przypisanie tagów</ScopeTitle>
-              <p style={{ fontSize: 13, color: theme.colors.textMuted, margin: "0 0 12px", textAlign: "center" }}>
-                Czy tagi mają być przypisane do wszystkich wystąpień w serii, czy tylko do tego wydarzenia?
+              <p
+                style={{
+                  fontSize: 13,
+                  color: theme.colors.textMuted,
+                  margin: "0 0 12px",
+                  textAlign: "center",
+                }}
+              >
+                Czy tagi mają być przypisane do wszystkich wystąpień w serii,
+                czy tylko do tego wydarzenia?
               </p>
               <ScopeBtn onClick={() => handleTagScopeChoice("all")}>
                 Wszystkie wystąpienia
@@ -2192,7 +3012,10 @@ const Calendar = () => {
               <ScopeBtn onClick={() => handleTagScopeChoice("this")}>
                 Tylko to wydarzenie
               </ScopeBtn>
-              <CancelBtn onClick={() => setTagScopePopup(null)} style={{ width: "100%", marginTop: 4 }}>
+              <CancelBtn
+                onClick={() => setTagScopePopup(null)}
+                style={{ width: "100%", marginTop: 4 }}
+              >
                 Anuluj
               </CancelBtn>
             </ScopeBox>
@@ -2200,25 +3023,49 @@ const Calendar = () => {
         )}
         {docTagPopup && (
           <DocTagPopupOverlay onClick={() => setDocTagPopup(null)}>
-            <DocTagPopupBox onClick={e => e.stopPropagation()}>
+            <DocTagPopupBox onClick={(e) => e.stopPropagation()}>
               <DocTagPopupTitle>„{docTagPopup.tag}"</DocTagPopupTitle>
 
               <DocTagPopupSection>
                 <DocTagPopupSectionLabel>Dokumenty</DocTagPopupSectionLabel>
-                {docTagPopup.notes.length > 0 ? docTagPopup.notes.map(n => (
-                  <DocTagPopupItem key={n.id} href={`/note/${n.id}`} target="_blank" rel="noopener noreferrer">
-                    {n.name}
-                  </DocTagPopupItem>
-                )) : <DocTagPopupEmpty>Brak pasujących dokumentów</DocTagPopupEmpty>}
+                {docTagPopup.notes.length > 0 ? (
+                  docTagPopup.notes.map((n) => (
+                    <DocTagPopupItem
+                      key={n.id}
+                      href={`/note/${n.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {n.name}
+                    </DocTagPopupItem>
+                  ))
+                ) : (
+                  <DocTagPopupEmpty>
+                    Brak pasujących dokumentów
+                  </DocTagPopupEmpty>
+                )}
               </DocTagPopupSection>
 
               <DocTagPopupSection>
-                <DocTagPopupSectionLabel>Zestawy fiszek</DocTagPopupSectionLabel>
-                {docTagPopup.sets.length > 0 ? docTagPopup.sets.map(s => (
-                  <DocTagPopupItem key={s.id} href={`/learning/set/${s.id}`} target="_blank" rel="noopener noreferrer">
-                    {s.name || s.title}
-                  </DocTagPopupItem>
-                )) : <DocTagPopupEmpty>Brak pasujących zestawów fiszek</DocTagPopupEmpty>}
+                <DocTagPopupSectionLabel>
+                  Zestawy fiszek
+                </DocTagPopupSectionLabel>
+                {docTagPopup.sets.length > 0 ? (
+                  docTagPopup.sets.map((s) => (
+                    <DocTagPopupItem
+                      key={s.id}
+                      href={`/learning/set/${s.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {s.name || s.title}
+                    </DocTagPopupItem>
+                  ))
+                ) : (
+                  <DocTagPopupEmpty>
+                    Brak pasujących zestawów fiszek
+                  </DocTagPopupEmpty>
+                )}
               </DocTagPopupSection>
             </DocTagPopupBox>
           </DocTagPopupOverlay>

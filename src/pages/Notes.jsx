@@ -1,85 +1,112 @@
-import styled from 'styled-components';
-import React, { useState, useEffect } from 'react';
-import SubmitButton from '../components/atoms/SubmitButton'
-import Text from '../components/atoms/Text'
-import { addNote, deleteNote, clearTrash, restoreNote, getFolderSuggestedTags, addFolder, deleteFolder, restoreFolder, clearFolderTrash, renameNote, renameFolder, getAllDeletedNotes, getAllDeletedFolders, resolveFolderByPath, getNoteTags, addNoteTag, removeNoteTag, getNoteSuggestedTags, getFolderTags, addFolderTag, removeFolderTag, moveNote, moveFolder, getAllFolders, getAllNotes, getFolderItemsCount } from '../api';
-import { useNavigate, useParams } from 'react-router-dom'
-import { getToken, parseJwt } from '../token'
-import Input from '../components/atoms/Input';
-import Layout from '../components/organisms/Layout';
-import AIFlashcardModal from '../components/editor/AIFlashcardModal.jsx';
+import styled from "styled-components";
+import React, { useState, useEffect } from "react";
+import SubmitButton from "../components/atoms/SubmitButton";
+import Text from "../components/atoms/Text";
+import {
+  addNote,
+  deleteNote,
+  clearTrash,
+  restoreNote,
+  getFolderSuggestedTags,
+  addFolder,
+  deleteFolder,
+  restoreFolder,
+  clearFolderTrash,
+  renameNote,
+  renameFolder,
+  getAllDeletedNotes,
+  getAllDeletedFolders,
+  resolveFolderByPath,
+  getNoteTags,
+  addNoteTag,
+  removeNoteTag,
+  getNoteSuggestedTags,
+  getFolderTags,
+  addFolderTag,
+  removeFolderTag,
+  moveNote,
+  moveFolder,
+  getAllFolders,
+  getAllNotes,
+  getFolderItemsCount,
+} from "../api";
+import { useNavigate, useParams } from "react-router-dom";
+import { getToken, parseJwt } from "../token";
+import Input from "../components/atoms/Input";
+import Layout from "../components/organisms/Layout";
+import AIFlashcardModal from "../components/editor/AIFlashcardModal.jsx";
 
 const noteNameRegex = /^[a-zA-Z0-9 _\-ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+$/;
 
 const StyledContainer = styled.div`
-   width: 100%;
-   height:100%;
-   min-height:100vh;
-   /* padding:40px; */
-   padding:20px 40px;
-   position:relative;
-`
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  /* padding:40px; */
+  padding: 20px 40px;
+  position: relative;
+`;
 
 const StyledUserHeader = styled.div`
-    display: flex;
-    flex-flow: row nowrap;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    min-height: 60px;
-`
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  min-height: 60px;
+`;
 
 const StyledName = styled.h2`
-    color: ${({ theme }) => theme.colors.text};
-    font-size: 2.5rem;
-    margin: 0;
-    cursor:default;
-    @media(max-width:768px){
-        font-size: 2rem;
-    }
-`
+  color: ${({ theme }) => theme.colors.text};
+  font-size: 2.5rem;
+  margin: 0;
+  cursor: default;
+  @media (max-width: 768px) {
+    font-size: 2rem;
+  }
+`;
 
 const StyledBreadcrumbPath = styled.div`
-    display:flex;
-    flex-wrap: wrap;
-    align-items:center;
-    font-size:0.95rem;
-    gap:8px;
-    .crumb-item {
-        margin: 0;
-        display: flex;
-        align-items: center;
-        color: ${({ theme }) => theme.colors.text};
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 0.95rem;
+  gap: 8px;
+  .crumb-item {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    color: ${({ theme }) => theme.colors.text};
+  }
+  .separator {
+    cursor: default;
+    color: ${({ theme }) => theme.colors.darkGrey};
+  }
+  .current {
+    font-weight: 700;
+    cursor: default;
+  }
+  .clickable {
+    cursor: pointer;
+    transition: color 0.2s;
+
+    &:hover {
+      color: ${({ theme }) => theme.colors.secondary};
     }
-    .separator {
-        cursor: default;
-        color: ${({ theme }) => theme.colors.darkGrey};
-    }
-    .current {
-        font-weight: 700;
-        cursor: default;
-    }
-    .clickable {
-        cursor: pointer;
-        transition: color 0.2s;
-        
-        &:hover {
-            color: ${({ theme }) => theme.colors.secondary};
-        }
-    }
-`
+  }
+`;
 
 const ContentContainer = styled.div`
-    width: 100%; 
-    max-width: 1800px;
-    margin: 0 auto;
-    padding: 20px 0 120px 0;
-    
-    display: grid;
-    grid-template-columns: repeat(auto-fit, 250px);
-    justify-content: center; 
-    gap: 30px;
-`
+  width: 100%;
+  max-width: 1800px;
+  margin: 0 auto;
+  padding: 20px 0 120px 0;
+
+  display: grid;
+  grid-template-columns: repeat(auto-fit, 250px);
+  justify-content: center;
+  gap: 30px;
+`;
 
 const StyledClearTrashButton = styled.div`
   margin-left: auto;
@@ -91,242 +118,263 @@ const StyledClearTrashButton = styled.div`
   font-size: 0.95rem;
   cursor: pointer;
   position: relative;
-  &.danger{
+  &.danger {
     background-color: ${({ theme }) => theme.colors.danger};
   }
-  >svg{
-    margin:3px 0;
+  > svg {
+    margin: 3px 0;
   }
-`
-
+`;
 
 const FloatingActionButton = styled.button`
-    position: fixed;
-    bottom: 40px;
-    right: 40px;
-    width: 70px;
-    height: 70px;
-    background-color: ${({ theme, $danger }) => $danger ? (theme.colors?.danger || '#e74c3c') : theme.colors.white};
-    border: none;
-    border-radius: 20px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    z-index: 100;
-    
-    &:hover {
-        transform: scale(1.05);
-        box-shadow: 0 6px 25px rgba(0,0,0,0.15);
-    }
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  width: 70px;
+  height: 70px;
+  background-color: ${({ theme, $danger }) =>
+    $danger ? theme.colors?.danger || "#e74c3c" : theme.colors.white};
+  border: none;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  z-index: 100;
 
-    svg {
-        width: 32px;
-        height: 32px;
-        color: ${({ theme, $danger }) => $danger ? theme.colors.white : theme.colors.secondary};
-    }
-`
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+  }
+
+  svg {
+    width: 32px;
+    height: 32px;
+    color: ${({ theme, $danger }) =>
+      $danger ? theme.colors.white : theme.colors.secondary};
+  }
+`;
 
 const FabMenu = styled.div`
-    position: fixed;
-    bottom: 124px;
-    right: 40px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    z-index: 100;
-`
+  position: fixed;
+  bottom: 124px;
+  right: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 100;
+`;
 
 const FabMenuItem = styled.button`
-    background: ${({ theme }) => theme.colors.white};
-    border: none;
-    border-radius: 12px;
-    padding: 10px 18px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: ${({ theme }) => theme.colors.text};
-    cursor: pointer;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-    text-align: left;
-    transition: box-shadow 0.15s, background 0.15s;
-    &:hover {
-        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-        background: ${({ theme }) => theme.colors.primary};
-    }
-`
+  background: ${({ theme }) => theme.colors.white};
+  border: none;
+  border-radius: 12px;
+  padding: 10px 18px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.text};
+  cursor: pointer;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  text-align: left;
+  transition: box-shadow 0.15s, background 0.15s;
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    background: ${({ theme }) => theme.colors.primary};
+  }
+`;
 
 const StyledItem = styled.div`
-    width: 100%;
-    max-width: 250px;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 15px;
-    position: relative;
-    cursor: pointer;
-    transition: transform 0.2s;
-    z-index: ${({ $isActive }) => $isActive ? 50 : 1};
-`
+  width: 100%;
+  max-width: 250px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 15px;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s;
+  z-index: ${({ $isActive }) => ($isActive ? 50 : 1)};
+`;
 
 const StyledNoteImage = styled.div`
-    width: 100px;
-    height: 120px;
-    margin: 0 auto 10px auto;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    > svg { width: 80%; height: 80%; color: ${({ theme }) => theme.colors.darkGrey}; }
-`
+  width: 100px;
+  height: 120px;
+  margin: 0 auto 10px auto;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  > svg {
+    width: 80%;
+    height: 80%;
+    color: ${({ theme }) => theme.colors.darkGrey};
+  }
+`;
 
 const StyledFolderImage = styled.div`
-    width: 120px;
-    height: 120px;
-    margin: 0 auto 10px auto;
-    padding: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    > svg { width: 100%; height: 100%; color: ${({ theme }) => theme.colors.black}; }
-`
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 10px auto;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  > svg {
+    width: 100%;
+    height: 100%;
+    color: ${({ theme }) => theme.colors.black};
+  }
+`;
 
 const StyledItemHeaderWrapper = styled.div`
-    text-align:center;
-    word-break:break-word;
-    width: 100%;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-`
+  text-align: center;
+  word-break: break-word;
+  width: 100%;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+`;
 
 const StyledItemHeader = styled.span`
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    color: ${({ theme }) => theme.colors?.text || '#333'};
-    cursor: pointer;
-    z-index: 10;
-    transition: background-color 0.2s;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: ${({ theme }) => theme.colors?.text || "#333"};
+  cursor: pointer;
+  z-index: 10;
+  transition: background-color 0.2s;
 
-    &:hover {
-        background-color: ${({ theme }) => theme.colors?.lightGrey || '#f4f4f4'};
-    }
-    
-    svg {
-        width: 18px;
-        height: 18px;
-        color: ${({ theme }) => theme.colors?.darkGrey || '#666'};
-    }
-`
+  &:hover {
+    background-color: ${({ theme }) => theme.colors?.lightGrey || "#f4f4f4"};
+  }
+
+  svg {
+    width: 18px;
+    height: 18px;
+    color: ${({ theme }) => theme.colors?.darkGrey || "#666"};
+  }
+`;
 
 const StyledItemOptions = styled.div`
-    display: ${({ $active }) => $active ? "flex" : "none"};
-    flex-direction: column;
-    width: ${({ $narrow }) => $narrow ? "200px" : "280px"};
-    background: ${({ theme }) => theme.colors?.white || '#fff'};
-    border: 1px solid #eee;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-    padding: 10px;
-    z-index: 20;
-    text-align: left;
-    cursor: default;
+  display: ${({ $active }) => ($active ? "flex" : "none")};
+  flex-direction: column;
+  width: ${({ $narrow }) => ($narrow ? "200px" : "280px")};
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid #eee;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 10px;
+  z-index: 20;
+  text-align: left;
+  cursor: default;
 
-    ${({ $centerBelow }) => $centerBelow ? `
+  ${({ $centerBelow }) =>
+    $centerBelow
+      ? `
         position:fixed;
         top:auto;
         left:50%;
         transform:translateX(-50%);
         margin-top:8px;
         max-width:calc(100vw - 20px);
-    ` : `
+    `
+      : `
         position:absolute;
     `}
-    ${({ $flipLeft, $centerBelow }) => !$centerBelow && ($flipLeft ? "right:100%; margin-right:10px;" : "left:100%; margin-left:10px;")}
+  ${({ $flipLeft, $centerBelow }) =>
+    !$centerBelow &&
+    ($flipLeft
+      ? "right:100%; margin-right:10px;"
+      : "left:100%; margin-left:10px;")}
 
     > input {
-        padding: 8px 12px;
-        margin: 0 10px 15px 10px;
-        width: calc(100% - 20px);
-        border-radius: 8px;
-        border: 1px solid transparent;
-        font-weight: 700;
-        font-family: inherit;
-        font-size: 0.95rem;
-        color: ${({ theme }) => theme.colors?.text || '#333'};
-        background-color: ${({ theme }) => theme.colors?.lightGrey || '#f4f4f4'};
-        outline: none;
-        transition: border-color 0.2s;
-        
-        &:focus {
-            border-color: ${({ theme }) => theme.colors?.secondary || '#888'};
-        }
+    padding: 8px 12px;
+    margin: 0 10px 15px 10px;
+    width: calc(100% - 20px);
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-weight: 700;
+    font-family: inherit;
+    font-size: 0.95rem;
+    color: ${({ theme }) => theme.colors?.text || "#333"};
+    background-color: ${({ theme }) => theme.colors?.lightGrey || "#f4f4f4"};
+    outline: none;
+    transition: border-color 0.2s;
+
+    &:focus {
+      border-color: ${({ theme }) => theme.colors?.secondary || "#888"};
     }
-`
+  }
+`;
 
 const StyledItemOption = styled.button`
-    padding: 10px 12px;
-    background: none;
-    border: none;
-    font-size: 14px;
-    font-family: inherit;
-    font-weight: 600;
-    cursor: pointer;
-    color: #333;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    text-align: left;
-    
-    &.danger { color: #e74c3c; }
-    &:hover { background-color: #f9f9f9; }
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  color: #333;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
 
-    > svg {
-        width: 16px;
-        height: 16px;
-        flex-shrink: 0;
-    }
-`
+  &.danger {
+    color: #e74c3c;
+  }
+  &:hover {
+    background-color: #f9f9f9;
+  }
+
+  > svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+`;
 
 const TagsContainer = styled.div`
-  display:flex;
-  flex-flow:row wrap;
-  align-items:center;
-  margin-bottom:10px;
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
+  margin-bottom: 10px;
   box-sizing: border-box;
   gap: 6px;
 
-  >p{
-    color:${({ theme }) => theme.colors.darkGrey};
-    font-size:1rem;
-    margin-right:7px;
-    font-weight:600;
+  > p {
+    color: ${({ theme }) => theme.colors.darkGrey};
+    font-size: 1rem;
+    margin-right: 7px;
+    font-weight: 600;
   }
-`
+`;
 
 const StyledTag = styled.div`
     padding: 2px 10px;
     margin: 3px;
-    background-color: ${({ theme, $inactive }) => $inactive ? '#e0e0e0' : theme.colors.secondary};
+    background-color: ${({ theme, $inactive }) =>
+      $inactive ? "#e0e0e0" : theme.colors.secondary};
     border-radius: 10px;
-    color: ${({ $inactive }) => $inactive ? '#666' : 'white'};
+    color: ${({ $inactive }) => ($inactive ? "#666" : "white")};
     font-weight: 500;
     font-size: 0.9rem;
     display: flex;
     align-items: center;
-    cursor: ${({ $inactive }) => $inactive ? 'pointer' : 'default'};
+    cursor: ${({ $inactive }) => ($inactive ? "pointer" : "default")};
     transition: all 0.2s;
 
     &:hover {
@@ -339,1609 +387,2144 @@ const StyledTag = styled.div`
         font-size: 1rem;
         margin-left: 6px;
         line-height: 1;
-        display: ${({ $inactive }) => $inactive ? 'none' : 'block'};
-`
+        display: ${({ $inactive }) => ($inactive ? "none" : "block")};
+`;
 
 const StyledAddTagButton = styled.div`
-    padding: 4px 12px;
-    background-color: transparent;
-    border: 1px dashed #ccc;
-    border-radius: 8px;
-    color: #666;
-    font-weight: 600;
-    font-size: 0.8rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
+  padding: 4px 12px;
+  background-color: transparent;
+  border: 1px dashed #ccc;
+  border-radius: 8px;
+  color: #666;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
 
-    white-space: nowrap; 
-    display: inline-flex;
-    
-    &:hover { 
-        background-color: #f4f4f4; 
-        color: #333;
-        border-color: #333;
-    }
+  white-space: nowrap;
+  display: inline-flex;
+
+  &:hover {
+    background-color: #f4f4f4;
+    color: #333;
+    border-color: #333;
+  }
 `;
 
 const StyledTagInput = styled.input`
-    padding: 4px 10px;
-    border-radius: 8px;
-    color: white;
-    border: none;
-    width: 90px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    font-family: inherit;
-    background-color: ${({ theme }) => theme.colors?.secondary || '#555'};
-    &:focus { outline: none; box-shadow: 0 0 0 2px rgba(0,0,0,0.1); }
-`
+  padding: 4px 10px;
+  border-radius: 8px;
+  color: ${({ theme }) => theme.colors.white};
+  border: none;
+  width: 90px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: inherit;
+  background-color: ${({ theme }) => theme.colors?.secondary || "#555"};
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+  }
+`;
 
 const StyledTreeItem = styled.div`
-    padding-left: ${({ $depth }) => $depth * 20}px;
-`
+  padding-left: ${({ $depth }) => $depth * 20}px;
+`;
 
 const StyledTreeItemLabel = styled.div`
-    display: flex;
-    align-items: center;
-    padding: 5px 8px;
-    cursor: pointer;
-    border-radius:5px;
+  display: flex;
+  align-items: center;
+  padding: 5px 8px;
+  cursor: pointer;
+  border-radius: 5px;
+  background-color: ${({ $selected, $disabled, theme }) =>
+    $disabled
+      ? theme.colors.lightGrey
+      : $selected
+      ? theme.colors.primary
+      : "transparent"};
+  opacity: ${({ $disabled }) => ($disabled ? 0.5 : 1)};
+  pointer-events: ${({ $disabled }) => ($disabled ? "none" : "auto")};
+  &:hover {
     background-color: ${({ $selected, $disabled, theme }) =>
-        $disabled ? theme.colors.lightGrey : $selected ? theme.colors.primary : 'transparent'};
-    opacity: ${({ $disabled }) => $disabled ? 0.5 : 1};
-    pointer-events: ${({ $disabled }) => $disabled ? 'none' : 'auto'};
-    &:hover {
-        background-color: ${({ $selected, $disabled, theme }) =>
-        $disabled ? undefined : $selected ? theme.colors.primary : '#f0f0f0'};
-    }
-    > svg {
-        width: 16px;
-        margin-right: 6px;
-        flex-shrink: 0;
-    }
-`
+      $disabled ? undefined : $selected ? theme.colors.primary : "#f0f0f0"};
+  }
+  > svg {
+    width: 16px;
+    margin-right: 6px;
+    flex-shrink: 0;
+  }
+`;
 
 const StyledPopup = styled.div`
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 600px;
-    min-height: 250px;
-    padding: 50px;
-    border-radius: 25px;
-    background-color: ${({ theme }) => theme.colors?.white || '#fff'};
-    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-    z-index: 1000;
-    
-    @media(max-width:768px){
-        width: 90%;
-        padding: 40px;
-    }
-`
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  min-height: 250px;
+  padding: 50px;
+  border-radius: 25px;
+  background-color: ${({ theme }) => theme.colors.white};
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+
+  @media (max-width: 768px) {
+    width: 90%;
+    padding: 40px;
+  }
+`;
 
 const ModalOverlay = styled.div`
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.4);
-    z-index: 999;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 999;
 `;
 
 const DropdownSectionLabel = styled.div`
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #999;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
-    margin-top: 5px;
-    padding: 0 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  margin-top: 5px;
+  padding: 0 10px;
 `;
 
 const StyledSearchInput = styled.div`
-    position: relative;
-    display: flex;
-    align-items: center;
-    background-color: #f4f5f7;
-    border: 1px solid transparent;
-    border-radius: 20px;
-    padding: 8px 16px;
-    gap: 8px;
-    transition: all 0.2s;
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: #f4f5f7;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  padding: 8px 16px;
+  gap: 8px;
+  transition: all 0.2s;
 
-    border-color: ${({ theme }) => theme.colors?.secondary };
-    
-    &:focus-within {
-        background-color: ${({ theme }) => theme.colors?.white || '#fff'};
-        border-color: ${({ theme }) => theme.colors?.secondary || '#00b894'};
+  border-color: ${({ theme }) => theme.colors?.secondary};
+
+  &:focus-within {
+    background-color: ${({ theme }) => theme.colors.white};
+    border-color: ${({ theme }) => theme.colors?.secondary || "#00b894"};
+  }
+
+  > input {
+    border: none;
+    background: transparent;
+    outline: none;
+    color: ${({ theme }) => theme.colors?.text};
+    font-size: 0.95rem;
+    width: 200px;
+
+    &::placeholder {
+      color: #a0a0a0;
     }
-    
-    > input {
-        border: none;
-        background: transparent;
-        outline: none;
-        color: ${({ theme }) => theme.colors?.text};
-        font-size: 0.95rem;
-        width: 200px;
-        
-        &::placeholder {
-            color: #a0a0a0;
-        }
-    }
-    
-    > svg {
-        color: #a0a0a0;
-        flex-shrink: 0;
-    }
+  }
+
+  > svg {
+    color: #a0a0a0;
+    flex-shrink: 0;
+  }
 `;
 
 const StyledSearchDropdown = styled.div`
-    position: absolute;
-    top: calc(100% + 6px);
-    right: 0;
-    width: 360px;
-    background: ${({ theme }) => theme.colors.white};
-    border: 1px solid ${({ theme }) => theme.colors.darkGrey};
-    border-radius: 10px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
-    z-index: 200;
-    max-height: 420px;
-    overflow-y: auto;
-    padding: 6px 0;
-`
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 360px;
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.darkGrey};
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  z-index: 200;
+  max-height: 420px;
+  overflow-y: auto;
+  padding: 6px 0;
+`;
 
 const StyledSearchSectionTitle = styled.div`
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: ${({ theme }) => theme.colors.textLight};
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    padding: 8px 14px 4px;
-`
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.textLight};
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 8px 14px 4px;
+`;
 
 const StyledSearchResultItem = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 7px 14px;
-    cursor: pointer;
-    transition: background 0.12s;
-    &:hover {
-        background: ${({ theme }) => theme.colors.lightGrey};
-    }
-    > svg {
-        flex-shrink: 0;
-        color: ${({ theme }) => theme.colors.textLight};
-    }
-`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: background 0.12s;
+  &:hover {
+    background: ${({ theme }) => theme.colors.lightGrey};
+  }
+  > svg {
+    flex-shrink: 0;
+    color: ${({ theme }) => theme.colors.textLight};
+  }
+`;
 
 const StyledSearchResultInfo = styled.div`
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-`
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+`;
 
 const StyledSearchResultName = styled.span`
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: ${({ theme }) => theme.colors.text};
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-`
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.text};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
 
 const StyledSearchResultPath = styled.span`
-    font-size: 0.72rem;
-    color: ${({ theme }) => theme.colors.textLight};
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-`
+  font-size: 0.72rem;
+  color: ${({ theme }) => theme.colors.textLight};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
 
 const StyledSearchEmpty = styled.div`
-    padding: 16px 14px;
-    font-size: 0.85rem;
-    color: ${({ theme }) => theme.colors.textLight};
-    text-align: center;
-`
+  padding: 16px 14px;
+  font-size: 0.85rem;
+  color: ${({ theme }) => theme.colors.textLight};
+  text-align: center;
+`;
 
 const StyledTabsContainer = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 25px;
+  display: flex;
+  align-items: center;
+  gap: 25px;
 `;
 
 const StyledTab = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    color: ${({ $active, theme }) => $active ? (theme.colors?.secondary || '#00b894') : '#6c757d'};
-    transition: color 0.15s;
-    
-    &:hover {
-        color: ${({ theme }) => theme.colors?.secondary || '#00b894'};
-    }
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: ${({ $active, theme }) =>
+    $active ? theme.colors?.secondary || "#00b894" : "#6c757d"};
+  transition: color 0.15s;
 
-    > svg {
-        width: 16px;
-        height: 16px;
-    }
+  &:hover {
+    color: ${({ theme }) => theme.colors?.secondary || "#00b894"};
+  }
+
+  > svg {
+    width: 16px;
+    height: 16px;
+  }
 `;
 
 const StyledSearchDivider = styled.div`
-    height: 1px;
-    background: ${({ theme }) => theme.colors.lightGrey};
-    margin: 4px 0;
-`
+  height: 1px;
+  background: ${({ theme }) => theme.colors.lightGrey};
+  margin: 4px 0;
+`;
 
 const SortSelectContainer = styled.div`
-    position: relative;
-    display: flex;
-    align-items: center;
+  position: relative;
+  display: flex;
+  align-items: center;
 `;
 
 const SortSelect = styled.select`
-    appearance: none;
-    padding: 8px 32px 8px 16px;
-    border-radius: 8px;
-    border: 1px solid #ced4da;
-    background-color: white;
-    font-family: inherit;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #495057;
-    outline: none;
-    cursor: pointer;
-    
-    &:hover {
-        background-color: #f8f9fa;
-    }
+  appearance: none;
+  padding: 8px 32px 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #ced4da;
+  background-color: ${({ theme }) => theme.colors.white};
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #495057;
+  outline: none;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f8f9fa;
+  }
 `;
 
 const SortIconWrapper = styled.div`
-    position: absolute;
-    right: 12px;
-    pointer-events: none;
-    color: #495057;
-    display: flex;
-    align-items: center;
+  position: absolute;
+  right: 12px;
+  pointer-events: none;
+  color: #495057;
+  display: flex;
+  align-items: center;
 `;
 
 const BackButton = styled.div`
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    font-size: 1.3rem;
-    font-weight: 600;
-    color: ${({ theme }) => theme.colors?.darkGrey};
-    transition: color 0.2s;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors?.darkGrey};
+  transition: color 0.2s;
 
-    user-select: none;
-    -webkit-user-select: none;
-    
-    &:hover {
-        color: ${({ theme }) => theme.colors?.text};
-    }
-    
-    > svg {
-        margin-right: 8px;
-    }
+  user-select: none;
+  -webkit-user-select: none;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors?.text};
+  }
+
+  > svg {
+    margin-right: 8px;
+  }
 `;
 
 const StyledToolbar = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-    border-bottom: 1px solid #d1d5db;
-    padding-bottom: 15px;
-    flex-wrap: wrap;
-    gap: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #d1d5db;
+  padding-bottom: 15px;
+  flex-wrap: wrap;
+  gap: 15px;
 `;
 
 const ToolbarActions = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 `;
 
 const ToolbarButton = styled.button`
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    font-family: inherit;
-    cursor: ${({ disabled }) => disabled ? 'default' : 'pointer'};
-    opacity: ${({ disabled }) => disabled ? 0.8 : 1};
-    transition: all 0.2s;
-    
-    &.primary {
-        background-color: ${({ theme }) => theme.colors?.secondary || '#00b894'};
-        color: white;
-        border: 1px solid ${({ theme }) => theme.colors?.secondary || '#00b894'};
-    }
-    
-    &.outline {
-        background-color: white;
-        color: #495057;
-        border: 1px solid #ced4da;
-    }
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: ${({ disabled }) => (disabled ? "default" : "pointer")};
+  opacity: ${({ disabled }) => (disabled ? 0.8 : 1)};
+  transition: all 0.2s;
+
+  &.primary {
+    background-color: ${({ theme }) => theme.colors?.secondary || "#00b894"};
+    color: ${({ theme }) => theme.colors.white};
+    border: 1px solid ${({ theme }) => theme.colors?.secondary || "#00b894"};
+  }
+
+  &.outline {
+    background-color: ${({ theme }) => theme.colors.white};
+    color: #495057;
+    border: 1px solid #ced4da;
+  }
 `;
 
 const FilterContainer = styled.div`
-    position: relative;
-    display: flex;
-    align-items: center;
+  position: relative;
+  display: flex;
+  align-items: center;
 `;
 
 const FilterDropdown = styled.div`
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
-    background: white;
-    border: 1px solid #ced4da;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-    padding: 15px;
-    z-index: 100;
-    width: 280px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    cursor: default;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid #ced4da;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 15px;
+  z-index: 100;
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  cursor: default;
 `;
 
 const FilterTag = styled.div`
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    background-color: ${({ $active, theme }) => $active ? (theme.colors?.secondary || '#00b894') : '#f4f5f7'};
-    color: ${({ $active }) => $active ? 'white' : '#495057'};
-    transition: all 0.2s;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  background-color: ${({ $active, theme }) =>
+    $active ? theme.colors?.secondary || "#00b894" : "#f4f5f7"};
+  color: ${({ $active }) => ($active ? "white" : "#495057")};
+  transition: all 0.2s;
 
-    &:hover {
-        background-color: ${({ $active, theme }) => $active ? (theme.colors?.secondary || '#00b894') : '#e2e6ea'};
-        opacity: ${({ $active }) => $active ? 0.8 : 1};
-    }
+  &:hover {
+    background-color: ${({ $active, theme }) =>
+      $active ? theme.colors?.secondary || "#00b894" : "#e2e6ea"};
+    opacity: ${({ $active }) => ($active ? 0.8 : 1)};
+  }
 `;
 
 const ActiveFilterBadge = styled.span`
-    background-color: ${({ theme }) => theme.colors?.secondary || '#00b894'};
-    color: white;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-    margin-left: 6px;
+  background-color: ${({ theme }) => theme.colors?.secondary || "#00b894"};
+  color: ${({ theme }) => theme.colors.white};
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  margin-left: 6px;
 `;
 
 const EllipsisIcon = () => (
-    <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-        <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
-    </svg>
+  <svg
+    viewBox="0 0 16 16"
+    fill="currentColor"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z" />
+  </svg>
 );
 
 const Notes = () => {
-    const params = useParams();
-    const urlPath = params["*"] || "";
-    const isTrashView = urlPath === "trash" || urlPath.startsWith("trash/");
-    const folderPath = isTrashView ? urlPath.replace(/^trash\/?/, "") : urlPath;
-    const pathSegments = folderPath ? folderPath.split("/").filter(Boolean) : [];
+  const params = useParams();
+  const urlPath = params["*"] || "";
+  const isTrashView = urlPath === "trash" || urlPath.startsWith("trash/");
+  const folderPath = isTrashView ? urlPath.replace(/^trash\/?/, "") : urlPath;
+  const pathSegments = folderPath ? folderPath.split("/").filter(Boolean) : [];
 
-    const [username, setUsername] = useState(undefined);
-    const [noteName, setNoteName] = useState("");
-    const [folderName, setFolderName] = useState("");
-    const [notes, setNotes] = useState([]);
-    const [activeFolderOptionsId, setActiveFolderOptionsId] = useState(null);
-    const [addNoteErrorMessage, setAddNoteErrorMessage] = useState("");
-    const [addFolderErrorMessage, setAddFolderErrorMessage] = useState("");
-    const [errorMessage, setErrorMessage] = useState("");
-    const [activeNoteOptionsId, setActiveNoteOptionsId] = useState(null);
-    const [isAddingNote, setIsAddingNote] = useState(false);
-    const [isAddingFolder, setIsAddingFolder] = useState(false);
-    const [isActiveAddOptions, setIsActiveAddOptions] = useState(false);
-    const [isActivePathOptions, setIsActivePathOptions] = useState(false);
-    const [isConfirmingTrashClear, setIsConfirmingTrashClear] = useState(false);
-    const [trashHasItems, setTrashHasItems] = useState(false);
-    const [noteNameErrorMessage, setNoteNameErrorMessage] = useState("");
-    const [folderNameErrorMessage, setFolderNameErrorMessage] = useState("");
-    const [isAddingTag, setIsAddingTag] = useState(false);
-    const [newTag, setNewTag] = useState('');
-    const [suggestedTags, setSuggestedTags] = useState([]);
-    const [chosenTags, setChosenTags] = useState([]);
-    const navigate = useNavigate();
-    const breadcrumbs = pathSegments.map(s => decodeURIComponent(s));
-    const [currentFolder, setCurrentFolder] = useState(null);
-    const [subFolders, setSubFolders] = useState([]);
-    const [editingName, setEditingName] = useState("");
-    const [flipLeft, setFlipLeft] = useState(false);
-    const [centerBelow, setCenterBelow] = useState(false);
-    const [itemTags, setItemTags] = useState([]);
-    const [itemSuggestedTags, setItemSuggestedTags] = useState([]);
-    const [isAddingItemTag, setIsAddingItemTag] = useState(false);
-    const [newItemTag, setNewItemTag] = useState('');
-    const [isMoving, setIsMoving] = useState(false);
-    const [movingItem, setMovingItem] = useState(null);
-    const [moveTree, setMoveTree] = useState([]);
-    const [expandedMoveIds, setExpandedMoveIds] = useState(new Set());
-    const [selectedMovePath, setSelectedMovePath] = useState(null);
-    const [moveErrorMessage, setMoveErrorMessage] = useState("");
-    const [aiModalNoteId, setAiModalNoteId] = useState(null);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [isSearchFocused, setIsSearchFocused] = useState(false);
-    const [globalSearchResults, setGlobalSearchResults] = useState({ notes: [], folders: [] });
-    const [isSearchLoading, setIsSearchLoading] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
+  const [username, setUsername] = useState(undefined);
+  const [noteName, setNoteName] = useState("");
+  const [folderName, setFolderName] = useState("");
+  const [notes, setNotes] = useState([]);
+  const [activeFolderOptionsId, setActiveFolderOptionsId] = useState(null);
+  const [addNoteErrorMessage, setAddNoteErrorMessage] = useState("");
+  const [addFolderErrorMessage, setAddFolderErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [activeNoteOptionsId, setActiveNoteOptionsId] = useState(null);
+  const [isAddingNote, setIsAddingNote] = useState(false);
+  const [isAddingFolder, setIsAddingFolder] = useState(false);
+  const [isActiveAddOptions, setIsActiveAddOptions] = useState(false);
+  const [isActivePathOptions, setIsActivePathOptions] = useState(false);
+  const [isConfirmingTrashClear, setIsConfirmingTrashClear] = useState(false);
+  const [trashHasItems, setTrashHasItems] = useState(false);
+  const [noteNameErrorMessage, setNoteNameErrorMessage] = useState("");
+  const [folderNameErrorMessage, setFolderNameErrorMessage] = useState("");
+  const [isAddingTag, setIsAddingTag] = useState(false);
+  const [newTag, setNewTag] = useState("");
+  const [suggestedTags, setSuggestedTags] = useState([]);
+  const [chosenTags, setChosenTags] = useState([]);
+  const navigate = useNavigate();
+  const breadcrumbs = pathSegments.map((s) => decodeURIComponent(s));
+  const [currentFolder, setCurrentFolder] = useState(null);
+  const [subFolders, setSubFolders] = useState([]);
+  const [editingName, setEditingName] = useState("");
+  const [flipLeft, setFlipLeft] = useState(false);
+  const [centerBelow, setCenterBelow] = useState(false);
+  const [itemTags, setItemTags] = useState([]);
+  const [itemSuggestedTags, setItemSuggestedTags] = useState([]);
+  const [isAddingItemTag, setIsAddingItemTag] = useState(false);
+  const [newItemTag, setNewItemTag] = useState("");
+  const [isMoving, setIsMoving] = useState(false);
+  const [movingItem, setMovingItem] = useState(null);
+  const [moveTree, setMoveTree] = useState([]);
+  const [expandedMoveIds, setExpandedMoveIds] = useState(new Set());
+  const [selectedMovePath, setSelectedMovePath] = useState(null);
+  const [moveErrorMessage, setMoveErrorMessage] = useState("");
+  const [aiModalNoteId, setAiModalNoteId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [globalSearchResults, setGlobalSearchResults] = useState({
+    notes: [],
+    folders: [],
+  });
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-    const [isSuccess, setIsSuccess] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
-    const [folderCounts, setFolderCounts] = useState({});
+  const [folderCounts, setFolderCounts] = useState({});
 
-    //czytamy z localstorage ostatni wybor i zapamietujemy
-    const [sortOption, setSortOption] = useState(() => {
-        return localStorage.getItem("notesSortOption") || "recent";
+  //czytamy z localstorage ostatni wybor i zapamietujemy
+  const [sortOption, setSortOption] = useState(() => {
+    return localStorage.getItem("notesSortOption") || "recent";
+  });
+  useEffect(() => {
+    localStorage.setItem("notesSortOption", sortOption);
+  }, [sortOption]);
+
+  const [selectedTagsFilter, setSelectedTagsFilter] = useState([]);
+  const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
+
+  const allAvailableTags = [
+    ...new Set([
+      ...subFolders.flatMap((f) => f.tags || []),
+      ...notes.flatMap((n) => n.tags || []),
+    ]),
+  ].sort();
+
+  const filterByTags = (items) => {
+    if (selectedTagsFilter.length === 0) return items;
+    return items.filter((item) =>
+      selectedTagsFilter.every((tag) => item.tags?.includes(tag))
+    );
+  };
+
+  const handleFetchItemTags = async (id, type) => {
+    const suggestedId = type === "folder" ? id : currentFolder?.id;
+    const [tagsRes, suggestedRes] = await Promise.all([
+      type === "folder" ? getFolderTags(id) : getNoteTags(id),
+      suggestedId
+        ? type === "folder"
+          ? getFolderSuggestedTags(suggestedId)
+          : getNoteSuggestedTags(suggestedId)
+        : Promise.resolve({ tags: [], errorCode: "", message: "" }),
+    ]);
+    if (!tagsRes.errorCode) setItemTags(tagsRes.tags || []);
+    else setItemTags([]);
+    if (!suggestedRes.errorCode) setItemSuggestedTags(suggestedRes.tags || []);
+    else setItemSuggestedTags([]);
+  };
+
+  const handleAddItemTag = async (id, tagName, type) => {
+    const res =
+      type === "folder"
+        ? await addFolderTag(id, tagName)
+        : await addNoteTag(id, tagName);
+    if (res.errorCode) {
+      if (res.errorCode === "TOKEN_UNDEFINED") navigate("/", { replace: true });
+    } else {
+      await handleFetchItemTags(id, type);
+    }
+  };
+
+  const handleRemoveItemTag = async (id, tagName, type) => {
+    const res =
+      type === "folder"
+        ? await removeFolderTag(id, tagName)
+        : await removeNoteTag(id, tagName);
+    if (res.errorCode) {
+      if (res.errorCode === "TOKEN_UNDEFINED") navigate("/", { replace: true });
+    } else {
+      await handleFetchItemTags(id, type);
+    }
+  };
+
+  const buildFolderTree = (folders) => {
+    const nonRoot = folders.filter((f) => !(f.name === "/" && f.path === "/"));
+    const byFullPath = {};
+    const enriched = nonRoot.map((f) => {
+      const fullPath = f.path === "/" ? "/" + f.name : f.path + "/" + f.name;
+      const node = { ...f, fullPath, children: [] };
+      byFullPath[fullPath] = node;
+      return node;
     });
-    useEffect(() => {
-        localStorage.setItem("notesSortOption", sortOption);
-    }, [sortOption]);
+    const roots = [];
+    enriched.forEach((node) => {
+      if (node.path === "/") {
+        roots.push(node);
+      } else if (byFullPath[node.path]) {
+        byFullPath[node.path].children.push(node);
+      } else {
+        roots.push(node);
+      }
+    });
+    return roots;
+  };
 
-    const [selectedTagsFilter, setSelectedTagsFilter] = useState([]);
-    const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
+  const handleOpenMovePopup = async (id, type, name) => {
+    setMovingItem({ id, type, name });
+    setSelectedMovePath(null);
+    setMoveErrorMessage("");
+    setExpandedMoveIds(new Set());
+    const res = await getAllFolders();
+    if (res.errorCode) {
+      if (res.errorCode === "TOKEN_UNDEFINED") navigate("/", { replace: true });
+      setMoveErrorMessage(res.message);
+      setMoveTree([]);
+    } else {
+      setMoveTree(buildFolderTree(res.folders || []));
+    }
+    setIsMoving(true);
+    setActiveFolderOptionsId(null);
+    setActiveNoteOptionsId(null);
+  };
 
-    const allAvailableTags = [...new Set([
-        ...subFolders.flatMap(f => f.tags || []),
-        ...notes.flatMap(n => n.tags || [])
-    ])].sort();
+  const handleMove = async () => {
+    if (!movingItem || selectedMovePath === null) return;
+    setMoveErrorMessage("");
+    const res =
+      movingItem.type === "note"
+        ? await moveNote(movingItem.id, selectedMovePath)
+        : await moveFolder(movingItem.id, selectedMovePath);
 
-    const filterByTags = (items) => {
-        if (selectedTagsFilter.length === 0) return items;
-        return items.filter(item => 
-            selectedTagsFilter.every(tag => item.tags?.includes(tag))
-        );
-    };
+    if (res.errorCode) {
+      if (res.errorCode === "TOKEN_UNDEFINED") navigate("/", { replace: true });
+      setMoveErrorMessage(res.message);
+    } else {
+      setIsSuccess(true);
+      setTimeout(async () => {
+        setIsSuccess(false);
+        setIsMoving(false);
+        setMovingItem(null);
+        await refreshCurrentView();
+      }, 1000);
+    }
+  };
 
-    const handleFetchItemTags = async (id, type) => {
-        const suggestedId = type === 'folder' ? id : currentFolder?.id;
-        const [tagsRes, suggestedRes] = await Promise.all([
-            type === 'folder' ? getFolderTags(id) : getNoteTags(id),
-            suggestedId ? (type === 'folder' ? getFolderSuggestedTags(suggestedId) : getNoteSuggestedTags(suggestedId)) : Promise.resolve({ tags: [], errorCode: "", message: "" }),
-        ]);
-        if (!tagsRes.errorCode) setItemTags(tagsRes.tags || []);
-        else setItemTags([]);
-        if (!suggestedRes.errorCode) setItemSuggestedTags(suggestedRes.tags || []);
-        else setItemSuggestedTags([]);
-    };
+  const renderMoveTree = (nodes, depth = 1) => {
+    return nodes.map((node) => {
+      const nodePath = node.fullPath;
+      const isExpanded = expandedMoveIds.has(node.id);
+      const isSelected = selectedMovePath === nodePath;
+      const isCurrentFolder = currentFolder && currentFolder.id === node.id;
+      const isMovingThis =
+        movingItem?.type === "folder" && movingItem.id === node.id;
+      const isDisabled = isCurrentFolder || isMovingThis;
 
-    const handleAddItemTag = async (id, tagName, type) => {
-        const res = type === 'folder' ? await addFolderTag(id, tagName) : await addNoteTag(id, tagName);
-        if (res.errorCode) {
-            if (res.errorCode === "TOKEN_UNDEFINED") navigate("/", { replace: true });
-        } else {
-            await handleFetchItemTags(id, type);
+      return (
+        <React.Fragment key={node.id}>
+          <StyledTreeItem $depth={depth}>
+            <StyledTreeItemLabel
+              $selected={isSelected}
+              $disabled={isDisabled}
+              onClick={() => {
+                if (!isDisabled) setSelectedMovePath(nodePath);
+              }}
+            >
+              {node.children && node.children.length > 0 && (
+                <svg
+                  fill="currentColor"
+                  viewBox="0 0 16 16"
+                  style={{
+                    cursor: "pointer",
+                    transform: isExpanded ? "rotate(90deg)" : "none",
+                    transition: "transform 0.15s",
+                    pointerEvents: "auto",
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExpandedMoveIds((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(node.id)) next.delete(node.id);
+                      else next.add(node.id);
+                      return next;
+                    });
+                  }}
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"
+                  />
+                </svg>
+              )}
+              {(!node.children || node.children.length === 0) && (
+                <span
+                  style={{
+                    width: 16,
+                    marginRight: 6,
+                    flexShrink: 0,
+                    display: "inline-block",
+                  }}
+                />
+              )}
+              <svg fill="currentColor" viewBox="0 0 16 16">
+                <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139q.323-.119.684-.12h5.396z" />
+              </svg>
+              <span style={{ marginLeft: 4 }}>{node.name}</span>
+            </StyledTreeItemLabel>
+          </StyledTreeItem>
+          {isExpanded &&
+            node.children &&
+            renderMoveTree(node.children, depth + 1)}
+        </React.Fragment>
+      );
+    });
+  };
+
+  const handleRenameNote = async (id, newName) => {
+    setErrorMessage("");
+    const result = await renameNote(id, newName);
+    if (result.errorCode) {
+      setErrorMessage(result.message);
+      if (result.errorCode === "TOKEN_UNDEFINED")
+        navigate("/", { replace: true });
+    } else {
+      await refreshCurrentView();
+    }
+  };
+
+  const handleRenameFolder = async (id, newName) => {
+    setErrorMessage("");
+    const result = await renameFolder(id, newName);
+    if (result.errorCode) {
+      setErrorMessage(result.message);
+      if (result.errorCode === "TOKEN_UNDEFINED")
+        navigate("/", { replace: true });
+    } else {
+      await refreshCurrentView();
+    }
+  };
+
+  const sortNotes = (notes) => {
+    return [...notes].sort((a, b) => {
+      const dateA = new Date(a.editTime ?? 0);
+      const dateB = new Date(b.editTime ?? 0);
+      return dateB - dateA;
+    });
+  };
+
+  const fetchForCurrentUrl = async () => {
+    setErrorMessage("");
+    setIsLoading(true);
+    const res = await resolveFolderByPath(pathSegments, isTrashView);
+    if (res.errorCode === "TOKEN_UNDEFINED") {
+      navigate("/", { replace: true });
+      setIsLoading(false);
+      return;
+    }
+    if (res.errorCode === "PATH_NOT_FOUND") {
+      navigate(isTrashView ? "/notes/trash" : "/notes", { replace: true });
+      setIsLoading(false);
+      return;
+    }
+    if (res.errorCode) {
+      setErrorMessage(res.message);
+      setIsLoading(false);
+      return;
+    }
+    setCurrentFolder(res.currentFolder);
+    setSubFolders(res.subFolders || []);
+    setNotes(sortNotes(res.notes || []));
+    if (isTrashView && pathSegments.length === 0) {
+      setTrashHasItems(res.subFolders?.length > 0 || res.notes?.length > 0);
+    }
+    setIsLoading(false);
+  };
+
+  const handleOpenFolder = (folder) => {
+    setSearchQuery("");
+    const encodedName = encodeURIComponent(folder.name);
+    const newUrl = urlPath
+      ? `/notes/${urlPath}/${encodedName}`
+      : `/notes/${encodedName}`;
+    navigate(newUrl);
+  };
+
+  const handleBreadcrumbClick = (index) => {
+    setSearchQuery("");
+    if (index === -1) {
+      navigate(isTrashView ? "/notes/trash" : "/notes");
+    } else {
+      const segments = breadcrumbs
+        .slice(0, index + 1)
+        .map((b) => encodeURIComponent(b));
+      const newPath = segments.join("/");
+      navigate(isTrashView ? `/notes/trash/${newPath}` : `/notes/${newPath}`);
+    }
+  };
+
+  const refreshCurrentView = () => {
+    fetchForCurrentUrl();
+  };
+
+  const getCurrentPath = () => {
+    if (pathSegments.length === 0) return "/";
+    return "/" + pathSegments.map((s) => decodeURIComponent(s)).join("/");
+  };
+
+  const handleAddNote = async () => {
+    setAddNoteErrorMessage("");
+    const res = await addNote(noteName.trim(), getCurrentPath());
+    if (res.errorCode) {
+      setAddNoteErrorMessage(res.message);
+      if (res.errorCode == "TOKEN_UNDEFINED") navigate("/", { replace: true });
+    } else {
+      const newNoteId = res.id;
+
+      setIsSuccess(true);
+      setTimeout(() => {
+        setIsSuccess(false);
+        setIsAddingNote(false);
+        setNoteName("");
+        navigate(`/note/${newNoteId}`);
+      }, 1000);
+    }
+  };
+
+  const handleDeleteNote = async (id) => {
+    setErrorMessage("");
+    const res = await deleteNote(id);
+    if (res.errorCode) {
+      setErrorMessage(res.message);
+      if (res.errorCode == "TOKEN_UNDEFINED") navigate("/", { replace: true });
+    } else {
+      await refreshCurrentView();
+    }
+  };
+
+  const handleRestoreNote = async (id) => {
+    setErrorMessage("");
+    const res = await restoreNote(id);
+    if (res.errorCode) {
+      setErrorMessage(res.message);
+      if (res.errorCode == "TOKEN_UNDEFINED") navigate("/", { replace: true });
+    } else {
+      await refreshCurrentView();
+    }
+  };
+
+  const handleClearTrash = async () => {
+    setErrorMessage("");
+    const res = await clearTrash();
+    if (res.errorCode) {
+      setErrorMessage(res.message);
+      if (res.errorCode == "TOKEN_UNDEFINED") navigate("/", { replace: true });
+    } else {
+      await refreshCurrentView();
+    }
+  };
+
+  const handleDeleteFolder = async (id) => {
+    setErrorMessage("");
+    const res = await deleteFolder(id);
+    if (res.errorCode) {
+      setErrorMessage(res.message);
+      if (res.errorCode == "TOKEN_UNDEFINED") navigate("/", { replace: true });
+    } else {
+      await refreshCurrentView();
+    }
+  };
+
+  const handleRestoreFolder = async (id) => {
+    setErrorMessage("");
+    const res = await restoreFolder(id);
+    if (res.errorCode) {
+      setErrorMessage(res.message);
+      if (res.errorCode == "TOKEN_UNDEFINED") navigate("/", { replace: true });
+    } else {
+      await refreshCurrentView();
+    }
+  };
+
+  const handleClearFolderTrash = async () => {
+    setErrorMessage("");
+    const res = await clearFolderTrash();
+    if (res.errorCode) {
+      setErrorMessage(res.message);
+      if (res.errorCode == "TOKEN_UNDEFINED") navigate("/", { replace: true });
+    } else {
+      await refreshCurrentView();
+    }
+  };
+
+  const handleFetchFolderSuggestedTags = async () => {
+    setAddFolderErrorMessage("");
+    const res = await getFolderSuggestedTags(currentFolder?.id);
+    if (res.errorCode) {
+      setAddFolderErrorMessage(res.message);
+      if (res.errorCode == "TOKEN_UNDEFINED") navigate("/", { replace: true });
+    } else {
+      setSuggestedTags(res.tags);
+      setChosenTags(res.tags);
+    }
+  };
+
+  const handleAddFolder = async () => {
+    setAddFolderErrorMessage("");
+    const res = await addFolder(
+      folderName.trim(),
+      getCurrentPath(),
+      chosenTags
+    );
+    if (res.errorCode) {
+      setAddFolderErrorMessage(res.message);
+      if (res.errorCode == "TOKEN_UNDEFINED") navigate("/", { replace: true });
+    } else {
+      setIsSuccess(true);
+      setTimeout(async () => {
+        setIsSuccess(false);
+        setIsAddingFolder(false);
+        setFolderName("");
+        setChosenTags([]);
+        setSuggestedTags([]);
+        await refreshCurrentView();
+      }, 1000);
+    }
+  };
+
+  useEffect(() => {
+    const q = searchQuery.trim();
+    if (q.length < 2) {
+      setGlobalSearchResults({ notes: [], folders: [] });
+      return;
+    }
+    setIsSearchLoading(true);
+    const timer = setTimeout(async () => {
+      const lower = q.toLowerCase();
+      const [notesRes, foldersRes] = await Promise.all([
+        getAllNotes(),
+        getAllFolders(),
+      ]);
+      const notes = notesRes.errorCode
+        ? []
+        : notesRes.notes.filter((n) => n.name.toLowerCase().includes(lower));
+      const folders = foldersRes.errorCode
+        ? []
+        : (foldersRes.folders || [])
+            .filter((f) => !(f.name === "/" && f.path === "/"))
+            .filter((f) => f.name.toLowerCase().includes(lower));
+      setGlobalSearchResults({ notes, folders });
+      setIsSearchLoading(false);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    let jwt = getToken();
+    if (!jwt) return;
+
+    let tokenContent = parseJwt(jwt);
+    setUsername(tokenContent?.sub);
+
+    fetchForCurrentUrl();
+  }, [urlPath]);
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      const counts = {};
+      const promises = subFolders.map(async (folder) => {
+        const res = await getFolderItemsCount(folder.id);
+        if (!res.errorCode) {
+          counts[folder.id] = res.count;
         }
+      });
+
+      await Promise.all(promises);
+      setFolderCounts(counts);
     };
 
-    const handleRemoveItemTag = async (id, tagName, type) => {
-        const res = type === 'folder' ? await removeFolderTag(id, tagName) : await removeNoteTag(id, tagName);
-        if (res.errorCode) {
-            if (res.errorCode === "TOKEN_UNDEFINED") navigate("/", { replace: true });
-        } else {
-            await handleFetchItemTags(id, type);
-        }
-    };
+    if (subFolders && subFolders.length > 0) {
+      fetchCounts();
+    } else {
+      setFolderCounts({});
+    }
+  }, [subFolders]);
 
-    const buildFolderTree = (folders) => {
-        const nonRoot = folders.filter(f => !(f.name === "/" && f.path === "/"));
-        const byFullPath = {};
-        const enriched = nonRoot.map(f => {
-            const fullPath = f.path === "/" ? "/" + f.name : f.path + "/" + f.name;
-            const node = { ...f, fullPath, children: [] };
-            byFullPath[fullPath] = node;
-            return node;
-        });
-        const roots = [];
-        enriched.forEach(node => {
-            if (node.path === "/") {
-                roots.push(node);
-            } else if (byFullPath[node.path]) {
-                byFullPath[node.path].children.push(node);
-            } else {
-                roots.push(node);
-            }
-        });
-        return roots;
-    };
+  const getVisualSortedItems = (items) => {
+    const sorted = [...items];
 
-    const handleOpenMovePopup = async (id, type, name) => {
-        setMovingItem({ id, type, name });
-        setSelectedMovePath(null);
-        setMoveErrorMessage("");
-        setExpandedMoveIds(new Set());
-        const res = await getAllFolders();
-        if (res.errorCode) {
-            if (res.errorCode === "TOKEN_UNDEFINED") navigate("/", { replace: true });
-            setMoveErrorMessage(res.message);
-            setMoveTree([]);
-        } else {
-            setMoveTree(buildFolderTree(res.folders || []));
-        }
-        setIsMoving(true);
-        setActiveFolderOptionsId(null);
-        setActiveNoteOptionsId(null);
-    };
+    if (sortOption === "recent") {
+      sorted.sort((a, b) => {
+        const dateA = new Date(a.editTime ?? 0).getTime();
+        const dateB = new Date(b.editTime ?? 0).getTime();
+        // dla folderow jesli nie maja edittime:
+        if (dateA === 0 && dateB === 0) return (b.id || 0) - (a.id || 0);
+        return dateB - dateA;
+      });
+    } else if (sortOption === "newest") {
+      //od najnowszych najwyższe id
+      sorted.sort((a, b) => (b.id || 0) - (a.id || 0));
+    } else if (sortOption === "oldest") {
+      //od najstarszych najmniejsze id
+      sorted.sort((a, b) => (a.id || 0) - (b.id || 0));
+    } else if (sortOption === "alphabetical") {
+      //alfabetycznie
+      sorted.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    }
 
-    const handleMove = async () => {
-        if (!movingItem || selectedMovePath === null) return;
-        setMoveErrorMessage("");
-        const res = movingItem.type === 'note'
-            ? await moveNote(movingItem.id, selectedMovePath)
-            : await moveFolder(movingItem.id, selectedMovePath);
-            
-        if (res.errorCode) {
-            if (res.errorCode === "TOKEN_UNDEFINED") navigate("/", { replace: true });
-            setMoveErrorMessage(res.message);
-        } else {
-            setIsSuccess(true);
-            setTimeout(async () => {
-                setIsSuccess(false);
-                setIsMoving(false);
-                setMovingItem(null);
-                await refreshCurrentView();
-            }, 1000);
-        }
-    };
+    return sorted;
+  };
 
-    const renderMoveTree = (nodes, depth = 1) => {
-        return nodes.map(node => {
-            const nodePath = node.fullPath;
-            const isExpanded = expandedMoveIds.has(node.id);
-            const isSelected = selectedMovePath === nodePath;
-            const isCurrentFolder = currentFolder && currentFolder.id === node.id;
-            const isMovingThis = movingItem?.type === 'folder' && movingItem.id === node.id;
-            const isDisabled = isCurrentFolder || isMovingThis;
+  const getElementsCountWord = (count) => {
+    if (count === 1) return "plik";
+    const lastDigit = count % 10;
+    const lastTwoDigits = count % 100;
+    if (
+      lastDigit >= 2 &&
+      lastDigit <= 4 &&
+      (lastTwoDigits < 12 || lastTwoDigits > 14)
+    ) {
+      return "pliki";
+    }
+    return "plików";
+  };
+
+  return (
+    <Layout>
+      <StyledContainer
+        onClick={() => {
+          setActiveNoteOptionsId(null);
+          setActiveFolderOptionsId(null);
+          setIsAddingNote(false);
+          setIsAddingFolder(false);
+          setIsActiveAddOptions(false);
+          setIsActivePathOptions(false);
+          setIsConfirmingTrashClear(false);
+          setItemTags([]);
+          setItemSuggestedTags([]);
+          setIsAddingItemTag(false);
+          setNewItemTag("");
+          setIsMoving(false);
+          setMovingItem(null);
+          setMoveErrorMessage("");
+          setIsFilterMenuOpen(false);
+        }}
+      >
+        <StyledUserHeader>
+          {pathSegments.length === 0 ? (
+            <StyledName>Notatki</StyledName>
+          ) : (
+            <BackButton
+              onClick={() => handleBreadcrumbClick(breadcrumbs.length - 2)}
+            >
+              <svg
+                width="20"
+                height="20"
+                fill="currentColor"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"
+                />
+              </svg>
+              Powrót
+            </BackButton>
+          )}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              marginLeft: "auto",
+            }}
+          >
+            <StyledSearchInput onClick={(e) => e.stopPropagation()}>
+              <svg
+                width="15"
+                height="15"
+                fill="currentColor"
+                viewBox="0 0 16 16"
+              >
+                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" />
+              </svg>
+              <input
+                placeholder="Szukaj wszędzie..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setTimeout(() => setIsSearchFocused(false), 150)}
+              />
+              {isSearchFocused && searchQuery.trim().length >= 2 && (
+                <StyledSearchDropdown>
+                  {isSearchLoading ? (
+                    <StyledSearchEmpty>Szukam...</StyledSearchEmpty>
+                  ) : globalSearchResults.folders.length === 0 &&
+                    globalSearchResults.notes.length === 0 ? (
+                    <StyledSearchEmpty>
+                      Brak wyników dla „{searchQuery}"
+                    </StyledSearchEmpty>
+                  ) : (
+                    <>
+                      {globalSearchResults.folders.length > 0 && (
+                        <>
+                          <StyledSearchSectionTitle>
+                            Foldery
+                          </StyledSearchSectionTitle>
+                          {globalSearchResults.folders.map((f) => {
+                            const fullPath =
+                              f.path === "/"
+                                ? "/" + f.name
+                                : f.path + "/" + f.name;
+                            const segments = fullPath.substring(1).split("/");
+                            const url =
+                              "/notes/" +
+                              segments
+                                .map((s) => encodeURIComponent(s))
+                                .join("/");
+                            return (
+                              <StyledSearchResultItem
+                                key={f.id}
+                                onClick={() => {
+                                  setSearchQuery("");
+                                  setIsSearchFocused(false);
+                                  navigate(url);
+                                }}
+                              >
+                                <svg
+                                  width="16"
+                                  height="16"
+                                  fill="currentColor"
+                                  viewBox="0 0 16 16"
+                                >
+                                  <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139q.323-.119.684-.12h5.396z" />
+                                </svg>
+                                <StyledSearchResultInfo>
+                                  <StyledSearchResultName>
+                                    {f.name}
+                                  </StyledSearchResultName>
+                                  <StyledSearchResultPath>
+                                    {fullPath}
+                                  </StyledSearchResultPath>
+                                </StyledSearchResultInfo>
+                              </StyledSearchResultItem>
+                            );
+                          })}
+                        </>
+                      )}
+                      {globalSearchResults.folders.length > 0 &&
+                        globalSearchResults.notes.length > 0 && (
+                          <StyledSearchDivider />
+                        )}
+                      {globalSearchResults.notes.length > 0 && (
+                        <>
+                          <StyledSearchSectionTitle>
+                            Notatki
+                          </StyledSearchSectionTitle>
+                          {globalSearchResults.notes.map((n) => (
+                            <StyledSearchResultItem
+                              key={n.id}
+                              onClick={() => {
+                                setSearchQuery("");
+                                setIsSearchFocused(false);
+                                navigate(`/note/${n.id}`);
+                              }}
+                            >
+                              <svg
+                                width="16"
+                                height="16"
+                                fill="currentColor"
+                                viewBox="0 0 16 16"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M0 .5A.5.5 0 0 1 .5 0h4a.5.5 0 0 1 0 1h-4A.5.5 0 0 1 0 .5m0 2A.5.5 0 0 1 .5 2h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m9 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m-9 2A.5.5 0 0 1 .5 4h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m5 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m7 0a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-12 2A.5.5 0 0 1 .5 6h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5m8 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m-8 2A.5.5 0 0 1 .5 8h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m7 0a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-7 2a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1h-8a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5"
+                                />
+                              </svg>
+                              <StyledSearchResultInfo>
+                                <StyledSearchResultName>
+                                  {n.name}
+                                </StyledSearchResultName>
+                              </StyledSearchResultInfo>
+                            </StyledSearchResultItem>
+                          ))}
+                        </>
+                      )}
+                    </>
+                  )}
+                </StyledSearchDropdown>
+              )}
+            </StyledSearchInput>
+          </div>
+        </StyledUserHeader>
+        {errorMessage && <Text color="danger" text={errorMessage} />}
+        <StyledToolbar>
+          <StyledTabsContainer>
+            <StyledTab
+              $active={!isTrashView}
+              onClick={() => navigate("/notes")}
+            >
+              <svg fill="currentColor" viewBox="0 0 16 16">
+                <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139q.323-.119.684-.12h5.396z" />
+              </svg>
+              Moje pliki
+            </StyledTab>
+            <StyledTab
+              $active={isTrashView}
+              onClick={() => navigate("/notes/trash")}
+            >
+              <svg fill="currentColor" viewBox="0 0 16 16">
+                <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
+              </svg>
+              Kosz
+            </StyledTab>
+          </StyledTabsContainer>
+
+          <ToolbarActions>
+            {!isTrashView && (
+              <>
+                <ToolbarButton className="outline" disabled title="ni ma">
+                  <svg
+                    width="14"
+                    height="14"
+                    fill="currentColor"
+                    viewBox="0 0 16 16"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3m-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1z"
+                    />
+                  </svg>
+                  Filtruj
+                </ToolbarButton>
+              </>
+            )}
+
+            {(subFolders.length > 0 || notes.length > 0) && (
+              <SortSelectContainer>
+                <SortSelect
+                  value={sortOption}
+                  onChange={(e) => setSortOption(e.target.value)}
+                >
+                  <option value="recent">↓ Sortuj: Ostatnio edytowane</option>
+                  <option value="newest">↓ Sortuj: Od najnowszych</option>
+                  <option value="oldest">↑ Sortuj: Od najstarszych</option>
+                  <option value="alphabetical">
+                    ↓ Sortuj: Alfabetycznie (A-Z)
+                  </option>
+                </SortSelect>
+                <SortIconWrapper>
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 16 16"
+                    fill="currentColor"
+                  >
+                    <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
+                  </svg>
+                </SortIconWrapper>
+              </SortSelectContainer>
+            )}
+          </ToolbarActions>
+        </StyledToolbar>
+        <div
+          style={{
+            minHeight: "35px",
+            marginBottom: "5px",
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          {(currentFolder || (isTrashView && breadcrumbs.length > 0)) && (
+            <StyledBreadcrumbPath>
+              <p
+                className="crumb-item clickable"
+                onClick={() => handleBreadcrumbClick(-1)}
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  fill="currentColor"
+                  viewBox="0 0 16 16"
+                  style={{ transform: "translateY(-1px)" }}
+                >
+                  <path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5v-4h2v4a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM2.5 14V7.707l5.5-5.5 5.5 5.5V14H10v-4a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v4z" />
+                </svg>
+              </p>
+              {breadcrumbs.map((crumb, index) => (
+                <React.Fragment key={index}>
+                  <p className="crumb-item separator">/</p>
+                  {index === breadcrumbs.length - 1 ? (
+                    <p className="crumb-item current">{crumb}</p>
+                  ) : (
+                    <p
+                      className="crumb-item clickable"
+                      onClick={() => handleBreadcrumbClick(index)}
+                    >
+                      {crumb}
+                    </p>
+                  )}
+                </React.Fragment>
+              ))}
+            </StyledBreadcrumbPath>
+          )}
+        </div>
+        <ContentContainer>
+          {!isLoading && subFolders.length === 0 && notes.length === 0 && (
+            <div
+              style={{
+                width: "100%",
+                padding: "60px 0",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "12px",
+                color: "inherit",
+                opacity: 0.4,
+              }}
+            >
+              {isTrashView && breadcrumbs.length === 0 ? (
+                <>
+                  <svg
+                    width="48"
+                    height="48"
+                    fill="currentColor"
+                    viewBox="0 0 16 16"
+                  >
+                    <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
+                  </svg>
+                  <p style={{ fontSize: "1rem", fontWeight: "600" }}>
+                    Kosz jest pusty
+                  </p>
+                </>
+              ) : (
+                <>
+                  <svg
+                    width="48"
+                    height="48"
+                    fill="currentColor"
+                    viewBox="0 0 16 16"
+                  >
+                    <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139q.323-.119.684-.12h5.396z" />
+                  </svg>
+                  <p style={{ fontSize: "1rem", fontWeight: "600" }}>
+                    Ten folder jest pusty
+                  </p>
+                </>
+              )}
+            </div>
+          )}
+          {getVisualSortedItems(
+            filterByTags(
+              subFolders.filter((f) =>
+                f.name.toLowerCase().includes(searchQuery.toLowerCase())
+              )
+            )
+          ).map((folder) => {
+            const totalItems = folderCounts[folder.id];
 
             return (
-                <React.Fragment key={node.id}>
-                    <StyledTreeItem $depth={depth}>
-                        <StyledTreeItemLabel
-                            $selected={isSelected}
-                            $disabled={isDisabled}
-                            onClick={() => {
-                                if (!isDisabled) setSelectedMovePath(nodePath);
-                            }}
+              <StyledItem
+                key={`folder-${folder.id}`}
+                $isActive={activeFolderOptionsId === folder.id}
+              >
+                <StyledFolderImage onClick={() => handleOpenFolder(folder)}>
+                  <svg fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139q.323-.119.684-.12h5.396z" />
+                  </svg>
+                </StyledFolderImage>
+                <StyledItemHeaderWrapper>
+                  <div
+                    onClick={() => handleOpenFolder(folder)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <Text
+                      as="h4"
+                      bold="true"
+                      text={folder.name}
+                      style={{ marginBottom: "4px", fontSize: "1.05rem" }}
+                    />
+
+                    {totalItems !== undefined && (
+                      <Text
+                        text={`${totalItems} ${getElementsCountWord(
+                          totalItems
+                        )}`}
+                        style={{
+                          color: "#888",
+                          fontSize: "0.85rem",
+                          fontWeight: "500",
+                        }}
+                      />
+                    )}
+                  </div>
+
+                  <StyledItemHeader
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveNoteOptionsId(null);
+                      if (!isTrashView && activeFolderOptionsId !== folder.id) {
+                        setEditingName(folder.name);
+                        handleFetchItemTags(folder.id, "folder");
+                      }
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const fitsRight =
+                        rect.right + 10 + 350 <= window.innerWidth;
+                      const fitsLeft = rect.left - 10 - 350 >= 0;
+                      setCenterBelow(!fitsRight && !fitsLeft);
+                      setFlipLeft(!fitsRight && fitsLeft);
+                      setIsAddingItemTag(false);
+                      setNewItemTag("");
+                      setActiveFolderOptionsId(
+                        activeFolderOptionsId === folder.id ? null : folder.id
+                      );
+                    }}
+                  >
+                    <EllipsisIcon />
+                    <StyledItemOptions
+                      $active={activeFolderOptionsId === folder.id}
+                      $flipLeft={flipLeft}
+                      $centerBelow={centerBelow}
+                      $narrow={isTrashView}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {isTrashView ? (
+                        <StyledItemOption
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRestoreFolder(folder.id);
+                            setActiveFolderOptionsId(null);
+                          }}
                         >
-                            {node.children && node.children.length > 0 && (
-                                <svg
-                                    fill="currentColor" viewBox="0 0 16 16"
-                                    style={{ cursor: 'pointer', transform: isExpanded ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s', pointerEvents: 'auto' }}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setExpandedMoveIds(prev => {
-                                            const next = new Set(prev);
-                                            if (next.has(node.id)) next.delete(node.id);
-                                            else next.add(node.id);
-                                            return next;
-                                        });
-                                    }}
+                          Przywróć folder
+                        </StyledItemOption>
+                      ) : (
+                        <>
+                          <DropdownSectionLabel>Nazwa</DropdownSectionLabel>
+                          <input
+                            value={editingName}
+                            maxLength={55}
+                            onChange={(e) => setEditingName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (
+                                e.key === "Enter" &&
+                                editingName.trim() &&
+                                editingName !== folder.name
+                              ) {
+                                handleRenameFolder(
+                                  folder.id,
+                                  editingName.trim()
+                                );
+                                setActiveFolderOptionsId(null);
+                              }
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <DropdownSectionLabel>Tagi</DropdownSectionLabel>
+                          <TagsContainer
+                            style={{
+                              justifyContent: "flex-start",
+                              margin: "0 10px 10px 10px",
+                            }}
+                          >
+                            {itemTags.map((tag, index) => (
+                              <StyledTag key={`ft-${index}`}>
+                                {tag}
+                                <div
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRemoveItemTag(
+                                      folder.id,
+                                      tag,
+                                      "folder"
+                                    );
+                                  }}
                                 >
-                                    <path fillRule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708" />
-                                </svg>
+                                  ×
+                                </div>
+                              </StyledTag>
+                            ))}
+                            {itemSuggestedTags
+                              .filter((t) => !itemTags.includes(t))
+                              .map((tag, index) => (
+                                <StyledTag
+                                  $inactive
+                                  key={`fst-${index}`}
+                                  onClick={() =>
+                                    handleAddItemTag(folder.id, tag, "folder")
+                                  }
+                                >
+                                  {tag}
+                                </StyledTag>
+                              ))}
+                            {isAddingItemTag ? (
+                              <StyledTagInput
+                                autoFocus
+                                maxLength={30}
+                                value={newItemTag}
+                                onChange={(e) => setNewItemTag(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" && newItemTag.trim()) {
+                                    handleAddItemTag(
+                                      folder.id,
+                                      newItemTag.trim(),
+                                      "folder"
+                                    );
+                                    setNewItemTag("");
+                                    setIsAddingItemTag(false);
+                                  }
+                                  if (e.key === "Escape") {
+                                    setIsAddingItemTag(false);
+                                    setNewItemTag("");
+                                  }
+                                }}
+                                onBlur={() => setIsAddingItemTag(false)}
+                              />
+                            ) : (
+                              <StyledAddTagButton
+                                onClick={() => setIsAddingItemTag(true)}
+                              >
+                                + Dodaj
+                              </StyledAddTagButton>
                             )}
-                            {(!node.children || node.children.length === 0) && <span style={{ width: 16, marginRight: 6, flexShrink: 0, display: 'inline-block' }} />}
+                          </TagsContainer>
+
+                          <div
+                            style={{
+                              height: "1px",
+                              background: "#eee",
+                              margin: "5px 0",
+                            }}
+                          ></div>
+
+                          <StyledItemOption
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenMovePopup(
+                                folder.id,
+                                "folder",
+                                folder.name
+                              );
+                            }}
+                          >
                             <svg fill="currentColor" viewBox="0 0 16 16">
-                                <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139q.323-.119.684-.12h5.396z" />
+                              <path
+                                fillRule="evenodd"
+                                d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"
+                              />
                             </svg>
-                            <span style={{ marginLeft: 4 }}>{node.name}</span>
-                        </StyledTreeItemLabel>
-                    </StyledTreeItem>
-                    {isExpanded && node.children && renderMoveTree(node.children, depth + 1)}
-                </React.Fragment>
+                            Przenieś
+                          </StyledItemOption>
+                          <StyledItemOption
+                            className="danger"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteFolder(folder.id);
+                              setActiveFolderOptionsId(null);
+                            }}
+                          >
+                            <svg fill="currentColor" viewBox="0 0 16 16">
+                              <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
+                            </svg>
+                            Usuń folder
+                          </StyledItemOption>
+                        </>
+                      )}
+                    </StyledItemOptions>
+                  </StyledItemHeader>
+                </StyledItemHeaderWrapper>
+              </StyledItem>
             );
-        });
-    };
-
-    const handleRenameNote = async (id, newName) => {
-        setErrorMessage("");
-        const result = await renameNote(id, newName);
-        if (result.errorCode) {
-            setErrorMessage(result.message);
-            if (result.errorCode === "TOKEN_UNDEFINED")
-                navigate("/", { replace: true });
-        } else {
-            await refreshCurrentView();
-        }
-    }
-
-    const handleRenameFolder = async (id, newName) => {
-        setErrorMessage("");
-        const result = await renameFolder(id, newName);
-        if (result.errorCode) {
-            setErrorMessage(result.message);
-            if (result.errorCode === "TOKEN_UNDEFINED")
-                navigate("/", { replace: true });
-        } else {
-            await refreshCurrentView();
-        }
-    }
-
-    const sortNotes = (notes) => {
-        return [...notes].sort((a, b) => {
-            const dateA = new Date(a.editTime ?? 0);
-            const dateB = new Date(b.editTime ?? 0);
-            return dateB - dateA;
-        });
-    };
-
-    const fetchForCurrentUrl = async () => {
-        setErrorMessage("");
-        setIsLoading(true);
-        const res = await resolveFolderByPath(pathSegments, isTrashView);
-        if (res.errorCode === "TOKEN_UNDEFINED") {
-            navigate("/", { replace: true });
-            setIsLoading(false);
-            return;
-        }
-        if (res.errorCode === "PATH_NOT_FOUND") {
-            navigate(isTrashView ? "/notes/trash" : "/notes", { replace: true });
-            setIsLoading(false);
-            return;
-        }
-        if (res.errorCode) {
-            setErrorMessage(res.message);
-            setIsLoading(false);
-            return;
-        }
-        setCurrentFolder(res.currentFolder);
-        setSubFolders(res.subFolders || []);
-        setNotes(sortNotes(res.notes || []));
-        if (isTrashView && pathSegments.length === 0) {
-            setTrashHasItems((res.subFolders?.length > 0) || (res.notes?.length > 0));
-        }
-        setIsLoading(false);
-    };
-
-    const handleOpenFolder = (folder) => {
-        setSearchQuery("");
-        const encodedName = encodeURIComponent(folder.name);
-        const newUrl = urlPath ? `/notes/${urlPath}/${encodedName}` : `/notes/${encodedName}`;
-        navigate(newUrl);
-    };
-
-    const handleBreadcrumbClick = (index) => {
-        setSearchQuery("");
-        if (index === -1) {
-            navigate(isTrashView ? "/notes/trash" : "/notes");
-        } else {
-            const segments = breadcrumbs.slice(0, index + 1).map(b => encodeURIComponent(b));
-            const newPath = segments.join("/");
-            navigate(isTrashView ? `/notes/trash/${newPath}` : `/notes/${newPath}`);
-        }
-    };
-
-    const refreshCurrentView = () => {
-        fetchForCurrentUrl();
-    };
-
-    const getCurrentPath = () => {
-        if (pathSegments.length === 0) return "/";
-        return "/" + pathSegments.map(s => decodeURIComponent(s)).join("/");
-    };
-
-    const handleAddNote = async () => {
-        setAddNoteErrorMessage("");
-        const res = await addNote(noteName.trim(), getCurrentPath());
-        if (res.errorCode) {
-            setAddNoteErrorMessage(res.message);
-            if (res.errorCode == "TOKEN_UNDEFINED") navigate("/", { replace: true });
-        } else {
-            const newNoteId = res.id; 
-            
-            setIsSuccess(true);
-            setTimeout(() => {
-                setIsSuccess(false);
-                setIsAddingNote(false);
-                setNoteName("");
-                navigate(`/note/${newNoteId}`); 
-            }, 1000);
-        }
-    }
-
-    const handleDeleteNote = async (id) => {
-        setErrorMessage("");
-        const res = await deleteNote(id);
-        if (res.errorCode) {
-            setErrorMessage(res.message);
-            if (res.errorCode == "TOKEN_UNDEFINED")
-                navigate("/", { replace: true });
-        }
-        else {
-            await refreshCurrentView();
-        }
-    }
-
-    const handleRestoreNote = async (id) => {
-        setErrorMessage("")
-        const res = await restoreNote(id);
-        if (res.errorCode) {
-            setErrorMessage(res.message);
-            if (res.errorCode == "TOKEN_UNDEFINED")
-                navigate("/", { replace: true });
-        }
-        else {
-            await refreshCurrentView();
-        }
-    }
-
-    const handleClearTrash = async () => {
-        setErrorMessage("");
-        const res = await clearTrash();
-        if (res.errorCode) {
-            setErrorMessage(res.message);
-            if (res.errorCode == "TOKEN_UNDEFINED")
-                navigate("/", { replace: true });
-        }
-        else {
-            await refreshCurrentView();
-        }
-    }
-
-    const handleDeleteFolder = async (id) => {
-        setErrorMessage("");
-        const res = await deleteFolder(id);
-        if (res.errorCode) {
-            setErrorMessage(res.message);
-            if (res.errorCode == "TOKEN_UNDEFINED")
-                navigate("/", { replace: true });
-        } else {
-            await refreshCurrentView();
-        }
-    }
-
-    const handleRestoreFolder = async (id) => {
-        setErrorMessage("");
-        const res = await restoreFolder(id);
-        if (res.errorCode) {
-            setErrorMessage(res.message);
-            if (res.errorCode == "TOKEN_UNDEFINED")
-                navigate("/", { replace: true });
-        } else {
-            await refreshCurrentView();
-        }
-    }
-
-    const handleClearFolderTrash = async () => {
-        setErrorMessage("");
-        const res = await clearFolderTrash();
-        if (res.errorCode) {
-            setErrorMessage(res.message);
-            if (res.errorCode == "TOKEN_UNDEFINED")
-                navigate("/", { replace: true });
-        } else {
-            await refreshCurrentView();
-        }
-    }
-
-    const handleFetchFolderSuggestedTags = async () => {
-        setAddFolderErrorMessage("")
-        const res = await getFolderSuggestedTags(currentFolder?.id);
-        if (res.errorCode) {
-            setAddFolderErrorMessage(res.message);
-            if (res.errorCode == "TOKEN_UNDEFINED")
-                navigate("/", { replace: true });
-        }
-        else {
-            setSuggestedTags(res.tags);
-            setChosenTags(res.tags);
-        }
-    }
-
-    const handleAddFolder = async () => {
-        setAddFolderErrorMessage("");
-        const res = await addFolder(folderName.trim(), getCurrentPath(), chosenTags);
-        if (res.errorCode) {
-            setAddFolderErrorMessage(res.message);
-            if (res.errorCode == "TOKEN_UNDEFINED") navigate("/", { replace: true });
-        } else {
-            setIsSuccess(true);
-            setTimeout(async () => {
-                setIsSuccess(false);
-                setIsAddingFolder(false);
-                setFolderName("");
-                setChosenTags([]);
-                setSuggestedTags([]);
-                await refreshCurrentView();
-            }, 1000);
-        }
-    }
-
-    useEffect(() => {
-        const q = searchQuery.trim();
-        if (q.length < 2) {
-            setGlobalSearchResults({ notes: [], folders: [] });
-            return;
-        }
-        setIsSearchLoading(true);
-        const timer = setTimeout(async () => {
-            const lower = q.toLowerCase();
-            const [notesRes, foldersRes] = await Promise.all([getAllNotes(), getAllFolders()]);
-            const notes = notesRes.errorCode ? [] : notesRes.notes.filter(n => n.name.toLowerCase().includes(lower));
-            const folders = foldersRes.errorCode ? [] : (foldersRes.folders || [])
-                .filter(f => !(f.name === "/" && f.path === "/"))
-                .filter(f => f.name.toLowerCase().includes(lower));
-            setGlobalSearchResults({ notes, folders });
-            setIsSearchLoading(false);
-        }, 300);
-        return () => clearTimeout(timer);
-    }, [searchQuery]);
-
-    useEffect(() => {
-        let jwt = getToken();
-        if (!jwt) return;
-
-        let tokenContent = parseJwt(jwt);
-        setUsername(tokenContent?.sub);
-
-        fetchForCurrentUrl();
-    }, [urlPath])
-
-    useEffect(() => {
-        const fetchCounts = async () => {
-            const counts = {};
-            const promises = subFolders.map(async (folder) => {
-                const res = await getFolderItemsCount(folder.id);
-                if (!res.errorCode) {
-                    counts[folder.id] = res.count;
-                }
+          })}
+          {getVisualSortedItems(
+            filterByTags(
+              notes.filter((d) =>
+                d.name.toLowerCase().includes(searchQuery.toLowerCase())
+              )
+            )
+          ).map((d) => {
+            const dateObj = new Date(d.editTime ?? d.lastEdited);
+            const formattedDate = dateObj.toLocaleString("pl-PL", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
             });
-            
-            await Promise.all(promises);
-            setFolderCounts(counts);
-        };
+            return (
+              <StyledItem key={d.id} $isActive={activeNoteOptionsId === d.id}>
+                <StyledNoteImage
+                  onClick={() => {
+                    if (!isTrashView) navigate(`/note/${d.id}`);
+                  }}
+                >
+                  {/* <svg fill="currentColor" viewBox="0 0 16 16">
+                                        <path fillRule="evenodd" d="M0 .5A.5.5 0 0 1 .5 0h4a.5.5 0 0 1 0 1h-4A.5.5 0 0 1 0 .5m0 2A.5.5 0 0 1 .5 2h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m9 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m-9 2A.5.5 0 0 1 .5 4h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m5 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m7 0a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-12 2A.5.5 0 0 1 .5 6h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5m8 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m-8 2A.5.5 0 0 1 .5 8h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m7 0a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-7 2a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1h-8a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5" />
+                                    </svg> */}
+                  <svg fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M5 10.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5" />
+                    <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2" />
+                    <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z" />
+                  </svg>
+                </StyledNoteImage>
+                <StyledItemHeaderWrapper>
+                  <div
+                    onClick={() => {
+                      if (!isTrashView) navigate(`/note/${d.id}`);
+                    }}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <Text
+                      as="h4"
+                      bold="true"
+                      text={d.name}
+                      style={{ marginBottom: "10px", fontSize: "1.05rem" }}
+                    />
+                  </div>
 
-        if (subFolders && subFolders.length > 0) {
-            fetchCounts();
-        } else {
-            setFolderCounts({});
-        }
-    }, [subFolders]);
+                  <StyledItemHeader
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveFolderOptionsId(null);
+                      if (!isTrashView && activeNoteOptionsId !== d.id) {
+                        setEditingName(d.name);
+                        handleFetchItemTags(d.id, "note");
+                      }
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const fitsRight =
+                        rect.right + 10 + 350 <= window.innerWidth;
+                      const fitsLeft = rect.left - 10 - 350 >= 0;
+                      setCenterBelow(!fitsRight && !fitsLeft);
+                      setFlipLeft(!fitsRight && fitsLeft);
+                      setIsAddingItemTag(false);
+                      setNewItemTag("");
+                      setActiveNoteOptionsId(
+                        activeNoteOptionsId === d.id ? null : d.id
+                      );
+                    }}
+                  >
+                    <EllipsisIcon />
+                    <StyledItemOptions
+                      $active={activeNoteOptionsId === d.id}
+                      $flipLeft={flipLeft}
+                      $centerBelow={centerBelow}
+                      $narrow={isTrashView}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {isTrashView ? (
+                        <StyledItemOption
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRestoreNote(d.id);
+                            setActiveNoteOptionsId(null);
+                          }}
+                        >
+                          Przywróć dokument
+                        </StyledItemOption>
+                      ) : (
+                        <>
+                          <DropdownSectionLabel>Nazwa</DropdownSectionLabel>
+                          <input
+                            value={editingName}
+                            maxLength={55}
+                            onChange={(e) => setEditingName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (
+                                e.key === "Enter" &&
+                                editingName.trim() &&
+                                editingName !== d.name
+                              ) {
+                                handleRenameNote(d.id, editingName.trim());
+                                setActiveNoteOptionsId(null);
+                              }
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <DropdownSectionLabel>Tagi</DropdownSectionLabel>
+                          <TagsContainer
+                            style={{
+                              justifyContent: "flex-start",
+                              margin: "0 10px 10px 10px",
+                            }}
+                          >
+                            {itemTags.map((tag, index) => (
+                              <StyledTag key={`nt-${index}`}>
+                                {tag}
+                                <div
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRemoveItemTag(d.id, tag, "note");
+                                  }}
+                                >
+                                  ×
+                                </div>
+                              </StyledTag>
+                            ))}
+                            {itemSuggestedTags
+                              .filter((t) => !itemTags.includes(t))
+                              .map((tag, index) => (
+                                <StyledTag
+                                  $inactive
+                                  key={`nst-${index}`}
+                                  onClick={() =>
+                                    handleAddItemTag(d.id, tag, "note")
+                                  }
+                                >
+                                  {tag}
+                                </StyledTag>
+                              ))}
+                            {isAddingItemTag ? (
+                              <StyledTagInput
+                                autoFocus
+                                maxLength={30}
+                                value={newItemTag}
+                                onChange={(e) => setNewItemTag(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" && newItemTag.trim()) {
+                                    handleAddItemTag(
+                                      d.id,
+                                      newItemTag.trim(),
+                                      "note"
+                                    );
+                                    setNewItemTag("");
+                                    setIsAddingItemTag(false);
+                                  }
+                                }}
+                                onBlur={() => setIsAddingItemTag(false)}
+                              />
+                            ) : (
+                              <StyledAddTagButton
+                                onClick={() => setIsAddingItemTag(true)}
+                              >
+                                + Dodaj
+                              </StyledAddTagButton>
+                            )}
+                          </TagsContainer>
 
-    const getVisualSortedItems = (items) => {
-        const sorted = [...items];
-        
-        if (sortOption === "recent") {
-            sorted.sort((a, b) => {
-                const dateA = new Date(a.editTime ?? 0).getTime();
-                const dateB = new Date(b.editTime ?? 0).getTime();
-                // dla folderow jesli nie maja edittime:
-                if (dateA === 0 && dateB === 0) return (b.id || 0) - (a.id || 0);
-                return dateB - dateA;
-            });
-        } else if (sortOption === "newest") {
-            //od najnowszych najwyższe id
-            sorted.sort((a, b) => (b.id || 0) - (a.id || 0));
-        } else if (sortOption === "oldest") {
-            //od najstarszych najmniejsze id
-            sorted.sort((a, b) => (a.id || 0) - (b.id || 0));
-        } else if (sortOption === "alphabetical") {
-            //alfabetycznie
-            sorted.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-        }
-        
-        return sorted;
-    };
+                          <div
+                            style={{
+                              height: "1px",
+                              background: "#eee",
+                              margin: "5px 0",
+                            }}
+                          ></div>
 
-    const getElementsCountWord = (count) => {
-        if (count === 1) return 'plik';
-        const lastDigit = count % 10;
-        const lastTwoDigits = count % 100;
-        if (lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 12 || lastTwoDigits > 14)) {
-            return 'pliki';
-        }
-        return 'plików';
-    };
+                          <StyledItemOption
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setAiModalNoteId(d.id);
+                              setActiveNoteOptionsId(null);
+                            }}
+                          >
+                            <svg fill="currentColor" viewBox="0 0 16 16">
+                              <path d="M6 12.796V3.204L11.481 8zm.659.753 5.48-4.796a1 1 0 0 0 0-1.506L6.66 2.451C6.011 1.885 5 2.345 5 3.204v9.592a1 1 0 0 0 1.659.753" />
+                            </svg>
+                            Stwórz fiszki AI
+                          </StyledItemOption>
 
-    return (
-        <Layout>
-            <StyledContainer onClick={() => {
-                setActiveNoteOptionsId(null);
-                setActiveFolderOptionsId(null);
-                setIsAddingNote(false);
-                setIsAddingFolder(false);
-                setIsActiveAddOptions(false);
-                setIsActivePathOptions(false);
-                setIsConfirmingTrashClear(false);
-                setItemTags([]);
-                setItemSuggestedTags([]);
-                setIsAddingItemTag(false);
-                setNewItemTag('');
+                          <StyledItemOption
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenMovePopup(d.id, "note", d.name);
+                            }}
+                          >
+                            <svg fill="currentColor" viewBox="0 0 16 16">
+                              <path
+                                fillRule="evenodd"
+                                d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"
+                              />
+                            </svg>
+                            Przenieś
+                          </StyledItemOption>
+                          <StyledItemOption
+                            className="danger"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteNote(d.id);
+                              setActiveNoteOptionsId(null);
+                            }}
+                          >
+                            <svg fill="currentColor" viewBox="0 0 16 16">
+                              <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
+                            </svg>
+                            Usuń dokument
+                          </StyledItemOption>
+                        </>
+                      )}
+                    </StyledItemOptions>
+                  </StyledItemHeader>
+                </StyledItemHeaderWrapper>
+                <Text
+                  as="h6"
+                  text={formattedDate}
+                  style={{ marginTop: "auto" }}
+                />
+              </StyledItem>
+            );
+          })}
+        </ContentContainer>
+
+        {isAddingNote && (
+          <>
+            <ModalOverlay onClick={() => setIsAddingNote(false)} />
+            <StyledPopup onClick={(e) => e.stopPropagation()}>
+              <Text
+                bold="true"
+                as="h2"
+                text="Nowy dokument"
+                style={{ textAlign: "center", marginBottom: "20px" }}
+              />
+              {addNoteErrorMessage && (
+                <Text color="danger" text={addNoteErrorMessage} />
+              )}
+              {noteNameErrorMessage && (
+                <Text color="danger" text={noteNameErrorMessage} />
+              )}
+
+              <div style={{ marginBottom: "30px" }}>
+                <Input
+                  autoFocus
+                  type="text"
+                  name="name"
+                  placeholder="Nazwa dokumentu"
+                  value={noteName}
+                  maxLength={55}
+                  mode={noteNameErrorMessage ? "error" : "normal"}
+                  onChange={(e) => {
+                    setNoteName(e.target.value);
+                    setNoteNameErrorMessage("");
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const trimmed = noteName.trim();
+                      if (!trimmed) {
+                        setNoteNameErrorMessage("Wypełnij pole");
+                        return;
+                      }
+                      if (!noteNameRegex.test(trimmed)) {
+                        setNoteNameErrorMessage(
+                          "Nazwa może zawierać tylko litery, cyfry, spacje, _ i -"
+                        );
+                        return;
+                      }
+                      handleAddNote();
+                    }
+                  }}
+                />
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "center" }}>
+                <SubmitButton
+                  text={isSuccess ? "✔ Utworzono!" : "Stwórz"}
+                  color={isSuccess ? "secondary" : "dark"}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const trimmed = noteName.trim();
+                    if (!trimmed) {
+                      setNoteNameErrorMessage("Wypełnij pole");
+                      return;
+                    }
+                    if (!noteNameRegex.test(trimmed)) {
+                      setNoteNameErrorMessage(
+                        "Nazwa może zawierać tylko litery, cyfry, spacje, _ i -"
+                      );
+                      return;
+                    }
+                    handleAddNote();
+                  }}
+                />
+              </div>
+            </StyledPopup>
+          </>
+        )}
+
+        {isAddingFolder && (
+          <>
+            <ModalOverlay onClick={() => setIsAddingFolder(false)} />
+            <StyledPopup onClick={(e) => e.stopPropagation()}>
+              <Text
+                bold="true"
+                as="h2"
+                text="Nowy folder"
+                style={{ textAlign: "center", marginBottom: "20px" }}
+              />
+              {addFolderErrorMessage && (
+                <Text color="danger" text={addFolderErrorMessage} />
+              )}
+              {folderNameErrorMessage && (
+                <Text color="danger" text={folderNameErrorMessage} />
+              )}
+
+              <div style={{ marginBottom: "20px" }}>
+                <Input
+                  autoFocus
+                  type="text"
+                  name="name"
+                  placeholder="Nazwa folderu"
+                  value={folderName}
+                  maxLength={55}
+                  mode={folderNameErrorMessage ? "error" : "normal"}
+                  onChange={(e) => {
+                    setFolderName(e.target.value);
+                    setFolderNameErrorMessage("");
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const nameEmpty = !folderName.trim();
+                      if (nameEmpty) setFolderNameErrorMessage("Wypełnij pole");
+                      if (!nameEmpty) handleAddFolder();
+                    }
+                  }}
+                />
+              </div>
+              <TagsContainer
+                style={{ justifyContent: "flex-start", marginBottom: "30px" }}
+              >
+                <p>Tagi: </p>
+                {[...new Set([...suggestedTags, ...chosenTags])].map(
+                  (tag, index) => {
+                    const isActive = chosenTags.includes(tag);
+                    return (
+                      <StyledTag
+                        $inactive={!isActive}
+                        key={index}
+                        onClick={() => {
+                          if (isActive) {
+                            setChosenTags((prev) =>
+                              prev.filter((t) => t !== tag)
+                            );
+                          } else {
+                            setChosenTags((prev) => [...prev, tag]);
+                          }
+                        }}
+                      >
+                        {tag}
+                        {!suggestedTags.includes(tag) && (
+                          <div
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setChosenTags((prev) =>
+                                prev.filter((t) => t !== tag)
+                              );
+                            }}
+                          >
+                            x
+                          </div>
+                        )}
+                      </StyledTag>
+                    );
+                  }
+                )}
+                {isAddingTag && (
+                  <StyledTagInput
+                    autoFocus
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && newTag.trim()) {
+                        setChosenTags((prev) =>
+                          prev.includes(newTag.trim())
+                            ? prev
+                            : [...prev, newTag.trim()]
+                        );
+                        setNewTag("");
+                      }
+                      if (e.key === "Escape") {
+                        setIsAddingTag(false);
+                        setNewTag("");
+                      }
+                    }}
+                    onBlur={() => {
+                      setIsAddingTag(false);
+                      setNewTag("");
+                    }}
+                  />
+                )}
+                {!isAddingTag && (
+                  <StyledAddTagButton onClick={() => setIsAddingTag(true)}>
+                    + Dodaj
+                  </StyledAddTagButton>
+                )}
+              </TagsContainer>
+
+              <div style={{ display: "flex", justifyContent: "center" }}>
+                <SubmitButton
+                  text={isSuccess ? "✔ Utworzono!" : "Stwórz"}
+                  color={isSuccess ? "secondary" : "dark"}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const nameEmpty = !folderName.trim();
+                    if (nameEmpty) setFolderNameErrorMessage("Wypełnij pole");
+                    if (!nameEmpty) handleAddFolder();
+                  }}
+                />
+              </div>
+            </StyledPopup>
+          </>
+        )}
+
+        {isConfirmingTrashClear && (
+          <>
+            <ModalOverlay onClick={() => setIsConfirmingTrashClear(false)} />
+            <StyledPopup
+              onClick={(e) => e.stopPropagation()}
+              style={{ textAlign: "center" }}
+            >
+              <Text bold="true" as="h2" text="Wyczyścić kosz?" />
+              <Text
+                text="Czy na pewno chcesz usunąć wszystkie pliki z kosza? Tej operacji nie można cofnąć."
+                style={{ margin: "20px 0", color: "#666" }}
+              />
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: "15px",
+                  marginTop: "30px",
+                }}
+              >
+                <SubmitButton
+                  text="Wyczyść kosz"
+                  color="danger"
+                  onClick={async () => {
+                    await handleClearTrash();
+                    await handleClearFolderTrash();
+                    setIsConfirmingTrashClear(false);
+                    if (urlPath === "trash") {
+                      await refreshCurrentView();
+                    } else {
+                      navigate("/notes/trash", { replace: true });
+                    }
+                  }}
+                />
+                <SubmitButton
+                  text="Anuluj"
+                  color="dark"
+                  light
+                  onClick={() => {
+                    setIsConfirmingTrashClear(false);
+                  }}
+                />
+              </div>
+            </StyledPopup>
+          </>
+        )}
+
+        {isMoving && (
+          <>
+            <ModalOverlay
+              onClick={() => {
                 setIsMoving(false);
                 setMovingItem(null);
                 setMoveErrorMessage("");
-                setIsFilterMenuOpen(false);
-            }}>
-                <StyledUserHeader>
-                    {pathSegments.length === 0 ? (
-                        <StyledName>Notatki</StyledName>
-                    ) : (
-                        <BackButton onClick={() => handleBreadcrumbClick(breadcrumbs.length - 2)}>
-                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-                                <path fillRule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z" />
-                            </svg>
-                            Powrót
-                        </BackButton>
-                    )}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: 'auto' }}>
-                        <StyledSearchInput onClick={(e) => e.stopPropagation()}>
-                            <svg width="15" height="15" fill="currentColor" viewBox="0 0 16 16">
-                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" />
-                            </svg>
-                            <input
-                                placeholder="Szukaj wszędzie..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                onFocus={() => setIsSearchFocused(true)}
-                                onBlur={() => setTimeout(() => setIsSearchFocused(false), 150)}
-                            />
-                            {isSearchFocused && searchQuery.trim().length >= 2 && (
-                                <StyledSearchDropdown>
-                                    {isSearchLoading ? (
-                                        <StyledSearchEmpty>Szukam...</StyledSearchEmpty>
-                                    ) : globalSearchResults.folders.length === 0 && globalSearchResults.notes.length === 0 ? (
-                                        <StyledSearchEmpty>Brak wyników dla „{searchQuery}"</StyledSearchEmpty>
-                                    ) : (
-                                        <>
-                                            {globalSearchResults.folders.length > 0 && (
-                                                <>
-                                                    <StyledSearchSectionTitle>Foldery</StyledSearchSectionTitle>
-                                                    {globalSearchResults.folders.map(f => {
-                                                        const fullPath = f.path === "/" ? "/" + f.name : f.path + "/" + f.name;
-                                                        const segments = fullPath.substring(1).split("/");
-                                                        const url = "/notes/" + segments.map(s => encodeURIComponent(s)).join("/");
-                                                        return (
-                                                            <StyledSearchResultItem key={f.id} onClick={() => {
-                                                                setSearchQuery("");
-                                                                setIsSearchFocused(false);
-                                                                navigate(url);
-                                                            }}>
-                                                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                                                    <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139q.323-.119.684-.12h5.396z" />
-                                                                </svg>
-                                                                <StyledSearchResultInfo>
-                                                                    <StyledSearchResultName>{f.name}</StyledSearchResultName>
-                                                                    <StyledSearchResultPath>{fullPath}</StyledSearchResultPath>
-                                                                </StyledSearchResultInfo>
-                                                            </StyledSearchResultItem>
-                                                        );
-                                                    })}
-                                                </>
-                                            )}
-                                            {globalSearchResults.folders.length > 0 && globalSearchResults.notes.length > 0 && (
-                                                <StyledSearchDivider />
-                                            )}
-                                            {globalSearchResults.notes.length > 0 && (
-                                                <>
-                                                    <StyledSearchSectionTitle>Notatki</StyledSearchSectionTitle>
-                                                    {globalSearchResults.notes.map(n => (
-                                                        <StyledSearchResultItem key={n.id} onClick={() => {
-                                                            setSearchQuery("");
-                                                            setIsSearchFocused(false);
-                                                            navigate(`/note/${n.id}`);
-                                                        }}>
-                                                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                                                <path fillRule="evenodd" d="M0 .5A.5.5 0 0 1 .5 0h4a.5.5 0 0 1 0 1h-4A.5.5 0 0 1 0 .5m0 2A.5.5 0 0 1 .5 2h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m9 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m-9 2A.5.5 0 0 1 .5 4h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m5 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m7 0a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-12 2A.5.5 0 0 1 .5 6h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5m8 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m-8 2A.5.5 0 0 1 .5 8h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m7 0a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-7 2a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1h-8a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5" />
-                                                            </svg>
-                                                            <StyledSearchResultInfo>
-                                                                <StyledSearchResultName>{n.name}</StyledSearchResultName>
-                                                            </StyledSearchResultInfo>
-                                                        </StyledSearchResultItem>
-                                                    ))}
-                                                </>
-                                            )}
-                                        </>
-                                    )}
-                                </StyledSearchDropdown>
-                            )}
-                        </StyledSearchInput>
-                    </div>
-                </StyledUserHeader>
-                {errorMessage && <Text color="danger" text={errorMessage} />}
-                <StyledToolbar>
-                    <StyledTabsContainer>
-                        <StyledTab $active={!isTrashView} onClick={() => navigate("/notes")}>
-                            <svg fill="currentColor" viewBox="0 0 16 16">
-                                <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139q.323-.119.684-.12h5.396z" />
-                            </svg>
-                            Moje pliki
-                        </StyledTab>
-                        <StyledTab $active={isTrashView} onClick={() => navigate("/notes/trash")}>
-                            <svg fill="currentColor" viewBox="0 0 16 16">
-                                <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
-                            </svg>
-                            Kosz
-                        </StyledTab>
-                    </StyledTabsContainer>
-
-                    <ToolbarActions>
-                        {!isTrashView && (
-                            <>
-                                <ToolbarButton className="outline" disabled title="ni ma">
-                                    <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                                        <path fillRule="evenodd" d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3m-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1z"/>
-                                    </svg>
-                                    Filtruj
-                                </ToolbarButton>
-                            </>
-                        )}
-
-                        {(subFolders.length > 0 || notes.length > 0) && (
-                            <SortSelectContainer>
-                                <SortSelect value={sortOption} onChange={e => setSortOption(e.target.value)}>
-                                    <option value="recent">↓ Sortuj: Ostatnio edytowane</option>
-                                    <option value="newest">↓ Sortuj: Od najnowszych</option>
-                                    <option value="oldest">↑ Sortuj: Od najstarszych</option>
-                                    <option value="alphabetical">↓ Sortuj: Alfabetycznie (A-Z)</option>
-                                </SortSelect>
-                                <SortIconWrapper>
-                                    <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
-                                        <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
-                                    </svg>
-                                </SortIconWrapper>
-                            </SortSelectContainer>
-                        )}
-                    </ToolbarActions>
-                </StyledToolbar>
-                <div style={{ minHeight: '35px', marginBottom: '5px', display: 'flex', alignItems: 'center' }}>
-                    {(currentFolder || (isTrashView && breadcrumbs.length > 0)) && (
-                        <StyledBreadcrumbPath>
-                            <p className="crumb-item clickable" onClick={() => handleBreadcrumbClick(-1)}>
-                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style={{ transform: 'translateY(-1px)' }}>
-                                    <path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5v-4h2v4a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM2.5 14V7.707l5.5-5.5 5.5 5.5V14H10v-4a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v4z" />
-                                </svg>
-                            </p>
-                            {breadcrumbs.map((crumb, index) => (
-                                <React.Fragment key={index}>
-                                    <p className="crumb-item separator">/</p>
-                                    {index === breadcrumbs.length - 1
-                                        ? <p className="crumb-item current">{crumb}</p>
-                                        : <p className="crumb-item clickable" onClick={() => handleBreadcrumbClick(index)}>{crumb}</p>
-                                    }
-                                </React.Fragment>
-                            ))}
-                        </StyledBreadcrumbPath>
-                    )}
-                </div>
-                <ContentContainer>
-                    {!isLoading && subFolders.length === 0 && notes.length === 0 && (
-                        <div style={{ width: '100%', padding: '60px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', color: 'inherit', opacity: 0.4 }}>
-                            {isTrashView && breadcrumbs.length === 0 ? (
-                                <>
-                                    <svg width="48" height="48" fill="currentColor" viewBox="0 0 16 16">
-                                        <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
-                                    </svg>
-                                    <p style={{ fontSize: '1rem', fontWeight: '600' }}>Kosz jest pusty</p>
-                                </>
-                            ) : (
-                                <>
-                                    <svg width="48" height="48" fill="currentColor" viewBox="0 0 16 16">
-                                        <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139q.323-.119.684-.12h5.396z" />
-                                    </svg>
-                                    <p style={{ fontSize: '1rem', fontWeight: '600' }}>Ten folder jest pusty</p>
-                                </>
-                            )}
-                        </div>
-                    )}
-                    {getVisualSortedItems(filterByTags(subFolders.filter(f => f.name.toLowerCase().includes(searchQuery.toLowerCase())))).map((folder) => {
-                        const totalItems = folderCounts[folder.id];
-
-                        return (
-                            <StyledItem
-                                key={`folder-${folder.id}`}
-                                $isActive={activeFolderOptionsId === folder.id}
-                                >
-                                <StyledFolderImage onClick={() => handleOpenFolder(folder)}>
-                                    <svg fill="currentColor" viewBox="0 0 16 16">
-                                        <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139q.323-.119.684-.12h5.396z" />
-                                    </svg>
-                                </StyledFolderImage>
-                                <StyledItemHeaderWrapper>
-                                    <div onClick={() => handleOpenFolder(folder)} style={{ cursor: 'pointer' }}>
-                                        <Text as="h4" bold="true" text={folder.name} style={{ marginBottom: '4px', fontSize: '1.05rem' }} />
-                                        
-                                        {totalItems !== undefined && (
-                                            <Text 
-                                                text={`${totalItems} ${getElementsCountWord(totalItems)}`} 
-                                                style={{ color: '#888', fontSize: '0.85rem', fontWeight: '500' }} 
-                                            />
-                                        )}
-                                    </div>
-                                
-                                <StyledItemHeader onClick={(e) => {
-                                    e.stopPropagation();
-                                    setActiveNoteOptionsId(null);
-                                    if (!isTrashView && activeFolderOptionsId !== folder.id) {
-                                        setEditingName(folder.name);
-                                        handleFetchItemTags(folder.id, 'folder');
-                                    }
-                                    const rect = e.currentTarget.getBoundingClientRect();
-                                    const fitsRight = rect.right + 10 + 350 <= window.innerWidth;
-                                    const fitsLeft = rect.left - 10 - 350 >= 0;
-                                    setCenterBelow(!fitsRight && !fitsLeft);
-                                    setFlipLeft(!fitsRight && fitsLeft);
-                                    setIsAddingItemTag(false);
-                                    setNewItemTag('');
-                                    setActiveFolderOptionsId(activeFolderOptionsId === folder.id ? null : folder.id)
-                                }}>
-                                    <EllipsisIcon />
-                                    <StyledItemOptions $active={activeFolderOptionsId === folder.id} $flipLeft={flipLeft} $centerBelow={centerBelow} $narrow={isTrashView} onClick={e => e.stopPropagation()}>
-                                        {isTrashView ? (
-                                            <StyledItemOption onClick={(e) => { e.stopPropagation(); handleRestoreFolder(folder.id); setActiveFolderOptionsId(null); }}>
-                                                Przywróć folder
-                                            </StyledItemOption>
-                                        ) : (
-                                            <>
-                                                <DropdownSectionLabel>Nazwa</DropdownSectionLabel>
-                                                <input
-                                                    value={editingName}
-                                                    maxLength={55}
-                                                    onChange={e => setEditingName(e.target.value)}
-                                                    onKeyDown={e => {
-                                                        if (e.key === 'Enter' && editingName.trim() && editingName !== folder.name) {
-                                                            handleRenameFolder(folder.id, editingName.trim());
-                                                            setActiveFolderOptionsId(null);
-                                                        }
-                                                    }}
-                                                    onClick={e => e.stopPropagation()}
-                                                />
-                                                <DropdownSectionLabel>Tagi</DropdownSectionLabel>
-                                                <TagsContainer style={{ justifyContent: 'flex-start', margin: '0 10px 10px 10px' }}>
-                                                    {itemTags.map((tag, index) => (
-                                                        <StyledTag key={`ft-${index}`}>
-                                                            {tag}
-                                                            <div onClick={(e) => { e.stopPropagation(); handleRemoveItemTag(folder.id, tag, 'folder'); }}>×</div>
-                                                        </StyledTag>
-                                                    ))}
-                                                    {itemSuggestedTags.filter(t => !itemTags.includes(t)).map((tag, index) => (
-                                                        <StyledTag $inactive key={`fst-${index}`} onClick={() => handleAddItemTag(folder.id, tag, 'folder')}>
-                                                            {tag}
-                                                        </StyledTag>
-                                                    ))}
-                                                    {isAddingItemTag ? (
-                                                        <StyledTagInput
-                                                            autoFocus
-                                                            maxLength={30}
-                                                            value={newItemTag}
-                                                            onChange={e => setNewItemTag(e.target.value)}
-                                                            onKeyDown={e => {
-                                                                if (e.key === 'Enter' && newItemTag.trim()) {
-                                                                    handleAddItemTag(folder.id, newItemTag.trim(), 'folder');
-                                                                    setNewItemTag('');
-                                                                    setIsAddingItemTag(false);
-                                                                }
-                                                                if (e.key === 'Escape') {
-                                                                    setIsAddingItemTag(false);
-                                                                    setNewItemTag('');
-                                                                }
-                                                            }}
-                                                            onBlur={() => setIsAddingItemTag(false)}
-                                                        />
-                                                    ) : (
-                                                        <StyledAddTagButton onClick={() => setIsAddingItemTag(true)}>+ Dodaj</StyledAddTagButton>
-                                                    )}
-                                                </TagsContainer>
-
-                                                <div style={{ height: '1px', background: '#eee', margin: '5px 0' }}></div>
-
-                                                <StyledItemOption onClick={(e) => { e.stopPropagation(); handleOpenMovePopup(folder.id, 'folder', folder.name); }}>
-                                                    <svg fill="currentColor" viewBox="0 0 16 16"><path fillRule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8" /></svg>
-                                                    Przenieś
-                                                </StyledItemOption>
-                                                <StyledItemOption className="danger" onClick={(e) => { e.stopPropagation(); handleDeleteFolder(folder.id); setActiveFolderOptionsId(null); }}>
-                                                    <svg fill="currentColor" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" /></svg>
-                                                    Usuń folder
-                                                </StyledItemOption>
-                                            </>
-                                        )}
-                                    </StyledItemOptions>
-                                </StyledItemHeader>
-                            </StyledItemHeaderWrapper>
-                        </StyledItem>
-                    );
-                })}
-                    {getVisualSortedItems(filterByTags(notes.filter(d => d.name.toLowerCase().includes(searchQuery.toLowerCase())))).map((d) => {
-                        const dateObj = new Date(d.editTime ?? d.lastEdited);
-                        const formattedDate = dateObj.toLocaleString('pl-PL', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
-                        return (
-                            <StyledItem
-                                key={d.id}
-                                $isActive={activeNoteOptionsId === d.id}
-                                >
-                                <StyledNoteImage onClick={() => { if (!isTrashView) navigate(`/note/${d.id}`) }}>
-                                    {/* <svg fill="currentColor" viewBox="0 0 16 16">
-                                        <path fillRule="evenodd" d="M0 .5A.5.5 0 0 1 .5 0h4a.5.5 0 0 1 0 1h-4A.5.5 0 0 1 0 .5m0 2A.5.5 0 0 1 .5 2h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m9 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m-9 2A.5.5 0 0 1 .5 4h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m5 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m7 0a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-12 2A.5.5 0 0 1 .5 6h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5m8 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m-8 2A.5.5 0 0 1 .5 8h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m7 0a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-7 2a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1h-8a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5" />
-                                    </svg> */}
-                                    <svg fill="currentColor" viewBox="0 0 16 16">
-                                        <path d="M5 10.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5" />
-                                        <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2" />
-                                        <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z" />
-                                    </svg>
-                                </StyledNoteImage>
-                                <StyledItemHeaderWrapper>
-                                    <div onClick={() => { if (!isTrashView) navigate(`/note/${d.id}`) }} style={{ cursor: 'pointer' }}>
-                                        <Text as="h4" bold="true" text={d.name} style={{ marginBottom: '10px', fontSize: '1.05rem' }} />
-                                    </div>
-                                    
-                                    <StyledItemHeader onClick={(e) => {
-                                        e.stopPropagation();
-                                        setActiveFolderOptionsId(null);
-                                        if (!isTrashView && activeNoteOptionsId !== d.id) {
-                                            setEditingName(d.name);
-                                            handleFetchItemTags(d.id, 'note');
-                                        }
-                                        const rect = e.currentTarget.getBoundingClientRect();
-                                        const fitsRight = rect.right + 10 + 350 <= window.innerWidth;
-                                        const fitsLeft = rect.left - 10 - 350 >= 0;
-                                        setCenterBelow(!fitsRight && !fitsLeft);
-                                        setFlipLeft(!fitsRight && fitsLeft);
-                                        setIsAddingItemTag(false);
-                                        setNewItemTag('');
-                                        setActiveNoteOptionsId(activeNoteOptionsId === d.id ? null : d.id)
-                                    }}>
-                                        <EllipsisIcon />
-                                        <StyledItemOptions $active={activeNoteOptionsId === d.id} $flipLeft={flipLeft} $centerBelow={centerBelow} $narrow={isTrashView} onClick={e => e.stopPropagation()}>
-                                            {isTrashView ? (
-                                                <StyledItemOption onClick={(e) => { e.stopPropagation(); handleRestoreNote(d.id); setActiveNoteOptionsId(null); }}>
-                                                    Przywróć dokument
-                                                </StyledItemOption>
-                                            ) : (
-                                                <>
-                                                    <DropdownSectionLabel>Nazwa</DropdownSectionLabel>
-                                                    <input
-                                                        value={editingName}
-                                                        maxLength={55}
-                                                        onChange={e => setEditingName(e.target.value)}
-                                                        onKeyDown={e => {
-                                                            if (e.key === 'Enter' && editingName.trim() && editingName !== d.name) {
-                                                                handleRenameNote(d.id, editingName.trim());
-                                                                setActiveNoteOptionsId(null);
-                                                            }
-                                                        }}
-                                                        onClick={e => e.stopPropagation()}
-                                                    />
-                                                    <DropdownSectionLabel>Tagi</DropdownSectionLabel>
-                                                    <TagsContainer style={{ justifyContent: 'flex-start', margin: '0 10px 10px 10px' }}>
-                                                        {itemTags.map((tag, index) => (
-                                                            <StyledTag key={`nt-${index}`}>
-                                                                {tag}
-                                                                <div onClick={(e) => { e.stopPropagation(); handleRemoveItemTag(d.id, tag, 'note'); }}>×</div>
-                                                            </StyledTag>
-                                                        ))}
-                                                        {itemSuggestedTags.filter(t => !itemTags.includes(t)).map((tag, index) => (
-                                                            <StyledTag $inactive key={`nst-${index}`} onClick={() => handleAddItemTag(d.id, tag, 'note')}>
-                                                                {tag}
-                                                            </StyledTag>
-                                                        ))}
-                                                        {isAddingItemTag ? (
-                                                            <StyledTagInput
-                                                                autoFocus
-                                                                maxLength={30}
-                                                                value={newItemTag}
-                                                                onChange={e => setNewItemTag(e.target.value)}
-                                                                onKeyDown={e => {
-                                                                    if (e.key === 'Enter' && newItemTag.trim()) {
-                                                                        handleAddItemTag(d.id, newItemTag.trim(), 'note');
-                                                                        setNewItemTag('');
-                                                                        setIsAddingItemTag(false);
-                                                                    }
-                                                                }}
-                                                                onBlur={() => setIsAddingItemTag(false)}
-                                                            />
-                                                        ) : (
-                                                            <StyledAddTagButton onClick={() => setIsAddingItemTag(true)}>+ Dodaj</StyledAddTagButton>
-                                                        )}
-                                                    </TagsContainer>
-
-                                                    <div style={{ height: '1px', background: '#eee', margin: '5px 0' }}></div>
-
-                                                    <StyledItemOption onClick={(e) => { e.stopPropagation(); setAiModalNoteId(d.id); setActiveNoteOptionsId(null); }}>
-                                                        <svg fill="currentColor" viewBox="0 0 16 16"><path d="M6 12.796V3.204L11.481 8zm.659.753 5.48-4.796a1 1 0 0 0 0-1.506L6.66 2.451C6.011 1.885 5 2.345 5 3.204v9.592a1 1 0 0 0 1.659.753" /></svg>
-                                                        Stwórz fiszki AI
-                                                    </StyledItemOption>
-
-                                                    <StyledItemOption onClick={(e) => { e.stopPropagation(); handleOpenMovePopup(d.id, 'note', d.name); }}>
-                                                        <svg fill="currentColor" viewBox="0 0 16 16"><path fillRule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8" /></svg>
-                                                        Przenieś
-                                                    </StyledItemOption>
-                                                    <StyledItemOption className="danger" onClick={(e) => { e.stopPropagation(); handleDeleteNote(d.id); setActiveNoteOptionsId(null); }}>
-                                                        <svg fill="currentColor" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" /></svg>
-                                                        Usuń dokument
-                                                    </StyledItemOption>
-                                                </>
-                                            )}
-                                        </StyledItemOptions>
-                                    </StyledItemHeader>
-                                </StyledItemHeaderWrapper>
-                                <Text as="h6" text={formattedDate} style={{ marginTop: 'auto' }} />
-                            </StyledItem>
-                        )
-                    })}
-                </ContentContainer>
-
-                {isAddingNote && (
-                    <>
-                        <ModalOverlay onClick={() => setIsAddingNote(false)} />
-                        <StyledPopup onClick={(e) => e.stopPropagation()}>
-                            <Text bold="true" as="h2" text="Nowy dokument" style={{ textAlign: 'center', marginBottom: '20px' }} />
-                            {addNoteErrorMessage && <Text color="danger" text={addNoteErrorMessage} />}
-                            {noteNameErrorMessage && <Text color="danger" text={noteNameErrorMessage} />}
-                            
-                            <div style={{ marginBottom: '30px' }}>
-                                <Input
-                                    autoFocus
-                                    type="text"
-                                    name="name"
-                                    placeholder="Nazwa dokumentu"
-                                    value={noteName}
-                                    maxLength={55}
-                                    mode={noteNameErrorMessage ? "error" : "normal"}
-                                    onChange={(e) => {
-                                        setNoteName(e.target.value);
-                                        setNoteNameErrorMessage("");
-                                    }}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            const trimmed = noteName.trim();
-                                            if (!trimmed) { setNoteNameErrorMessage("Wypełnij pole"); return; }
-                                            if (!noteNameRegex.test(trimmed)) { setNoteNameErrorMessage("Nazwa może zawierać tylko litery, cyfry, spacje, _ i -"); return; }
-                                            handleAddNote();
-                                        }
-                                    }}
-                                />
-                            </div>
-                            
-                            <div style={{ display: 'flex', justifyContent: 'center' }}>
-                                <SubmitButton 
-                                    text={isSuccess ? "✔ Utworzono!" : "Stwórz"} 
-                                    color={isSuccess ? "secondary" : "dark"} 
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        const trimmed = noteName.trim();
-                                        if (!trimmed) { setNoteNameErrorMessage("Wypełnij pole"); return; }
-                                        if (!noteNameRegex.test(trimmed)) { setNoteNameErrorMessage("Nazwa może zawierać tylko litery, cyfry, spacje, _ i -"); return; }
-                                        handleAddNote();
-                                    }} 
-                                />
-                            </div>
-                        </StyledPopup>
-                    </>
-                )}
-
-                {isAddingFolder && (
-                    <>
-                        <ModalOverlay onClick={() => setIsAddingFolder(false)} />
-                        <StyledPopup onClick={(e) => e.stopPropagation()}>
-                            <Text bold="true" as="h2" text="Nowy folder" style={{ textAlign: 'center', marginBottom: '20px' }} />
-                            {addFolderErrorMessage && <Text color="danger" text={addFolderErrorMessage} />}
-                            {folderNameErrorMessage && <Text color="danger" text={folderNameErrorMessage} />}
-                            
-                            <div style={{ marginBottom: '20px' }}>
-                                <Input
-                                    autoFocus
-                                    type="text"
-                                    name="name"
-                                    placeholder="Nazwa folderu"
-                                    value={folderName}
-                                    maxLength={55}
-                                    mode={folderNameErrorMessage ? "error" : "normal"}
-                                    onChange={(e) => {
-                                        setFolderName(e.target.value);
-                                        setFolderNameErrorMessage("");
-                                    }}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            const nameEmpty = !folderName.trim();
-                                            if (nameEmpty) setFolderNameErrorMessage("Wypełnij pole");
-                                            if (!nameEmpty) handleAddFolder();
-                                        }
-                                    }}
-                                />
-                            </div>
-                            <TagsContainer style={{ justifyContent: 'flex-start', marginBottom: '30px' }}>
-                                <p>Tagi: </p>
-                                {[...new Set([...suggestedTags, ...chosenTags])].map((tag, index) => {
-                                    const isActive = chosenTags.includes(tag);
-                                    return (
-                                        <StyledTag $inactive={!isActive} key={index} onClick={() => {
-                                            if (isActive) {
-                                                setChosenTags(prev => prev.filter(t => t !== tag));
-                                            } else {
-                                                setChosenTags(prev => [...prev, tag]);
-                                            }
-                                        }}>
-                                            {tag}
-                                            {!suggestedTags.includes(tag) && <div onClick={(e) => {
-                                                e.stopPropagation();
-                                                setChosenTags(prev => prev.filter(t => t !== tag));
-                                            }}>x</div>}
-                                        </StyledTag>
-                                    );
-                                })}
-                                {isAddingTag && (
-                                    <StyledTagInput
-                                        autoFocus
-                                        value={newTag}
-                                        onChange={e => setNewTag(e.target.value)}
-                                        onKeyDown={e => {
-                                            if (e.key === 'Enter' && newTag.trim()) {
-                                                setChosenTags(prev => prev.includes(newTag.trim()) ? prev : [...prev, newTag.trim()])
-                                                setNewTag('')
-                                            }
-                                            if (e.key === 'Escape') {
-                                                setIsAddingTag(false)
-                                                setNewTag('')
-                                            }
-                                        }}
-                                        onBlur={() => {
-                                            setIsAddingTag(false)
-                                            setNewTag('')
-                                        }}
-                                    />
-                                )}
-                                {!isAddingTag && (
-                                    <StyledAddTagButton onClick={() => setIsAddingTag(true)}>
-                                        + Dodaj
-                                    </StyledAddTagButton>
-                                )}
-                            </TagsContainer>
-
-                            <div style={{ display: 'flex', justifyContent: 'center' }}>
-                                <SubmitButton 
-                                    text={isSuccess ? "✔ Utworzono!" : "Stwórz"} 
-                                    color={isSuccess ? "secondary" : "dark"} 
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        const nameEmpty = !folderName.trim();
-                                        if (nameEmpty) setFolderNameErrorMessage("Wypełnij pole");
-                                        if (!nameEmpty) handleAddFolder();
-                                    }} 
-                                />
-                            </div>
-                        </StyledPopup>
-                    </>
-                )}
-
-                {isConfirmingTrashClear && (
-                    <>
-                        <ModalOverlay onClick={() => setIsConfirmingTrashClear(false)} />
-                        <StyledPopup onClick={(e) => e.stopPropagation()} style={{ textAlign: 'center' }}>
-                            <Text bold="true" as="h2" text="Wyczyścić kosz?" />
-                            <Text text="Czy na pewno chcesz usunąć wszystkie pliki z kosza? Tej operacji nie można cofnąć." style={{ margin: '20px 0', color: '#666' }} />
-                            <div style={{ display: "flex", justifyContent: 'center', gap: "15px", marginTop: "30px" }}>
-                                <SubmitButton text="Wyczyść kosz" color="danger" onClick={async () => {
-                                    await handleClearTrash();
-                                    await handleClearFolderTrash();
-                                    setIsConfirmingTrashClear(false);
-                                    if (urlPath === "trash") {
-                                        await refreshCurrentView();
-                                    } else {
-                                        navigate("/notes/trash", { replace: true });
-                                    }
-                                }} />
-                                <SubmitButton text="Anuluj" color="dark" light onClick={() => {
-                                    setIsConfirmingTrashClear(false);
-                                }} />
-                            </div>
-                        </StyledPopup>
-                    </>
-                )}
-
-                {isMoving && (
-                    <>
-                        <ModalOverlay onClick={() => { setIsMoving(false); setMovingItem(null); setMoveErrorMessage(""); }} />
-                        <StyledPopup onClick={(e) => e.stopPropagation()}>
-                            <Text bold="true" as="h2" text={`Przenieś: ${movingItem?.name || ''}`} style={{ textAlign: 'center' }} />
-                            {moveErrorMessage && <Text color="danger" text={moveErrorMessage} />}
-                            <div style={{ maxHeight: '300px', overflowY: 'auto', margin: '20px 0', border: '1px solid #eee', borderRadius: '12px', padding: '15px' }}>
-                                <StyledTreeItem $depth={0}>
-                                    <StyledTreeItemLabel
-                                        $selected={selectedMovePath === '/'}
-                                        $disabled={!currentFolder}
-                                        onClick={() => { if (currentFolder) setSelectedMovePath('/'); }}
-                                    >
-                                        <svg fill="currentColor" viewBox="0 0 16 16" style={{ width: 16, marginRight: 6, flexShrink: 0 }}>
-                                            <path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5v-4h2v4a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM2.5 14V7.707l5.5-5.5 5.5 5.5V14H10v-4a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v4z" />
-                                        </svg>
-                                        <span style={{ marginLeft: 4 }}>/</span>
-                                    </StyledTreeItemLabel>
-                                </StyledTreeItem>
-                                {renderMoveTree(moveTree)}
-                            </div>
-                            <div style={{ display: "flex", justifyContent: 'center', gap: "15px" }}>
-                                <SubmitButton 
-                                    text={isSuccess ? "✔ Przeniesiono!" : "Zatwierdź"} 
-                                    color={isSuccess ? "secondary" : "dark"} 
-                                    onClick={handleMove}
-                                    style={{ opacity: selectedMovePath === null ? 0.5 : 1, pointerEvents: selectedMovePath === null ? 'none' : 'auto' }} 
-                                />
-                                <SubmitButton text="Anuluj" color="dark" light onClick={() => {
-                                    setIsMoving(false);
-                                    setMovingItem(null);
-                                    setMoveErrorMessage("");
-                                }} />
-                            </div>
-                        </StyledPopup>
-                    </>
-                )}
-                {!isTrashView && (
-                    <>
-                        {isActiveAddOptions && (
-                            <FabMenu>
-                                <FabMenuItem onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (currentFolder) handleFetchFolderSuggestedTags();
-                                    setIsAddingFolder(true);
-                                    setIsActiveAddOptions(false);
-                                }}>
-                                    Nowy folder
-                                </FabMenuItem>
-                                <FabMenuItem onClick={(e) => {
-                                    e.stopPropagation();
-                                    setIsAddingNote(true);
-                                    setIsActiveAddOptions(false);
-                                }}>
-                                    Nowy dokument
-                                </FabMenuItem>
-                            </FabMenu>
-                        )}
-                        <FloatingActionButton onClick={(e) => {
-                            e.stopPropagation();
-                            setIsActiveAddOptions(!isActiveAddOptions);
-                            setIsActivePathOptions(false);
-                            setActiveFolderOptionsId(null);
-                            setActiveNoteOptionsId(null);
-                        }}>
-                            <svg fill="currentColor" viewBox="0 0 16 16">
-                                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4" />
-                            </svg>
-                        </FloatingActionButton>
-                    </>
-                )}
-
-                {isTrashView && trashHasItems && (
-                    <FloatingActionButton 
-                        $danger 
-                        title="Wyczyść kosz permanentnie" 
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setIsConfirmingTrashClear(true);
-                        }}
-                    >
-                        <svg viewBox="0 0 16 16" fill="currentColor">
-                            <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
-                        </svg>
-                    </FloatingActionButton>
-                )}
-            </StyledContainer>
-            <AIFlashcardModal
-                isOpen={aiModalNoteId !== null}
-                onClose={() => setAiModalNoteId(null)}
-                noteId={aiModalNoteId}
+              }}
             />
-        </Layout>
-    )
-}
+            <StyledPopup onClick={(e) => e.stopPropagation()}>
+              <Text
+                bold="true"
+                as="h2"
+                text={`Przenieś: ${movingItem?.name || ""}`}
+                style={{ textAlign: "center" }}
+              />
+              {moveErrorMessage && (
+                <Text color="danger" text={moveErrorMessage} />
+              )}
+              <div
+                style={{
+                  maxHeight: "300px",
+                  overflowY: "auto",
+                  margin: "20px 0",
+                  border: "1px solid #eee",
+                  borderRadius: "12px",
+                  padding: "15px",
+                }}
+              >
+                <StyledTreeItem $depth={0}>
+                  <StyledTreeItemLabel
+                    $selected={selectedMovePath === "/"}
+                    $disabled={!currentFolder}
+                    onClick={() => {
+                      if (currentFolder) setSelectedMovePath("/");
+                    }}
+                  >
+                    <svg
+                      fill="currentColor"
+                      viewBox="0 0 16 16"
+                      style={{ width: 16, marginRight: 6, flexShrink: 0 }}
+                    >
+                      <path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5v-4h2v4a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM2.5 14V7.707l5.5-5.5 5.5 5.5V14H10v-4a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v4z" />
+                    </svg>
+                    <span style={{ marginLeft: 4 }}>/</span>
+                  </StyledTreeItemLabel>
+                </StyledTreeItem>
+                {renderMoveTree(moveTree)}
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: "15px",
+                }}
+              >
+                <SubmitButton
+                  text={isSuccess ? "✔ Przeniesiono!" : "Zatwierdź"}
+                  color={isSuccess ? "secondary" : "dark"}
+                  onClick={handleMove}
+                  style={{
+                    opacity: selectedMovePath === null ? 0.5 : 1,
+                    pointerEvents: selectedMovePath === null ? "none" : "auto",
+                  }}
+                />
+                <SubmitButton
+                  text="Anuluj"
+                  color="dark"
+                  light
+                  onClick={() => {
+                    setIsMoving(false);
+                    setMovingItem(null);
+                    setMoveErrorMessage("");
+                  }}
+                />
+              </div>
+            </StyledPopup>
+          </>
+        )}
+        {!isTrashView && (
+          <>
+            {isActiveAddOptions && (
+              <FabMenu>
+                <FabMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (currentFolder) handleFetchFolderSuggestedTags();
+                    setIsAddingFolder(true);
+                    setIsActiveAddOptions(false);
+                  }}
+                >
+                  Nowy folder
+                </FabMenuItem>
+                <FabMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsAddingNote(true);
+                    setIsActiveAddOptions(false);
+                  }}
+                >
+                  Nowy dokument
+                </FabMenuItem>
+              </FabMenu>
+            )}
+            <FloatingActionButton
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsActiveAddOptions(!isActiveAddOptions);
+                setIsActivePathOptions(false);
+                setActiveFolderOptionsId(null);
+                setActiveNoteOptionsId(null);
+              }}
+            >
+              <svg fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4" />
+              </svg>
+            </FloatingActionButton>
+          </>
+        )}
+
+        {isTrashView && trashHasItems && (
+          <FloatingActionButton
+            $danger
+            title="Wyczyść kosz permanentnie"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsConfirmingTrashClear(true);
+            }}
+          >
+            <svg viewBox="0 0 16 16" fill="currentColor">
+              <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
+            </svg>
+          </FloatingActionButton>
+        )}
+      </StyledContainer>
+      <AIFlashcardModal
+        isOpen={aiModalNoteId !== null}
+        onClose={() => setAiModalNoteId(null)}
+        noteId={aiModalNoteId}
+      />
+    </Layout>
+  );
+};
 
 export default Notes;

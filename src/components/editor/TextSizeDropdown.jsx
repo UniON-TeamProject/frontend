@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useEditorState } from '@tiptap/react';
-import styled from 'styled-components';
-import { headingOptions } from '../../helpers/textEditor/slashItems.jsx';
+import React, { useState, useEffect, useRef } from "react";
+import { useEditorState } from "@tiptap/react";
+import styled from "styled-components";
+import { headingOptions } from "../../helpers/textEditor/slashItems.jsx";
 
 const StyledDropdownWrapper = styled.div`
-  position:relative;
-`
+  position: relative;
+`;
 
 const StyledDropdownTrigger = styled.button`
   padding: 4px 6px;
@@ -21,7 +21,7 @@ const StyledDropdownTrigger = styled.button`
   &:hover {
     background-color: ${({ theme }) => theme.colors.primary};
   }
-  >svg:not(.arrow) {
+  > svg:not(.arrow) {
     width: 20px;
     height: 20px;
   }
@@ -30,48 +30,49 @@ const StyledDropdownTrigger = styled.button`
     width: 10px;
     color: ${({ theme }) => theme.colors.dark};
   }
-`
+`;
 
 const StyledDropdownMenu = styled.div`
-  position:absolute;
-  top:100%;
-  left:0;
-  margin-top:4px;
-  background:#fff;
-  border-radius:13px;
-  padding:3px;
-  display:flex;
-  flex-direction:column;
-  overflow-y:auto;
-  max-height:200px;
-  min-width:160px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.12);
-  z-index:20;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  background: ${({ theme }) => theme.colors.white};
+  border-radius: 13px;
+  padding: 3px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  max-height: 200px;
+  min-width: 160px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  z-index: 20;
   color: ${({ theme }) => theme.colors.text};
-`
+`;
 
 const StyledDropdownItem = styled.button`
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
-  padding:6px 10px;
-  text-align:left;
-  font-size:14px;
-  font-weight:600;
-  width:100%;
-  display:flex;
-  align-items:center;
-  background-color:${({ $active, theme }) => $active ? theme.colors.primary : '#fff'};
-  &:hover{
-    background-color:${({ theme }) => theme.colors.primary};
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  padding: 6px 10px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  background-color: ${({ $active, theme }) =>
+    $active ? theme.colors.primary : theme.colors.white};
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.primary};
   }
-  >svg{
-    width:18px;
-    height:18px;
-    margin-right:8px;
-    flex-shrink:0;
+  > svg {
+    width: 18px;
+    height: 18px;
+    margin-right: 8px;
+    flex-shrink: 0;
   }
-`
+`;
 
 function TextSizeDropdown({ editor }) {
   if (!editor) return null;
@@ -84,35 +85,44 @@ function TextSizeDropdown({ editor }) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target))
         setIsOpen(false);
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
 
   const editorState = useEditorState({
     editor,
     selector: (ctx) => ({
-      currentHeading:
-        ctx.editor.isActive('heading', { level: 1 })
-          ? 'h1'
-          : ctx.editor.isActive('heading', { level: 2 })
-            ? 'h2'
-            : ctx.editor.isActive('heading', { level: 3 })
-              ? 'h3'
-              : 'paragraph',
+      currentHeading: ctx.editor.isActive("heading", { level: 1 })
+        ? "h1"
+        : ctx.editor.isActive("heading", { level: 2 })
+        ? "h2"
+        : ctx.editor.isActive("heading", { level: 3 })
+        ? "h3"
+        : "paragraph",
     }),
   });
 
-  const currentOption = headingOptions.find(o => o.value === editorState.currentHeading) || headingOptions[0];
+  const currentOption =
+    headingOptions.find((o) => o.value === editorState.currentHeading) ||
+    headingOptions[0];
 
   const handleSelect = (value) => {
-    if (value === 'paragraph') editor.chain().focus().setParagraph().run();
-    else editor.chain().focus().setHeading({ level: Number(value.replace('h', '')) }).run();
+    if (value === "paragraph") editor.chain().focus().setParagraph().run();
+    else
+      editor
+        .chain()
+        .focus()
+        .setHeading({ level: Number(value.replace("h", "")) })
+        .run();
     setIsOpen(false);
   };
 
   return (
     <StyledDropdownWrapper ref={dropdownRef}>
-      <StyledDropdownTrigger className="dropdown" onClick={() => setIsOpen(!isOpen)}>
+      <StyledDropdownTrigger
+        className="dropdown"
+        onClick={() => setIsOpen(!isOpen)}
+      >
         {currentOption.icon}
         <svg className="arrow" fill="currentColor" viewBox="0 0 16 16">
           <path d="M3.204 5h9.592L8 10.481zm-.753.659 4.796 5.48a1 1 0 0 0 1.506 0l4.796-5.48c.566-.647.106-1.659-.753-1.659H3.204a1 1 0 0 0-.753 1.659" />
