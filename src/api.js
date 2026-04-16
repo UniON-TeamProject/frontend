@@ -1640,7 +1640,7 @@ export async function submitUsosVerifier(oauthVerifier) {
     const resp = await fetch(
       `${API_HOST}/oauth/access?oauth_verifier=${encodeURIComponent(
         oauthVerifier
-      )}`,
+      )}&override=true`,
       {
         method: "GET",
         headers: {
@@ -1840,7 +1840,9 @@ export async function addEvent(
   start,
   end,
   color,
-  isDeadline
+  isDeadline,
+  recurrenceRule = null,
+  recurringEventTags = null
 ) {
   const token = getToken();
   if (!token)
@@ -1865,6 +1867,8 @@ export async function addEvent(
         end,
         color,
         isDeadline,
+        recurringEventTags,
+        recurrenceRule,
       }),
     });
     const authErr = checkUnauthorized(resp);
@@ -2091,7 +2095,7 @@ export async function getUsosEvents() {
       message: "Brak tokena, zaloguj się ponownie",
     };
   try {
-    const resp = await fetch(`${API_HOST}/getEventsByTag?tag=usos`, {
+    const resp = await fetch(`${API_HOST}/getEventsByTags?tags=usos`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,

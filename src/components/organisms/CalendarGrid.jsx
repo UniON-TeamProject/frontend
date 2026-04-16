@@ -1018,6 +1018,12 @@ function mapBackendEvent(ev) {
   const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
   const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
   const multiDay = startDay.getTime() !== endDay.getTime();
+
+  const rule = ev.recurrenceRule || null;
+  const recurrenceFields = rule
+    ? mapRecurrenceRule(rule)
+    : { recurrent: false, isPartOfSeries: false };
+
   return {
     id: `backend-${ev.id}`,
     backendId: ev.id,
@@ -1033,9 +1039,65 @@ function mapBackendEvent(ev) {
     customTags: ev.eventTags ? [...ev.eventTags].filter(t => !TAG_CONFIG[t] && t !== "deadline") : [],
     regularTags: ev.regularTags ? [...ev.regularTags] : [],
     isDeadline: !!ev.isDeadline,
-    recurrent: false,
     colorId: ev.color || "blue",
     allDay: multiDay && start.getHours() === 0 && start.getMinutes() === 0 && end.getHours() === 0 && end.getMinutes() === 0,
+    ...recurrenceFields,
+  };
+}
+
+// odwrotne mapowanie do buildRecurrenceRule w Calendar.jsx
+function mapRecurrenceRule(rule) {
+  const FREQUENCY_TO_UNIT = { DAILY: "days", WEEKLY: "weeks", MONTHLY: "months", YEARLY: "years" };
+  const interval = rule.interval || 1;
+  const freq = rule.frequency;
+  const daysOfWeek = rule.daysOfWeek || null;
+
+  // detekcja presetu
+  let recurrenceType = "custom";
+  let customInterval = interval;
+  let customUnit = FREQUENCY_TO_UNIT[freq] || "weeks";
+  let customDays = [];
+
+  if (!daysOfWeek) {
+    if (freq === "DAILY" && interval === 1) recurrenceType = "daily";
+    else if (freq === "WEEKLY" && interval === 1) recurrenceType = "weekly";
+    else if (freq === "WEEKLY" && interval === 2) recurrenceType = "biweekly";
+    else if (freq === "MONTHLY" && interval === 1) recurrenceType = "monthly";
+    else if (freq === "YEARLY" && interval === 1) recurrenceType = "yearly";
+  }
+
+  if (recurrenceType === "custom" && daysOfWeek) {
+    // "1,3,5" → [1, 3, 5] (7 traktujemy jako 0 = niedziela, zgodnie z JS)
+    customDays = daysOfWeek
+      .split(",")
+      .map(s => parseInt(s.trim(), 10))
+      .filter(n => !isNaN(n))
+      .map(n => (n === 7 ? 0 : n));
+  }
+
+  let recurrenceEndType = "never";
+  let recurrenceEndDate = "";
+  let recurrenceOccurrences = 10;
+  if (rule.recurrenceEnd) {
+    recurrenceEndType = "date";
+    recurrenceEndDate = rule.recurrenceEnd;
+  } else if (rule.occurrences && rule.occurrences > 0) {
+    recurrenceEndType = "after";
+    recurrenceOccurrences = rule.occurrences;
+  }
+
+  return {
+    // backend materializuje kazde wystapienie jako osobny rekord,
+    // wiec frontend nie powinien juz sam rozwijac cyklu (eventOccursOnDay)
+    recurrent: false,
+    isPartOfSeries: true,
+    recurrenceType,
+    customInterval,
+    customUnit,
+    customDays,
+    recurrenceEndType,
+    recurrenceEndDate,
+    recurrenceOccurrences,
   };
 }
 

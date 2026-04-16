@@ -1031,6 +1031,7 @@ const Calendar = () => {
   const [scopeAction, setScopeAction] = useState(null); // { type: "edit"|"delete", event, occurrenceDate }
   const [pendingSave, setPendingSave] = useState(null); // { startISO, endISO } - saved form data waiting for scope choice
   const [confirmDelete, setConfirmDelete] = useState(null); // { event, occurrenceDate, scope? }
+  const [confirmUsosImport, setConfirmUsosImport] = useState(false);
   const [addingRegularTag, setAddingRegularTag] = useState(null); // eventId for which we're adding a tag
   const [newRegularTag, setNewRegularTag] = useState("");
   const [filterTags, setFilterTags] = useState([]);
@@ -1084,7 +1085,12 @@ const Calendar = () => {
     setDocTagLoading(false);
   };
 
-  const handleUsosImport = async () => {
+  const handleUsosImport = () => {
+    setConfirmUsosImport(true);
+  };
+
+  const doUsosImport = async () => {
+    setConfirmUsosImport(false);
     const res = await getUsosAuthUrl();
     if (res.errorCode === "TOKEN_UNDEFINED") {
       routerNavigate("/", { replace: true });
@@ -1279,7 +1285,7 @@ const Calendar = () => {
 
   const handleTagScopeChoice = async (scope) => {
     if (!tagScopePopup) return;
-    const { allTags, saveRegularTags, recurrenceRule, startISO, endISO } = tagScopePopup;
+    const { allTags, saveRegularTags, recurrenceRule, startISO, endISO, deleteBeforeId } = tagScopePopup;
 
     let eventTags, recurringEventTags;
     if (scope === "all") {
@@ -1292,11 +1298,21 @@ const Calendar = () => {
       recurringEventTags = null;
     }
 
+    // konwersja single → cyclic: najpierw usun oryginalny event
+    if (deleteBeforeId) {
+      const delRes = await deleteEventApi(deleteBeforeId);
+      if (delRes.errorCode && delRes.errorCode !== "") {
+        setTagScopePopup(null);
+        return;
+      }
+    }
+
     const res = await addEvent(form.title, form.description, eventTags, saveRegularTags, startISO, endISO, form.colorId, form.isDeadline, recurrenceRule, recurringEventTags);
     setTagScopePopup(null);
     if (res.errorCode && res.errorCode !== "") return;
 
     await refreshEvents();
+    setEditEvent(null);
     setForm({ ...defaultFormState });
     setPopup(false);
   };
@@ -1504,6 +1520,15 @@ const Calendar = () => {
 
           if (recurrenceRule && !editEvent.event.isPartOfSeries) {
             // Converting single event to recurring: delete old, create new series
+            // If tags present, ask about tag scope first (tags on first only vs all)
+            if (allTags.length > 0) {
+              setTagScopePopup({
+                allTags, saveRegularTags, recurrenceRule, startISO, endISO,
+                parsedDate, parsedEndDate, sh, sm, eh, em,
+                deleteBeforeId: editEvent.event.backendId,
+              });
+              return;
+            }
             const delRes = await deleteEventApi(editEvent.event.backendId);
             if (delRes.errorCode && delRes.errorCode !== "") return;
             const addRes = await addEvent(form.title, form.description, allTags, saveRegularTags, startISO, endISO, form.colorId, form.isDeadline, recurrenceRule);
@@ -2070,6 +2095,28 @@ const Calendar = () => {
         <FormSidebar $open={popup}>
           {popup && renderPopup()}
         </FormSidebar>
+
+        {confirmUsosImport && (
+          <ScopeOverlay onClick={(e) => e.target === e.currentTarget && setConfirmUsosImport(false)}>
+            <ScopeBox>
+              <ScopeTitle>
+                Import planu z USOS
+              </ScopeTitle>
+              <div style={{ padding: "0 16px 12px", fontSize: 13, color: theme.colors.textMuted, textAlign: "center", lineHeight: 1.4 }}>
+                Jeśli masz już zaimportowany plan z USOS, zostanie on nadpisany nowym- wszystkie dotychczasowe wydarzenia USOS zostaną usunięte.
+              </div>
+              <ScopeBtn
+                onClick={doUsosImport}
+                style={{ color: "rgb(226, 75, 74)", fontWeight: 600, textAlign: "center" }}
+              >
+                Znam ryzyko, kontynuuj
+              </ScopeBtn>
+              <CancelBtn onClick={() => setConfirmUsosImport(false)} style={{ width: "100%", marginTop: 4 }}>
+                Anuluj
+              </CancelBtn>
+            </ScopeBox>
+          </ScopeOverlay>
+        )}
 
         {confirmDelete && (
           <ScopeOverlay onClick={(e) => e.target === e.currentTarget && setConfirmDelete(null)}>
