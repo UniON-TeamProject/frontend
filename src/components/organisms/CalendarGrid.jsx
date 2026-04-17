@@ -309,6 +309,12 @@ const MonthGrid = styled.div`
   padding: 16px 24px;
   gap: ${({ $weeks }) => ($weeks > 5 ? 3 : 6)}px;
   overflow: hidden;
+  @media (max-width: 600px) {
+    flex: none;
+    padding: 8px 8px;
+    gap: 3px;
+    overflow: visible;
+  }
 `;
 
 const DayLabels = styled.div`
@@ -346,6 +352,11 @@ const MonthCell = styled.div`
   position: relative;
   min-height: 0;
   overflow: hidden;
+  @media (max-width: 600px) {
+    padding: 3px 4px;
+    border-radius: 6px;
+    aspect-ratio: 1;
+  }
   &:hover {
     border-color: ${({ theme }) => theme.colors.secondaryLight};
   }
@@ -362,6 +373,10 @@ const CellDate = styled.div`
   display: flex;
   align-items: center;
   gap: 5px;
+  @media (max-width: 600px) {
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
 `;
 
 const DeadlineDot = styled.div`
@@ -380,6 +395,9 @@ const CellEvents = styled.div`
   flex: 1;
   min-height: 0;
   overflow: hidden;
+  @media (max-width: 600px) {
+    gap: 2px;
+  }
 `;
 
 const CellEventBar = styled.div`
@@ -393,6 +411,11 @@ const CellEventBar = styled.div`
   min-height: 28px;
   flex-shrink: 0;
   pointer-events: none;
+  @media (max-width: 600px) {
+    min-height: 6px;
+    height: 6px;
+    padding: 0;
+  }
 `;
 
 const CellEventTitle = styled.span`
@@ -404,6 +427,9 @@ const CellEventTitle = styled.span`
   text-overflow: ellipsis;
   flex: 1;
   min-width: 0;
+  @media (max-width: 600px) {
+    display: none;
+  }
 `;
 
 const CellEventIcons = styled.span`
@@ -412,6 +438,9 @@ const CellEventIcons = styled.span`
   flex-shrink: 0;
   font-size: 11px;
   line-height: 1;
+  @media (max-width: 600px) {
+    display: none;
+  }
 `;
 
 const CellMore = styled.div`
@@ -429,6 +458,10 @@ const MonthWeekRow = styled.div`
   gap: ${({ $compact }) => ($compact ? 4 : 8)}px;
   flex: 1;
   min-height: 0;
+  @media (max-width: 600px) {
+    flex: none;
+    gap: 3px;
+  }
 `;
 
 const SpanningBar = styled.div`
@@ -454,6 +487,10 @@ const SpanningBar = styled.div`
   text-overflow: ellipsis;
   z-index: 2;
   pointer-events: none;
+  @media (max-width: 600px) {
+    height: 6px;
+    padding: 0;
+  }
 `;
 
 const SpanningBarTitle = styled.span`
@@ -465,6 +502,9 @@ const SpanningBarTitle = styled.span`
   text-overflow: ellipsis;
   flex: 1;
   min-width: 0;
+  @media (max-width: 600px) {
+    display: none;
+  }
 `;
 
 // Week view
@@ -704,6 +744,14 @@ const CalendarGrid = ({
   const weekBodyRef = useRef(null);
   const monthGridRef = useRef(null);
   const [monthGridHeight, setMonthGridHeight] = useState(0);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 600);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 600px)");
+    const handler = (e) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   useEffect(() => {
     const update = () => {
@@ -933,6 +981,7 @@ const CalendarGrid = ({
 
   // MONTH VIEW
   const renderMonthView = () => {
+    const mobileDash = isMobile || dashboardMode;
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     const days = getMonthDays(year, month);
@@ -1043,8 +1092,8 @@ const CalendarGrid = ({
                   const widthCalc = `calc(${(span / 7) * 100}% - ${
                     ((7 - span) * GAP) / 7
                   }px - ${marginStart + marginEnd}px)`;
-                  const eventSlotHeight = dashboardMode ? 8 : 33;
-                  const topOffset = 36 + lane * eventSlotHeight;
+                  const eventSlotHeight = dashboardMode || isMobile ? 8 : 33;
+                  const topOffset = (isMobile ? 22 : 36) + lane * eventSlotHeight;
 
                   return (
                     <SpanningBar
@@ -1057,16 +1106,16 @@ const CalendarGrid = ({
                         left: leftCalc,
                         width: widthCalc,
                         top: `${topOffset}px`,
-                        height: dashboardMode ? "6px" : "28px",
-                        padding: dashboardMode ? 0 : "1px 6px",
+                        height: mobileDash ? "6px" : "28px",
+                        padding: mobileDash ? 0 : "1px 6px",
                       }}
                     >
-                      {!dashboardMode && (
+                      {!mobileDash && (
                         <SpanningBarTitle $dark={style.dark}>
                           {ev.title}
                         </SpanningBarTitle>
                       )}
-                      {!dashboardMode && isEnd && icons.length > 0 && (
+                      {!mobileDash && isEnd && icons.length > 0 && (
                         <CellEventIcons>
                           {icons.slice(0, 2).map((ic, idx) => (
                             <span key={idx}>{ic}</span>
@@ -1097,8 +1146,9 @@ const CalendarGrid = ({
                 const visibleSpanningCount = lanesOnDay.filter(
                   (s) => s.lane < maxShown
                 ).length;
+                const slotH = isMobile ? 8 : 33;
                 const spanPadding =
-                  visibleSpanningCount > 0 ? visibleSpanningCount * 33 - 5 : 0;
+                  visibleSpanningCount > 0 ? visibleSpanningCount * slotH - 5 : 0;
                 const compact = weeks.length > 5;
                 const slotsForSingleDay = Math.max(
                   0,
@@ -1136,18 +1186,18 @@ const CalendarGrid = ({
                             $bg={style.bg}
                             $dark={style.dark}
                             style={{
-                              minHeight: dashboardMode ? "6px" : "28px",
-                              height: dashboardMode ? "6px" : "auto",
-                              padding: dashboardMode ? 0 : "1px 4px",
-                              marginBottom: dashboardMode ? "2px" : 0,
+                              minHeight: mobileDash ? "6px" : "28px",
+                              height: mobileDash ? "6px" : "auto",
+                              padding: mobileDash ? 0 : "1px 4px",
+                              marginBottom: mobileDash ? "2px" : 0,
                             }}
                           >
-                            {!dashboardMode && (
+                            {!mobileDash && (
                               <CellEventTitle $dark={style.dark}>
                                 {ev.title}
                               </CellEventTitle>
                             )}
-                            {!dashboardMode && icons.length > 0 && (
+                            {!mobileDash && icons.length > 0 && (
                               <CellEventIcons>
                                 {icons.slice(0, 2).map((ic, idx) => (
                                   <span key={idx}>{ic}</span>
@@ -1168,7 +1218,7 @@ const CalendarGrid = ({
                         <div
                           style={{
                             textAlign: "center",
-                            fontSize: dashboardMode ? "10px" : "12px",
+                            fontSize: mobileDash ? "10px" : "12px",
                             fontWeight: "700",
                             color: "#8b948e",
                             marginTop: "1px",
@@ -1176,7 +1226,7 @@ const CalendarGrid = ({
                             flexShrink: 0,
                           }}
                         >
-                          {dashboardMode
+                          {mobileDash
                             ? `+${hiddenCount}`
                             : `+${hiddenCount} więcej`}
                         </div>

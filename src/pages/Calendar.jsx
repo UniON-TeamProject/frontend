@@ -53,6 +53,11 @@ const Wrapper = styled.div`
   background: ${({ theme }) => theme.colors.pageBg};
   color: ${({ theme }) => theme.colors.text};
   overflow: hidden;
+  @media (max-width: 600px) {
+    height: auto;
+    min-height: calc(100vh - 60px);
+    overflow: visible;
+  }
 `;
 
 const Main = styled.div`
@@ -60,6 +65,10 @@ const Main = styled.div`
   display: flex;
   flex-direction: column;
   min-width: 0;
+  @media (max-width: 600px) {
+    flex: none;
+    width: 100%;
+  }
 `;
 
 const PageHeader = styled.div`
@@ -70,12 +79,20 @@ const PageHeader = styled.div`
   background: ${({ theme }) => theme.colors.pageBg};
   border-bottom: 1px solid ${({ theme }) => theme.colors.darkGrey};
   flex-shrink: 0;
+  @media (max-width: 600px) {
+    padding: 10px 12px;
+    display: flex;
+    justify-content: space-between;
+  }
 `;
 
 const PageHeaderLeft = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
+  @media (max-width: 600px) {
+    display: none;
+  }
 `;
 
 const PageHeaderCenter = styled.div`
@@ -93,6 +110,40 @@ const PageHeaderRight = styled.div`
 
 const SearchContainer = styled.div`
   position: relative;
+`;
+
+const FilterButton = styled.button`
+  display: none;
+  @media (max-width: 600px) {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border-radius: 8px;
+    border: 1px solid
+      ${({ $open, theme }) =>
+        $open ? theme.colors.secondary : theme.colors.darkGrey};
+    background: ${({ theme }) => theme.colors.pageBg};
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    color: ${({ theme }) => theme.colors.text};
+    transition: border-color 0.15s;
+  }
+`;
+
+const FilterBadge = styled.span`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  background: ${({ theme }) => theme.colors.secondary};
+  color: ${({ theme }) => theme.colors.white};
+  font-size: 10px;
+  font-weight: 700;
+  padding: 0 4px;
 `;
 
 const MultiselectInput = styled.div`
@@ -113,6 +164,9 @@ const MultiselectInput = styled.div`
   transition: border-color 0.15s;
   &:hover {
     border-color: ${({ theme }) => theme.colors.secondaryLight};
+  }
+  @media (max-width: 600px) {
+    display: none;
   }
 `;
 
@@ -190,6 +244,26 @@ const SearchDropdown = styled.div`
   z-index: 50;
   padding: 10px;
   animation: ${scaleIn} 0.15s ease;
+  @media (max-width: 600px) {
+    left: auto;
+    right: 0;
+    width: 75vw;
+  }
+`;
+
+const DropdownMobileSearch = styled.div`
+  display: none;
+  @media (max-width: 600px) {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 8px;
+    border: 1px solid ${({ theme }) => theme.colors.darkGrey};
+    border-radius: 8px;
+    background: ${({ theme }) => theme.colors.pageBg};
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
 `;
 
 const DropdownSection = styled.div`
@@ -363,7 +437,7 @@ const AddBtn = styled.button`
 
 // ── SIDEBAR ───────────────────────────────────────────────────────────────────
 const DetailSidebar = styled.div`
-  width: ${({ $open, theme }) => ($open ? "350px" : "0")};
+  width: ${({ $open }) => ($open ? "350px" : "0")};
   overflow: hidden;
   transition: width 0.3s ease;
   background: ${({ theme }) => theme.colors.white};
@@ -372,6 +446,16 @@ const DetailSidebar = styled.div`
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+  @media (max-width: 600px) {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 60px;
+    left: auto;
+    width: ${({ $open }) => ($open ? "100%" : "0")};
+    z-index: 50;
+    border-left: none;
+  }
 `;
 
 const SidebarInner = styled.div`
@@ -382,6 +466,26 @@ const SidebarInner = styled.div`
   gap: 12px;
   overflow-y: auto;
   animation: ${slideIn} 0.3s ease;
+  @media (max-width: 600px) {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 0 16px;
+  }
+`;
+
+const SidebarStickyTop = styled.div`
+  @media (max-width: 600px) {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: ${({ theme }) => theme.colors.white};
+    padding: 16px 16px 10px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid ${({ theme }) => theme.colors.borderMuted};
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
 `;
 
 const SidebarHeader = styled.div`
@@ -426,6 +530,10 @@ const SidebarEventCard = styled.div`
   border-radius: 8px;
   padding: 10px 12px;
   animation: ${fadeIn} 0.25s ease;
+  @media (max-width: 600px) {
+    margin-left: 16px;
+    margin-right: 16px;
+  }
 `;
 
 const SidebarEventName = styled.div`
@@ -582,7 +690,7 @@ const SidebarSectionLabel = styled.div`
 
 // ── FORM SIDEBAR ──────────────────────────────────────────────────────────────
 const FormSidebar = styled.div`
-  width: ${({ $open, theme }) => ($open ? "350px" : "0")};
+  width: ${({ $open }) => ($open ? "350px" : "0")};
   overflow: hidden;
   transition: width 0.3s ease;
   background: ${({ theme }) => theme.colors.white};
@@ -591,6 +699,16 @@ const FormSidebar = styled.div`
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+  @media (max-width: 600px) {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 60px;
+    left: auto;
+    width: ${({ $open }) => ($open ? "100%" : "0")};
+    z-index: 50;
+    border-left: none;
+  }
 `;
 
 const FormSidebarInner = styled.div`
@@ -601,6 +719,10 @@ const FormSidebarInner = styled.div`
   gap: 2px;
   overflow-y: auto;
   animation: ${slideIn} 0.3s ease;
+  @media (max-width: 600px) {
+    width: 100%;
+    box-sizing: border-box;
+  }
 `;
 
 const FormSidebarHeader = styled.div`
@@ -1627,23 +1749,25 @@ const Calendar = () => {
 
     return (
       <SidebarInner>
-        <SidebarHeader>
-          <SidebarTitle>Szczegóły</SidebarTitle>
-          <CloseBtn onClick={() => setSidebar(null)}>×</CloseBtn>
-        </SidebarHeader>
-        <SidebarDateLabel>
-          {date.getDate()} {MONTHS_PL[date.getMonth()]}
-        </SidebarDateLabel>
-        <div
-          style={{
-            fontSize: 11,
-            color: theme.colors.textMuted,
-            fontWeight: 500,
-          }}
-        >
-          {DAYS_PL[date.getDay()]}, {evs.length}{" "}
-          {evs.length === 1 ? "wydarzenie" : "wydarzenia"}
-        </div>
+        <SidebarStickyTop>
+          <SidebarHeader>
+            <SidebarTitle>Szczegóły</SidebarTitle>
+            <CloseBtn onClick={() => setSidebar(null)}>×</CloseBtn>
+          </SidebarHeader>
+          <SidebarDateLabel>
+            {date.getDate()} {MONTHS_PL[date.getMonth()]}
+          </SidebarDateLabel>
+          <div
+            style={{
+              fontSize: 11,
+              color: theme.colors.textMuted,
+              fontWeight: 500,
+            }}
+          >
+            {DAYS_PL[date.getDay()]}, {evs.length}{" "}
+            {evs.length === 1 ? "wydarzenie" : "wydarzenia"}
+          </div>
+        </SidebarStickyTop>
         {sorted.map((ev) => {
           const style = getEventStyle(ev);
           const predefinedTags = (ev.tags || []).filter((t) => TAG_CONFIG[t]);
@@ -2563,6 +2687,17 @@ const Calendar = () => {
             </PageHeaderCenter>
             <PageHeaderRight>
               <SearchContainer ref={searchRef}>
+                <FilterButton
+                  $open={searchOpen}
+                  onClick={() => setSearchOpen((v) => !v)}
+                >
+                  🔍 Filtruj
+                  {(filterTags.length + (customTagSearch.trim() ? 1 : 0)) > 0 && (
+                    <FilterBadge>
+                      {filterTags.length + (customTagSearch.trim() ? 1 : 0)}
+                    </FilterBadge>
+                  )}
+                </FilterButton>
                 <MultiselectInput
                   $open={searchOpen}
                   onClick={() => {
@@ -2668,6 +2803,65 @@ const Calendar = () => {
                       categoryTags.length > 0 || regularTags.length > 0;
                     return (
                       <SearchDropdown onMouseDown={(e) => e.preventDefault()}>
+                        <DropdownMobileSearch>
+                          {filterTags.map((ft) => {
+                            const tag = available.find((t) => t.key === ft);
+                            const label = tag
+                              ? tag.icon
+                                ? `${tag.icon} ${tag.label}`
+                                : tag.label
+                              : ft;
+                            return (
+                              <SelectedChip key={ft}>
+                                {label}
+                                <SelectedChipRemove
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleFilterTag(ft);
+                                  }}
+                                >
+                                  ×
+                                </SelectedChipRemove>
+                              </SelectedChip>
+                            );
+                          })}
+                          {customTagSearch.trim() && (
+                            <SelectedChip>
+                              "{customTagSearch.trim()}"
+                              <SelectedChipRemove
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setCustomTagSearch("");
+                                }}
+                              >
+                                ×
+                              </SelectedChipRemove>
+                            </SelectedChip>
+                          )}
+                          <MultiselectTextInput
+                            placeholder={
+                              filterTags.length === 0 && !customTagSearch.trim()
+                                ? "Szukaj..."
+                                : ""
+                            }
+                            value={searchText}
+                            onChange={(e) => setSearchText(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && searchText.trim()) {
+                                setCustomTagSearch(searchText.trim());
+                                setSearchText("");
+                              }
+                              if (e.key === "Backspace" && !searchText) {
+                                if (customTagSearch.trim()) {
+                                  setCustomTagSearch("");
+                                } else if (filterTags.length > 0) {
+                                  setFilterTags((prev) => prev.slice(0, -1));
+                                }
+                              }
+                            }}
+                            autoFocus
+                          />
+                        </DropdownMobileSearch>
                         {categoryTags.length > 0 && (
                           <DropdownSection>
                             <DropdownSectionLabel>
