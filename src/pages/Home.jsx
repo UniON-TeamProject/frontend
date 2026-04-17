@@ -60,7 +60,7 @@ const StyledHeader = styled.div`
 `;
 
 const StyledName = styled.h2`
-  color: #122818;
+  color: ${({ theme }) => theme.colors.veryDarkPrimary};
   font-size: 1.7rem;
   font-weight: 800;
   cursor: default;
@@ -72,39 +72,6 @@ const HeaderRight = styled.div`
   display: flex;
   align-items: center;
   gap: 15px;
-`;
-/*
-const SearchInput = styled.input`
-    padding: 0 15px;
-    border-radius: 8px;
-    border: 1px solid #d1d4c9;
-    background-color: ${({theme})=>theme.colors.white};
-    font-size: 0.9rem;
-    outline: none;
-    width: 200px;
-    height: 40px; 
-    transition: border-color 0.2s;
-    &:focus { border-color: #122818; }
-`
-*/
-
-const StyledLogoutButton = styled.button`
-  padding: 0 20px;
-  background-color: ${({ theme }) => theme.colors.white};
-  color: #122818;
-  border: 1px solid #d1d4c9;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 0.9rem;
-  cursor: pointer;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  &:hover {
-    background-color: #e9ece1;
-  }
 `;
 
 const DashboardLayout = styled.div`
@@ -152,6 +119,17 @@ const CalendarBox = styled(CardBox)`
   flex: 6.5;
 `;
 
+const EmptyTabState = styled.div`
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: ${({ theme }) => theme.colors.takiSmiesznyZielonyAleJasny};
+  font-size: 0.95rem;
+  text-align: center;
+  min-height: 80px;
+`;
+
 const BottomRow = styled.div`
   flex: 4.5;
   display: grid;
@@ -160,7 +138,7 @@ const BottomRow = styled.div`
 `;
 
 const CardTitle = styled.h3`
-  color: #122818;
+  color: ${({ theme }) => theme.colors.veryDarkPrimary};
   font-size: 1.4rem;
   font-weight: 700;
   margin-top: 0;
@@ -204,7 +182,7 @@ const SimpleListItem = styled.div`
   align-items: center;
   font-weight: 700;
   font-size: 0.95rem;
-  color: #122818;
+  color: ${({ theme }) => theme.colors.veryDarkPrimary};
   min-height: 40px;
 `;
 
@@ -217,7 +195,7 @@ const ItemInfo = styled.div`
 
 const ItemTitle = styled.span`
   font-weight: 700;
-  color: #122818;
+  color: ${({ theme }) => theme.colors.veryDarkPrimary};
   font-size: 0.95rem;
   white-space: nowrap;
   overflow: hidden;
@@ -269,7 +247,7 @@ const MoreButton = styled.div`
   cursor: pointer;
   padding-top: 15px;
   &:hover {
-    color: #122818;
+    color: ${({ theme }) => theme.colors.veryDarkPrimary};
   }
 `;
 
@@ -293,7 +271,7 @@ const FolderBox = styled.div`
 const FolderIcon = styled.div`
   width: 45px;
   height: 40px;
-  color: #122818;
+  color: ${({ theme }) => theme.colors.veryDarkPrimary};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -307,7 +285,7 @@ const FolderIcon = styled.div`
 const FolderName = styled.span`
   font-size: 0.75rem;
   font-weight: 800;
-  color: #122818;
+  color: ${({ theme }) => theme.colors.veryDarkPrimary};
   width: 100%;
   text-align: center;
 
@@ -581,16 +559,7 @@ const Home = () => {
       <StyledContainer>
         <StyledHeader>
           <StyledName>Witaj, {username || "użytkowniku"}!</StyledName>
-          <HeaderRight>
-            <StyledLogoutButton
-              onClick={() => {
-                removeToken();
-                navigate("/");
-              }}
-            >
-              Wyloguj
-            </StyledLogoutButton>
-          </HeaderRight>
+          <HeaderRight>{/* Zostawiam miejsce na powiadomienia */}</HeaderRight>
         </StyledHeader>
 
         <DashboardLayout>
@@ -687,21 +656,7 @@ const Home = () => {
 
             <CardBox>
               <CardTitle>Społeczności</CardTitle>
-              <div
-                style={{
-                  flexGrow: 1,
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  color:
-                    "#${({theme})=>theme.colors.takiSmiesznyZielonyAleJasny}",
-                  fontSize: "0.95rem",
-                  textAlign: "center",
-                  minHeight: "80px",
-                }}
-              >
-                Brak nowych aktywności.
-              </div>
+              <EmptyTabState>Brak nowych aktywności.</EmptyTabState>
               <MoreButton>Więcej...</MoreButton>
             </CardBox>
           </LeftColumn>
@@ -727,7 +682,7 @@ const Home = () => {
                       background: "transparent",
                       cursor: "pointer",
                       fontSize: "1.4rem",
-                      color: "#122818",
+                      color: "${({theme})=> theme.colors.veryDarkPrimary}",
                       padding: "0 5px",
                     }}
                   >
@@ -749,7 +704,7 @@ const Home = () => {
                       background: "transparent",
                       cursor: "pointer",
                       fontSize: "1.4rem",
-                      color: "#122818",
+                      color: "${({theme})=> theme.colors.veryDarkPrimary}",
                       padding: "0 5px",
                     }}
                   >
@@ -777,7 +732,7 @@ const Home = () => {
                       padding: "6px 12px",
                       borderRadius: "8px",
                       cursor: "pointer",
-                      color: "#122818",
+                      color: "${({theme})=> theme.colors.veryDarkPrimary}",
                       transition: "all 0.2s",
                     }}
                   >
@@ -795,7 +750,7 @@ const Home = () => {
                       padding: "6px 12px",
                       borderRadius: "8px",
                       cursor: "pointer",
-                      color: "#122818",
+                      color: "${({theme})=> theme.colors.veryDarkPrimary}",
                       transition: "all 0.2s",
                     }}
                   >

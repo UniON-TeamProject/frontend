@@ -12,6 +12,7 @@ const StyledButton = styled(Link)`
     margin-top:8px;
     border-radius:5px;
     text-decoration:none;
+    cursor: pointer;
     color: ${({ theme, color }) => color === 'dark' ? theme.colors.white : color === 'light' ? theme.colors.dark : theme.colors.dark};
     background-color: ${({ theme, color }) => color === 'dark' ? theme.colors.dark : color === 'light' ? theme.colors.lightGrey : theme.colors.lightGrey};
     >img{
@@ -19,11 +20,22 @@ const StyledButton = styled(Link)`
         height:20px;
         margin-right:15px;
     }
+    &[aria-disabled="true"] {
+        opacity: 0.6;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
 `
 
-const SubmitButton = ({ text, path, style, imgPath, color, onClick }) => {
+const SubmitButton = ({ text, path, style, imgPath, color, onClick, disabled }) => {
     return (
-        <StyledButton style={style} onClick={onClick} color={color} to={path}>
+        <StyledButton
+            style={style}
+            onClick={disabled ? (e) => e.preventDefault() : onClick}
+            color={color}
+            to={path}
+            aria-disabled={disabled}
+        >
             {imgPath && <img src={imgPath} />}
             {text}
         </StyledButton>

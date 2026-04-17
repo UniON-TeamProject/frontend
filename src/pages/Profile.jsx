@@ -11,6 +11,10 @@ import {
   deleteAccount,
 } from "../api";
 import { removeToken } from "../token";
+import { PASSWORD_REGEX } from "../helpers/validation";
+import PasswordRequirements from "../components/atoms/PasswordRequirements";
+import Input from "../components/atoms/Input";
+import VerificationInput from "react-verification-input";
 
 const StyledContainer = styled.div`
   padding: 30px 20px 27px;
@@ -31,7 +35,7 @@ const HeaderRow = styled.div`
 `;
 
 const PageHeader = styled.h2`
-  color: #122818;
+  color: ${({ theme }) => theme.colors.veryDarkPrimary};
   font-size: 1.7rem;
   font-weight: 800;
   margin: 0;
@@ -40,15 +44,15 @@ const PageHeader = styled.h2`
 const LogoutButton = styled.button`
   padding: 9px 18px;
   background-color: ${({ theme }) => theme.colors.white};
-  color: #122818;
-  border: 1px solid #d1d4c9;
+  color: ${({ theme }) => theme.colors.veryDarkPrimary};
+  border: 1px solid ${({ theme }) => theme.colors.primary};
   border-radius: 8px;
   font-weight: 700;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: 0.2s;
   &:hover {
-    background-color: #e9ece1;
+    background-color: ${({ theme }) => theme.colors.lightPrimary};
   }
 `;
 
@@ -56,7 +60,7 @@ const TabsBar = styled.div`
   display: flex;
   gap: 4px;
   margin: 8px 0 18px;
-  border-bottom: 1px solid #d1d4c9;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.primary};
 `;
 
 const TabButton = styled.button`
@@ -65,23 +69,22 @@ const TabButton = styled.button`
   border: none;
   cursor: pointer;
   font-weight: 700;
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   color: ${({ $active, theme }) =>
-    $active ? "#122818" : theme.colors.takiSmiesznyZielony};
+    $active ? theme.colors.veryDarkPrimary : theme.colors.takiSmiesznyZielony};
   border-bottom: 3px solid
-    ${({ $active }) => ($active ? "#122818" : "transparent")};
-  margin-bottom: -1px;
-  transition: color 0.2s, border-color 0.2s;
+    ${({ $active, theme }) => ($active ? theme.veryDarkPrimary : "transparent")};
+  transition: 0.2s;
   &:hover {
-    color: #122818;
+    color: ${({ theme }) => theme.colors.veryDarkPrimary};
   }
 `;
 
 const EmptyTabState = styled.div`
   padding: 60px 20px;
   text-align: center;
-  color: #${({ theme }) => theme.colors.takiSmiesznyZielonyAleJasny};
-  font-size: 0.95rem;
+  color: ${({ theme }) => theme.colors.takiSmiesznyZielonyAleJasny};
+  font-size: 0.9rem;
 `;
 
 const CardBox = styled.div`
@@ -103,7 +106,7 @@ const AvatarButton = styled.button`
   height: 110px;
   border-radius: 50%;
   background-color: #dbe0d0;
-  color: #122818;
+  color: ${({ theme }) => theme.colors.veryDarkPrimary};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -120,25 +123,26 @@ const AvatarButton = styled.button`
     transform: scale(1.04);
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
   }
-  &:hover > div {
+  &::after {
+    content: "Zmień";
+    position: absolute;
+    inset: 0;
+    background: rgba(18, 40, 24, 0.55);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0;
+    transition: opacity 0.15s;
+    border-radius: 50%;
+  }
+  &:hover::after {
     opacity: 1;
   }
-`;
-
-const AvatarOverlay = styled.div`
-  position: absolute;
-  inset: 0;
-  background: rgba(18, 40, 24, 0.55);
-  color: ${({ theme }) => theme.colors.white};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  opacity: 0;
-  transition: opacity 0.15s;
 `;
 
 const IdentityText = styled.div`
@@ -149,16 +153,16 @@ const IdentityText = styled.div`
 `;
 
 const IdentityName = styled.span`
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   font-weight: 700;
-  color: #122818;
+  color: ${({ theme }) => theme.colors.veryDarkPrimary};
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 `;
 
 const IdentityEmail = styled.span`
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: ${({ theme }) => theme.colors.takiSmiesznyZielony};
   overflow: hidden;
   text-overflow: ellipsis;
@@ -166,37 +170,12 @@ const IdentityEmail = styled.span`
 `;
 
 const SectionTitle = styled.h3`
-  color: #122818;
+  color: ${({ theme }) => theme.colors.veryDarkPrimary};
   font-size: 1.05rem;
   font-weight: 700;
   margin: 0 0 14px 0;
 `;
 
-const FormRow = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 12px;
-`;
-
-const Label = styled.label`
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #122818;
-`;
-
-const TextInput = styled.input`
-  padding: 12px 14px;
-  border-radius: 10px;
-  border: 1px solid #d1d4c9;
-  background-color: ${({ theme }) => theme.colors.white};
-  font-size: 1rem;
-  outline: none;
-  transition: border-color 0.2s;
-  &:focus {
-    border-color: #122818;
-  }
-`;
 
 const ButtonsRow = styled.div`
   display: flex;
@@ -206,18 +185,14 @@ const ButtonsRow = styled.div`
 
 const ActionButton = styled.button`
   padding: 9px 16px;
-  background-color: #122818;
+  background-color: ${({ theme }) => theme.colors.veryDarkPrimary};
   color: ${({ theme }) => theme.colors.white};
   border: none;
   border-radius: 8px;
   font-weight: 700;
-  font-size: 0.88rem;
+  font-size: 0.8rem;
   cursor: pointer;
-  transition: background-color 0.2s, opacity 0.2s;
-
-  &:hover {
-    background-color: #1f3a28;
-  }
+  transition: 0.2s;
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
@@ -226,47 +201,18 @@ const ActionButton = styled.button`
 
 const SecondaryButton = styled(ActionButton)`
   background-color: transparent;
-  color: #122818;
-  border: 1px solid #d1d4c9;
+  color: ${({ theme }) => theme.colors.veryDarkPrimary};
+  border: 1px solid ${({ theme }) => theme.colors.primary};
   &:hover {
-    background-color: #f0f2ea;
+    background-color: ${({ theme }) => theme.colors.lightPrimary};
   }
 `;
 
 const FeedbackText = styled.p`
   margin: 0 0 10px 0;
-  font-size: 0.88rem;
-  color: ${({ $error }) => ($error ? "rgb(239, 68, 68)" : "rgb(92, 184, 92)")};
-`;
-
-const PasswordRequirementsList = styled.ul`
-  text-align: left;
-  font-size: 0.8rem;
-  color: ${({ theme }) => theme.colors.takiSmiesznyZielony};
-  margin: 6px 0 12px;
-  padding-left: 4px;
-  list-style: none;
-`;
-
-const PasswordRequirementsHeader = styled.div`
-  font-size: 0.82rem;
-  color: #122818;
-  font-weight: 600;
-  margin-bottom: 4px;
-`;
-
-const PasswordRequirement = styled.li`
-  margin-left: 10px;
-  text-decoration: ${({ $crossedOut }) =>
-    $crossedOut ? "line-through" : "none"};
-  color: ${({ $crossedOut, theme }) =>
-    $crossedOut ? "rgb(92, 184, 92)" : theme.colors.takiSmiesznyZielony};
-  &::before {
-    content: "${({ $crossedOut }) => ($crossedOut ? "✓" : "•")}";
-    display: inline-block;
-    width: 14px;
-    margin-right: 4px;
-  }
+  font-size: 0.9em;
+  color: ${({ $error, theme }) =>
+    $error ? theme.colors.danger : theme.colors.success};
 `;
 
 const ModalBackdrop = styled.div`
@@ -290,7 +236,7 @@ const ModalBox = styled.div`
 `;
 
 const ModalTitle = styled.h3`
-  color: #122818;
+  color: ${({ theme }) => theme.colors.veryDarkPrimary};
   margin: 0 0 10px 0;
   font-size: 1.15rem;
 `;
@@ -303,15 +249,15 @@ const ModalText = styled.p`
 
 const ModalClose = styled.button`
   padding: 8px 18px;
-  background-color: #122818;
+  background-color: ${({ theme }) => theme.colors.veryDarkPrimary};
   color: ${({ theme }) => theme.colors.white};
   border: none;
   border-radius: 8px;
   font-weight: 700;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   cursor: pointer;
   &:hover {
-    background-color: #1f3a28;
+    background-color: ${({ theme }) => theme.colors.veryDarkPrimary};
   }
 `;
 
@@ -320,29 +266,29 @@ const DangerCard = styled(CardBox)`
 `;
 
 const DangerTitle = styled(SectionTitle)`
-  color: rgb(185, 28, 28);
+  color: ${({ theme }) => theme.colors.dangerDark};
 `;
 
 const DangerText = styled.p`
   margin: 0 0 14px 0;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   color: ${({ theme }) => theme.colors.takiSmiesznyZielony};
   line-height: 1.4;
 `;
 
 const DangerButton = styled.button`
   padding: 9px 16px;
-  background-color: rgb(239, 68, 68);
+  background-color: ${({ theme }) => theme.colors.danger};
   color: ${({ theme }) => theme.colors.white};
   border: none;
   border-radius: 8px;
   font-weight: 700;
-  font-size: 0.88rem;
+  font-size: 0.8rem;
   cursor: pointer;
-  transition: background-color 0.2s, opacity 0.2s;
+  transition: 0.2s;
 
   &:hover {
-    background-color: rgb(220, 38, 38);
+    background-color: ${({ theme }) => theme.colors.dangerDark};
   }
   &:disabled {
     opacity: 0.6;
@@ -354,7 +300,7 @@ const LegalFooter = styled.div`
   margin-top: 4px;
   padding: 8px 4px 0;
   text-align: center;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: ${({ theme }) => theme.colors.takiSmiesznyZielony};
 `;
 
@@ -362,14 +308,10 @@ const LegalLink = styled.button`
   background: none;
   border: none;
   padding: 0;
-  font: inherit;
-  color: #122818;
+  color: ${({ theme }) => theme.colors.veryDarkPrimary};
   font-weight: 600;
   cursor: pointer;
   text-decoration: underline;
-  &:hover {
-    color: #1f3a28;
-  }
 `;
 
 const getInitials = (name) => {
@@ -405,9 +347,7 @@ const Profile = () => {
   });
   const [usernameSubmitting, setUsernameSubmitting] = useState(false);
 
-  // 2-etapowa zmiana emaila: najpierw request z nowym adresem (backend wysyla kod),
-  // potem potwierdzenie z kodem
-  const [emailStep, setEmailStep] = useState("request"); // 'request' | 'confirm'
+  const [emailStep, setEmailStep] = useState("request"); // request/confirm
   const [newEmail, setNewEmail] = useState("");
   const [emailCode, setEmailCode] = useState("");
   const [emailFeedback, setEmailFeedback] = useState({
@@ -426,10 +366,7 @@ const Profile = () => {
     error: false,
   });
   const [passwordSubmitting, setPasswordSubmitting] = useState(false);
-  const [passwordReqVisible, setPasswordReqVisible] = useState(false);
-
-  const passwordRegex =
-    /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/;
+  const [passwordRegexVisible, setPasswordRegexVisible] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -569,8 +506,8 @@ const Profile = () => {
       setPasswordFeedback({ message: "Wypełnij wszystkie pola.", error: true });
       return;
     }
-    if (!passwordRegex.test(passwordForm.newPassword)) {
-      setPasswordReqVisible(true);
+    if (!PASSWORD_REGEX.test(passwordForm.newPassword)) {
+      setPasswordRegexVisible(true);
       setPasswordFeedback({
         message: "Nowe hasło nie spełnia wymagań.",
         error: true,
@@ -598,7 +535,7 @@ const Profile = () => {
       return;
     }
     setPasswordForm({ oldPassword: "", newPassword: "", confirmPassword: "" });
-    setPasswordReqVisible(false);
+    setPasswordRegexVisible(false);
     setPasswordFeedback({ message: res.message, error: false });
   };
 
@@ -624,7 +561,6 @@ const Profile = () => {
               title="Zmień awatar"
             >
               {getInitials(username)}
-              <AvatarOverlay>Zmień</AvatarOverlay>
             </AvatarButton>
             <IdentityText>
               <IdentityName>
@@ -668,22 +604,15 @@ const Profile = () => {
                 </FeedbackText>
               )}
               <form onSubmit={handleUsernameSubmit} autoComplete="off">
-                <FormRow>
-                  <Label htmlFor="profile-nick-field">
-                    Nowa nazwa użytkownika
-                  </Label>
-                  <TextInput
-                    id="profile-nick-field"
-                    name="profile-nick-field"
-                    type="text"
-                    value={newUsername}
-                    onChange={(e) => setNewUsername(e.target.value)}
-                    placeholder={username}
-                    autoComplete="off"
-                    readOnly
-                    onFocus={(e) => e.target.removeAttribute("readonly")}
-                  />
-                </FormRow>
+                <Input
+                  label="Nowa nazwa użytkownika"
+                  name="profile-nick-field"
+                  type="text"
+                  value={newUsername}
+                  onChange={(e) => setNewUsername(e.target.value)}
+                  placeholder={username || "Nowa nazwa użytkownika"}
+                  autoComplete="off"
+                />
                 <ActionButton type="submit" disabled={usernameSubmitting}>
                   {usernameSubmitting
                     ? "Zapisywanie..."
@@ -701,22 +630,15 @@ const Profile = () => {
               )}
               {emailStep === "request" ? (
                 <form onSubmit={handleEmailRequestSubmit} autoComplete="off">
-                  <FormRow>
-                    <Label htmlFor="profile-mail-field">
-                      Nowy adres e-mail
-                    </Label>
-                    <TextInput
-                      id="profile-mail-field"
-                      name="profile-mail-field"
-                      type="email"
-                      value={newEmail}
-                      onChange={(e) => setNewEmail(e.target.value)}
-                      placeholder={email}
-                      autoComplete="off"
-                      readOnly
-                      onFocus={(e) => e.target.removeAttribute("readonly")}
-                    />
-                  </FormRow>
+                  <Input
+                    label="Nowy adres e-mail"
+                    name="profile-mail-field"
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    placeholder={email || "Nowy adres e-mail"}
+                    autoComplete="off"
+                  />
                   <ActionButton type="submit" disabled={emailSubmitting}>
                     {emailSubmitting
                       ? "Wysyłanie..."
@@ -725,23 +647,25 @@ const Profile = () => {
                 </form>
               ) : (
                 <form onSubmit={handleEmailConfirmSubmit}>
-                  <FormRow>
-                    <Label>Nowy adres e-mail</Label>
-                    <TextInput type="email" value={newEmail} disabled />
-                  </FormRow>
-                  <FormRow>
-                    <Label htmlFor="emailCode">Kod weryfikacyjny</Label>
-                    <TextInput
-                      id="emailCode"
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={6}
-                      value={emailCode}
-                      onChange={(e) => setEmailCode(e.target.value)}
-                      placeholder="6-cyfrowy kod"
-                      autoComplete="one-time-code"
-                    />
-                  </FormRow>
+                  <Input
+                    label="Nowy adres e-mail"
+                    type="email"
+                    value={newEmail}
+                    placeholder="Nowy adres e-mail"
+                    disabled
+                  />
+                  <label style={{ fontSize: "0.8rem", fontWeight: 400, display: "block", margin: "20px 0 6px" }}>Kod weryfikacyjny</label>
+                  <VerificationInput
+                    validChars="0-9"
+                    inputProps={{ inputMode: "numeric" }}
+                    classNames={{
+                      container: "container",
+                      character: "character",
+                      characterSelected: "character--selected",
+                    }}
+                    containerProps={{ style: { margin: "0 0 20px 0" } }}
+                    onChange={(val) => setEmailCode(val)}
+                  />
                   <ButtonsRow>
                     <ActionButton type="submit" disabled={emailSubmitting}>
                       {emailSubmitting
@@ -768,98 +692,51 @@ const Profile = () => {
                 </FeedbackText>
               )}
               <form onSubmit={handlePasswordSubmit} autoComplete="off">
-                <FormRow>
-                  <Label htmlFor="profile-pass-current">Obecne hasło</Label>
-                  <TextInput
-                    id="profile-pass-current"
-                    name="profile-pass-current"
-                    type="password"
-                    value={passwordForm.oldPassword}
-                    onChange={(e) =>
-                      setPasswordForm({
-                        ...passwordForm,
-                        oldPassword: e.target.value,
-                      })
-                    }
-                    autoComplete="new-password"
-                    readOnly
-                    onFocus={(e) => e.target.removeAttribute("readonly")}
-                  />
-                </FormRow>
-                <FormRow>
-                  <Label htmlFor="profile-pass-new">Nowe hasło</Label>
-                  <TextInput
-                    id="profile-pass-new"
-                    name="profile-pass-new"
-                    type="password"
-                    value={passwordForm.newPassword}
-                    onChange={(e) =>
-                      setPasswordForm({
-                        ...passwordForm,
-                        newPassword: e.target.value,
-                      })
-                    }
-                    autoComplete="new-password"
-                    readOnly
-                    onFocus={(e) => e.target.removeAttribute("readonly")}
-                  />
-                </FormRow>
-                {passwordReqVisible && (
-                  <>
-                    <PasswordRequirementsHeader>
-                      Wymagania dotyczące hasła:
-                    </PasswordRequirementsHeader>
-                    <PasswordRequirementsList>
-                      <PasswordRequirement
-                        $crossedOut={passwordForm.newPassword.length >= 8}
-                      >
-                        co najmniej 8 znaków
-                      </PasswordRequirement>
-                      <PasswordRequirement
-                        $crossedOut={/[a-z]/.test(passwordForm.newPassword)}
-                      >
-                        jedna mała litera
-                      </PasswordRequirement>
-                      <PasswordRequirement
-                        $crossedOut={/[A-Z]/.test(passwordForm.newPassword)}
-                      >
-                        jedna wielka litera
-                      </PasswordRequirement>
-                      <PasswordRequirement
-                        $crossedOut={/\d/.test(passwordForm.newPassword)}
-                      >
-                        jedna cyfra
-                      </PasswordRequirement>
-                      <PasswordRequirement
-                        $crossedOut={/[#?!@$%^&*-]/.test(
-                          passwordForm.newPassword
-                        )}
-                      >
-                        jeden znak specjalny (#?!@$%^&*-)
-                      </PasswordRequirement>
-                    </PasswordRequirementsList>
-                  </>
+                <Input
+                  label="Obecne hasło"
+                  name="profile-pass-current"
+                  type="password"
+                  value={passwordForm.oldPassword}
+                  onChange={(e) =>
+                    setPasswordForm({
+                      ...passwordForm,
+                      oldPassword: e.target.value,
+                    })
+                  }
+                  placeholder="Obecne hasło"
+                  autoComplete="new-password"
+                />
+                <Input
+                  label="Nowe hasło"
+                  name="profile-pass-new"
+                  type="password"
+                  value={passwordForm.newPassword}
+                  onChange={(e) =>
+                    setPasswordForm({
+                      ...passwordForm,
+                      newPassword: e.target.value,
+                    })
+                  }
+                  placeholder="Nowe hasło"
+                  autoComplete="new-password"
+                />
+                {passwordRegexVisible && (
+                  <PasswordRequirements password={passwordForm.newPassword} />
                 )}
-                <FormRow>
-                  <Label htmlFor="profile-pass-confirm">
-                    Powtórz nowe hasło
-                  </Label>
-                  <TextInput
-                    id="profile-pass-confirm"
-                    name="profile-pass-confirm"
-                    type="password"
-                    value={passwordForm.confirmPassword}
-                    onChange={(e) =>
-                      setPasswordForm({
-                        ...passwordForm,
-                        confirmPassword: e.target.value,
-                      })
-                    }
-                    autoComplete="new-password"
-                    readOnly
-                    onFocus={(e) => e.target.removeAttribute("readonly")}
-                  />
-                </FormRow>
+                <Input
+                  label="Powtórz nowe hasło"
+                  name="profile-pass-confirm"
+                  type="password"
+                  value={passwordForm.confirmPassword}
+                  onChange={(e) =>
+                    setPasswordForm({
+                      ...passwordForm,
+                      confirmPassword: e.target.value,
+                    })
+                  }
+                  placeholder="Powtórz nowe hasło"
+                  autoComplete="new-password"
+                />
                 <ActionButton type="submit" disabled={passwordSubmitting}>
                   {passwordSubmitting ? "Zapisywanie..." : "Zapisz nowe hasło"}
                 </ActionButton>
@@ -934,20 +811,15 @@ const Profile = () => {
                 potwierdzić.
               </ModalText>
               <form onSubmit={handleDeleteAccount} autoComplete="off">
-                <FormRow>
-                  <TextInput
-                    id="profile-delete-pass"
-                    name="profile-delete-pass"
-                    type="password"
-                    value={deletePassword}
-                    onChange={(e) => setDeletePassword(e.target.value)}
-                    placeholder="Obecne hasło"
-                    autoComplete="new-password"
-                    readOnly
-                    onFocus={(ev) => ev.target.removeAttribute("readonly")}
-                    autoFocus
-                  />
-                </FormRow>
+                <Input
+                  name="profile-delete-pass"
+                  type="password"
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                  placeholder="Obecne hasło"
+                  autoComplete="new-password"
+                  autoFocus
+                />
                 {deleteFeedback.message && (
                   <FeedbackText $error={deleteFeedback.error}>
                     {deleteFeedback.message}

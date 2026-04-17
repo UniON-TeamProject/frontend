@@ -1,14 +1,14 @@
 export const theme = {
   colors: {
-    //primary: "rgb(203, 208, 188)",
     primary: "rgb(200, 212, 184)",
     lightPrimary: "rgb(233, 236, 225)",
+    veryDarkPrimary: "rgb(18, 40, 24)",
     takiSmiesznyZielony: "rgb(112, 122, 115)",
     takiSmiesznyZielonyAleJasny: "rgb(179, 185, 168)",
-    // secondary: "rgb(92, 116, 87)",
     secondary: "rgb(107, 124, 92)",
     secondaryLight: "rgb(125, 144, 104)",
     danger: "rgb(239, 68, 68)",
+    dangerDark: "rgb(185, 28, 28)",
     success: "rgb(92, 184, 92)",
     white: "rgb(255,255,255)",
     darkGrey: "rgb(190, 190, 190)",

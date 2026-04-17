@@ -67,7 +67,8 @@ const Button = styled.button`
     background-color: #3d6a4a;
   }
   &:disabled {
-    background-color: #${({ theme }) => theme.colors.takiSmiesznyZielonyAleJasny};
+    background-color: ${({ theme }) =>
+      theme.colors.takiSmiesznyZielonyAleJasny};
     cursor: not-allowed;
   }
 `;

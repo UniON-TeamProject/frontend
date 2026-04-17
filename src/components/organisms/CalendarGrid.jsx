@@ -1098,7 +1098,7 @@ const CalendarGrid = ({
                   (s) => s.lane < maxShown
                 ).length;
                 const spanPadding =
-                  visibleSpanningCount > 0 ? visibleSpanningCount * 33 : 0;
+                  visibleSpanningCount > 0 ? visibleSpanningCount * 33 - 5 : 0;
                 const compact = weeks.length > 5;
                 const slotsForSingleDay = Math.max(
                   0,
@@ -1122,9 +1122,9 @@ const CalendarGrid = ({
                       {urgency > 0 && <DeadlineDot $urgency={urgency} />}
                     </CellDate>
                     {spanPadding > 0 && (
-                      <div style={{ height: spanPadding, flexShrink: 0 }} />
+                      <div style={{ minHeight: 0, height: spanPadding, flexShrink: 1 }} />
                     )}
-                    <CellEvents>
+                    <CellEvents style={hiddenCount > 0 ? { justifyContent: "flex-end", marginBottom: 5 } : undefined}>
                       {visible.map((ev) => {
                         const style = getEventStyle(ev);
                         const icons = (ev.tags || [])
@@ -1164,24 +1164,24 @@ const CalendarGrid = ({
                           </CellEventBar>
                         );
                       })}
+                      {hiddenCount > 0 && (
+                        <div
+                          style={{
+                            textAlign: "center",
+                            fontSize: dashboardMode ? "10px" : "12px",
+                            fontWeight: "700",
+                            color: "#8b948e",
+                            marginTop: "1px",
+                            lineHeight: 1,
+                            flexShrink: 0,
+                          }}
+                        >
+                          {dashboardMode
+                            ? `+${hiddenCount}`
+                            : `+${hiddenCount} więcej`}
+                        </div>
+                      )}
                     </CellEvents>
-                    {hiddenCount > 0 && (
-                      <div
-                        style={{
-                          textAlign: "center",
-                          fontSize: dashboardMode ? "10px" : "12px",
-                          fontWeight: "700",
-                          color: "#8b948e",
-                          marginTop: "1px",
-                          lineHeight: 1,
-                          flexShrink: 0,
-                        }}
-                      >
-                        {dashboardMode
-                          ? `+${hiddenCount}`
-                          : `+${hiddenCount} więcej`}
-                      </div>
-                    )}
                   </MonthCell>
                 );
               })}
