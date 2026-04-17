@@ -30,7 +30,7 @@ const Title = styled.h2`
 
 const Description = styled.p`
   font-size: 0.9rem;
-  color: $({theme})=>theme.colors.takiSmiesznyZielony};
+  color: ${({ theme }) => theme.colors.takiSmiesznyZielony};
   margin: 0 0 24px 0;
   line-height: 1.5;
 `;

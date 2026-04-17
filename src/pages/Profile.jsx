@@ -242,7 +242,7 @@ const FeedbackText = styled.p`
 const PasswordRequirementsList = styled.ul`
   text-align: left;
   font-size: 0.8rem;
-  color: $({theme})=>theme.colors.takiSmiesznyZielony};
+  color: ${({ theme }) => theme.colors.takiSmiesznyZielony};
   margin: 6px 0 12px;
   padding-left: 4px;
   list-style: none;
@@ -296,7 +296,7 @@ const ModalTitle = styled.h3`
 `;
 
 const ModalText = styled.p`
-  color: $({theme})=>theme.colors.takiSmiesznyZielony};
+  color: ${({ theme }) => theme.colors.takiSmiesznyZielony};
   margin: 0 0 20px 0;
   font-size: 0.9rem;
 `;
@@ -326,7 +326,7 @@ const DangerTitle = styled(SectionTitle)`
 const DangerText = styled.p`
   margin: 0 0 14px 0;
   font-size: 0.88rem;
-  color: $({theme})=>theme.colors.takiSmiesznyZielony};
+  color: ${({ theme }) => theme.colors.takiSmiesznyZielony};
   line-height: 1.4;
 `;
 
@@ -355,7 +355,7 @@ const LegalFooter = styled.div`
   padding: 8px 4px 0;
   text-align: center;
   font-size: 0.82rem;
-  color: $({theme})=>theme.colors.takiSmiesznyZielony};
+  color: ${({ theme }) => theme.colors.takiSmiesznyZielony};
 `;
 
 const LegalLink = styled.button`

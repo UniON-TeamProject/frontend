@@ -263,7 +263,7 @@ const TagPill = styled.span`
 const MoreButton = styled.div`
   text-align: right;
   margin-top: auto;
-  color: $({theme})=>theme.colors.takiSmiesznyZielony};
+  color: ${({ theme }) => theme.colors.takiSmiesznyZielony};
   font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
