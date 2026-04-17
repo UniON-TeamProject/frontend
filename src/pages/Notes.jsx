@@ -155,6 +155,10 @@ const FloatingActionButton = styled.button`
     color: ${({ theme, $danger }) =>
       $danger ? theme.colors.white : theme.colors.secondary};
   }
+
+  @media (max-width: 600px) {
+    bottom: 80px;
+  }
 `;
 
 const FabMenu = styled.div`
@@ -165,6 +169,9 @@ const FabMenu = styled.div`
   flex-direction: column;
   gap: 8px;
   z-index: 100;
+  @media (max-width: 600px) {
+    bottom: 164px;
+  }
 `;
 
 const FabMenuItem = styled.button`
