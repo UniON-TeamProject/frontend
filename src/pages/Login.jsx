@@ -99,6 +99,12 @@ const StyledLink = styled(Link)`
   font-size: 0.9rem;
 `;
 
+const StyledRedirectButton = styled(SubmitButton)`
+  @media (max-width: 600px) {
+    background-color: ${({ theme }) => theme.colors.white};
+  }
+`;
+
 const Login = () => {
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
@@ -211,13 +217,13 @@ const Login = () => {
           <StyledLine>
             <span>lub</span>
           </StyledLine>
-          <SubmitButton
+          <StyledRedirectButton
             text="Kontynuuj z Google"
             path="/"
             imgPath="./icons/google.png"
             color="light"
           />
-          <SubmitButton
+          <StyledRedirectButton
             text="Kontynuuj z Apple"
             path="/"
             imgPath="./icons/apple.png"

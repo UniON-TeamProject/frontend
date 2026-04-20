@@ -45,9 +45,11 @@ const SubmitButton = ({
   color,
   onClick,
   disabled,
+  className,
 }) => {
   return (
     <StyledButton
+      className={className}
       style={style}
       onClick={disabled ? (e) => e.preventDefault() : onClick}
       color={color}
