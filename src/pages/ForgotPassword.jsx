@@ -14,9 +14,6 @@ const StyledContainer = styled.div`
   width: 100%;
   min-height: 100vh;
   height: 100%;
-  @media (max-width: 600px) {
-    background-color: ${({ theme }) => theme.colors.white};
-  }
 `;
 
 const StyledContent = styled.div`
@@ -40,6 +37,7 @@ const StyledBox = styled.div`
   @media (max-width: 600px) {
     width: 100%;
     padding: 30px 40px;
+    background-color: ${({ theme }) => theme.colors.pageBg};
   }
 `;
 
@@ -209,7 +207,9 @@ const ForgotPassword = () => {
                 }}
               />
               <SubmitButton
-                text={submitting ? "Wysyłanie..." : "Wyślij e-mail resetujący hasło"}
+                text={
+                  submitting ? "Wysyłanie..." : "Wyślij e-mail resetujący hasło"
+                }
                 disabled={submitting}
                 onClick={(e) => {
                   e.preventDefault();

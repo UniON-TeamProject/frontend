@@ -28,7 +28,9 @@ const StyledLine = styled.div`
     transform: translateY(-50%);
   }
   @media (max-width: 600px) {
-    background-color: ${({ theme }) => theme.colors.pageBg};
+    > span {
+      background-color: ${({ theme }) => theme.colors.pageBg};
+    }
   }
 `;
 
