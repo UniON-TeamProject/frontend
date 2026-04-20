@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import styled, { keyframes } from "styled-components";
+import styled, { keyframes, useTheme } from "styled-components";
 
 const TAG_CONFIG = {
   Egzamin: { label: "Egzamin", icon: "📝" },
@@ -292,9 +292,9 @@ function getDeadlineUrgency(events, day) {
   return maxUrgency;
 }
 
-function getEventStyle(ev) {
+function getEventStyle(ev, theme) {
   if (ev.isDeadline)
-    return { bg: "rgb(252, 235, 235)", dark: "rgb(226, 75, 74)" };
+    return { bg: theme.colors.dangerLight, dark: theme.colors.danger };
   const color = getColorById(ev.colorId);
   return { bg: color.bg, dark: color.dark };
 }
@@ -336,7 +336,7 @@ const DayLabel = styled.div`
 
 const MonthCell = styled.div`
   background: ${({ $today, theme }) =>
-    $today ? "#e6eadb" : theme.colors.white};
+    $today ? theme.colors.lightPrimary : theme.colors.white};
   border: ${({ $selected, theme }) =>
     $selected
       ? `2px solid ${theme.colors.secondary}`
@@ -366,7 +366,7 @@ const CellDate = styled.div`
   font-size: 13px;
   font-weight: ${({ $today }) => ($today ? 700 : 600)};
   color: ${({ $today, theme }) =>
-    $today ? "#2d8a4e" : theme.colors.textMuted};
+    $today ? theme.colors.secondary : theme.colors.textMuted};
   font-family: monospace;
   margin-bottom: ${({ $compact }) => ($compact ? 4 : 10)}px;
   flex-shrink: 0;
@@ -383,8 +383,8 @@ const DeadlineDot = styled.div`
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: ${({ $urgency }) =>
-    `rgba(226, 75, 74, ${0.25 + $urgency * 0.75})`};
+  background: ${({ $urgency, theme }) =>
+    `color-mix(in srgb, ${theme.colors.danger} ${Math.round(25 + $urgency * 75)}%, transparent)`};
   flex-shrink: 0;
 `;
 
@@ -415,6 +415,7 @@ const CellEventBar = styled.div`
     min-height: 6px;
     height: 6px;
     padding: 0;
+    margin-left: 4px;
   }
 `;
 
@@ -449,6 +450,21 @@ const CellMore = styled.div`
   font-weight: 600;
   text-align: center;
   flex-shrink: 0;
+`;
+
+const HiddenCount = styled.div`
+  text-align: center;
+  font-size: ${({ $mobile }) => ($mobile ? "10px" : "12px")};
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.textMuted};
+  margin-top: 1px;
+  line-height: 1;
+  flex-shrink: 0;
+`;
+
+const EllipsisIcon = styled.span`
+  font-size: 9px;
+  color: ${({ $dark }) => $dark};
 `;
 
 const MonthWeekRow = styled.div`
@@ -737,6 +753,7 @@ const CalendarGrid = ({
   endHour = 24,
   dashboardMode = false,
 }) => {
+  const theme = useTheme();
   const [nowPos, setNowPos] = useState(() => {
     const now = new Date();
     return (now.getHours() - startHour) * 60 + now.getMinutes();
@@ -865,7 +882,7 @@ const CalendarGrid = ({
           <AllDayArea>
             <AllDayRow>
               {allDayBanners.map(({ ev, startCol, span }) => {
-                const style = getEventStyle(ev);
+                const style = getEventStyle(ev, theme);
                 const leftPct = (startCol / 7) * 100;
                 const widthPct = (span / 7) * 100;
                 return (
@@ -946,7 +963,7 @@ const CalendarGrid = ({
                   const colW = 96 / totalCols;
                   const left = `${2 + col * colW}%`;
                   const width = `${colW - 2}%`;
-                  const style = getEventStyle(ev);
+                  const style = getEventStyle(ev, theme);
 
                   return (
                     <EventBlock
@@ -1079,7 +1096,7 @@ const CalendarGrid = ({
                   })();
                   if (isOverLimit) return null;
 
-                  const style = getEventStyle(ev);
+                  const style = getEventStyle(ev, theme);
                   const icons = (ev.tags || [])
                     .map((t) => TAG_CONFIG[t]?.icon)
                     .filter(Boolean);
@@ -1121,9 +1138,9 @@ const CalendarGrid = ({
                             <span key={idx}>{ic}</span>
                           ))}
                           {icons.length > 2 && (
-                            <span style={{ fontSize: 9, color: style.dark }}>
+                            <EllipsisIcon $dark={style.dark}>
                               …
-                            </span>
+                            </EllipsisIcon>
                           )}
                         </CellEventIcons>
                       )}
@@ -1148,7 +1165,7 @@ const CalendarGrid = ({
                 ).length;
                 const slotH = isMobile ? 8 : 33;
                 const spanPadding =
-                  visibleSpanningCount > 0 ? visibleSpanningCount * slotH - 5 : 0;
+                  visibleSpanningCount > 0 ? visibleSpanningCount * slotH + (isMobile ? 2 : -5) : 0;
                 const compact = weeks.length > 5;
                 const slotsForSingleDay = Math.max(
                   0,
@@ -1176,7 +1193,7 @@ const CalendarGrid = ({
                     )}
                     <CellEvents style={hiddenCount > 0 ? { justifyContent: "flex-end", marginBottom: 5 } : undefined}>
                       {visible.map((ev) => {
-                        const style = getEventStyle(ev);
+                        const style = getEventStyle(ev, theme);
                         const icons = (ev.tags || [])
                           .map((t) => TAG_CONFIG[t]?.icon)
                           .filter(Boolean);
@@ -1215,21 +1232,11 @@ const CalendarGrid = ({
                         );
                       })}
                       {hiddenCount > 0 && (
-                        <div
-                          style={{
-                            textAlign: "center",
-                            fontSize: mobileDash ? "10px" : "12px",
-                            fontWeight: "700",
-                            color: "#8b948e",
-                            marginTop: "1px",
-                            lineHeight: 1,
-                            flexShrink: 0,
-                          }}
-                        >
+                        <HiddenCount $mobile={mobileDash}>
                           {mobileDash
                             ? `+${hiddenCount}`
                             : `+${hiddenCount} więcej`}
-                        </div>
+                        </HiddenCount>
                       )}
                     </CellEvents>
                   </MonthCell>

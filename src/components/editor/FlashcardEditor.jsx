@@ -12,8 +12,8 @@ const EditorWrapper = styled.div`
   border: 1px solid
     ${({ theme, $hasError }) =>
       $hasError
-        ? theme.colors?.danger || "red"
-        : theme.colors?.darkGrey || "#ccc"};
+        ? theme.colors.danger
+        : theme.colors.darkGrey};
   border-radius: 8px;
   padding: 10px 12px;
   min-height: 70px;
@@ -22,7 +22,7 @@ const EditorWrapper = styled.div`
   transition: border-color 0.2s;
 
   &:focus-within {
-    border-color: ${({ theme }) => theme.colors?.secondary || "#00b894"};
+    border-color: ${({ theme }) => theme.colors.secondary};
   }
 
   .ProseMirror {
@@ -30,11 +30,11 @@ const EditorWrapper = styled.div`
     outline: none;
     font-size: 0.9rem;
     line-height: 1.4;
-    color: ${({ theme }) => theme.colors?.text || "#333"};
+    color: ${({ theme }) => theme.colors.text};
   }
 
   .is-empty::before {
-    color: #a0a0a0;
+    color: ${({ theme }) => theme.colors.textMuted};
     content: attr(data-placeholder);
     float: left;
     height: 0;

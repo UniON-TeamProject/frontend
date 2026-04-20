@@ -8,8 +8,8 @@ const EXPANDED_WIDTH = 220;
 
 const StyledPageWrapper = styled.div`
   min-height: 100vh;
-  background-color: #f5f6f1;
-  color: #1a3020;
+  background-color: ${({ theme }) => theme.colors.pageBg};
+  color: ${({ theme }) => theme.colors.veryDarkPrimary};
   font-family: "Inter", sans-serif; /*?????*/
 `;
 
@@ -43,7 +43,7 @@ const StyledSidebar = styled.div`
   width: ${({ $expanded }) =>
     $expanded ? `${EXPANDED_WIDTH}px` : `${COLLAPSED_WIDTH}px`};
   height: 100vh;
-  background-color: #e6eadb;
+  background-color: ${({ theme }) => theme.colors.lightPrimary};
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -85,14 +85,14 @@ const StyledSidebarIcon = styled.div`
   cursor: pointer;
   font-weight: 600;
   color: ${({ $active, theme }) =>
-    $active ? "#1a3020" : theme.colors.takiSmiesznyZielony};
-  background-color: ${({ $active }) => ($active ? "#e0e4d8" : "transparent")};
+    $active ? theme.colors.veryDarkPrimary : theme.colors.takiSmiesznyZielony};
+  background-color: ${({ $active, theme }) => ($active ? theme.colors.darkPageBg : "transparent")};
   transition: background-color 0.15s ease, color 0.15s ease;
   flex-shrink: 0;
 
   &:hover {
-    background-color: ${({ $active }) => ($active ? "#e0e4d8" : "#eaede4")};
-    color: #1a3020;
+    background-color: ${({ $active, theme }) => ($active ? theme.colors.darkPageBg : theme.colors.primary)};
+    color: ${({ theme }) => theme.colors.veryDarkPrimary};
   }
 `;
 
@@ -151,7 +151,7 @@ const BottomBar = styled.nav`
     left: 0;
     right: 0;
     height: 60px;
-    background-color: #e6eadb;
+    background-color: ${({ theme }) => theme.colors.lightPrimary};
     display: flex;
     align-items: center;
     justify-content: space-around;
@@ -168,16 +168,16 @@ const BottomBarItem = styled.div`
   height: 48px;
   border-radius: 12px;
   cursor: pointer;
-  color: ${({ $active }) => ($active ? "#1a3020" : "#7a8a6e")};
-  background-color: ${({ $active }) => ($active ? "#e0e4d8" : "transparent")};
+  color: ${({ $active, theme }) => ($active ? theme.colors.veryDarkPrimary : theme.colors.takiSmiesznyZielony)};
+  background-color: ${({ $active, theme }) => ($active ? theme.colors.darkPageBg : "transparent")};
   transition: background-color 0.15s, color 0.15s;
   > svg {
     width: 22px;
     height: 22px;
   }
   &:hover {
-    background-color: ${({ $active }) => ($active ? "#e0e4d8" : "#eaede4")};
-    color: #1a3020;
+    background-color: ${({ $active, theme }) => ($active ? theme.colors.darkPageBg : theme.colors.primary)};
+    color: ${({ theme }) => theme.colors.veryDarkPrimary};
   }
 `;
 

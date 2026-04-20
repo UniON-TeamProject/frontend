@@ -72,14 +72,14 @@ const CloseBtn = styled.button`
   background: none;
   border: none;
   cursor: pointer;
-  color: ${({ theme }) => theme.colors?.darkGrey || "#888"};
+  color: ${({ theme }) => theme.colors.darkGrey};
   font-size: 1.8rem;
   line-height: 1;
   padding: 2px 6px;
   border-radius: 6px;
   transition: color 0.2s;
   &:hover {
-    color: ${({ theme }) => theme.colors?.danger || "#e74c3c"};
+    color: ${({ theme }) => theme.colors.danger};
   }
 `;
 
@@ -99,14 +99,14 @@ const SetSelectorArea = styled.div`
 
 const SetSelect = styled.button`
   width: 100%;
-  border: 1px solid ${({ theme }) => theme.colors?.darkGrey || "#ccc"};
+  border: 1px solid ${({ theme }) => theme.colors.darkGrey};
   border-radius: 8px;
   padding: 10px 15px;
   font-size: 0.95rem;
   font-weight: 600;
   font-family: inherit;
-  color: ${({ theme }) => theme.colors?.text || "#333"};
-  background: ${({ theme }) => theme.colors?.lightGrey || "#f8f9fa"};
+  color: ${({ theme }) => theme.colors.text};
+  background: ${({ theme }) => theme.colors.lightGrey};
   text-align: left;
   cursor: pointer;
   display: flex;
@@ -115,13 +115,13 @@ const SetSelect = styled.button`
   transition: border-color 0.2s;
   &:focus {
     outline: none;
-    border-color: ${({ theme }) => theme.colors?.secondary || "#00b894"};
+    border-color: ${({ theme }) => theme.colors.secondary};
   }
   svg {
     width: 14px;
     height: 14px;
     flex-shrink: 0;
-    color: ${({ theme }) => theme.colors?.textLight || "#888"};
+    color: ${({ theme }) => theme.colors.textLight};
   }
 `;
 
@@ -130,8 +130,8 @@ const SetDropdown = styled.div`
   top: calc(100% + 8px);
   left: 0;
   right: 0;
-  background: ${({ theme }) => theme.colors?.white};
-  border: 1px solid ${({ theme }) => theme.colors?.darkGrey};
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.darkGrey};
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   padding: 8px;
@@ -150,13 +150,13 @@ const SetDropdownItem = styled.button`
   font-size: 0.9rem;
   font-weight: ${({ $new }) => ($new ? "700" : "600")};
   color: ${({ $new, theme }) =>
-    $new ? theme.colors?.secondary : theme.colors?.text};
+    $new ? theme.colors.secondary : theme.colors.text};
   background: ${({ $active, theme }) =>
-    $active ? theme.colors?.lightGrey : "transparent"};
+    $active ? theme.colors.lightGrey : "transparent"};
   font-family: inherit;
   transition: background 0.2s;
   &:hover {
-    background: ${({ theme }) => theme.colors?.lightGrey};
+    background: ${({ theme }) => theme.colors.lightGrey};
   }
 `;
 
@@ -165,30 +165,30 @@ const SetNameInput = styled.input`
   margin-top: 10px;
   border: 1px solid
     ${({ $error, theme }) =>
-      $error ? theme.colors?.danger : theme.colors?.darkGrey};
+      $error ? theme.colors.danger : theme.colors.darkGrey};
   border-radius: 8px;
   padding: 10px 15px;
   font-size: 0.95rem;
   font-family: inherit;
-  color: ${({ theme }) => theme.colors?.text};
-  background: ${({ theme }) => theme.colors?.lightGrey};
+  color: ${({ theme }) => theme.colors.text};
+  background: ${({ theme }) => theme.colors.lightGrey};
   box-sizing: border-box;
   &:focus {
     outline: none;
     border-color: ${({ $error, theme }) =>
-      $error ? theme.colors?.danger : theme.colors?.secondary};
+      $error ? theme.colors.danger : theme.colors.secondary};
   }
 `;
 
 const ErrorText = styled.p`
-  color: ${({ theme }) => theme.colors?.danger};
+  color: ${({ theme }) => theme.colors.danger};
   font-size: 1rem;
   font-weight: 600;
   margin: 0;
 `;
 
 const SuccessText = styled.p`
-  color: ${({ theme }) => theme.colors?.success};
+  color: ${({ theme }) => theme.colors.success};
   font-size: 1.1rem;
   font-weight: 700;
   margin: 0;
@@ -227,11 +227,11 @@ const ModalContent = styled.div`
     background: transparent;
   }
   &::-webkit-scrollbar-thumb {
-    background: #ddd;
+    background: ${({ theme }) => theme.colors.darkGrey};
     border-radius: 10px;
   }
   &::-webkit-scrollbar-thumb:hover {
-    background: #ccc;
+    background: ${({ theme }) => theme.colors.darkGrey};
   }
 `;
 
@@ -243,7 +243,7 @@ const CenteredState = styled.div`
   justify-content: center;
   gap: 15px;
   min-height: 200px;
-  color: ${({ theme }) => theme.colors?.textLight};
+  color: ${({ theme }) => theme.colors.textLight};
   font-size: 1rem;
   text-align: center;
 `;
@@ -252,7 +252,7 @@ const SpinnerSvg = styled.svg`
   animation: ${spin} 0.8s linear infinite;
   width: 40px;
   height: 40px;
-  color: ${({ theme }) => theme.colors?.secondary};
+  color: ${({ theme }) => theme.colors.secondary};
 `;
 
 const CardEntry = styled.div`

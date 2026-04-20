@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import styled, { keyframes } from "styled-components";
+import styled, { keyframes, useTheme } from "styled-components";
 import { getFastLearningCards, sendFastLearningAnswer, editCard } from "../api";
 import { getToken } from "../token";
 import SubmitButton from "../components/atoms/SubmitButton";
@@ -20,7 +20,7 @@ const overlayFadeIn = keyframes`
 const PageContainer = styled.div`
   margin: 0;
   font-family: inherit;
-  background: #f4f6f8;
+  background: ${({ theme }) => theme.colors.pageBg};
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -39,7 +39,7 @@ const ExitButton = styled.button`
   border: none;
   font-size: 1.1rem;
   font-weight: 600;
-  color: #555;
+  color: ${({ theme }) => theme.colors.textLight};
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -47,7 +47,7 @@ const ExitButton = styled.button`
   transition: color 0.2s;
 
   &:hover {
-    color: #111;
+    color: ${({ theme }) => theme.colors.text};
   }
   svg {
     width: 24px;
@@ -100,7 +100,7 @@ const CardFace = styled.div`
   .content {
     font-size: 1.7rem;
     font-weight: 600;
-    color: #222;
+    color: ${({ theme }) => theme.colors.text};
     word-wrap: break-word;
     word-break: break-word;
     display: -webkit-box;
@@ -114,7 +114,7 @@ const SeeAnswerHint = styled.div`
   position: absolute;
   bottom: 25px;
   font-size: 0.95rem;
-  color: #aaa;
+  color: ${({ theme }) => theme.colors.textMuted};
   font-weight: 500;
 `;
 
@@ -162,7 +162,7 @@ const FlipBackButton = styled.button`
   svg {
     width: 20px;
     height: 20px;
-    color: #555;
+    color: ${({ theme }) => theme.colors.textLight};
   }
 `;
 
@@ -181,7 +181,7 @@ const ActionButtonsOverlay = styled.div`
   button {
     pointer-events: auto;
     background: ${({ theme }) => theme.colors.white};
-    border: 2px solid #eee;
+    border: 2px solid ${({ theme }) => theme.colors.borderLight};
     border-radius: 50%;
     width: 60px;
     height: 60px;
@@ -193,20 +193,20 @@ const ActionButtonsOverlay = styled.div`
     transition: transform 0.2s, border-color 0.2s;
 
     &.bad {
-      color: #e74c3c;
+      color: ${({ theme }) => theme.colors.danger};
     }
     &.good {
-      color: #2ecc71;
+      color: ${({ theme }) => theme.colors.success};
     }
 
     &:hover {
       transform: scale(1.1);
     }
     &:hover.bad {
-      border-color: #e74c3c;
+      border-color: ${({ theme }) => theme.colors.danger};
     }
     &:hover.good {
-      border-color: #2ecc71;
+      border-color: ${({ theme }) => theme.colors.success};
     }
     svg {
       width: 28px;
@@ -218,7 +218,7 @@ const ActionButtonsOverlay = styled.div`
 const Counter = styled.div`
   font-size: 1.2rem;
   font-weight: 650;
-  color: #666;
+  color: ${({ theme }) => theme.colors.textLight};
   margin-bottom: 25px;
 `;
 
@@ -229,7 +229,7 @@ const PillMenu = styled.div`
   border-radius: 30px;
   padding: 8px 18px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
-  border: 1px solid #f0f0f0;
+  border: 1px solid ${({ theme }) => theme.colors.borderLight};
   gap: 15px;
 `;
 
@@ -240,14 +240,14 @@ const PillButton = styled.button`
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  color: #888;
+  color: ${({ theme }) => theme.colors.textMuted};
   padding: 8px;
   border-radius: 50%;
   transition: color 0.2s, background 0.2s;
 
   &:hover {
-    color: #333;
-    background: #f4f4f4;
+    color: ${({ theme }) => theme.colors.text};
+    background: ${({ theme }) => theme.colors.lightGrey};
   }
   svg {
     width: 22px;
@@ -258,7 +258,7 @@ const PillButton = styled.button`
 const PillDivider = styled.div`
   width: 1px;
   height: 24px;
-  background: #eee;
+  background: ${({ theme }) => theme.colors.borderLight};
 `;
 
 const HintsContainer = styled.div`
@@ -291,14 +291,14 @@ const IconButton = styled.button`
   align-items: center;
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-  color: #555;
+  color: ${({ theme }) => theme.colors.textLight};
   position: relative;
   transition: transform 0.2s, background 0.2s;
 
   &:hover {
     transform: translateY(-3px);
-    background: #f0f0f0;
-    color: #111;
+    background: ${({ theme }) => theme.colors.borderLight};
+    color: ${({ theme }) => theme.colors.text};
   }
 
   &::after {
@@ -307,7 +307,7 @@ const IconButton = styled.button`
     bottom: 110%;
     left: 50%;
     transform: translateX(-50%);
-    background: #333;
+    background: ${({ theme }) => theme.colors.text};
     color: ${({ theme }) => theme.colors.white};
     padding: 6px 12px;
     border-radius: 6px;
@@ -352,16 +352,16 @@ const StyledTextArea = styled.textarea`
   width: 100%;
   padding: 15px;
   margin: 10px 0 20px 0;
-  border: 1px solid #ccc;
+  border: 1px solid ${({ theme }) => theme.colors.darkGrey};
   border-radius: 8px;
   font-family: inherit;
   font-size: 1rem;
   resize: vertical;
   min-height: 100px;
-  background: #f9f9f9;
+  background: ${({ theme }) => theme.colors.lightGrey};
   outline: none;
   &:focus {
-    border-color: #888;
+    border-color: ${({ theme }) => theme.colors.textMuted};
   }
 `;
 
@@ -390,17 +390,17 @@ const EndScreenModal = styled.div`
   h2 {
     font-size: 2.5rem;
     margin-bottom: 20px;
-    color: #222;
+    color: ${({ theme }) => theme.colors.text};
   }
   p {
     font-size: 1.2rem;
-    color: #666;
+    color: ${({ theme }) => theme.colors.textLight};
     margin-bottom: 40px;
   }
 `;
 
 const EndScreenButton = styled.button`
-  background-color: ${({ theme }) => theme.colors?.secondary || "#555"};
+  background-color: ${({ theme }) => theme.colors.secondary};
   color: ${({ theme }) => theme.colors.white};
   border: none;
   padding: 15px 30px;
@@ -417,8 +417,8 @@ const EndScreenButton = styled.button`
 `;
 
 const ModalButton = styled.button`
-  background-color: ${(props) => (props.$danger ? "#e74c3c" : "#eee")};
-  color: ${(props) => (props.$danger ? "white" : "#333")};
+  background-color: ${({ $danger, theme }) => ($danger ? theme.colors.danger : theme.colors.borderLight)};
+  color: ${({ $danger, theme }) => ($danger ? theme.colors.white : theme.colors.text)};
   border: none;
   padding: 12px 25px;
   border-radius: 10px;
@@ -441,14 +441,14 @@ const CheckboxContainer = styled.label`
   margin-bottom: 25px;
   cursor: pointer;
   font-size: 0.95rem;
-  color: #666;
+  color: ${({ theme }) => theme.colors.textLight};
   font-weight: 500;
 
   input {
     cursor: pointer;
     width: 18px;
     height: 18px;
-    accent-color: ${({ theme }) => theme.colors?.secondary || "#555"};
+    accent-color: ${({ theme }) => theme.colors.secondary};
   }
 `;
 
@@ -458,12 +458,12 @@ const PreviousButton = styled.button`
   top: 46%;
   transform: translateY(-50%);
   background: transparent;
-  border: 2px solid #e5e7eb;
+  border: 2px solid ${({ theme }) => theme.colors.borderLight};
   border-radius: 16px;
   padding: 15px 25px;
   font-size: 1rem;
   font-weight: 650;
-  color: #777;
+  color: ${({ theme }) => theme.colors.textLight};
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -473,8 +473,8 @@ const PreviousButton = styled.button`
 
   &:hover {
     transform: translateY(-50%) scale(1.05);
-    color: #222;
-    border-color: #ccc;
+    color: ${({ theme }) => theme.colors.text};
+    border-color: ${({ theme }) => theme.colors.darkGrey};
     background: rgba(0, 0, 0, 0.02);
   }
 
@@ -505,6 +505,7 @@ const shuffleArray = (array) => {
 export default function FastLearningPage() {
   const { setId } = useParams();
   const navigate = useNavigate();
+  const theme = useTheme();
 
   const [cards, setCards] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -866,7 +867,7 @@ export default function FastLearningPage() {
             <Text bold="true" as="h2" text="Zakończyć tę sesję nauki?" />
             <Text
               text="Twój dotychczasowy postęp został zapisany. Możesz wznowić sesję w dowolnej chwili."
-              style={{ margin: "20px 0 30px 0", color: "#666" }}
+              style={{ margin: "20px 0 30px 0", color: theme.colors.textLight }}
             />
 
             <CheckboxContainer>
@@ -901,10 +902,10 @@ export default function FastLearningPage() {
           <ModalOverlay onClick={() => setIsEditModalOpen(false)} />
           <StyledPopup style={{ textAlign: "left" }}>
             <h2 style={{ marginBottom: "20px" }}>Edytuj fiszkę</h2>
-            {modalError && <p style={{ color: "red" }}>{modalError}</p>}
-            {modalSuccess && <p style={{ color: "green" }}>{modalSuccess}</p>}
+            {modalError && <p style={{ color: theme.colors.danger }}>{modalError}</p>}
+            {modalSuccess && <p style={{ color: theme.colors.success }}>{modalSuccess}</p>}
 
-            <p style={{ fontWeight: "600", fontSize: "0.9rem", color: "#555" }}>
+            <p style={{ fontWeight: "600", fontSize: "0.9rem", color: theme.colors.textLight }}>
               Przód:
             </p>
             <StyledTextArea
@@ -913,7 +914,7 @@ export default function FastLearningPage() {
               onChange={(e) => setEditQ(e.target.value)}
             />
 
-            <p style={{ fontWeight: "600", fontSize: "0.9rem", color: "#555" }}>
+            <p style={{ fontWeight: "600", fontSize: "0.9rem", color: theme.colors.textLight }}>
               Tył:
             </p>
             <StyledTextArea
@@ -926,7 +927,7 @@ export default function FastLearningPage() {
               style={{
                 fontWeight: "600",
                 fontSize: "0.9rem",
-                color: "#555",
+                color: theme.colors.textLight,
                 marginTop: "10px",
               }}
             >
@@ -967,14 +968,14 @@ export default function FastLearningPage() {
               }}
             >
               {!currentCard?.tags || currentCard.tags.length === 0 ? (
-                <p style={{ color: "#888" }}>Brak przypisanych tagów.</p>
+                <p style={{ color: theme.colors.textMuted }}>Brak przypisanych tagów.</p>
               ) : (
                 currentCard.tags.map((t, i) => (
                   <span
                     key={i}
                     style={{
-                      background: "#555",
-                      color: "white",
+                      background: theme.colors.textLight,
+                      color: theme.colors.white,
                       padding: "6px 14px",
                       borderRadius: "15px",
                       fontWeight: "600",
@@ -987,7 +988,7 @@ export default function FastLearningPage() {
               )}
             </div>
             <p
-              style={{ fontSize: "0.85rem", color: "#999", marginTop: "20px" }}
+              style={{ fontSize: "0.85rem", color: theme.colors.textMuted, marginTop: "20px" }}
             >
               Możesz zmienić tagi używając przycisku edycji fiszki.
             </p>

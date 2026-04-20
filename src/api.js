@@ -2396,6 +2396,7 @@ export async function getProfile() {
         username: data.username,
         email: data.email,
         avatarId: data.avatarId ?? 0,
+        themeColor: data.themeColor || "GREEN",
         errorCode: "",
         message: "",
       };
@@ -2597,6 +2598,41 @@ export async function changeAvatar(avatarId) {
     return {
       errorCode: err.errorCode,
       message: err.message || "Nie udało się zmienić awatara",
+    };
+  } catch {
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
+    };
+  }
+}
+
+export async function changeTheme(themeColor) {
+  const token = getToken();
+  if (!token)
+    return {
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+  try {
+    const resp = await fetch(`${API_HOST}/changeTheme`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ themeColor }),
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+
+    if (resp.ok) {
+      return { errorCode: "", message: "Motyw został zmieniony." };
+    }
+    const err = await parseErrorBody(resp);
+    return {
+      errorCode: err.errorCode,
+      message: err.message || "Nie udało się zmienić motywu",
     };
   } catch {
     return {

@@ -1,5 +1,21 @@
-export const theme = {
-  colors: {
+const shared = {
+  danger: "rgb(226, 75, 74)",
+  dangerLight: "rgb(252, 235, 235)",
+  dangerDark: "rgb(185, 28, 28)",
+  success: "rgb(92, 184, 92)",
+  white: "rgb(255,255,255)",
+  darkGrey: "rgb(190, 190, 190)",
+  dark: "rgb(20,20,20)",
+  lightGrey: "rgb(247,247,247)",
+  pageBg: "rgb(245, 245, 241)",
+  text: "rgb(17, 24, 39)",
+  textLight: "rgb(120, 120, 120)",
+  textMuted: "rgb(139, 148, 142)",
+  borderLight: "rgb(228, 228, 228)",
+};
+
+const palettes = {
+  GREEN: {
     primary: "rgb(200, 212, 184)",
     lightPrimary: "rgb(233, 236, 225)",
     veryDarkPrimary: "rgb(18, 40, 24)",
@@ -7,18 +23,89 @@ export const theme = {
     takiSmiesznyZielonyAleJasny: "rgb(179, 185, 168)",
     secondary: "rgb(107, 124, 92)",
     secondaryLight: "rgb(125, 144, 104)",
-    danger: "rgb(239, 68, 68)",
-    dangerDark: "rgb(185, 28, 28)",
-    success: "rgb(92, 184, 92)",
-    white: "rgb(255,255,255)",
-    darkGrey: "rgb(190, 190, 190)",
-    dark: "rgb(20,20,20)",
-    lightGrey: "rgb(247,247,247)",
-    pageBg: "rgb(245, 245, 241)",
     darkPageBg: "rgb(219, 224, 208)",
-    text: "rgb(17, 24, 39)",
-    textLight: "rgb(120, 120, 120)",
     border: "rgb(216, 221, 208)",
     borderMuted: "rgb(209, 212, 201)",
   },
+  RED: {
+    primary: "rgb(222, 174, 158)",
+    lightPrimary: "rgb(226, 186, 172)",
+    veryDarkPrimary: "rgb(72, 14, 4)",
+    takiSmiesznyZielony: "rgb(152, 82, 62)",
+    takiSmiesznyZielonyAleJasny: "rgb(196, 146, 128)",
+    secondary: "rgb(186, 52, 28)",
+    secondaryLight: "rgb(204, 72, 46)",
+    darkPageBg: "rgb(216, 170, 152)",
+    border: "rgb(228, 196, 182)",
+    borderMuted: "rgb(220, 188, 174)",
+  },
+  ORANGE: {
+    primary: "rgb(240, 198, 148)",
+    lightPrimary: "rgb(238, 206, 164)",
+    veryDarkPrimary: "rgb(62, 26, 0)",
+    takiSmiesznyZielony: "rgb(168, 112, 58)",
+    takiSmiesznyZielonyAleJasny: "rgb(210, 168, 118)",
+    secondary: "rgb(206, 120, 24)",
+    secondaryLight: "rgb(220, 142, 48)",
+    darkPageBg: "rgb(232, 194, 146)",
+    border: "rgb(238, 212, 178)",
+    borderMuted: "rgb(230, 204, 170)",
+  },
+  YELLOW: {
+    primary: "rgb(228, 224, 172)",
+    lightPrimary: "rgb(232, 228, 190)",
+    veryDarkPrimary: "rgb(52, 46, 4)",
+    takiSmiesznyZielony: "rgb(142, 136, 82)",
+    takiSmiesznyZielonyAleJasny: "rgb(194, 190, 148)",
+    secondary: "rgb(164, 152, 42)",
+    secondaryLight: "rgb(180, 168, 62)",
+    darkPageBg: "rgb(220, 216, 174)",
+    border: "rgb(230, 228, 198)",
+    borderMuted: "rgb(222, 220, 192)",
+  },
+  BLUE: {
+    primary: "rgb(180, 206, 232)",
+    lightPrimary: "rgb(196, 216, 236)",
+    veryDarkPrimary: "rgb(8, 30, 58)",
+    takiSmiesznyZielony: "rgb(80, 112, 148)",
+    takiSmiesznyZielonyAleJasny: "rgb(148, 176, 204)",
+    secondary: "rgb(52, 108, 172)",
+    secondaryLight: "rgb(72, 128, 190)",
+    darkPageBg: "rgb(174, 200, 228)",
+    border: "rgb(198, 216, 236)",
+    borderMuted: "rgb(190, 208, 228)",
+  },
+  NAVY: {
+    primary: "rgb(160, 168, 206)",
+    lightPrimary: "rgb(172, 178, 212)",
+    veryDarkPrimary: "rgb(10, 12, 42)",
+    takiSmiesznyZielony: "rgb(68, 74, 122)",
+    takiSmiesznyZielonyAleJasny: "rgb(128, 134, 178)",
+    secondary: "rgb(38, 44, 128)",
+    secondaryLight: "rgb(56, 62, 148)",
+    darkPageBg: "rgb(156, 162, 200)",
+    border: "rgb(182, 188, 220)",
+    borderMuted: "rgb(174, 180, 212)",
+  },
+  PURPLE: {
+    primary: "rgb(216, 192, 232)",
+    lightPrimary: "rgb(222, 200, 236)",
+    veryDarkPrimary: "rgb(38, 12, 56)",
+    takiSmiesznyZielony: "rgb(126, 92, 148)",
+    takiSmiesznyZielonyAleJasny: "rgb(182, 160, 200)",
+    secondary: "rgb(132, 62, 178)",
+    secondaryLight: "rgb(152, 86, 196)",
+    darkPageBg: "rgb(206, 182, 224)",
+    border: "rgb(224, 208, 236)",
+    borderMuted: "rgb(216, 200, 228)",
+  },
 };
+
+export const THEME_COLORS = Object.keys(palettes);
+
+export function buildTheme(colorName = "GREEN") {
+  const palette = palettes[colorName] || palettes.GREEN;
+  return { colors: { ...shared, ...palette } };
+}
+
+export const theme = buildTheme("GREEN");

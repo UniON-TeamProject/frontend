@@ -1,5 +1,8 @@
 import { Routes, Route, BrowserRouter } from 'react-router-dom';
-import { React } from 'react'
+import { React, useEffect } from 'react'
+import { useDispatch } from 'react-redux';
+import { setThemeColor } from './store/themeSlice';
+import { getProfile } from './api';
 import Notes from './pages/Notes';
 import Login from './pages/Login';
 import Home from './pages/Home';
@@ -24,6 +27,18 @@ const ProtectedRoute = ({ children }) => {
 };
 
 function App() {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (getToken()) {
+      getProfile().then((res) => {
+        if (!res.errorCode && res.themeColor) {
+          dispatch(setThemeColor(res.themeColor));
+        }
+      });
+    }
+  }, [dispatch]);
+
   return (
     <>
       <BrowserRouter>

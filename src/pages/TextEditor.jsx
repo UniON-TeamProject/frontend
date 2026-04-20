@@ -284,13 +284,13 @@ const ReturnButton = styled.div`
   cursor:pointer;
   font-size: 1.1rem;
   font-weight: 600;
-  color: ${({ theme }) => theme.colors?.darkGrey || '#666'};
+  color: ${({ theme }) => theme.colors.darkGrey};
   transition: color 0.2s;
   user-select: none;
   -webkit-user-select: none;
   
   &:hover {
-      color: ${({ theme }) => theme.colors?.text || '#000'};
+      color: ${({ theme }) => theme.colors.text};
   }
   
   svg {

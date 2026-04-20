@@ -37,7 +37,7 @@ const StyledMenu = styled.div`
   overflow-y: auto;
   max-height: 200px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-  color: rgb(17, 24, 39);
+  color: ${({ theme }) => theme.colors.text};
 `;
 
 const StyledItem = styled.button`
@@ -51,11 +51,11 @@ const StyledItem = styled.button`
   width: 100%;
   display: flex;
   align-items: center;
-  color: rgb(17, 24, 39);
+  color: ${({ theme }) => theme.colors.text};
   background-color: ${({ $selected, theme }) =>
-    $selected ? "#f0f0f0" : theme.colors.white};
+    $selected ? theme.colors.lightGrey : theme.colors.white};
   &:hover {
-    background-color: #f0f0f0;
+    background-color: ${({ theme }) => theme.colors.lightGrey};
   }
   > svg {
     width: 18px;
@@ -67,7 +67,7 @@ const StyledItem = styled.button`
 
 const StyledNoResult = styled.div`
   padding: 6px 10px;
-  color: #999;
+  color: ${({ theme }) => theme.colors.textMuted};
   font-size: 14px;
 `;
 

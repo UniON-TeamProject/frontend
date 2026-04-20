@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 
 const CardWrapper = styled.div`
   perspective: 1000px;
@@ -25,7 +25,7 @@ const CardFace = styled.div`
   height: 100%;
   backface-visibility: hidden;
   background-color: ${({ theme }) => theme.colors.white};
-  border: 1px solid #eee;
+  border: 1px solid ${({ theme }) => theme.colors.borderLight};
   border-radius: 15px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   display: flex;
@@ -42,7 +42,7 @@ const CardContent = styled.div`
   height: 100%;
   padding: 55px 35px 35px 35px;
   font-size: 1.1rem;
-  color: #333;
+  color: ${({ theme }) => theme.colors.text};
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -67,13 +67,13 @@ const CardContent = styled.div`
     margin: 0.5em 0;
   }
   code {
-    background-color: #eee;
+    background-color: ${({ theme }) => theme.colors.borderLight};
     padding: 2px 5px;
     border-radius: 4px;
     font-family: monospace;
   }
   pre {
-    background-color: #2b2b2b;
+    background-color: ${({ theme }) => theme.colors.dark};
     color: ${({ theme }) => theme.colors.white};
     padding: 10px;
     border-radius: 8px;
@@ -82,7 +82,7 @@ const CardContent = styled.div`
     overflow-x: auto;
   }
   blockquote {
-    border-left: 3px solid ${({ theme }) => theme.colors?.secondary};
+    border-left: 3px solid ${({ theme }) => theme.colors.secondary};
     padding-left: 10px;
     font-style: italic;
   }
@@ -102,11 +102,11 @@ const OptionsButton = styled.div`
   z-index: 10;
   transition: background-color 0.2s;
 
-  color: #888;
+  color: ${({ theme }) => theme.colors.textMuted};
 
   &:hover {
-    background-color: #f0f0f0;
-    color: #333;
+    background-color: ${({ theme }) => theme.colors.lightGrey};
+    color: ${({ theme }) => theme.colors.text};
   }
 
   svg {
@@ -120,7 +120,7 @@ const DropdownMenu = styled.div`
   top: 45px;
   right: 10px;
   background: ${({ theme }) => theme.colors.white};
-  border: 1px solid #eee;
+  border: 1px solid ${({ theme }) => theme.colors.borderLight};
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   padding: 10px;
@@ -139,7 +139,7 @@ const DropdownItem = styled.button`
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  color: #333;
+  color: ${({ theme }) => theme.colors.text};
   border-radius: 8px;
 
   display: flex;
@@ -149,10 +149,10 @@ const DropdownItem = styled.button`
   text-align: left;
 
   &.danger {
-    color: #e74c3c;
+    color: ${({ theme }) => theme.colors.danger};
   }
   &:hover {
-    background-color: #f9f9f9;
+    background-color: ${({ theme }) => theme.colors.lightGrey};
   }
 
   svg {
@@ -165,7 +165,7 @@ const DropdownItem = styled.button`
 const DropdownSectionLabel = styled.div`
   font-size: 0.75rem;
   font-weight: 700;
-  color: #999;
+  color: ${({ theme }) => theme.colors.textMuted};
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 8px;
@@ -184,7 +184,7 @@ const TagsContainer = styled.div`
 
 const StyledTag = styled.div`
   padding: 4px 10px;
-  background-color: ${({ theme }) => theme.colors?.secondary || "#555"};
+  background-color: ${({ theme }) => theme.colors.secondary};
   border-radius: 8px;
   color: ${({ theme }) => theme.colors.white};
   font-weight: 500;
@@ -212,7 +212,7 @@ const StyledTagInput = styled.input`
   font-size: 0.8rem;
   font-weight: 600;
   font-family: inherit;
-  background-color: ${({ theme }) => theme.colors?.secondary || "#555"};
+  background-color: ${({ theme }) => theme.colors.secondary};
   &:focus {
     outline: none;
     box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
@@ -222,9 +222,9 @@ const StyledTagInput = styled.input`
 const StyledAddTagButton = styled.div`
   padding: 4px 12px;
   background-color: transparent;
-  border: 1px dashed #ccc;
+  border: 1px dashed ${({ theme }) => theme.colors.darkGrey};
   border-radius: 8px;
-  color: #666;
+  color: ${({ theme }) => theme.colors.textLight};
   font-weight: 600;
   font-size: 0.8rem;
   cursor: pointer;
@@ -234,9 +234,9 @@ const StyledAddTagButton = styled.div`
   transition: all 0.2s;
 
   &:hover {
-    background-color: #f4f4f4;
-    color: #333;
-    border-color: #333;
+    background-color: ${({ theme }) => theme.colors.lightGrey};
+    color: ${({ theme }) => theme.colors.text};
+    border-color: ${({ theme }) => theme.colors.text};
   }
 `;
 
@@ -249,9 +249,9 @@ const SelectCircle = styled.div`
   border-radius: 50%;
   border: 2px solid
     ${({ $isSelected, theme }) =>
-      $isSelected ? theme.colors?.secondary : "#ccc"};
+      $isSelected ? theme.colors.secondary : theme.colors.darkGrey};
   background-color: ${({ $isSelected, theme }) =>
-    $isSelected ? theme.colors?.secondary : "white"};
+    $isSelected ? theme.colors.secondary : theme.colors.white};
   display: flex;
   justify-content: center;
   align-items: center;
@@ -293,6 +293,7 @@ export default function Flashcard({
   isSelected,
   onToggleSelect,
 }) {
+  const theme = useTheme();
   const [isFlipped, setIsFlipped] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -448,7 +449,7 @@ export default function Flashcard({
             </div>
 
             <div
-              style={{ height: "1px", background: "#eee", margin: "5px 0" }}
+              style={{ height: "1px", background: theme.colors.borderLight, margin: "5px 0" }}
             ></div>
 
             <DropdownItem

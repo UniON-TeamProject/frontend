@@ -24,7 +24,7 @@ const Card = styled.div`
 const Title = styled.h2`
   font-size: 1.3rem;
   font-weight: 600;
-  color: #1a3020;
+  color: ${({ theme }) => theme.colors.veryDarkPrimary};
   margin: 0 0 8px 0;
 `;
 
@@ -38,16 +38,16 @@ const Description = styled.p`
 const Input = styled.input`
   width: 100%;
   padding: 12px 14px;
-  border: 1.5px solid #d1d5c8;
+  border: 1.5px solid ${({ theme }) => theme.colors.border};
   border-radius: 8px;
   font-size: 1rem;
-  color: #1a3020;
-  background: #f9faf6;
+  color: ${({ theme }) => theme.colors.veryDarkPrimary};
+  background: ${({ theme }) => theme.colors.pageBg};
   box-sizing: border-box;
   outline: none;
   transition: border-color 0.15s;
   &:focus {
-    border-color: #4a7c59;
+    border-color: ${({ theme }) => theme.colors.secondary};
   }
 `;
 
@@ -60,11 +60,11 @@ const Button = styled.button`
   font-size: 0.95rem;
   font-weight: 600;
   color: ${({ theme }) => theme.colors.white};
-  background-color: #4a7c59;
+  background-color: ${({ theme }) => theme.colors.secondary};
   cursor: pointer;
   transition: background-color 0.15s;
   &:hover {
-    background-color: #3d6a4a;
+    background-color: ${({ theme }) => theme.colors.secondaryLight};
   }
   &:disabled {
     background-color: ${({ theme }) =>
@@ -74,14 +74,14 @@ const Button = styled.button`
 `;
 
 const ErrorMessage = styled.p`
-  color: #e24b4a;
+  color: ${({ theme }) => theme.colors.danger};
   font-size: 0.85rem;
   margin: 12px 0 0 0;
   text-align: center;
 `;
 
 const SuccessMessage = styled.p`
-  color: #4a7c59;
+  color: ${({ theme }) => theme.colors.secondary};
   font-size: 0.85rem;
   margin: 12px 0 0 0;
   text-align: center;

@@ -1,4 +1,4 @@
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getToken, parseJwt, removeToken } from "../token";
@@ -156,7 +156,7 @@ const ItemList = styled.div`
 `;
 
 const ListItem = styled.div`
-  background-color: ${({ $isEmpty }) => ($isEmpty ? "#e6eadb" : "#dbe0d0")};
+  background-color: ${({ $isEmpty, theme }) => ($isEmpty ? theme.colors.lightPrimary : theme.colors.darkPageBg)};
   opacity: ${({ $isEmpty }) => ($isEmpty ? 0.6 : 1)};
   border-radius: 12px;
   padding: 12px 15px;
@@ -173,7 +173,7 @@ const ListItem = styled.div`
 `;
 
 const SimpleListItem = styled.div`
-  background-color: ${({ $isEmpty }) => ($isEmpty ? "#e6eadb" : "#dbe0d0")};
+  background-color: ${({ $isEmpty, theme }) => ($isEmpty ? theme.colors.lightPrimary : theme.colors.darkPageBg)};
   opacity: ${({ $isEmpty }) => ($isEmpty ? 0.6 : 1)};
   border-radius: 12px;
   padding: 12px 15px;
@@ -204,7 +204,7 @@ const ItemTitle = styled.span`
 
 const ItemSub = styled.span`
   font-size: 0.75rem;
-  color: #555;
+  color: ${({ theme }) => theme.colors.textLight};
   font-weight: 500;
 `;
 
@@ -221,20 +221,20 @@ const ProgressBar = styled.div`
   border-radius: 4px;
   display: flex;
   overflow: hidden;
-  background-color: #c4c9b9;
+  background-color: ${({ theme }) => theme.colors.borderMuted};
 `;
 const ProgressGreen = styled.div`
   width: 50%;
-  background-color: #5ba354;
+  background-color: ${({ theme }) => theme.colors.secondary};
 `;
 const ProgressBlue = styled.div`
   width: 50%;
-  background-color: #e4fafd;
+  background-color: ${({ theme }) => theme.colors.lightPrimary};
 `;
 
 const TagPill = styled.span`
   font-size: 0.65rem;
-  color: #555;
+  color: ${({ theme }) => theme.colors.textLight};
   font-weight: 600;
 `;
 
@@ -298,6 +298,7 @@ const FolderName = styled.span`
 `;
 
 const Home = () => {
+  const theme = useTheme();
   const [username, setUsername] = useState("");
   const [recentSets, setRecentSets] = useState([]);
   const [recentNotes, setRecentNotes] = useState([]);
@@ -682,7 +683,7 @@ const Home = () => {
                       background: "transparent",
                       cursor: "pointer",
                       fontSize: "1.4rem",
-                      color: "${({theme})=> theme.colors.veryDarkPrimary}",
+                      color: theme.colors.veryDarkPrimary,
                       padding: "0 5px",
                     }}
                   >
@@ -704,7 +705,7 @@ const Home = () => {
                       background: "transparent",
                       cursor: "pointer",
                       fontSize: "1.4rem",
-                      color: "${({theme})=> theme.colors.veryDarkPrimary}",
+                      color: theme.colors.veryDarkPrimary,
                       padding: "0 5px",
                     }}
                   >
@@ -728,11 +729,11 @@ const Home = () => {
                     style={{
                       border: "none",
                       background:
-                        calendarView === "week" ? "#e6eadb" : "transparent",
+                        calendarView === "week" ? theme.colors.lightPrimary : "transparent",
                       padding: "6px 12px",
                       borderRadius: "8px",
                       cursor: "pointer",
-                      color: "${({theme})=> theme.colors.veryDarkPrimary}",
+                      color: theme.colors.veryDarkPrimary,
                       transition: "all 0.2s",
                     }}
                   >
@@ -746,11 +747,11 @@ const Home = () => {
                     style={{
                       border: "none",
                       background:
-                        calendarView === "month" ? "#e6eadb" : "transparent",
+                        calendarView === "month" ? theme.colors.lightPrimary : "transparent",
                       padding: "6px 12px",
                       borderRadius: "8px",
                       cursor: "pointer",
-                      color: "${({theme})=> theme.colors.veryDarkPrimary}",
+                      color: theme.colors.veryDarkPrimary,
                       transition: "all 0.2s",
                     }}
                   >
@@ -764,7 +765,7 @@ const Home = () => {
                   position: "relative",
                   flex: "1 1 auto",
                   overflow: "hidden",
-                  borderTop: "1px solid #eee",
+                  borderTop: `1px solid ${theme.colors.borderLight}`,
                   paddingTop: "10px",
                 }}
               >
@@ -811,7 +812,7 @@ const Home = () => {
                         <ListItem
                           key={deadline.id}
                           onClick={() => navigate("/calendar")}
-                          style={{ borderLeft: "4px solid #e74c3c" }}
+                          style={{ borderLeft: `4px solid ${theme.colors.danger}` }}
                         >
                           <ItemInfo>
                             <ItemTitle>{deadline.title}</ItemTitle>
@@ -834,7 +835,7 @@ const Home = () => {
                           <ItemMeta>
                             <TagPill
                               style={{
-                                color: "#e74c3c",
+                                color: theme.colors.danger,
                                 textTransform: "uppercase",
                               }}
                             >

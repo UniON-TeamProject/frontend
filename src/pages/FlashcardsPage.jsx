@@ -1,4 +1,4 @@
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import React, { useState, useEffect } from "react";
 import SubmitButton from "../components/atoms/SubmitButton";
 import Text from "../components/atoms/Text";
@@ -55,35 +55,35 @@ const StyledSearchInput = styled.div`
   position: relative;
   display: flex;
   align-items: center;
-  background-color: #f4f5f7;
+  background-color: ${({ theme }) => theme.colors.lightGrey};
   border: 1px solid transparent;
   border-radius: 20px;
   padding: 8px 16px;
   gap: 8px;
   transition: all 0.2s;
 
-  border-color: ${({ theme }) => theme.colors?.secondary};
+  border-color: ${({ theme }) => theme.colors.secondary};
 
   &:focus-within {
     background-color: ${({ theme }) => theme.colors.white};
-    border-color: ${({ theme }) => theme.colors?.secondary || "#00b894"};
+    border-color: ${({ theme }) => theme.colors.secondary};
   }
 
   > input {
     border: none;
     background: transparent;
     outline: none;
-    color: ${({ theme }) => theme.colors?.text};
+    color: ${({ theme }) => theme.colors.text};
     font-size: 0.95rem;
     width: 200px;
 
     &::placeholder {
-      color: #a0a0a0;
+      color: ${({ theme }) => theme.colors.textMuted};
     }
   }
 
   > svg {
-    color: #a0a0a0;
+    color: ${({ theme }) => theme.colors.textMuted};
     flex-shrink: 0;
   }
 `;
@@ -93,8 +93,8 @@ const StyledSearchDropdown = styled.div`
   top: calc(100% + 6px);
   right: 0;
   width: 360px;
-  background: ${({ theme }) => theme.colors?.white};
-  border: 1px solid ${({ theme }) => theme.colors?.darkGrey};
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.darkGrey};
   border-radius: 10px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
   z-index: 200;
@@ -106,7 +106,7 @@ const StyledSearchDropdown = styled.div`
 const StyledSearchSectionTitle = styled.div`
   font-size: 0.7rem;
   font-weight: 700;
-  color: ${({ theme }) => theme.colors?.textLight};
+  color: ${({ theme }) => theme.colors.textLight};
   text-transform: uppercase;
   letter-spacing: 0.06em;
   padding: 8px 14px 4px;
@@ -121,12 +121,12 @@ const StyledSearchResultItem = styled.div`
   transition: background 0.12s;
 
   &:hover {
-    background: ${({ theme }) => theme.colors?.lightGrey};
+    background: ${({ theme }) => theme.colors.lightGrey};
   }
 
   > svg {
     flex-shrink: 0;
-    color: ${({ theme }) => theme.colors?.textLight};
+    color: ${({ theme }) => theme.colors.textLight};
   }
 `;
 
@@ -139,7 +139,7 @@ const StyledSearchResultInfo = styled.div`
 const StyledSearchResultName = styled.span`
   font-size: 0.85rem;
   font-weight: 600;
-  color: ${({ theme }) => theme.colors?.text};
+  color: ${({ theme }) => theme.colors.text};
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -147,7 +147,7 @@ const StyledSearchResultName = styled.span`
 
 const StyledSearchResultPath = styled.span`
   font-size: 0.72rem;
-  color: ${({ theme }) => theme.colors?.textLight};
+  color: ${({ theme }) => theme.colors.textLight};
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -156,18 +156,18 @@ const StyledSearchResultPath = styled.span`
 const StyledSearchEmpty = styled.div`
   padding: 16px 14px;
   font-size: 0.85rem;
-  color: ${({ theme }) => theme.colors?.textLight};
+  color: ${({ theme }) => theme.colors.textLight};
   text-align: center;
 `;
 
 const StyledSearchDivider = styled.div`
   height: 1px;
-  background: ${({ theme }) => theme.colors?.lightGrey};
+  background: ${({ theme }) => theme.colors.lightGrey};
   margin: 4px 0;
 `;
 
 const StyledName = styled.h2`
-  color: ${({ theme }) => theme.colors?.text};
+  color: ${({ theme }) => theme.colors.text};
   font-size: 2.5rem;
   margin: 0;
   cursor: default;
@@ -180,11 +180,11 @@ const BackButton = styled.div`
   cursor: pointer;
   display: flex;
   align-items: center;
-  color: ${({ theme }) => theme.colors?.darkGrey};
+  color: ${({ theme }) => theme.colors.darkGrey};
   transition: color 0.2s;
 
   &:hover {
-    color: ${({ theme }) => theme.colors?.text};
+    color: ${({ theme }) => theme.colors.text};
   }
 
   > svg {
@@ -202,8 +202,8 @@ const ContentContainer = styled.div`
 `;
 
 const StartLearningButton = styled.button`
-  background-color: ${({ theme }) => theme.colors?.secondary};
-  color: ${({ theme }) => theme.colors?.white};
+  background-color: ${({ theme }) => theme.colors.secondary};
+  color: ${({ theme }) => theme.colors.white};
   border: none;
   border-radius: 8px;
   padding: 12px 25px;
@@ -238,7 +238,7 @@ const SetIconContainer = styled.div`
   width: 140px;
   height: 100px;
   margin: 0 auto 10px auto;
-  color: ${({ theme }) => theme.colors?.black};
+  color: ${({ theme }) => theme.colors.black};
 `;
 
 const StyledItemHeaderWrapper = styled.div`
@@ -261,19 +261,19 @@ const StyledItemHeader = styled.span`
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  color: ${({ theme }) => theme.colors?.text};
+  color: ${({ theme }) => theme.colors.text};
   cursor: pointer;
   z-index: 10;
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: ${({ theme }) => theme.colors?.lightGrey};
+    background-color: ${({ theme }) => theme.colors.lightGrey};
   }
 
   svg {
     width: 18px;
     height: 18px;
-    color: ${({ theme }) => theme.colors?.darkGrey};
+    color: ${({ theme }) => theme.colors.darkGrey};
   }
 `;
 
@@ -282,7 +282,7 @@ const StyledItemOptions = styled.div`
   top: 45px;
   right: 10px;
   background: ${({ theme }) => theme.colors.white};
-  border: 1px solid #eee;
+  border: 1px solid ${({ theme }) => theme.colors.borderLight};
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   padding: 10px;
@@ -302,13 +302,13 @@ const StyledItemOptions = styled.div`
     font-weight: 700;
     font-family: inherit;
     font-size: 0.95rem;
-    color: ${({ theme }) => theme.colors?.text};
-    background-color: ${({ theme }) => theme.colors?.lightGrey};
+    color: ${({ theme }) => theme.colors.text};
+    background-color: ${({ theme }) => theme.colors.lightGrey};
     outline: none;
     transition: border-color 0.2s;
 
     &:focus {
-      border-color: ${({ theme }) => theme.colors?.secondary};
+      border-color: ${({ theme }) => theme.colors.secondary};
     }
   }
 `;
@@ -318,7 +318,7 @@ const StyledToolbar = styled.div`
   align-items: center;
   justify-content: space-between;
   margin-bottom: 20px;
-  border-bottom: 1px solid #d1d5db;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.darkGrey};
   padding-bottom: 15px;
   flex-wrap: wrap;
   gap: 15px;
@@ -333,7 +333,7 @@ const StyledTagInput = styled.input`
   font-size: 0.8rem;
   font-weight: 600;
   font-family: inherit;
-  background-color: ${({ theme }) => theme.colors?.secondary};
+  background-color: ${({ theme }) => theme.colors.secondary};
   &:focus {
     outline: none;
     box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
@@ -343,9 +343,9 @@ const StyledTagInput = styled.input`
 const StyledAddTagButton = styled.div`
   padding: 4px 12px;
   background-color: transparent;
-  border: 1px dashed #ccc;
+  border: 1px dashed ${({ theme }) => theme.colors.darkGrey};
   border-radius: 8px;
-  color: #666;
+  color: ${({ theme }) => theme.colors.textLight};
   font-weight: 600;
   font-size: 0.8rem;
   cursor: pointer;
@@ -358,9 +358,9 @@ const StyledAddTagButton = styled.div`
   display: inline-flex;
 
   &:hover {
-    background-color: #f4f4f4;
-    color: #333;
-    border-color: #333;
+    background-color: ${({ theme }) => theme.colors.lightGrey};
+    color: ${({ theme }) => theme.colors.text};
+    border-color: ${({ theme }) => theme.colors.text};
   }
 `;
 
@@ -372,7 +372,7 @@ const StyledItemOption = styled.button`
   font-family: inherit;
   font-weight: 600;
   cursor: pointer;
-  color: #333;
+  color: ${({ theme }) => theme.colors.text};
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -381,10 +381,10 @@ const StyledItemOption = styled.button`
   text-align: left;
 
   &.danger {
-    color: #e74c3c;
+    color: ${({ theme }) => theme.colors.danger};
   }
   &:hover {
-    background-color: #f9f9f9;
+    background-color: ${({ theme }) => theme.colors.lightGrey};
   }
 
   svg {
@@ -397,7 +397,7 @@ const StyledItemOption = styled.button`
 const DropdownSectionLabel = styled.div`
   font-size: 0.75rem;
   font-weight: 700;
-  color: #999;
+  color: ${({ theme }) => theme.colors.textMuted};
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 8px;
@@ -418,9 +418,9 @@ const StyledTag = styled.div`
   padding: 2px 10px;
   margin: 3px;
   background-color: ${({ theme, $inactive }) =>
-    $inactive ? theme.colors?.darkGrey : theme.colors?.secondary};
+    $inactive ? theme.colors.darkGrey : theme.colors.secondary};
   border-radius: 10px;
-  color: ${({ theme }) => theme.colors?.white};
+  color: ${({ theme }) => theme.colors.white};
   font-weight: 500;
   font-size: 0.8rem;
   display: flex;
@@ -463,7 +463,7 @@ const CardInputSide = styled.div`
 
 const SideLabel = styled.label`
   font-size: 13px;
-  color: #888;
+  color: ${({ theme }) => theme.colors.textMuted};
   margin-bottom: 10px;
   text-transform: uppercase;
 `;
@@ -472,7 +472,7 @@ const StyledCardTextarea = styled.textarea`
   width: 100%;
   height: 220px;
   border-radius: 15px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid ${({ theme }) => theme.colors.borderLight};
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
   padding: 30px;
   font-size: 16px;
@@ -483,26 +483,26 @@ const StyledCardTextarea = styled.textarea`
   transition: border-color 0.2s, box-shadow 0.2s;
 
   &:focus {
-    border-color: #c2c5ba;
+    border-color: ${({ theme }) => theme.colors.darkGrey};
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
   }
 `;
 
 const AddMoreRowButton = styled.button`
   background: transparent;
-  border: 2px dashed ${({ theme }) => theme.colors?.darkGrey};
+  border: 2px dashed ${({ theme }) => theme.colors.darkGrey};
   border-radius: 10px;
   padding: 15px 40px;
   font-size: 1rem;
   font-weight: 600;
-  color: ${({ theme }) => theme.colors?.text};
+  color: ${({ theme }) => theme.colors.text};
   cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
   opacity: ${(props) => (props.disabled ? 0.5 : 1)};
   transition: all 0.2s;
 
   &:hover {
     background: ${({ theme, disabled }) =>
-      disabled ? "transparent" : theme.colors?.lightGrey};
+      disabled ? "transparent" : theme.colors.lightGrey};
   }
 `;
 
@@ -512,7 +512,7 @@ const FloatingActionButton = styled.button`
   right: 40px;
   width: 70px;
   height: 70px;
-  background-color: ${({ theme }) => theme.colors?.white};
+  background-color: ${({ theme }) => theme.colors.white};
   border: none;
   border-radius: 20px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
@@ -535,7 +535,7 @@ const FloatingActionButton = styled.button`
   svg {
     width: 32px;
     height: 32px;
-    color: ${({ theme }) => theme.colors?.secondary};
+    color: ${({ theme }) => theme.colors.secondary};
   }
 `;
 
@@ -548,7 +548,7 @@ const StyledPopup = styled.div`
   min-height: 250px;
   padding: 50px;
   border-radius: 25px;
-  background-color: ${({ theme }) => theme.colors?.white};
+  background-color: ${({ theme }) => theme.colors.white};
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   z-index: 1000;
 
@@ -572,7 +572,7 @@ const EmptyStateContainer = styled.div`
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  color: ${({ theme }) => theme.colors?.text};
+  color: ${({ theme }) => theme.colors.text};
   opacity: 0.5;
 `;
 
@@ -580,17 +580,17 @@ const StyledModalTextArea = styled.textarea`
   width: 100%;
   padding: 15px;
   margin: 10px 0 20px 0;
-  border: 1px solid ${({ theme }) => theme.colors?.darkGrey};
+  border: 1px solid ${({ theme }) => theme.colors.darkGrey};
   border-radius: 5px;
   font-family: inherit;
   font-size: 1rem;
   resize: vertical;
   min-height: 100px;
-  background-color: ${({ theme }) => theme.colors?.lightGrey};
+  background-color: ${({ theme }) => theme.colors.lightGrey};
 
   &:focus {
     outline: none;
-    border-color: ${({ theme }) => theme.colors?.secondary};
+    border-color: ${({ theme }) => theme.colors.secondary};
   }
 `;
 
@@ -602,19 +602,19 @@ const SetHeaderControls = styled.div`
 `;
 
 const ActionBanner = styled.div`
-  background-color: ${({ theme }) => theme.colors?.lightGrey};
+  background-color: ${({ theme }) => theme.colors.lightGrey};
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   padding: 12px 25px;
   font-size: 0.95rem;
   font-weight: 600;
-  color: ${({ theme }) => theme.colors?.text};
+  color: ${({ theme }) => theme.colors.text};
   cursor: pointer;
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: ${({ theme }) => theme.colors?.darkGrey};
-    color: ${({ theme }) => theme.colors?.white};
+    background-color: ${({ theme }) => theme.colors.darkGrey};
+    color: ${({ theme }) => theme.colors.white};
   }
 `;
 
@@ -632,11 +632,11 @@ const StyledTab = styled.div`
   font-weight: 600;
   cursor: pointer;
   color: ${({ $active, theme }) =>
-    $active ? theme.colors?.secondary || "#00b894" : "#6c757d"};
+    $active ? theme.colors.secondary : theme.colors.textLight};
   transition: color 0.15s;
 
   &:hover {
-    color: ${({ theme }) => theme.colors?.secondary || "#00b894"};
+    color: ${({ theme }) => theme.colors.secondary};
   }
 
   > svg {
@@ -655,17 +655,17 @@ const SortSelect = styled.select`
   appearance: none;
   padding: 8px 32px 8px 16px;
   border-radius: 8px;
-  border: 1px solid #ced4da;
+  border: 1px solid ${({ theme }) => theme.colors.darkGrey};
   background-color: ${({ theme }) => theme.colors.white};
   font-family: inherit;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #495057;
+  color: ${({ theme }) => theme.colors.textLight};
   outline: none;
   cursor: pointer;
 
   &:hover {
-    background-color: #f8f9fa;
+    background-color: ${({ theme }) => theme.colors.lightGrey};
   }
 `;
 
@@ -673,14 +673,14 @@ const SortIconWrapper = styled.div`
   position: absolute;
   right: 12px;
   pointer-events: none;
-  color: #495057;
+  color: ${({ theme }) => theme.colors.textLight};
   display: flex;
   align-items: center;
 `;
 
 const ModalButton = styled.button`
-  background-color: ${(props) => (props.$danger ? "#e74c3c" : "#eee")};
-  color: ${(props) => (props.$danger ? "white" : "#333")};
+  background-color: ${({ $danger, theme }) => ($danger ? theme.colors.danger : theme.colors.borderLight)};
+  color: ${({ $danger, theme }) => ($danger ? theme.colors.white : theme.colors.text)};
   border: none;
   padding: 12px 25px;
   border-radius: 10px;
@@ -693,6 +693,38 @@ const ModalButton = styled.button`
     opacity: 0.9;
     transform: translateY(-2px);
   }
+`;
+
+const SelectionBar = styled.div`
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: ${({ theme }) => theme.colors.white};
+  color: ${({ theme }) => theme.colors.takiSmiesznyZielony};
+  padding: 15px 30px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+`;
+
+const SelectionBarCount = styled.span`
+  font-weight: 600;
+  font-size: 1.1rem;
+`;
+
+const ModalButtonPrimary = styled(ModalButton)`
+  background: ${({ theme }) => theme.colors.secondary};
+  color: ${({ theme }) => theme.colors.white};
+`;
+
+const ModalButtonGhost = styled(ModalButton)`
+  background: transparent;
+  color: ${({ theme }) => theme.colors.darkGrey};
+  padding: 12px 10px;
 `;
 
 const ToolbarActions = styled.div`
@@ -715,15 +747,15 @@ const ToolbarButton = styled.button`
   transition: all 0.2s;
 
   &.primary {
-    background-color: ${({ theme }) => theme.colors?.secondary || "#00b894"};
+    background-color: ${({ theme }) => theme.colors.secondary};
     color: ${({ theme }) => theme.colors.white};
-    border: 1px solid ${({ theme }) => theme.colors?.secondary || "#00b894"};
+    border: 1px solid ${({ theme }) => theme.colors.secondary};
   }
 
   &.outline {
     background-color: ${({ theme }) => theme.colors.white};
-    color: #495057;
-    border: 1px solid #ced4da;
+    color: ${({ theme }) => theme.colors.textLight};
+    border: 1px solid ${({ theme }) => theme.colors.darkGrey};
   }
 `;
 
@@ -738,7 +770,7 @@ const FilterDropdown = styled.div`
   top: calc(100% + 8px);
   right: 0;
   background: ${({ theme }) => theme.colors.white};
-  border: 1px solid #ced4da;
+  border: 1px solid ${({ theme }) => theme.colors.darkGrey};
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   padding: 15px;
@@ -757,19 +789,19 @@ const FilterTag = styled.div`
   font-weight: 600;
   cursor: pointer;
   background-color: ${({ $active, theme }) =>
-    $active ? theme.colors?.secondary || "#00b894" : "#f4f5f7"};
-  color: ${({ $active }) => ($active ? "white" : "#495057")};
+    $active ? theme.colors.secondary : theme.colors.lightGrey};
+  color: ${({ $active, theme }) => ($active ? theme.colors.white : theme.colors.textLight)};
   transition: all 0.2s;
 
   &:hover {
     background-color: ${({ $active, theme }) =>
-      $active ? theme.colors?.secondary || "#00b894" : "#e2e6ea"};
+      $active ? theme.colors.secondary : theme.colors.borderLight};
     opacity: ${({ $active }) => ($active ? 0.8 : 1)};
   }
 `;
 
 const ActiveFilterBadge = styled.span`
-  background-color: ${({ theme }) => theme.colors?.secondary || "#00b894"};
+  background-color: ${({ theme }) => theme.colors.secondary};
   color: ${({ theme }) => theme.colors.white};
   border-radius: 50%;
   width: 20px;
@@ -788,8 +820,8 @@ const HelpIcon = styled.div`
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background-color: #e2e6ea;
-  color: #6c757d;
+  background-color: ${({ theme }) => theme.colors.borderLight};
+  color: ${({ theme }) => theme.colors.textLight};
   font-size: 0.9rem;
   font-weight: bold;
   cursor: pointer;
@@ -797,15 +829,15 @@ const HelpIcon = styled.div`
   margin-left: 10px;
 
   &:hover {
-    background-color: #ced4da;
-    color: #343a40;
+    background-color: ${({ theme }) => theme.colors.darkGrey};
+    color: ${({ theme }) => theme.colors.text};
     transform: scale(1.1);
   }
 `;
 
 const ModeCard = styled.div`
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
+  background: ${({ theme }) => theme.colors.lightGrey};
+  border: 1px solid ${({ theme }) => theme.colors.borderLight};
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 15px;
@@ -814,7 +846,7 @@ const ModeCard = styled.div`
   h3 {
     margin-top: 0;
     margin-bottom: 8px;
-    color: #212529;
+    color: ${({ theme }) => theme.colors.text};
     display: flex;
     align-items: center;
     gap: 8px;
@@ -823,7 +855,7 @@ const ModeCard = styled.div`
 
   p {
     margin: 0;
-    color: #495057;
+    color: ${({ theme }) => theme.colors.textLight};
     font-size: 0.95rem;
     line-height: 1.5;
   }
@@ -835,7 +867,7 @@ const CloseButton = styled.button`
   right: 20px;
   background: none;
   border: none;
-  color: #a0a0a0;
+  color: ${({ theme }) => theme.colors.textMuted};
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -844,7 +876,7 @@ const CloseButton = styled.button`
   padding: 5px;
 
   &:hover {
-    color: #333;
+    color: ${({ theme }) => theme.colors.text};
     transform: scale(1.1);
   }
 
@@ -913,7 +945,7 @@ const CheckmarkIcon = () => (
     viewBox="0 0 24 24"
     width="36"
     height="36"
-    stroke="#333"
+    stroke="currentColor"
     strokeWidth="3"
     fill="none"
     strokeLinecap="round"
@@ -937,6 +969,7 @@ const FlashcardsPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { setId } = useParams();
+  const theme = useTheme();
 
   const isTrashView = location.pathname.includes("trash");
 
@@ -1840,7 +1873,7 @@ const FlashcardsPage = () => {
                           text="Brak tagów w Twoich zestawach."
                           style={{
                             fontSize: "0.85rem",
-                            color: "#888",
+                            color: theme.colors.textMuted,
                             marginLeft: "5px",
                           }}
                         />
@@ -1882,7 +1915,7 @@ const FlashcardsPage = () => {
                         <div
                           style={{
                             fontSize: "0.8rem",
-                            color: "#e74c3c",
+                            color: theme.colors.danger,
                             cursor: "pointer",
                             marginTop: "10px",
                             textAlign: "center",
@@ -2148,7 +2181,7 @@ const FlashcardsPage = () => {
                         set.cards?.length || 0
                       )}`}
                       style={{
-                        color: "#888",
+                        color: theme.colors.textMuted,
                         fontSize: "0.85rem",
                         fontWeight: "500",
                       }}
@@ -2272,7 +2305,7 @@ const FlashcardsPage = () => {
                           <div
                             style={{
                               height: "1px",
-                              background: "#eee",
+                              background: theme.colors.borderLight,
                               margin: "5px 0",
                             }}
                           ></div>
@@ -2502,7 +2535,7 @@ const FlashcardsPage = () => {
               <Text bold="true" as="h2" text="Czy na pewno chcesz wyjść?" />
               <Text
                 text="Wprowadzone zmiany zostaną bezpowrotnie utracone."
-                style={{ margin: "20px 0 30px 0", color: "#666" }}
+                style={{ margin: "20px 0 30px 0", color: theme.colors.textLight }}
               />
 
               <div
@@ -2545,7 +2578,7 @@ const FlashcardsPage = () => {
               <Text bold="true" as="h2" text="Usuń zestaw" />
               <Text
                 text="Czy na pewno chcesz usunąć ten zestaw?"
-                style={{ margin: "20px 0 30px 0", color: "#666" }}
+                style={{ margin: "20px 0 30px 0", color: theme.colors.textLight }}
               />
 
               <div
@@ -2577,13 +2610,13 @@ const FlashcardsPage = () => {
               <Text bold="true" as="h2" text="Uwaga: Znaleziono duplikaty!" />
               <Text
                 text="Fiszki z takimi pytaniami już istnieją w Twoich zestawach:"
-                style={{ margin: "15px 0", color: "#666" }}
+                style={{ margin: "15px 0", color: theme.colors.textLight }}
               />
 
               <div
                 style={{
                   textAlign: "left",
-                  background: "#f4f5f7",
+                  background: theme.colors.lightGrey,
                   padding: "15px",
                   borderRadius: "10px",
                   maxHeight: "150px",
@@ -2597,7 +2630,7 @@ const FlashcardsPage = () => {
                     style={{ marginBottom: "8px", fontSize: "0.9rem" }}
                   >
                     <strong>{dup.question}</strong>{" "}
-                    <span style={{ color: "#888" }}>(w: {dup.setName})</span>
+                    <span style={{ color: theme.colors.textMuted }}>(w: {dup.setName})</span>
                   </div>
                 ))}
               </div>
@@ -2634,50 +2667,25 @@ const FlashcardsPage = () => {
 
         {/* PŁYWAJĄCY PASEK ZAZNACZENIA */}
         {isSelectMode && selectedCards.length > 0 && (
-          <div
-            style={{
-              position: "fixed",
-              bottom: "40px",
-              left: "50%",
-              transform: "translateX(-50%)",
-              backgroundColor: "white",
-              color: "rgb(112, 122, 115)",
-              padding: "15px 30px",
-              borderRadius: "20px",
-              display: "flex",
-              alignItems: "center",
-              gap: "20px",
-              boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
-              zIndex: 1000,
-            }}
-          >
-            <span style={{ fontWeight: "600", fontSize: "1.1rem" }}>
+          <SelectionBar>
+            <SelectionBarCount>
               Zaznaczono: {selectedCards.length}
-            </span>
-            <ModalButton
-              style={{ background: "#00b894", color: "white" }}
-              onClick={() => setIsBulkCopyModalOpen(true)}
-            >
+            </SelectionBarCount>
+            <ModalButtonPrimary onClick={() => setIsBulkCopyModalOpen(true)}>
               Kopiuj do...
-            </ModalButton>
+            </ModalButtonPrimary>
             <ModalButton $danger onClick={handleBulkDelete}>
               Usuń
             </ModalButton>
-
-            <ModalButton
-              style={{
-                background: "transparent",
-                color: "#ccc",
-                padding: "12px 10px",
-              }}
+            <ModalButtonGhost
               onClick={() => {
                 setIsSelectMode(false);
                 setSelectedCards([]);
               }}
             >
               Anuluj
-            </ModalButton>
-          </div>
+            </ModalButtonGhost>
+          </SelectionBar>
         )}
 
         {/* MODAL KOPIOWANIA FISZEK */}
@@ -2707,7 +2715,7 @@ const FlashcardsPage = () => {
                   width: "100%",
                   padding: "12px",
                   marginBottom: "20px",
-                  border: "1px solid #ccc",
+                  border: `1px solid ${theme.colors.darkGrey}`,
                 }}
                 value={bulkTargetSetId}
                 onChange={(e) => setBulkTargetSetId(e.target.value)}
@@ -2769,7 +2777,7 @@ const FlashcardsPage = () => {
                 <ModalButton
                   type="button"
                   onClick={handleBulkCopy}
-                  style={{ background: "#00b894", color: "white" }}
+                  style={{ background: theme.colors.secondary, color: theme.colors.white }}
                 >
                   Skopiuj fiszki
                 </ModalButton>
@@ -2795,7 +2803,7 @@ const FlashcardsPage = () => {
               <Text bold="true" as="h2" text="Usuń fiszkę" />
               <Text
                 text="Czy na pewno chcesz usunąć tę fiszkę?"
-                style={{ margin: "20px 0 30px 0", color: "#666" }}
+                style={{ margin: "20px 0 30px 0", color: theme.colors.textLight }}
               />
 
               <div
@@ -2822,7 +2830,7 @@ const FlashcardsPage = () => {
         {/* PRZYCISK WYCZYSZCZENIA KOSZA */}
         {isTrashView && sets.length > 0 && (
           <FloatingActionButton
-            style={{ backgroundColor: "#e74c3c" }}
+            style={{ backgroundColor: theme.colors.danger }}
             title="Wyczyść kosz permanentnie"
             onClick={(e) => {
               e.stopPropagation();
@@ -2846,7 +2854,7 @@ const FlashcardsPage = () => {
               <Text bold="true" as="h2" text="Wyczyścić kosz?" />
               <Text
                 text="Czy na pewno chcesz usunąć wszystkie zestawy wraz z ich fiszkiami z kosza? Tej operacji nie można cofnąć."
-                style={{ margin: "20px 0", color: "#666" }}
+                style={{ margin: "20px 0", color: theme.colors.textLight }}
               />
 
               <div
@@ -2956,7 +2964,7 @@ const FlashcardsPage = () => {
               <Text bold="true" as="h2" text="Trwająca sesja" />
               <Text
                 text="Masz już rozpoczętą sesję nauki w tym zestawie. Co chcesz zrobić?"
-                style={{ margin: "20px 0 30px 0", color: "#666" }}
+                style={{ margin: "20px 0 30px 0", color: theme.colors.textLight }}
               />
 
               <div
@@ -2983,8 +2991,8 @@ const FlashcardsPage = () => {
                     width: "85%",
                     padding: "14px",
                     background: "transparent",
-                    border: "2px solid #e74c3c",
-                    color: "#e74c3c",
+                    border: `2px solid ${theme.colors.danger}`,
+                    color: theme.colors.danger,
                     fontSize: "1.05rem",
                   }}
                   onClick={handleResetAndStart}

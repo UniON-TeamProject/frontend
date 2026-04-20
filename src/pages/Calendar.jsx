@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import styled, { keyframes } from "styled-components";
+import styled, { keyframes, useTheme } from "styled-components";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/organisms/Layout";
-import { theme } from "../styles/theme";
 import {
   getUsosAuthUrl,
   addRegularTagToEvent,
@@ -435,7 +434,13 @@ const AddBtn = styled.button`
   }
 `;
 
-// ── SIDEBAR ───────────────────────────────────────────────────────────────────
+const UsosLabel = styled.span`
+  @media (max-width: 600px) {
+    display: none;
+  }
+`;
+
+// SIDEBAR
 const DetailSidebar = styled.div`
   width: ${({ $open }) => ($open ? "350px" : "0")};
   overflow: hidden;
@@ -598,8 +603,8 @@ const DocTagChip = styled.button`
   font-weight: 500;
   padding: 2px 8px;
   border-radius: 12px;
-  background: #e8f0fe;
-  color: #1a56db;
+  background: ${({ theme }) => theme.colors.lightPrimary};
+  color: ${({ theme }) => theme.colors.secondary};
   display: flex;
   align-items: center;
   gap: 4px;
@@ -608,7 +613,7 @@ const DocTagChip = styled.button`
   font-family: inherit;
   transition: background 0.15s;
   &:hover {
-    background: #d2e3fc;
+    background: ${({ theme }) => theme.colors.primary};
   }
 `;
 
@@ -688,7 +693,7 @@ const SidebarSectionLabel = styled.div`
   margin-bottom: 4px;
 `;
 
-// ── FORM SIDEBAR ──────────────────────────────────────────────────────────────
+// FORM SIDEBAR
 const FormSidebar = styled.div`
   width: ${({ $open }) => ($open ? "350px" : "0")};
   overflow: hidden;
@@ -972,7 +977,7 @@ const ColorSwatch = styled.button`
 
 const FieldError = styled.span`
   font-size: 11px;
-  color: rgb(226, 75, 74);
+  color: ${({ theme }) => theme.colors.danger};
   font-weight: 500;
   margin-top: 2px;
 `;
@@ -1049,9 +1054,9 @@ const CustomTagChip = styled.div`
   padding: 2px 10px;
   min-height: 26px;
   margin: 2px;
-  background: #e8f0fe;
+  background: ${({ theme }) => theme.colors.lightPrimary};
   border-radius: 12px;
-  color: #1a56db;
+  color: ${({ theme }) => theme.colors.secondary};
   font-weight: 500;
   font-size: 12px;
   display: flex;
@@ -1097,13 +1102,13 @@ const CustomTagInput = styled.input`
   width: 100px;
   font-size: 12px;
   font-family: inherit;
-  background: #e8f0fe;
-  color: #1a56db;
+  background: ${({ theme }) => theme.colors.lightPrimary};
+  color: ${({ theme }) => theme.colors.secondary};
   &:focus {
     outline: none;
   }
   &::placeholder {
-    color: rgba(255, 255, 255, 0.6);
+    color: ${({ theme }) => theme.colors.textLight};
   }
 `;
 
@@ -1160,7 +1165,7 @@ const SidebarCardHeader = styled.div`
   margin-bottom: 4px;
 `;
 
-// ─── RECURRENCE HELPERS ──────────────────────────────────────────────────────
+// RECURRENCE HELPERS
 const RECURRENCE_PRESETS = [
   { value: "daily", label: "Codziennie" },
   { value: "weekly", label: "Co tydzień" },
@@ -1285,6 +1290,7 @@ function toLocalDateTimeISO(date, hour, min) {
 }
 
 const Calendar = () => {
+  const theme = useTheme();
   const routerNavigate = useNavigate();
   const [view, setView] = useState(
     () => localStorage.getItem("calendarView") || "week"
@@ -1739,7 +1745,7 @@ const Calendar = () => {
     }
   };
 
-  // ── SIDEBAR ───────────────────────────────────────────────────────────────
+  // SIDEBAR
   const renderSidebar = () => {
     if (!sidebar) return null;
     const { date, events: evs } = sidebar;
@@ -1769,7 +1775,7 @@ const Calendar = () => {
           </div>
         </SidebarStickyTop>
         {sorted.map((ev) => {
-          const style = getEventStyle(ev);
+          const style = getEventStyle(ev, theme);
           const predefinedTags = (ev.tags || []).filter((t) => TAG_CONFIG[t]);
           const otherTags = (ev.tags || []).filter((t) => !TAG_CONFIG[t]);
 
@@ -2620,7 +2626,7 @@ const Calendar = () => {
             onChange={(e) =>
               setForm((f) => ({ ...f, isDeadline: e.target.checked }))
             }
-            style={{ width: 16, height: 16, accentColor: "rgb(226, 75, 74)" }}
+            style={{ width: 16, height: 16, accentColor: theme.colors.danger }}
           />
           <span
             style={{ fontSize: 13, fontWeight: 500, color: theme.colors.text }}
@@ -2692,7 +2698,7 @@ const Calendar = () => {
                   onClick={() => setSearchOpen((v) => !v)}
                 >
                   🔍 Filtruj
-                  {(filterTags.length + (customTagSearch.trim() ? 1 : 0)) > 0 && (
+                  {filterTags.length + (customTagSearch.trim() ? 1 : 0) > 0 && (
                     <FilterBadge>
                       {filterTags.length + (customTagSearch.trim() ? 1 : 0)}
                     </FilterBadge>
@@ -2950,9 +2956,9 @@ const Calendar = () => {
               <img
                 src="/icons/usos2.png"
                 alt="USOS"
-                style={{ width: 18, height: 18, borderRadius: 6 }}
+                style={{ width: 24, height: 24, borderRadius: 6 }}
               />
-              Importuj z USOS
+              <UsosLabel>Importuj z USOS</UsosLabel>
             </AddBtn>
 
             <div
@@ -3079,7 +3085,7 @@ const Calendar = () => {
               <ScopeBtn
                 onClick={doUsosImport}
                 style={{
-                  color: "rgb(226, 75, 74)",
+                  color: theme.colors.danger,
                   fontWeight: 600,
                   textAlign: "center",
                 }}
@@ -3129,7 +3135,7 @@ const Calendar = () => {
                   setSidebar(null);
                 }}
                 style={{
-                  color: "rgb(226, 75, 74)",
+                  color: theme.colors.danger,
                   fontWeight: 600,
                   textAlign: "center",
                 }}

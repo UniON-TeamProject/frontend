@@ -1,4 +1,4 @@
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import React, { useState, useEffect } from "react";
 import SubmitButton from "../components/atoms/SubmitButton";
 import Text from "../components/atoms/Text";
@@ -133,7 +133,7 @@ const FloatingActionButton = styled.button`
   width: 70px;
   height: 70px;
   background-color: ${({ theme, $danger }) =>
-    $danger ? theme.colors?.danger || "#e74c3c" : theme.colors.white};
+    $danger ? theme.colors.danger : theme.colors.white};
   border: none;
   border-radius: 20px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
@@ -256,19 +256,19 @@ const StyledItemHeader = styled.span`
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  color: ${({ theme }) => theme.colors?.text || "#333"};
+  color: ${({ theme }) => theme.colors.text};
   cursor: pointer;
   z-index: 10;
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: ${({ theme }) => theme.colors?.lightGrey || "#f4f4f4"};
+    background-color: ${({ theme }) => theme.colors.lightGrey};
   }
 
   svg {
     width: 18px;
     height: 18px;
-    color: ${({ theme }) => theme.colors?.darkGrey || "#666"};
+    color: ${({ theme }) => theme.colors.darkGrey};
   }
 `;
 
@@ -277,7 +277,7 @@ const StyledItemOptions = styled.div`
   flex-direction: column;
   width: ${({ $narrow }) => ($narrow ? "200px" : "280px")};
   background: ${({ theme }) => theme.colors.white};
-  border: 1px solid #eee;
+  border: 1px solid ${({ theme }) => theme.colors.borderLight};
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   padding: 10px;
@@ -313,13 +313,13 @@ const StyledItemOptions = styled.div`
     font-weight: 700;
     font-family: inherit;
     font-size: 0.95rem;
-    color: ${({ theme }) => theme.colors?.text || "#333"};
-    background-color: ${({ theme }) => theme.colors?.lightGrey || "#f4f4f4"};
+    color: ${({ theme }) => theme.colors.text};
+    background-color: ${({ theme }) => theme.colors.lightGrey};
     outline: none;
     transition: border-color 0.2s;
 
     &:focus {
-      border-color: ${({ theme }) => theme.colors?.secondary || "#888"};
+      border-color: ${({ theme }) => theme.colors.secondary};
     }
   }
 `;
@@ -332,7 +332,7 @@ const StyledItemOption = styled.button`
   font-family: inherit;
   font-weight: 600;
   cursor: pointer;
-  color: #333;
+  color: ${({ theme }) => theme.colors.text};
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -341,10 +341,10 @@ const StyledItemOption = styled.button`
   text-align: left;
 
   &.danger {
-    color: #e74c3c;
+    color: ${({ theme }) => theme.colors.danger};
   }
   &:hover {
-    background-color: #f9f9f9;
+    background-color: ${({ theme }) => theme.colors.lightGrey};
   }
 
   > svg {
@@ -374,9 +374,9 @@ const StyledTag = styled.div`
     padding: 2px 10px;
     margin: 3px;
     background-color: ${({ theme, $inactive }) =>
-      $inactive ? "#e0e0e0" : theme.colors.secondary};
+      $inactive ? theme.colors.borderLight : theme.colors.secondary};
     border-radius: 10px;
-    color: ${({ $inactive }) => ($inactive ? "#666" : "white")};
+    color: ${({ theme, $inactive }) => ($inactive ? theme.colors.textLight : theme.colors.white)};
     font-weight: 500;
     font-size: 0.9rem;
     display: flex;
@@ -400,9 +400,9 @@ const StyledTag = styled.div`
 const StyledAddTagButton = styled.div`
   padding: 4px 12px;
   background-color: transparent;
-  border: 1px dashed #ccc;
+  border: 1px dashed ${({ theme }) => theme.colors.darkGrey};
   border-radius: 8px;
-  color: #666;
+  color: ${({ theme }) => theme.colors.textLight};
   font-weight: 600;
   font-size: 0.8rem;
   cursor: pointer;
@@ -415,9 +415,9 @@ const StyledAddTagButton = styled.div`
   display: inline-flex;
 
   &:hover {
-    background-color: #f4f4f4;
-    color: #333;
-    border-color: #333;
+    background-color: ${({ theme }) => theme.colors.lightGrey};
+    color: ${({ theme }) => theme.colors.text};
+    border-color: ${({ theme }) => theme.colors.text};
   }
 `;
 
@@ -430,7 +430,7 @@ const StyledTagInput = styled.input`
   font-size: 0.8rem;
   font-weight: 600;
   font-family: inherit;
-  background-color: ${({ theme }) => theme.colors?.secondary || "#555"};
+  background-color: ${({ theme }) => theme.colors.secondary};
   &:focus {
     outline: none;
     box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
@@ -457,7 +457,7 @@ const StyledTreeItemLabel = styled.div`
   pointer-events: ${({ $disabled }) => ($disabled ? "none" : "auto")};
   &:hover {
     background-color: ${({ $selected, $disabled, theme }) =>
-      $disabled ? undefined : $selected ? theme.colors.primary : "#f0f0f0"};
+      $disabled ? undefined : $selected ? theme.colors.primary : theme.colors.lightGrey};
   }
   > svg {
     width: 16px;
@@ -495,7 +495,7 @@ const ModalOverlay = styled.div`
 const DropdownSectionLabel = styled.div`
   font-size: 0.75rem;
   font-weight: 700;
-  color: #999;
+  color: ${({ theme }) => theme.colors.textMuted};
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 8px;
@@ -507,35 +507,35 @@ const StyledSearchInput = styled.div`
   position: relative;
   display: flex;
   align-items: center;
-  background-color: #f4f5f7;
+  background-color: ${({ theme }) => theme.colors.lightGrey};
   border: 1px solid transparent;
   border-radius: 20px;
   padding: 8px 16px;
   gap: 8px;
   transition: all 0.2s;
 
-  border-color: ${({ theme }) => theme.colors?.secondary};
+  border-color: ${({ theme }) => theme.colors.secondary};
 
   &:focus-within {
     background-color: ${({ theme }) => theme.colors.white};
-    border-color: ${({ theme }) => theme.colors?.secondary || "#00b894"};
+    border-color: ${({ theme }) => theme.colors.secondary};
   }
 
   > input {
     border: none;
     background: transparent;
     outline: none;
-    color: ${({ theme }) => theme.colors?.text};
+    color: ${({ theme }) => theme.colors.text};
     font-size: 0.95rem;
     width: 200px;
 
     &::placeholder {
-      color: #a0a0a0;
+      color: ${({ theme }) => theme.colors.textMuted};
     }
   }
 
   > svg {
-    color: #a0a0a0;
+    color: ${({ theme }) => theme.colors.textMuted};
     flex-shrink: 0;
   }
 `;
@@ -624,11 +624,11 @@ const StyledTab = styled.div`
   font-weight: 600;
   cursor: pointer;
   color: ${({ $active, theme }) =>
-    $active ? theme.colors?.secondary || "#00b894" : "#6c757d"};
+    $active ? theme.colors.secondary : theme.colors.textLight};
   transition: color 0.15s;
 
   &:hover {
-    color: ${({ theme }) => theme.colors?.secondary || "#00b894"};
+    color: ${({ theme }) => theme.colors.secondary};
   }
 
   > svg {
@@ -653,17 +653,17 @@ const SortSelect = styled.select`
   appearance: none;
   padding: 8px 32px 8px 16px;
   border-radius: 8px;
-  border: 1px solid #ced4da;
+  border: 1px solid ${({ theme }) => theme.colors.darkGrey};
   background-color: ${({ theme }) => theme.colors.white};
   font-family: inherit;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #495057;
+  color: ${({ theme }) => theme.colors.textLight};
   outline: none;
   cursor: pointer;
 
   &:hover {
-    background-color: #f8f9fa;
+    background-color: ${({ theme }) => theme.colors.lightGrey};
   }
 `;
 
@@ -671,7 +671,7 @@ const SortIconWrapper = styled.div`
   position: absolute;
   right: 12px;
   pointer-events: none;
-  color: #495057;
+  color: ${({ theme }) => theme.colors.textLight};
   display: flex;
   align-items: center;
 `;
@@ -682,14 +682,14 @@ const BackButton = styled.div`
   align-items: center;
   font-size: 1.3rem;
   font-weight: 600;
-  color: ${({ theme }) => theme.colors?.darkGrey};
+  color: ${({ theme }) => theme.colors.darkGrey};
   transition: color 0.2s;
 
   user-select: none;
   -webkit-user-select: none;
 
   &:hover {
-    color: ${({ theme }) => theme.colors?.text};
+    color: ${({ theme }) => theme.colors.text};
   }
 
   > svg {
@@ -702,7 +702,7 @@ const StyledToolbar = styled.div`
   align-items: center;
   justify-content: space-between;
   margin-bottom: 20px;
-  border-bottom: 1px solid #d1d5db;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.darkGrey};
   padding-bottom: 15px;
   flex-wrap: wrap;
   gap: 15px;
@@ -728,15 +728,15 @@ const ToolbarButton = styled.button`
   transition: all 0.2s;
 
   &.primary {
-    background-color: ${({ theme }) => theme.colors?.secondary || "#00b894"};
+    background-color: ${({ theme }) => theme.colors.secondary};
     color: ${({ theme }) => theme.colors.white};
-    border: 1px solid ${({ theme }) => theme.colors?.secondary || "#00b894"};
+    border: 1px solid ${({ theme }) => theme.colors.secondary};
   }
 
   &.outline {
     background-color: ${({ theme }) => theme.colors.white};
-    color: #495057;
-    border: 1px solid #ced4da;
+    color: ${({ theme }) => theme.colors.textLight};
+    border: 1px solid ${({ theme }) => theme.colors.darkGrey};
   }
 `;
 
@@ -751,7 +751,7 @@ const FilterDropdown = styled.div`
   top: calc(100% + 8px);
   right: 0;
   background: ${({ theme }) => theme.colors.white};
-  border: 1px solid #ced4da;
+  border: 1px solid ${({ theme }) => theme.colors.darkGrey};
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   padding: 15px;
@@ -770,19 +770,19 @@ const FilterTag = styled.div`
   font-weight: 600;
   cursor: pointer;
   background-color: ${({ $active, theme }) =>
-    $active ? theme.colors?.secondary || "#00b894" : "#f4f5f7"};
-  color: ${({ $active }) => ($active ? "white" : "#495057")};
+    $active ? theme.colors.secondary : theme.colors.lightGrey};
+  color: ${({ $active, theme }) => ($active ? theme.colors.white : theme.colors.textLight)};
   transition: all 0.2s;
 
   &:hover {
     background-color: ${({ $active, theme }) =>
-      $active ? theme.colors?.secondary || "#00b894" : "#e2e6ea"};
+      $active ? theme.colors.secondary : theme.colors.borderLight};
     opacity: ${({ $active }) => ($active ? 0.8 : 1)};
   }
 `;
 
 const ActiveFilterBadge = styled.span`
-  background-color: ${({ theme }) => theme.colors?.secondary || "#00b894"};
+  background-color: ${({ theme }) => theme.colors.secondary};
   color: ${({ theme }) => theme.colors.white};
   border-radius: 50%;
   width: 20px;
@@ -805,6 +805,7 @@ const EllipsisIcon = () => (
 );
 
 const Notes = () => {
+  const theme = useTheme();
   const params = useParams();
   const urlPath = params["*"] || "";
   const isTrashView = urlPath === "trash" || urlPath.startsWith("trash/");
@@ -1730,7 +1731,7 @@ const Notes = () => {
                           totalItems
                         )}`}
                         style={{
-                          color: "#888",
+                          color: theme.colors.textMuted,
                           fontSize: "0.85rem",
                           fontWeight: "500",
                         }}
@@ -1871,7 +1872,7 @@ const Notes = () => {
                           <div
                             style={{
                               height: "1px",
-                              background: "#eee",
+                              background: theme.colors.borderLight,
                               margin: "5px 0",
                             }}
                           ></div>
@@ -2084,7 +2085,7 @@ const Notes = () => {
                           <div
                             style={{
                               height: "1px",
-                              background: "#eee",
+                              background: theme.colors.borderLight,
                               margin: "5px 0",
                             }}
                           ></div>
@@ -2353,7 +2354,7 @@ const Notes = () => {
               <Text bold="true" as="h2" text="Wyczyścić kosz?" />
               <Text
                 text="Czy na pewno chcesz usunąć wszystkie pliki z kosza? Tej operacji nie można cofnąć."
-                style={{ margin: "20px 0", color: "#666" }}
+                style={{ margin: "20px 0", color: theme.colors.textLight }}
               />
               <div
                 style={{
@@ -2414,7 +2415,7 @@ const Notes = () => {
                   maxHeight: "300px",
                   overflowY: "auto",
                   margin: "20px 0",
-                  border: "1px solid #eee",
+                  border: `1px solid ${theme.colors.borderLight}`,
                   borderRadius: "12px",
                   padding: "15px",
                 }}
