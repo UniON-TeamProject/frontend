@@ -293,7 +293,7 @@ const ReturnButton = styled.div`
   cursor: pointer;
   font-size: 1.1rem;
   font-weight: 600;
-  color: ${({ theme }) => theme.colors.danger};
+  color: ${({ theme }) => theme.colors.darkGrey};
   transition: color 0.2s;
   user-select: none;
   -webkit-user-select: none;
