@@ -24,7 +24,7 @@ const StyledBox = styled.div`
   a {
     margin: 10px 0;
   }
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     width: 100%;
     margin: 0 auto;
     padding: 30px 40px;
@@ -41,7 +41,7 @@ const StyledTitle = styled.h2`
 `;
 
 const MobileButtonWrapper = styled.div`
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     a {
       background-color: ${({ theme }) => theme.colors.white};
     }

@@ -21,7 +21,7 @@ const StyledContent = styled.div`
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     width: 100%;
   }
 `;
@@ -34,7 +34,7 @@ const StyledBox = styled.div`
   margin-bottom: 15px;
   text-align: center;
   cursor: default;
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     width: 100%;
     padding: 30px 40px;
     background-color: ${({ theme }) => theme.colors.pageBg};
@@ -71,7 +71,7 @@ const SuccessPopup = styled.div`
   text-align: center;
   border-radius: 5px;
   z-index: 100;
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     width: 90%;
   }
 `;

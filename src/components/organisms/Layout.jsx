@@ -53,7 +53,7 @@ const StyledSidebar = styled.div`
   transition: width 0.25s ease;
   overflow: hidden;
   border-right: 1px solid rgba(0, 0, 0, 0.03);
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     display: none;
   }
 `;
@@ -137,7 +137,7 @@ const StyledContent = styled.div`
     $expanded ? `${EXPANDED_WIDTH}px` : `${COLLAPSED_WIDTH}px`};
   transition: margin-left 0.25s ease;
   min-height: 100vh;
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     margin-left: 0;
     padding-bottom: 64px;
   }
@@ -145,7 +145,7 @@ const StyledContent = styled.div`
 
 const BottomBar = styled.nav`
   display: none;
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     position: fixed;
     bottom: 0;
     left: 0;

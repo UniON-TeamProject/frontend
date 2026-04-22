@@ -268,8 +268,7 @@ const TopControlsWrapper = styled.div`
   width: 65%;
   display: flex;
   align-items: center;
-  padding-top: ${({ $collapsed }) => $collapsed ? "15px" : "35px"};
-  transition: padding 0.35s ease;
+  padding-top: 35px;
   z-index: 11;
   
   @media(max-width: 768px) {
@@ -398,7 +397,6 @@ const TextEditor = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [flashcards, setFlashcards] = useState([]);
   const [isScrolled, setIsScrolled] = useState(false);
-  const collapsingSectionRef = useRef(null);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
   const SaveShortcut = Extension.create({
@@ -630,13 +628,13 @@ const TextEditor = () => {
     const handleScroll = () => {
       const y = window.scrollY;
       setIsScrolled(prev => {
-        if (prev && y <= 10) return false;
-        if (!prev && y > 10) {
-          const collapseHeight = collapsingSectionRef.current?.scrollHeight || 0;
-          const maxScrollAfterCollapse = document.documentElement.scrollHeight - collapseHeight - window.innerHeight;
-          return maxScrollAfterCollapse > 10;
+        if (prev) return y > 5;
+        if (y > 10) {
+          const docHeight = document.documentElement.scrollHeight;
+          if (docHeight < window.innerHeight * 1.2) return false;
+          return true;
         }
-        return prev;
+        return false;
       });
     };
     window.addEventListener('scroll', handleScroll);
@@ -732,7 +730,7 @@ const TextEditor = () => {
               </FlashcardToggleButton>
             </div>
 
-            <TopControlsWrapper $collapsed={isScrolled}>
+            <TopControlsWrapper>
                 <ReturnButton onClick={() => history.back()}>
                   <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
                     <path fillRule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z" />
@@ -753,7 +751,7 @@ const TextEditor = () => {
               onClose={() => setIsAIModalOpen(false)}
               noteId={id}
             />
-            <CollapsingSection ref={collapsingSectionRef} $collapsed={isScrolled}>
+            <CollapsingSection $collapsed={isScrolled}>
               {renameNoteError && <Text style={{ width: "65%", textAlign: 'left' }} color="danger" text={renameNoteErrorMessage} />}
               <StyledTitleInput
                 type="text"

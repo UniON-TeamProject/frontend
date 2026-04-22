@@ -19,7 +19,7 @@ const StyledContent = styled.div`
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     width: 100%;
   }
 `;
@@ -31,7 +31,7 @@ const StyledBox = styled.div`
   padding: 30px 80px;
   margin-bottom: 15px;
   cursor: default;
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     width: 100%;
     padding: 30px 40px;
     background-color: ${({ theme }) => theme.colors.pageBg};
@@ -71,7 +71,7 @@ const StyledLine = styled.div`
     top: 50%;
     transform: translateY(-50%);
   }
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     > span {
       background-color: ${({ theme }) => theme.colors.pageBg};
     }
@@ -100,7 +100,7 @@ const StyledLink = styled(Link)`
 `;
 
 const StyledRedirectButton = styled(SubmitButton)`
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     background-color: ${({ theme }) => theme.colors.white};
   }
 `;

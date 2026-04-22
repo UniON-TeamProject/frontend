@@ -309,7 +309,7 @@ const MonthGrid = styled.div`
   padding: 16px 24px;
   gap: ${({ $weeks }) => ($weeks > 5 ? 3 : 6)}px;
   overflow: hidden;
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     flex: none;
     padding: 8px 8px;
     gap: 3px;
@@ -352,7 +352,7 @@ const MonthCell = styled.div`
   position: relative;
   min-height: 0;
   overflow: hidden;
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     padding: 3px 4px;
     border-radius: 6px;
     aspect-ratio: 1;
@@ -373,7 +373,7 @@ const CellDate = styled.div`
   display: flex;
   align-items: center;
   gap: 5px;
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     font-size: 11px;
     margin-bottom: 2px;
   }
@@ -384,7 +384,9 @@ const DeadlineDot = styled.div`
   height: 8px;
   border-radius: 50%;
   background: ${({ $urgency, theme }) =>
-    `color-mix(in srgb, ${theme.colors.danger} ${Math.round(25 + $urgency * 75)}%, transparent)`};
+    `color-mix(in srgb, ${theme.colors.danger} ${Math.round(
+      25 + $urgency * 75
+    )}%, transparent)`};
   flex-shrink: 0;
 `;
 
@@ -395,7 +397,7 @@ const CellEvents = styled.div`
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     gap: 2px;
   }
 `;
@@ -411,7 +413,7 @@ const CellEventBar = styled.div`
   min-height: 28px;
   flex-shrink: 0;
   pointer-events: none;
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     min-height: 6px;
     height: 6px;
     padding: 0;
@@ -428,7 +430,7 @@ const CellEventTitle = styled.span`
   text-overflow: ellipsis;
   flex: 1;
   min-width: 0;
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     display: none;
   }
 `;
@@ -439,7 +441,7 @@ const CellEventIcons = styled.span`
   flex-shrink: 0;
   font-size: 11px;
   line-height: 1;
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     display: none;
   }
 `;
@@ -457,7 +459,7 @@ const HiddenCount = styled.div`
   font-size: ${({ $mobile }) => ($mobile ? "10px" : "12px")};
   font-weight: 700;
   color: ${({ theme }) => theme.colors.textMuted};
-  margin-top: 1px;
+  margin-top: auto;
   line-height: 1;
   flex-shrink: 0;
 `;
@@ -474,7 +476,7 @@ const MonthWeekRow = styled.div`
   gap: ${({ $compact }) => ($compact ? 4 : 8)}px;
   flex: 1;
   min-height: 0;
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     flex: none;
     gap: 3px;
   }
@@ -503,7 +505,7 @@ const SpanningBar = styled.div`
   text-overflow: ellipsis;
   z-index: 2;
   pointer-events: none;
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     height: 6px;
     padding: 0;
   }
@@ -518,7 +520,7 @@ const SpanningBarTitle = styled.span`
   text-overflow: ellipsis;
   flex: 1;
   min-width: 0;
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     display: none;
   }
 `;
@@ -761,10 +763,10 @@ const CalendarGrid = ({
   const weekBodyRef = useRef(null);
   const monthGridRef = useRef(null);
   const [monthGridHeight, setMonthGridHeight] = useState(0);
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 600);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
 
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 600px)");
+    const mq = window.matchMedia("(max-width: 768px)");
     const handler = (e) => setIsMobile(e.matches);
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
@@ -1103,14 +1105,19 @@ const CalendarGrid = ({
                   const span = endCol - startCol + 1;
                   const marginStart = isStart ? 6 : 0;
                   const marginEnd = isEnd ? 6 : 0;
-                  const leftCalc = `calc(${(startCol / 7) * 100}% + ${
-                    startCol > 0 ? `${(startCol * GAP) / 7}px` : "0px"
-                  } + ${marginStart}px)`;
+                  const leftCalc = isMobile
+                    ? `calc(${(startCol / 7) * 100}% + ${
+                        startCol > 0 ? `${(startCol * GAP) / 7}px` : "0px"
+                      } + ${marginStart}px)`
+                    : `calc(${(startCol / 7) * 100}% + ${
+                        startCol > 0 ? `${(startCol * GAP) / 7}px` : "0px"
+                      } + ${marginStart}px + 3px)`;
                   const widthCalc = `calc(${(span / 7) * 100}% - ${
                     ((7 - span) * GAP) / 7
                   }px - ${marginStart + marginEnd}px)`;
                   const eventSlotHeight = dashboardMode || isMobile ? 8 : 33;
-                  const topOffset = (isMobile ? 22 : 36) + lane * eventSlotHeight;
+                  const topOffset =
+                    (isMobile ? 22 : 36) + lane * eventSlotHeight;
 
                   return (
                     <SpanningBar
@@ -1138,9 +1145,7 @@ const CalendarGrid = ({
                             <span key={idx}>{ic}</span>
                           ))}
                           {icons.length > 2 && (
-                            <EllipsisIcon $dark={style.dark}>
-                              …
-                            </EllipsisIcon>
+                            <EllipsisIcon $dark={style.dark}>…</EllipsisIcon>
                           )}
                         </CellEventIcons>
                       )}
@@ -1165,7 +1170,9 @@ const CalendarGrid = ({
                 ).length;
                 const slotH = isMobile ? 8 : 33;
                 const spanPadding =
-                  visibleSpanningCount > 0 ? visibleSpanningCount * slotH + (isMobile ? 2 : -5) : 0;
+                  visibleSpanningCount > 0
+                    ? visibleSpanningCount * slotH + (isMobile ? 2 : -2)
+                    : 0;
                 const compact = weeks.length > 5;
                 const slotsForSingleDay = Math.max(
                   0,
@@ -1189,9 +1196,21 @@ const CalendarGrid = ({
                       {urgency > 0 && <DeadlineDot $urgency={urgency} />}
                     </CellDate>
                     {spanPadding > 0 && (
-                      <div style={{ minHeight: 0, height: spanPadding, flexShrink: 1 }} />
+                      <div
+                        style={{
+                          minHeight: 0,
+                          height: spanPadding,
+                          flexShrink: 1,
+                        }}
+                      />
                     )}
-                    <CellEvents style={hiddenCount > 0 ? { justifyContent: "flex-end", marginBottom: 5 } : undefined}>
+                    <CellEvents
+                      style={
+                        hiddenCount > 0
+                          ? { marginBottom: 5 }
+                          : undefined
+                      }
+                    >
                       {visible.map((ev) => {
                         const style = getEventStyle(ev, theme);
                         const icons = (ev.tags || [])

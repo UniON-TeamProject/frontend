@@ -48,6 +48,9 @@ const StyledContainer = styled.div`
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  @media (max-width: 768px) {
+    padding: 16px 12px 20px;
+  }
 `;
 
 const StyledHeader = styled.div`
@@ -66,6 +69,9 @@ const StyledName = styled.h2`
   cursor: default;
   margin: 0;
   line-height: 1;
+  @media (max-width: 768px) {
+    font-size: 1.3rem;
+  }
 `;
 
 const HeaderRight = styled.div`
@@ -79,6 +85,7 @@ const DashboardLayout = styled.div`
   grid-template-columns: 3.8fr 6.2fr;
   gap: 20px;
   align-items: stretch;
+  min-width: 0;
 
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
@@ -90,6 +97,7 @@ const LeftColumn = styled.div`
   flex-direction: column;
   gap: 15px;
   height: 100%;
+  min-width: 0;
 `;
 
 const RightColumn = styled.div`
@@ -97,6 +105,7 @@ const RightColumn = styled.div`
   flex-direction: column;
   gap: 15px;
   height: 100%;
+  min-width: 0;
 `;
 
 const CardBox = styled.div`
@@ -107,6 +116,10 @@ const CardBox = styled.div`
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  min-width: 0;
+  @media (max-width: 768px) {
+    padding: 18px 14px;
+  }
 `;
 
 const FiszkiBox = styled(CardBox)`
@@ -135,6 +148,10 @@ const BottomRow = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 30px;
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
 `;
 
 const CardTitle = styled.h3`
@@ -257,6 +274,10 @@ const FoldersRow = styled.div`
   gap: 25px;
   margin-bottom: 24px;
   flex-shrink: 0;
+  @media (max-width: 768px) {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
 `;
 
 const FolderBox = styled.div`

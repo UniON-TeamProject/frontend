@@ -42,9 +42,12 @@ const StyledContainer = styled.div`
   width: 100%;
   height: 100%;
   min-height: 100vh;
-  /* padding:40px; */
   padding: 20px 40px;
   position: relative;
+  box-sizing: border-box;
+  @media (max-width: 768px) {
+    padding: 12px 12px;
+  }
 `;
 
 const StyledUserHeader = styled.div`
@@ -54,6 +57,14 @@ const StyledUserHeader = styled.div`
   align-items: center;
   margin-bottom: 20px;
   min-height: 60px;
+  gap: 12px;
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    margin-bottom: 10px;
+    min-height: 40px;
+    gap: 8px;
+  }
 `;
 
 const StyledName = styled.h2`
@@ -62,7 +73,7 @@ const StyledName = styled.h2`
   margin: 0;
   cursor: default;
   @media (max-width: 768px) {
-    font-size: 2rem;
+    font-size: 1.5rem;
   }
 `;
 
@@ -94,6 +105,11 @@ const StyledBreadcrumbPath = styled.div`
       color: ${({ theme }) => theme.colors.secondary};
     }
   }
+
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+    gap: 4px;
+  }
 `;
 
 const ContentContainer = styled.div`
@@ -106,6 +122,12 @@ const ContentContainer = styled.div`
   grid-template-columns: repeat(auto-fit, 250px);
   justify-content: center;
   gap: 30px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+    padding: 10px 0 100px 0;
+  }
 `;
 
 const StyledClearTrashButton = styled.div`
@@ -156,8 +178,17 @@ const FloatingActionButton = styled.button`
       $danger ? theme.colors.white : theme.colors.secondary};
   }
 
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     bottom: 80px;
+    right: 16px;
+    width: 54px;
+    height: 54px;
+    border-radius: 16px;
+
+    svg {
+      width: 24px;
+      height: 24px;
+    }
   }
 `;
 
@@ -169,8 +200,9 @@ const FabMenu = styled.div`
   flex-direction: column;
   gap: 8px;
   z-index: 100;
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     bottom: 164px;
+    right: 20px;
   }
 `;
 
@@ -205,6 +237,15 @@ const StyledItem = styled.div`
   cursor: pointer;
   transition: transform 0.2s;
   z-index: ${({ $isActive }) => ($isActive ? 50 : 1)};
+
+  @media (max-width: 768px) {
+    max-width: 100%;
+    padding: 8px 4px;
+
+    h6 {
+      font-size: 0.65rem !important;
+    }
+  }
 `;
 
 const StyledNoteImage = styled.div`
@@ -219,6 +260,12 @@ const StyledNoteImage = styled.div`
     width: 80%;
     height: 80%;
     color: ${({ theme }) => theme.colors.darkGrey};
+  }
+
+  @media (max-width: 768px) {
+    width: 56px;
+    height: 68px;
+    margin-bottom: 4px;
   }
 `;
 
@@ -235,6 +282,13 @@ const StyledFolderImage = styled.div`
     height: 100%;
     color: ${({ theme }) => theme.colors.black};
   }
+
+  @media (max-width: 768px) {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 4px;
+    padding: 4px;
+  }
 `;
 
 const StyledItemHeaderWrapper = styled.div`
@@ -244,6 +298,16 @@ const StyledItemHeaderWrapper = styled.div`
   flex-grow: 1;
   display: flex;
   flex-direction: column;
+
+  @media (max-width: 768px) {
+    h4 {
+      font-size: 0.78rem !important;
+      margin-bottom: 2px !important;
+    }
+    span, p {
+      font-size: 0.7rem !important;
+    }
+  }
 `;
 
 const StyledItemHeader = styled.span`
@@ -269,6 +333,18 @@ const StyledItemHeader = styled.span`
     width: 18px;
     height: 18px;
     color: ${({ theme }) => theme.colors.darkGrey};
+  }
+
+  @media (max-width: 768px) {
+    top: 6px;
+    right: 6px;
+    width: 24px;
+    height: 24px;
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
   }
 `;
 
@@ -503,6 +579,16 @@ const DropdownSectionLabel = styled.div`
   padding: 0 10px;
 `;
 
+const SearchWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  @media (max-width: 768px) {
+    margin-left: 0;
+  }
+`;
+
 const StyledSearchInput = styled.div`
   position: relative;
   display: flex;
@@ -528,6 +614,7 @@ const StyledSearchInput = styled.div`
     color: ${({ theme }) => theme.colors.text};
     font-size: 0.95rem;
     width: 200px;
+    min-width: 0;
 
     &::placeholder {
       color: ${({ theme }) => theme.colors.textMuted};
@@ -537,6 +624,16 @@ const StyledSearchInput = styled.div`
   > svg {
     color: ${({ theme }) => theme.colors.textMuted};
     flex-shrink: 0;
+  }
+
+  @media (max-width: 768px) {
+    padding: 6px 10px;
+    gap: 6px;
+
+    > input {
+      font-size: 0.8rem;
+      width: 120px;
+    }
   }
 `;
 
@@ -614,6 +711,10 @@ const StyledTabsContainer = styled.div`
   display: flex;
   align-items: center;
   gap: 25px;
+
+  @media (max-width: 768px) {
+    gap: 12px;
+  }
 `;
 
 const StyledTab = styled.div`
@@ -629,6 +730,16 @@ const StyledTab = styled.div`
 
   &:hover {
     color: ${({ theme }) => theme.colors.secondary};
+  }
+
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+    gap: 4px;
+
+    > svg {
+      width: 14px;
+      height: 14px;
+    }
   }
 
   > svg {
@@ -665,6 +776,11 @@ const SortSelect = styled.select`
   &:hover {
     background-color: ${({ theme }) => theme.colors.lightGrey};
   }
+
+  @media (max-width: 768px) {
+    padding: 6px 24px 6px 10px;
+    font-size: 0.78rem;
+  }
 `;
 
 const SortIconWrapper = styled.div`
@@ -695,6 +811,14 @@ const BackButton = styled.div`
   > svg {
     margin-right: 8px;
   }
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+
+    > svg {
+      margin-right: 4px;
+    }
+  }
 `;
 
 const StyledToolbar = styled.div`
@@ -706,12 +830,22 @@ const StyledToolbar = styled.div`
   padding-bottom: 15px;
   flex-wrap: wrap;
   gap: 15px;
+
+  @media (max-width: 768px) {
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    gap: 8px;
+  }
 `;
 
 const ToolbarActions = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
+
+  @media (max-width: 768px) {
+    gap: 6px;
+  }
 `;
 
 const ToolbarButton = styled.button`
@@ -737,6 +871,12 @@ const ToolbarButton = styled.button`
     background-color: ${({ theme }) => theme.colors.white};
     color: ${({ theme }) => theme.colors.textLight};
     border: 1px solid ${({ theme }) => theme.colors.darkGrey};
+  }
+
+  @media (max-width: 768px) {
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    gap: 4px;
   }
 `;
 
@@ -1411,14 +1551,7 @@ const Notes = () => {
               Powrót
             </BackButton>
           )}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              marginLeft: "auto",
-            }}
-          >
+          <SearchWrapper>
             <StyledSearchInput onClick={(e) => e.stopPropagation()}>
               <svg
                 width="15"
@@ -1535,7 +1668,7 @@ const Notes = () => {
                 </StyledSearchDropdown>
               )}
             </StyledSearchInput>
-          </div>
+          </SearchWrapper>
         </StyledUserHeader>
         {errorMessage && <Text color="danger" text={errorMessage} />}
         <StyledToolbar>

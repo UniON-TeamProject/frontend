@@ -22,7 +22,7 @@ const StyledContent = styled.div`
   left: 50%;
   transform: translate(-50%, -50%);
   text-align: center;
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     width: 100%;
   }
 `;
@@ -34,7 +34,7 @@ const StyledBox = styled.div`
   padding: 30px 80px;
   margin-bottom: 15px;
   cursor: default;
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     width: 100%;
     padding: 30px 40px;
     background-color: ${({ theme }) => theme.colors.pageBg};

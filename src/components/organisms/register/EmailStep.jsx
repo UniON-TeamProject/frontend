@@ -27,7 +27,7 @@ const StyledLine = styled.div`
     top: 50%;
     transform: translateY(-50%);
   }
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     > span {
       background-color: ${({ theme }) => theme.colors.pageBg};
     }
@@ -35,7 +35,7 @@ const StyledLine = styled.div`
 `;
 
 const StyledRedirectButton = styled(SubmitButton)`
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     background-color: ${({ theme }) => theme.colors.white};
   }
 `;

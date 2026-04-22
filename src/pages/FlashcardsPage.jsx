@@ -40,6 +40,10 @@ const StyledContainer = styled.div`
   padding: 20px 40px;
   position: relative;
   background-color: transparent;
+  box-sizing: border-box;
+  @media (max-width: 768px) {
+    padding: 12px 12px;
+  }
 `;
 
 const StyledUserHeader = styled.div`
@@ -49,6 +53,24 @@ const StyledUserHeader = styled.div`
   align-items: center;
   margin-bottom: 20px;
   min-height: 60px;
+  gap: 12px;
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    margin-bottom: 10px;
+    min-height: 40px;
+    gap: 8px;
+  }
+`;
+
+const SearchWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  @media (max-width: 768px) {
+    margin-left: 0;
+  }
 `;
 
 const StyledSearchInput = styled.div`
@@ -76,6 +98,7 @@ const StyledSearchInput = styled.div`
     color: ${({ theme }) => theme.colors.text};
     font-size: 0.95rem;
     width: 200px;
+    min-width: 0;
 
     &::placeholder {
       color: ${({ theme }) => theme.colors.textMuted};
@@ -85,6 +108,16 @@ const StyledSearchInput = styled.div`
   > svg {
     color: ${({ theme }) => theme.colors.textMuted};
     flex-shrink: 0;
+  }
+
+  @media (max-width: 768px) {
+    padding: 6px 10px;
+    gap: 6px;
+
+    > input {
+      font-size: 0.8rem;
+      width: 120px;
+    }
   }
 `;
 
@@ -172,7 +205,7 @@ const StyledName = styled.h2`
   margin: 0;
   cursor: default;
   @media (max-width: 768px) {
-    font-size: 2rem;
+    font-size: 1.5rem;
   }
 `;
 
@@ -190,6 +223,14 @@ const BackButton = styled.div`
   > svg {
     margin-right: 8px;
   }
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+
+    > svg {
+      margin-right: 4px;
+    }
+  }
 `;
 
 const ContentContainer = styled.div`
@@ -199,6 +240,12 @@ const ContentContainer = styled.div`
   grid-template-columns: repeat(auto-fit, 350px);
   gap: 30px;
   justify-content: center;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    padding: 10px 0 100px 0;
+  }
 `;
 
 const StartLearningButton = styled.button`
@@ -217,6 +264,11 @@ const StartLearningButton = styled.button`
   &:hover {
     opacity: 0.8;
   }
+
+  @media (max-width: 768px) {
+    padding: 8px 16px;
+    font-size: 0.8rem;
+  }
 `;
 
 const SetItemWrapper = styled.div`
@@ -231,6 +283,11 @@ const SetItemWrapper = styled.div`
   position: relative;
   cursor: pointer;
   z-index: ${({ $isActive }) => ($isActive ? 50 : 1)};
+
+  @media (max-width: 768px) {
+    max-width: 100%;
+    padding: 8px 4px;
+  }
 `;
 
 const SetIconContainer = styled.div`
@@ -239,6 +296,12 @@ const SetIconContainer = styled.div`
   height: 100px;
   margin: 0 auto 10px auto;
   color: ${({ theme }) => theme.colors.black};
+
+  @media (max-width: 768px) {
+    width: 72px;
+    height: 52px;
+    margin-bottom: 4px;
+  }
 `;
 
 const StyledItemHeaderWrapper = styled.div`
@@ -249,6 +312,16 @@ const StyledItemHeaderWrapper = styled.div`
   flex-grow: 1;
   display: flex;
   flex-direction: column;
+
+  @media (max-width: 768px) {
+    h4 {
+      font-size: 0.78rem !important;
+      margin-bottom: 2px !important;
+    }
+    span, p {
+      font-size: 0.7rem !important;
+    }
+  }
 `;
 
 const StyledItemHeader = styled.span`
@@ -274,6 +347,18 @@ const StyledItemHeader = styled.span`
     width: 18px;
     height: 18px;
     color: ${({ theme }) => theme.colors.darkGrey};
+  }
+
+  @media (max-width: 768px) {
+    top: 6px;
+    right: 6px;
+    width: 24px;
+    height: 24px;
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
   }
 `;
 
@@ -322,6 +407,12 @@ const StyledToolbar = styled.div`
   padding-bottom: 15px;
   flex-wrap: wrap;
   gap: 15px;
+
+  @media (max-width: 768px) {
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    gap: 8px;
+  }
 `;
 
 const StyledTagInput = styled.input`
@@ -528,14 +619,23 @@ const FloatingActionButton = styled.button`
     box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
   }
 
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     bottom: 80px;
+    right: 16px;
+    width: 54px;
+    height: 54px;
+    border-radius: 16px;
   }
 
   svg {
     width: 32px;
     height: 32px;
     color: ${({ theme }) => theme.colors.secondary};
+
+    @media (max-width: 768px) {
+      width: 24px;
+      height: 24px;
+    }
   }
 `;
 
@@ -622,6 +722,10 @@ const StyledTabsContainer = styled.div`
   display: flex;
   align-items: center;
   gap: 25px;
+
+  @media (max-width: 768px) {
+    gap: 12px;
+  }
 `;
 
 const StyledTab = styled.div`
@@ -642,6 +746,16 @@ const StyledTab = styled.div`
   > svg {
     width: 16px;
     height: 16px;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+    gap: 4px;
+
+    > svg {
+      width: 14px;
+      height: 14px;
+    }
   }
 `;
 
@@ -666,6 +780,11 @@ const SortSelect = styled.select`
 
   &:hover {
     background-color: ${({ theme }) => theme.colors.lightGrey};
+  }
+
+  @media (max-width: 768px) {
+    padding: 6px 24px 6px 10px;
+    font-size: 0.78rem;
   }
 `;
 
@@ -731,6 +850,10 @@ const ToolbarActions = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
+
+  @media (max-width: 768px) {
+    gap: 6px;
+  }
 `;
 
 const ToolbarButton = styled.button`
@@ -756,6 +879,12 @@ const ToolbarButton = styled.button`
     background-color: ${({ theme }) => theme.colors.white};
     color: ${({ theme }) => theme.colors.textLight};
     border: 1px solid ${({ theme }) => theme.colors.darkGrey};
+  }
+
+  @media (max-width: 768px) {
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    gap: 4px;
   }
 `;
 
@@ -1657,14 +1786,7 @@ const FlashcardsPage = () => {
           )}
 
           {/* WYSZUKIWARKA */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              marginLeft: "auto",
-            }}
-          >
+          <SearchWrapper>
             <StyledSearchInput onClick={(e) => e.stopPropagation()}>
               <svg
                 width="15"
@@ -1793,7 +1915,7 @@ const FlashcardsPage = () => {
                 </StyledSearchDropdown>
               )}
             </StyledSearchInput>
-          </div>
+          </SearchWrapper>
         </StyledUserHeader>
 
         {/* ZAKŁADKI I TOOLBAR U GÓRY */}

@@ -52,7 +52,7 @@ const Wrapper = styled.div`
   background: ${({ theme }) => theme.colors.pageBg};
   color: ${({ theme }) => theme.colors.text};
   overflow: hidden;
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     height: auto;
     min-height: calc(100vh - 60px);
     overflow: visible;
@@ -64,7 +64,7 @@ const Main = styled.div`
   display: flex;
   flex-direction: column;
   min-width: 0;
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     flex: none;
     width: 100%;
   }
@@ -78,7 +78,7 @@ const PageHeader = styled.div`
   background: ${({ theme }) => theme.colors.pageBg};
   border-bottom: 1px solid ${({ theme }) => theme.colors.darkGrey};
   flex-shrink: 0;
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     padding: 10px 12px;
     display: flex;
     justify-content: space-between;
@@ -89,7 +89,7 @@ const PageHeaderLeft = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     display: none;
   }
 `;
@@ -113,7 +113,7 @@ const SearchContainer = styled.div`
 
 const FilterButton = styled.button`
   display: none;
-  @media (max-width: 600px) {
+  @media (max-width: 1000px) {
     display: flex;
     align-items: center;
     gap: 5px;
@@ -164,7 +164,7 @@ const MultiselectInput = styled.div`
   &:hover {
     border-color: ${({ theme }) => theme.colors.secondaryLight};
   }
-  @media (max-width: 600px) {
+  @media (max-width: 1000px) {
     display: none;
   }
 `;
@@ -243,16 +243,16 @@ const SearchDropdown = styled.div`
   z-index: 50;
   padding: 10px;
   animation: ${scaleIn} 0.15s ease;
-  @media (max-width: 600px) {
+  @media (max-width: 1000px) {
     left: auto;
     right: 0;
-    width: 75vw;
+    width: 280px;
   }
 `;
 
 const DropdownMobileSearch = styled.div`
   display: none;
-  @media (max-width: 600px) {
+  @media (max-width: 1000px) {
     display: flex;
     align-items: center;
     gap: 4px;
@@ -435,7 +435,7 @@ const AddBtn = styled.button`
 `;
 
 const UsosLabel = styled.span`
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     display: none;
   }
 `;
@@ -451,15 +451,21 @@ const DetailSidebar = styled.div`
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  @media (max-width: 600px) {
+  @media (max-width: 1200px) {
     position: fixed;
     top: 0;
     right: 0;
-    bottom: 60px;
+    bottom: 0;
     left: auto;
-    width: ${({ $open }) => ($open ? "100%" : "0")};
+    width: ${({ $open }) => ($open ? "350px" : "0")};
     z-index: 50;
     border-left: none;
+    box-shadow: ${({ $open }) => ($open ? "-4px 0 16px rgba(0,0,0,0.1)" : "none")};
+  }
+  @media (max-width: 768px) {
+    bottom: 60px;
+    width: ${({ $open }) => ($open ? "100%" : "0")};
+    box-shadow: none;
   }
 `;
 
@@ -471,7 +477,7 @@ const SidebarInner = styled.div`
   gap: 12px;
   overflow-y: auto;
   animation: ${slideIn} 0.3s ease;
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     width: 100%;
     box-sizing: border-box;
     padding: 0 0 16px;
@@ -479,7 +485,7 @@ const SidebarInner = styled.div`
 `;
 
 const SidebarStickyTop = styled.div`
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     position: sticky;
     top: 0;
     z-index: 2;
@@ -535,7 +541,7 @@ const SidebarEventCard = styled.div`
   border-radius: 8px;
   padding: 10px 12px;
   animation: ${fadeIn} 0.25s ease;
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     margin-left: 16px;
     margin-right: 16px;
   }
@@ -704,15 +710,21 @@ const FormSidebar = styled.div`
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  @media (max-width: 600px) {
+  @media (max-width: 1200px) {
     position: fixed;
     top: 0;
     right: 0;
-    bottom: 60px;
+    bottom: 0;
     left: auto;
-    width: ${({ $open }) => ($open ? "100%" : "0")};
+    width: ${({ $open }) => ($open ? "350px" : "0")};
     z-index: 50;
     border-left: none;
+    box-shadow: ${({ $open }) => ($open ? "-4px 0 16px rgba(0,0,0,0.1)" : "none")};
+  }
+  @media (max-width: 768px) {
+    bottom: 60px;
+    width: ${({ $open }) => ($open ? "100%" : "0")};
+    box-shadow: none;
   }
 `;
 
@@ -724,7 +736,7 @@ const FormSidebarInner = styled.div`
   gap: 2px;
   overflow-y: auto;
   animation: ${slideIn} 0.3s ease;
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     width: 100%;
     box-sizing: border-box;
   }
