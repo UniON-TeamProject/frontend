@@ -1,5 +1,5 @@
-import styled, { useTheme } from "styled-components";
-import React, { useState, useEffect } from "react";
+import styled, { useTheme, keyframes } from "styled-components";
+import React, { useState, useEffect, useRef } from "react";
 import SubmitButton from "../components/atoms/SubmitButton";
 import Text from "../components/atoms/Text";
 import Input from "../components/atoms/Input";
@@ -20,12 +20,15 @@ import {
   removeFlashcardTag,
   addListOfCardsToSet,
   getFlashcardSetStats,
+  getAllUsersCards,
+  getCardsByTags,
 } from "../api";
 import { getToken } from "../token";
 import Flashcard from "../components/organisms/Flashcard";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import Layout from "../components/organisms/Layout";
 import FlashcardEditor from "../components/editor/FlashcardEditor";
+import TagSelector from "../components/organisms/TagSelector";
 
 const stripHtml = (html) => {
   if (!html) return "";
@@ -318,7 +321,8 @@ const StyledItemHeaderWrapper = styled.div`
       font-size: 0.78rem !important;
       margin-bottom: 2px !important;
     }
-    span, p {
+    span,
+    p {
       font-size: 0.7rem !important;
     }
   }
@@ -453,6 +457,147 @@ const StyledAddTagButton = styled.div`
     color: ${({ theme }) => theme.colors.text};
     border-color: ${({ theme }) => theme.colors.text};
   }
+`;
+
+
+const scaleIn = keyframes`from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}`;
+
+const TagSearchContainer = styled.div`
+  position: relative;
+  width: 100%;
+`;
+
+const TagMultiselectInput = styled.div`
+  width: 100%;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid ${({ $open, theme }) => $open ? theme.colors.secondary : theme.colors.darkGrey};
+  background: ${({ theme }) => theme.colors.white};
+  font-size: 13px;
+  font-family: inherit;
+  cursor: text;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+  transition: border-color 0.15s;
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.secondaryLight};
+  }
+`;
+
+const TagMultiselectArrow = styled.span`
+  font-size: 10px;
+  color: ${({ theme }) => theme.colors.textMuted};
+  flex-shrink: 0;
+`;
+
+const TagChipsScroll = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+  flex-shrink: 1;
+  min-width: 0;
+  flex-direction: row-reverse;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+`;
+
+const TagSelectedChip = styled.span`
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px 2px 8px;
+  border-radius: 4px;
+  background: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.secondary};
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+`;
+
+const TagSelectedChipRemove = styled.button`
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  opacity: 0.5;
+  &:hover { opacity: 1; }
+`;
+
+const TagMultiselectTextInput = styled.input`
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 13px;
+  font-family: inherit;
+  color: ${({ theme }) => theme.colors.text};
+  flex: 1;
+  min-width: 60px;
+  padding: 2px 0;
+  &::placeholder { color: ${({ theme }) => theme.colors.textLight}; }
+`;
+
+const TagSearchDropdown = styled.div`
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.darkGrey};
+  border-radius: 10px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+  z-index: 50;
+  padding: 10px;
+  max-height: 120px;
+  overflow-y: auto;
+  animation: ${scaleIn} 0.15s ease;
+`;
+
+const TagDropdownSection = styled.div`
+  margin-bottom: 8px;
+  &:last-child { margin-bottom: 0; }
+`;
+
+const TagDropdownSectionLabel = styled.div`
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: ${({ theme }) => theme.colors.textLight};
+  margin-bottom: 5px;
+`;
+
+const TagDropdownItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.text};
+  transition: background 0.1s;
+  &:hover { background: ${({ theme }) => theme.colors.primary}; }
+`;
+
+const TagDropdownCheck = styled.span`
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1.5px solid ${({ $checked, theme }) => $checked ? theme.colors.secondary : theme.colors.darkGrey};
+  background: ${({ $checked, theme }) => $checked ? theme.colors.secondary : "transparent"};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: ${({ theme }) => theme.colors.white};
+  flex-shrink: 0;
+  transition: all 0.15s;
 `;
 
 const StyledItemOption = styled.button`
@@ -639,6 +784,38 @@ const FloatingActionButton = styled.button`
   }
 `;
 
+const FabMenu = styled.div`
+  position: fixed;
+  bottom: 124px;
+  right: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 100;
+  @media (max-width: 768px) {
+    bottom: 164px;
+    right: 20px;
+  }
+`;
+
+const FabMenuItem = styled.button`
+  background: ${({ theme }) => theme.colors.white};
+  border: none;
+  border-radius: 12px;
+  padding: 10px 18px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.text};
+  cursor: pointer;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  text-align: left;
+  transition: box-shadow 0.15s, background 0.15s;
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    background: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
 const StyledPopup = styled.div`
   position: fixed;
   top: 50%;
@@ -798,8 +975,10 @@ const SortIconWrapper = styled.div`
 `;
 
 const ModalButton = styled.button`
-  background-color: ${({ $danger, theme }) => ($danger ? theme.colors.danger : theme.colors.borderLight)};
-  color: ${({ $danger, theme }) => ($danger ? theme.colors.white : theme.colors.text)};
+  background-color: ${({ $danger, theme }) =>
+    $danger ? theme.colors.danger : theme.colors.borderLight};
+  color: ${({ $danger, theme }) =>
+    $danger ? theme.colors.white : theme.colors.text};
   border: none;
   padding: 12px 25px;
   border-radius: 10px;
@@ -919,7 +1098,8 @@ const FilterTag = styled.div`
   cursor: pointer;
   background-color: ${({ $active, theme }) =>
     $active ? theme.colors.secondary : theme.colors.lightGrey};
-  color: ${({ $active, theme }) => ($active ? theme.colors.white : theme.colors.textLight)};
+  color: ${({ $active, theme }) =>
+    $active ? theme.colors.white : theme.colors.textLight};
   transition: all 0.2s;
 
   &:hover {
@@ -1115,7 +1295,10 @@ const FlashcardsPage = () => {
   const [isSetModalOpen, setIsSetModalOpen] = useState(false);
   const [editingSetId, setEditingSetId] = useState(null);
   const [setName, setSetName] = useState("");
-  const [setTags, setSetTags] = useState("");
+  const [suggestedTagsForSet, setSuggestedTagsForSet] = useState([]);
+  const [chosenTagsForSet, setChosenTagsForSet] = useState([]);
+  const [isAddingTagForSet, setIsAddingTagForSet] = useState(false);
+  const [newTagForSet, setNewTagForSet] = useState("");
 
   const [isCardEditModalOpen, setIsCardEditModalOpen] = useState(false);
   const [editingCardId, setEditingCardId] = useState(null);
@@ -1130,6 +1313,22 @@ const FlashcardsPage = () => {
   const hasEmptyCard = newCards.some(
     (card) => card.question.trim() === "" && card.answer.trim() === ""
   );
+
+  // stany dla menu dodawania fiszkek
+  const [isAddModeMenuOpen, setIsAddModeMenuOpen] = useState(false);
+  const [isAddByTagMode, setIsAddByTagMode] = useState(false);
+  const [selectedCardsForAdding, setSelectedCardsForAdding] = useState(
+    new Set()
+  );
+  const [selectedSearchTags, setSelectedSearchTags] = useState([]);
+  const [searchTagText, setSearchTagText] = useState("");
+  const [showTagDropdown, setShowTagDropdown] = useState(false);
+  const tagSearchRef = useRef(null);
+  const tagSearchInputRef = useRef(null);
+  const [foundCards, setFoundCards] = useState([]);
+  const [allUserCards, setAllUserCards] = useState([]);
+  const [isLoadingCards, setIsLoadingCards] = useState(false);
+  const [hasSearchedCards, setHasSearchedCards] = useState(false);
 
   const [setSortOption, setSetSortOption] = useState(() => {
     return localStorage.getItem("flashcardSetsSortOption") || "oldest";
@@ -1175,6 +1374,17 @@ const FlashcardsPage = () => {
   const [bulkTargetSetId, setBulkTargetSetId] = useState("");
   const [bulkNewSetName, setBulkNewSetName] = useState("");
   const [bulkApplyTags, setBulkApplyTags] = useState(false);
+
+  // stany dla dodawania tagów do zaznaczonych fiszek
+  const [isBulkTagsModalOpen, setIsBulkTagsModalOpen] = useState(false);
+  const [suggestedBulkTags, setSuggestedBulkTags] = useState([]);
+  const [chosenBulkTags, setChosenBulkTags] = useState([]);
+  const [isAddingBulkTag, setIsAddingBulkTag] = useState(false);
+  const [newBulkTag, setNewBulkTag] = useState("");
+
+  // stany dla przenoszenia fiszek
+  const [isBulkMoveModalOpen, setIsBulkMoveModalOpen] = useState(false);
+  const [bulkMoveTargetSetId, setBulkMoveTargetSetId] = useState("");
 
   const [isLearningInfoModalOpen, setIsLearningInfoModalOpen] = useState(false);
 
@@ -1224,6 +1434,56 @@ const FlashcardsPage = () => {
     }
   }, [setId, sets, isTrashView]);
 
+  // Załaduj wszystkie fiszki gdy otwieramy tryb AddByTagMode
+  useEffect(() => {
+    const loadAllCards = async () => {
+      if (isAddByTagMode && activeSetId) {
+        const set = sets.find((s) => s.id === activeSetId);
+        if (set) {
+          setIsLoadingCards(true);
+          const allCards = await getAllUsersCards();
+          if (!allCards.errorCode) {
+            const cardsNotInSet = allCards.cards.filter(
+              (card) => !set.cards.some((c) => c.id === card.id)
+            );
+            setAllUserCards(cardsNotInSet);
+            setFoundCards(cardsNotInSet);
+            setHasSearchedCards(true);
+          }
+          setIsLoadingCards(false);
+        }
+      }
+    };
+    loadAllCards();
+  }, [isAddByTagMode, activeSetId, sets]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (tagSearchRef.current && !tagSearchRef.current.contains(e.target)) {
+        setShowTagDropdown(false);
+      }
+    };
+    if (showTagDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [showTagDropdown]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (
+        isAddModeMenuOpen &&
+        !e.target.closest("[data-add-mode-menu]") &&
+        !e.target.closest("[data-fab-button]")
+      ) {
+        setIsAddModeMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isAddModeMenuOpen]);
+
   const currentSet = sets.find((s) => s.id === activeSetId);
 
   useEffect(() => {
@@ -1253,7 +1513,13 @@ const FlashcardsPage = () => {
               ""
             ).toLowerCase();
 
-            if (textFront.includes(lower)) {
+            const textBack = (
+              card.contentFlipSide ||
+              card.answer ||
+              ""
+            ).toLowerCase();
+
+            if (textFront.includes(lower) || textBack.includes(lower)) {
               matchedCards.push({
                 ...card,
                 setName: set.name,
@@ -1377,7 +1643,11 @@ const FlashcardsPage = () => {
           navigate("/", { replace: true });
           return;
         }
-        if (!res.errorCode) addedCount++;
+        if (!res.errorCode) {
+          addedCount++;
+        } else {
+          setErrorMessage(`Błąd przy dodawaniu fiszki: ${res.message}`);
+        }
       }
     }
 
@@ -1385,12 +1655,13 @@ const FlashcardsPage = () => {
       setSuccessMessage("Zapisano!");
       setDuplicateWarning(null);
 
+      // Czekamy dłużej aby wszystkie fiszki się na pewno dodały
       setTimeout(() => {
         fetchData();
         setIsAddingMode(false);
         setNewCards([{ question: "", answer: "" }]);
         setSuccessMessage("");
-      }, 1000);
+      }, 2000);
     } else {
       setErrorMessage("Nie dodano żadnej fiszki (puste pola).");
     }
@@ -1416,7 +1687,7 @@ const FlashcardsPage = () => {
     const currentCardData = currentSet.cards.find(
       (c) => c.id === editingCardId
     );
-    const existingTags = currentCardData ? currentCardData.tags || [] : [];
+    const existingTags = currentCardData ? currentCardData.cardTags || [] : [];
 
     const res = await editCard(
       editingCardId,
@@ -1462,7 +1733,7 @@ const FlashcardsPage = () => {
   };
 
   const handleInlineCardTagAdd = async (card, tagToAdd) => {
-    if (card.tags?.includes(tagToAdd)) return;
+    if (card.cardTags?.includes(tagToAdd)) return;
 
     const res = await addFlashcardTag(card.id, tagToAdd);
     if (!res.errorCode) {
@@ -1506,7 +1777,10 @@ const FlashcardsPage = () => {
   const openAddSetModal = () => {
     setEditingSetId(null);
     setSetName("");
-    setSetTags("");
+    setSuggestedTagsForSet([]);
+    setChosenTagsForSet([]);
+    setIsAddingTagForSet(false);
+    setNewTagForSet("");
     setErrorMessage("");
     setSuccessMessage("");
     setIsSetModalOpen(true);
@@ -1515,7 +1789,11 @@ const FlashcardsPage = () => {
   const openEditSetModal = (set) => {
     setEditingSetId(set.id);
     setSetName(set.name);
-    setSetTags(set.tags && set.tags.length > 0 ? set.tags.join(", ") : "");
+    const existingTags = set.tags && set.tags.length > 0 ? set.tags : [];
+    setSuggestedTagsForSet([]);
+    setChosenTagsForSet(existingTags);
+    setIsAddingTagForSet(false);
+    setNewTagForSet("");
     setErrorMessage("");
     setSuccessMessage("");
     setIsSetModalOpen(true);
@@ -1586,11 +1864,12 @@ const FlashcardsPage = () => {
       return;
     }
 
-    const tagsArray = setTags
-      .split(",")
-      .map((tag) => tag.trim())
-      .filter((tag) => tag.length > 0);
-    const res = await addFlashcardSet(setName, tagsArray, "/");
+    let res;
+    if (editingSetId) {
+      res = await editFlashcardSet(editingSetId, setName, chosenTagsForSet);
+    } else {
+      res = await addFlashcardSet(setName, chosenTagsForSet, "/");
+    }
 
     if (res.errorCode) {
       if (res.errorCode === "TOKEN_UNDEFINED") navigate("/", { replace: true });
@@ -1679,22 +1958,26 @@ const FlashcardsPage = () => {
       if (targetSet && targetSet.tags) targetTags = targetSet.tags;
     }
 
-    const cardRequests = selectedCards.map((card) => {
+    let copyError = null;
+    for (const card of selectedCards) {
       const finalTags = bulkApplyTags
-        ? [...new Set([...(card.tags || []), ...targetTags])]
-        : card.tags || [];
-      return {
-        contentFirstSide: card.contentFirstSide || card.question,
-        contentFlipSide: card.contentFlipSide || card.answer,
-        setId: parseInt(targetId),
-        cardTags: finalTags,
-        isForced: false,
-      };
-    });
+        ? [...new Set([...(card.cardTags || []), ...targetTags])]
+        : card.cardTags || [];
+      const res = await addCard(
+        card.contentFirstSide || card.question,
+        card.contentFlipSide || card.answer,
+        parseInt(targetId),
+        finalTags,
+        false
+      );
+      if (res.errorCode) {
+        copyError = res.message;
+        break;
+      }
+    }
 
-    const res = await addListOfCardsToSet(targetId, cardRequests);
-    if (res.errorCode) {
-      setErrorMessage(res.message);
+    if (copyError) {
+      setErrorMessage(copyError);
     } else {
       setIsBulkCopyModalOpen(false);
       setIsSelectMode(false);
@@ -1755,7 +2038,15 @@ const FlashcardsPage = () => {
             <BackButton
               style={{ fontSize: "1.1rem", fontWeight: "600" }}
               onClick={() => {
-                if (isAddingMode) {
+                if (isAddByTagMode) {
+                  setIsAddByTagMode(false);
+                  setFoundCards([]);
+                  setSelectedSearchTags([]);
+                  setSearchTagText("");
+                  setShowTagDropdown(false);
+                  setSelectedCardsForAdding(new Set());
+                  setHasSearchedCards(false);
+                } else if (isAddingMode) {
                   const hasChanges = newCards.some(
                     (card) =>
                       card.question.trim() !== "" || card.answer.trim() !== ""
@@ -1764,6 +2055,7 @@ const FlashcardsPage = () => {
                     setIsExitAddModeModalOpen(true);
                   } else {
                     setIsAddingMode(false);
+                    setErrorMessage("");
                   }
                 } else {
                   navigate("/learning");
@@ -1781,12 +2073,14 @@ const FlashcardsPage = () => {
                   d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"
                 />
               </svg>
-              {isAddingMode ? "Wróć do zestawu" : "Powrót do zestawów"}
+              {isAddingMode || isAddByTagMode
+                ? "Wróć do zestawu"
+                : "Powrót do zestawów"}
             </BackButton>
           )}
 
           {/* WYSZUKIWARKA */}
-          <SearchWrapper>
+          <SearchWrapper style={{ visibility: isAddByTagMode || isAddingMode ? "hidden" : "visible" }}>
             <StyledSearchInput onClick={(e) => e.stopPropagation()}>
               <svg
                 width="15"
@@ -2107,7 +2401,7 @@ const FlashcardsPage = () => {
                 )}
             </div>
 
-            {!isAddingMode && !isTrashView && (
+            {!isAddingMode && !isAddByTagMode && !isTrashView && (
               <SetHeaderControls>
                 <ActionBanner
                   onClick={() => navigate(`/learning/fast/${currentSet?.id}`)}
@@ -2181,40 +2475,93 @@ const FlashcardsPage = () => {
                     marginLeft: "auto",
                   }}
                 >
-                  <ToolbarButton
-                    className="outline"
-                    disabled={
-                      !currentSet?.cards || currentSet.cards.length === 0
-                    }
-                    onClick={() => {
-                      if (!currentSet?.cards || currentSet.cards.length === 0)
-                        return;
-                      setIsSelectMode(!isSelectMode);
-                      setSelectedCards([]);
-                    }}
-                    title={
-                      !currentSet?.cards || currentSet.cards.length === 0
-                        ? "Brak fiszek do zaznaczenia"
-                        : ""
-                    }
-                  >
-                    <svg
-                      fill="currentColor"
-                      viewBox="0 0 16 16"
-                      width="14"
-                      height="14"
-                      style={{
-                        opacity:
-                          !currentSet?.cards || currentSet.cards.length === 0
-                            ? 0.5
-                            : 1,
+                  {(currentSet?.cards && currentSet.cards.length > 0) || isSelectMode ? (
+                    <ToolbarButton
+                      className="outline"
+                      onClick={() => {
+                        setIsSelectMode(!isSelectMode);
+                        setSelectedCards([]);
                       }}
                     >
-                      <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z" />
-                      <path d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425z" />
-                    </svg>
-                    {isSelectMode ? "Anuluj zaznaczanie" : "Zaznacz fiszki"}
-                  </ToolbarButton>
+                      <svg
+                        fill="currentColor"
+                        viewBox="0 0 16 16"
+                        width="14"
+                        height="14"
+                      >
+                        <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z" />
+                        <path d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425z" />
+                      </svg>
+                      {isSelectMode ? "Zamknij wybór" : "Wybierz fiszki"}
+                    </ToolbarButton>
+                  ) : null}
+
+                  {isSelectMode && sortedCards.length > 0 && (
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "16px",
+                        alignItems: "center",
+                      }}
+                    >
+                      <button
+                        onClick={() => setSelectedCards(sortedCards)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          color: theme.colors.secondary,
+                          fontSize: "0.9rem",
+                          fontWeight: "600",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          padding: "4px 8px",
+                          borderRadius: "4px",
+                          transition: "all 0.2s",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = `${theme.colors.secondary}15`;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "transparent";
+                        }}
+                      >
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 16 16"
+                          fill="currentColor"
+                        >
+                          <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z" />
+                          <path d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425z" />
+                        </svg>
+                        Zaznacz wszystko
+                      </button>
+                      <button
+                        onClick={() => setSelectedCards([])}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          color: theme.colors.textLight,
+                          fontSize: "0.9rem",
+                          fontWeight: "600",
+                          padding: "4px 8px",
+                          borderRadius: "4px",
+                          transition: "all 0.2s",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = theme.colors.text;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = theme.colors.textLight;
+                        }}
+                      >
+                        Wyczyść
+                      </button>
+                    </div>
+                  )}
 
                   {currentSet?.cards && currentSet.cards.length > 0 && (
                     <SortSelectContainer>
@@ -2455,7 +2802,7 @@ const FlashcardsPage = () => {
         )}
 
         {/* WNETRZE ZESTAWU */}
-        {activeSetId && !isAddingMode && (
+        {activeSetId && !isAddingMode && !isAddByTagMode && (
           <ContentContainer>
             {(!currentSet?.cards || currentSet.cards.length === 0) &&
             !errorMessage ? (
@@ -2534,21 +2881,394 @@ const FlashcardsPage = () => {
           </CardsFormContainer>
         )}
 
+        {/* TRYB DODAWANIA PO TAGU */}
+        {activeSetId && isAddByTagMode && (
+          <CardsFormContainer>
+            <CardInputRow style={{ flexDirection: "column", gap: "16px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <TagSearchContainer ref={tagSearchRef} style={{ flex: 1 }}>
+                <TagMultiselectInput
+                  $open={showTagDropdown}
+                  onClick={() => {
+                    setShowTagDropdown(true);
+                    setTimeout(() => tagSearchInputRef.current?.focus(), 0);
+                  }}
+                >
+                  <TagChipsScroll>
+                    {[...selectedSearchTags].reverse().map((tag) => (
+                      <TagSelectedChip key={tag}>
+                        {tag}
+                        <TagSelectedChipRemove
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const newTags = selectedSearchTags.filter((t) => t !== tag);
+                            setSelectedSearchTags(newTags);
+                            if (newTags.length > 0) {
+                              setIsLoadingCards(true);
+                              getCardsByTags(newTags).then((res) => {
+                                if (!res.errorCode) {
+                                  const uniqueCards = Array.from(new Map(res.cards.map((c) => [c.id, c])).values());
+                                  setFoundCards(uniqueCards.filter((c) => !currentSet.cards.some((sc) => sc.id === c.id)));
+                                }
+                                setIsLoadingCards(false);
+                              });
+                            } else {
+                              getAllUsersCards().then((res) => {
+                                if (!res.errorCode) {
+                                  setFoundCards(res.cards.filter((c) => !currentSet.cards.some((sc) => sc.id === c.id)));
+                                }
+                              });
+                            }
+                          }}
+                        >
+                          ×
+                        </TagSelectedChipRemove>
+                      </TagSelectedChip>
+                    ))}
+                  </TagChipsScroll>
+                  <TagMultiselectTextInput
+                    ref={tagSearchInputRef}
+                    placeholder={selectedSearchTags.length === 0 ? "Filtruj po tagach..." : ""}
+                    value={searchTagText}
+                    onChange={(e) => {
+                      setSearchTagText(e.target.value);
+                      if (!showTagDropdown) setShowTagDropdown(true);
+                    }}
+                    onFocus={() => setShowTagDropdown(true)}
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => {
+                      if (e.key === "Backspace" && !searchTagText && selectedSearchTags.length > 0) {
+                        const newTags = selectedSearchTags.slice(0, -1);
+                        setSelectedSearchTags(newTags);
+                        if (newTags.length > 0) {
+                          setIsLoadingCards(true);
+                          getCardsByTags(newTags).then((res) => {
+                            if (!res.errorCode) {
+                              const uniqueCards = Array.from(new Map(res.cards.map((c) => [c.id, c])).values());
+                              setFoundCards(uniqueCards.filter((c) => !currentSet.cards.some((sc) => sc.id === c.id)));
+                            }
+                            setIsLoadingCards(false);
+                          });
+                        } else {
+                          getAllUsersCards().then((res) => {
+                            if (!res.errorCode) {
+                              setFoundCards(res.cards.filter((c) => !currentSet.cards.some((sc) => sc.id === c.id)));
+                            }
+                          });
+                        }
+                      }
+                      if (e.key === "Escape") {
+                        setShowTagDropdown(false);
+                        setSearchTagText("");
+                        tagSearchInputRef.current?.blur();
+                      }
+                    }}
+                  />
+                  <TagMultiselectArrow>{showTagDropdown ? "▲" : "▼"}</TagMultiselectArrow>
+                </TagMultiselectInput>
+                {showTagDropdown && (() => {
+                  const allTags = [
+                    ...new Set(allUserCards.flatMap((card) => card.cardTags || [])),
+                  ].sort();
+                  const filteredTags = allTags.filter((tag) =>
+                    tag.toLowerCase().includes(searchTagText.toLowerCase())
+                  );
+                  return (
+                    <TagSearchDropdown onMouseDown={(e) => e.preventDefault()}>
+                      {filteredTags.length > 0 ? (
+                        <TagDropdownSection>
+                          <TagDropdownSectionLabel>Tagi</TagDropdownSectionLabel>
+                          {filteredTags.map((tag) => (
+                            <TagDropdownItem
+                              key={tag}
+                              onClick={async () => {
+                                const newTags = selectedSearchTags.includes(tag)
+                                  ? selectedSearchTags.filter((t) => t !== tag)
+                                  : [...selectedSearchTags, tag];
+                                setSelectedSearchTags(newTags);
+                                setSearchTagText("");
+                                setTimeout(() => tagSearchInputRef.current?.focus(), 0);
+                                setIsLoadingCards(true);
+                                if (newTags.length > 0) {
+                                  const res = await getCardsByTags(newTags);
+                                  if (!res.errorCode) {
+                                    const uniqueCards = Array.from(new Map(res.cards.map((c) => [c.id, c])).values());
+                                    setFoundCards(uniqueCards.filter((c) => !currentSet.cards.some((sc) => sc.id === c.id)));
+                                  }
+                                } else {
+                                  const res = await getAllUsersCards();
+                                  if (!res.errorCode) {
+                                    setFoundCards(res.cards.filter((c) => !currentSet.cards.some((sc) => sc.id === c.id)));
+                                  }
+                                }
+                                setIsLoadingCards(false);
+                              }}
+                            >
+                              <TagDropdownCheck $checked={selectedSearchTags.includes(tag)}>
+                                {selectedSearchTags.includes(tag) && "✓"}
+                              </TagDropdownCheck>
+                              {tag}
+                            </TagDropdownItem>
+                          ))}
+                        </TagDropdownSection>
+                      ) : (
+                        <TagDropdownItem style={{ pointerEvents: "none", color: "grey" }}>
+                          Brak tagów
+                        </TagDropdownItem>
+                      )}
+                    </TagSearchDropdown>
+                  );
+                })()}
+              </TagSearchContainer>
+              {!isLoadingCards && foundCards.length > 0 && (
+                <div style={{ display: "flex", gap: "8px", alignItems: "center", flexShrink: 0, marginLeft: "16px" }}>
+                  <span style={{ fontSize: "0.85rem", color: theme.colors.textLight, whiteSpace: "nowrap" }}>
+                    Zaznaczone: {selectedCardsForAdding.size}
+                  </span>
+                  <button
+                    onClick={() => setSelectedCardsForAdding(new Set(foundCards.map((card) => card.id)))}
+                    style={{
+                      padding: "6px 12px",
+                      backgroundColor: theme.colors.secondary,
+                      color: theme.colors.white,
+                      border: "none",
+                      borderRadius: "6px",
+                      fontSize: "0.85rem",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Zaznacz wszystko
+                  </button>
+                  <button
+                    onClick={() => setSelectedCardsForAdding(new Set())}
+                    style={{
+                      padding: "6px 12px",
+                      backgroundColor: theme.colors.lightGrey,
+                      color: theme.colors.text,
+                      border: `1px solid ${theme.colors.borderLight}`,
+                      borderRadius: "6px",
+                      fontSize: "0.85rem",
+                      fontWeight: "500",
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Wyczyść
+                  </button>
+                </div>
+              )}
+              </div>
+
+              {isLoadingCards && (
+                <div style={{ textAlign: "center", padding: "20px" }}>
+                  <Text text="Szukam fiszkek..." />
+                </div>
+              )}
+
+              {!isLoadingCards && foundCards.length === 0 && hasSearchedCards && (
+                <div style={{ textAlign: "center", padding: "30px", color: "#888", fontSize: "0.95rem" }}>
+                  Brak fiszkek z tym tagiem, które nie są już w zestawie
+                </div>
+              )}
+            </CardInputRow>
+
+            {!isLoadingCards &&
+              foundCards.length > 0 &&
+              foundCards.map((card) => (
+                <CardInputRow
+                  key={card.id}
+                  onClick={() => {
+                    const newSet = new Set(selectedCardsForAdding);
+                    if (newSet.has(card.id)) newSet.delete(card.id);
+                    else newSet.add(card.id);
+                    setSelectedCardsForAdding(newSet);
+                  }}
+                  style={{
+                    cursor: "pointer",
+                    padding: "16px",
+                    borderRadius: "12px",
+                    border: `2px solid ${
+                      selectedCardsForAdding.has(card.id)
+                        ? theme.colors.secondary
+                        : "#eee"
+                    }`,
+                    background: selectedCardsForAdding.has(card.id)
+                      ? `${theme.colors.secondary}15`
+                      : "white",
+                    transition: "all 0.15s",
+                    alignItems: "center",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "22px",
+                      height: "22px",
+                      borderRadius: "6px",
+                      border: `2px solid ${
+                        selectedCardsForAdding.has(card.id)
+                          ? theme.colors.secondary
+                          : "#ccc"
+                      }`,
+                      background: selectedCardsForAdding.has(card.id)
+                        ? theme.colors.secondary
+                        : "white",
+                      flexShrink: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      order: -1,
+                    }}
+                  >
+                    {selectedCardsForAdding.has(card.id) && (
+                      <svg
+                        width="13"
+                        height="13"
+                        fill="none"
+                        stroke="white"
+                        strokeWidth="3"
+                        viewBox="0 0 24 24"
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
+                  </div>
+                  <CardInputSide>
+                    <SideLabel>Przód</SideLabel>
+                    <div
+                      style={{ fontSize: "0.95rem" }}
+                      dangerouslySetInnerHTML={{
+                        __html: card.contentFirstSide,
+                      }}
+                    />
+                  </CardInputSide>
+                  <CardInputSide>
+                    <SideLabel>Tył</SideLabel>
+                    <div
+                      style={{ fontSize: "0.95rem" }}
+                      dangerouslySetInnerHTML={{ __html: card.contentFlipSide }}
+                    />
+                  </CardInputSide>
+                  {card.cardTags && card.cardTags.length > 0 && (
+                    <div
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: "6px",
+                        alignItems: "flex-start",
+                        minWidth: "150px",
+                        paddingLeft: "16px",
+                        borderLeft: `1px solid ${theme.colors.borderLight}`,
+                      }}
+                    >
+                      {card.cardTags.map((tag, idx) => (
+                        <div
+                          key={idx}
+                          style={{
+                            padding: "4px 10px",
+                            backgroundColor: theme.colors.secondary,
+                            color: theme.colors.white,
+                            borderRadius: "6px",
+                            fontSize: "0.8rem",
+                            fontWeight: "500",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {tag}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardInputRow>
+              ))}
+          </CardsFormContainer>
+        )}
+
         {!isTrashView && (
-          <FloatingActionButton
-            onClick={() => {
-              if (isAddingMode) {
-                handleSaveNewCards();
-              } else if (activeSetId) {
-                setIsAddingMode(true);
-                setNewCards([{ question: "", answer: "" }]);
-              } else {
-                openAddSetModal();
-              }
-            }}
-          >
-            {isAddingMode ? <CheckmarkIcon /> : <PlusIcon />}
-          </FloatingActionButton>
+          <>
+            {isAddModeMenuOpen && activeSetId && (
+              <FabMenu data-add-mode-menu>
+                <FabMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsAddingMode(true);
+                    setNewCards([{ question: "", answer: "" }]);
+                    setIsAddModeMenuOpen(false);
+                  }}
+                >
+                  Wpisz fiszki ręcznie
+                </FabMenuItem>
+                <FabMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsAddByTagMode(true);
+                    setIsAddModeMenuOpen(false);
+                    setSelectedSearchTags([]);
+                    setSearchTagText("");
+                    setShowTagDropdown(false);
+                    setSelectedCardsForAdding(new Set());
+                    setHasSearchedCards(false);
+                    // Załaduj wszystkie fiszki użytkownika
+                    setFoundCards([]);
+                    setIsLoadingCards(true);
+                  }}
+                >
+                  Wybierz istniejące fiszki
+                </FabMenuItem>
+              </FabMenu>
+            )}
+            <FloatingActionButton
+              data-fab-button
+              onClick={async (e) => {
+                e.stopPropagation();
+                if (isAddingMode) {
+                  handleSaveNewCards();
+                } else if (isAddByTagMode) {
+                  if (selectedCardsForAdding.size > 0) {
+                    const selectedToAdd = foundCards.filter((card) =>
+                      selectedCardsForAdding.has(card.id)
+                    );
+                    const cardRequests = selectedToAdd.map((card) => ({
+                      contentFirstSide: card.contentFirstSide,
+                      contentFlipSide: card.contentFlipSide,
+                      setId: currentSet.id,
+                      cardTags: card.cardTags ? Array.from(card.cardTags) : [],
+                    }));
+                    const res = await addListOfCardsToSet(
+                      currentSet.id,
+                      cardRequests
+                    );
+                    if (res.errorCode) {
+                      setErrorMessage(res.message);
+                      return;
+                    }
+                    setSuccessMessage("Zapisano!");
+                    setTimeout(() => setSuccessMessage(""), 1000);
+                    fetchData();
+                  }
+                  setIsAddByTagMode(false);
+                  setSelectedCardsForAdding(new Set());
+                  setSelectedSearchTags([]);
+                  setSearchTagText("");
+                  setShowTagDropdown(false);
+                  setFoundCards([]);
+                  setHasSearchedCards(false);
+                  setHasSearchedCards(false);
+                } else if (activeSetId) {
+                  setIsAddModeMenuOpen(!isAddModeMenuOpen);
+                } else {
+                  openAddSetModal();
+                }
+              }}
+            >
+              {isAddingMode || isAddByTagMode ? (
+                <CheckmarkIcon />
+              ) : (
+                <PlusIcon />
+              )}
+            </FloatingActionButton>
+          </>
         )}
 
         {/* EDYCJA POJEDYNCZEJ FISZKI */}
@@ -2619,15 +3339,25 @@ const FlashcardsPage = () => {
                 />
               </div>
 
-              <div style={{ marginBottom: "30px" }}>
-                <Input
-                  type="text"
-                  name="setTags"
-                  placeholder="Tagi (po przecinku)"
-                  value={setTags}
-                  onChange={(e) => setSetTags(e.target.value)}
-                />
-              </div>
+              <TagSelector
+                suggestedTags={suggestedTagsForSet}
+                chosenTags={chosenTagsForSet}
+                isAddingTag={isAddingTagForSet}
+                newTag={newTagForSet}
+                onToggleTag={(tag) => {
+                  setChosenTagsForSet((prev) => [...prev, tag]);
+                }}
+                onAddNewTag={(tag) => {
+                  if (!chosenTagsForSet.includes(tag)) {
+                    setChosenTagsForSet((prev) => [...prev, tag]);
+                  }
+                }}
+                onRemoveTag={(tag) => {
+                  setChosenTagsForSet((prev) => prev.filter((t) => t !== tag));
+                }}
+                onSetIsAddingTag={setIsAddingTagForSet}
+                onSetNewTag={setNewTagForSet}
+              />
 
               <div style={{ display: "flex", justifyContent: "center" }}>
                 <SubmitButton
@@ -2657,7 +3387,10 @@ const FlashcardsPage = () => {
               <Text bold="true" as="h2" text="Czy na pewno chcesz wyjść?" />
               <Text
                 text="Wprowadzone zmiany zostaną bezpowrotnie utracone."
-                style={{ margin: "20px 0 30px 0", color: theme.colors.textLight }}
+                style={{
+                  margin: "20px 0 30px 0",
+                  color: theme.colors.textLight,
+                }}
               />
 
               <div
@@ -2674,6 +3407,7 @@ const FlashcardsPage = () => {
                     setIsExitAddModeModalOpen(false);
                     setIsAddingMode(false);
                     setNewCards([{ question: "", answer: "" }]);
+                    setErrorMessage("");
                   }}
                 >
                   Wyjdź bez zapisywania
@@ -2700,7 +3434,10 @@ const FlashcardsPage = () => {
               <Text bold="true" as="h2" text="Usuń zestaw" />
               <Text
                 text="Czy na pewno chcesz usunąć ten zestaw?"
-                style={{ margin: "20px 0 30px 0", color: theme.colors.textLight }}
+                style={{
+                  margin: "20px 0 30px 0",
+                  color: theme.colors.textLight,
+                }}
               />
 
               <div
@@ -2752,7 +3489,9 @@ const FlashcardsPage = () => {
                     style={{ marginBottom: "8px", fontSize: "0.9rem" }}
                   >
                     <strong>{dup.question}</strong>{" "}
-                    <span style={{ color: theme.colors.textMuted }}>(w: {dup.setName})</span>
+                    <span style={{ color: theme.colors.textMuted }}>
+                      (w: {dup.setName})
+                    </span>
                   </div>
                 ))}
               </div>
@@ -2793,8 +3532,14 @@ const FlashcardsPage = () => {
             <SelectionBarCount>
               Zaznaczono: {selectedCards.length}
             </SelectionBarCount>
+            <ModalButton onClick={() => setIsBulkTagsModalOpen(true)}>
+              Dodaj tagi
+            </ModalButton>
+            <ModalButtonPrimary onClick={() => setIsBulkMoveModalOpen(true)}>
+              Przenieś do..
+            </ModalButtonPrimary>
             <ModalButtonPrimary onClick={() => setIsBulkCopyModalOpen(true)}>
-              Kopiuj do...
+              Kopiuj do..
             </ModalButtonPrimary>
             <ModalButton $danger onClick={handleBulkDelete}>
               Usuń
@@ -2899,13 +3644,225 @@ const FlashcardsPage = () => {
                 <ModalButton
                   type="button"
                   onClick={handleBulkCopy}
-                  style={{ background: theme.colors.secondary, color: theme.colors.white }}
+                  style={{
+                    background: theme.colors.secondary,
+                    color: theme.colors.white,
+                  }}
                 >
                   Skopiuj fiszki
                 </ModalButton>
                 <ModalButton
                   type="button"
                   onClick={() => setIsBulkCopyModalOpen(false)}
+                >
+                  Anuluj
+                </ModalButton>
+              </div>
+            </StyledPopup>
+          </>
+        )}
+
+        {/* MODAL DODAWANIA TAGÓW DO ZAZNACZONYCH FISZEK */}
+        {isBulkTagsModalOpen && (
+          <>
+            <ModalOverlay onClick={() => setIsBulkTagsModalOpen(false)} />
+            <StyledPopup onClick={(e) => e.stopPropagation()}>
+              <Text
+                bold="true"
+                as="h2"
+                text={`Dodaj tagi do ${selectedCards.length} fiszek`}
+              />
+              {errorMessage && (
+                <Text
+                  color="danger"
+                  text={errorMessage}
+                  style={{ marginBottom: "10px" }}
+                />
+              )}
+
+              <TagSelector
+                suggestedTags={suggestedBulkTags}
+                chosenTags={chosenBulkTags}
+                isAddingTag={isAddingBulkTag}
+                newTag={newBulkTag}
+                onToggleTag={(tag) => {
+                  setChosenBulkTags((prev) => [...prev, tag]);
+                }}
+                onAddNewTag={(tag) => {
+                  if (!chosenBulkTags.includes(tag)) {
+                    setChosenBulkTags((prev) => [...prev, tag]);
+                  }
+                }}
+                onRemoveTag={(tag) => {
+                  setChosenBulkTags((prev) => prev.filter((t) => t !== tag));
+                }}
+                onSetIsAddingTag={setIsAddingBulkTag}
+                onSetNewTag={setNewBulkTag}
+              />
+
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: "15px",
+                  marginTop: "20px",
+                }}
+              >
+                <ModalButton
+                  type="button"
+                  onClick={async () => {
+                    if (chosenBulkTags.length === 0) {
+                      setErrorMessage("Wybierz co najmniej jeden tag");
+                      return;
+                    }
+
+                    // Dodajemy tagi sekwencyjnie dla każdej fiszki
+                    for (const card of selectedCards) {
+                      for (const tag of chosenBulkTags) {
+                        // Sprawdzamy czy tag już istnieje na tej fiszce
+                        if (!card.cardTags?.includes(tag)) {
+                          await addFlashcardTag(card.id, tag);
+                        }
+                      }
+                    }
+
+                    setSuccessMessage("Tagi dodane!");
+                    setTimeout(() => setSuccessMessage(""), 1500);
+                    setIsBulkTagsModalOpen(false);
+                    setSelectedCards([]);
+                    setIsSelectMode(false);
+                    setChosenBulkTags([]);
+                    setSuggestedBulkTags([]);
+                    setIsAddingBulkTag(false);
+                    setNewBulkTag("");
+                    fetchData();
+                  }}
+                  style={{
+                    background: theme.colors.secondary,
+                    color: theme.colors.white,
+                  }}
+                >
+                  Dodaj tagi
+                </ModalButton>
+                <ModalButton
+                  type="button"
+                  onClick={() => {
+                    setIsBulkTagsModalOpen(false);
+                    setChosenBulkTags([]);
+                    setSuggestedBulkTags([]);
+                    setIsAddingBulkTag(false);
+                    setNewBulkTag("");
+                    setErrorMessage("");
+                  }}
+                >
+                  Anuluj
+                </ModalButton>
+              </div>
+            </StyledPopup>
+          </>
+        )}
+
+        {/* MODAL PRZENOSZENIA FISZEK */}
+        {isBulkMoveModalOpen && (
+          <>
+            <ModalOverlay onClick={() => setIsBulkMoveModalOpen(false)} />
+            <StyledPopup onClick={(e) => e.stopPropagation()}>
+              <Text
+                bold="true"
+                as="h2"
+                text={`Przenieś ${selectedCards.length} fiszek`}
+              />
+              {errorMessage && (
+                <Text
+                  color="danger"
+                  text={errorMessage}
+                  style={{ marginBottom: "10px" }}
+                />
+              )}
+
+              <Text
+                text="Wybierz zestaw docelowy:"
+                style={{ marginTop: "20px", marginBottom: "10px" }}
+              />
+              <SortSelect
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  marginBottom: "20px",
+                  border: `1px solid ${theme.colors.darkGrey}`,
+                }}
+                value={bulkMoveTargetSetId}
+                onChange={(e) => setBulkMoveTargetSetId(e.target.value)}
+              >
+                <option value="">-- Wybierz zestaw --</option>
+                {sets
+                  .filter((s) => s.id !== activeSetId)
+                  .map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+              </SortSelect>
+
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: "15px",
+                }}
+              >
+                <ModalButton
+                  type="button"
+                  onClick={async () => {
+                    if (!bulkMoveTargetSetId) {
+                      setErrorMessage("Wybierz zestaw docelowy");
+                      return;
+                    }
+
+                    const targetSet = sets.find(
+                      (s) => s.id === parseInt(bulkMoveTargetSetId)
+                    );
+                    if (!targetSet) {
+                      setErrorMessage("Zestaw nie istnieje");
+                      return;
+                    }
+
+                    const cardRequests = selectedCards.map((card) => ({
+                      contentFirstSide: card.contentFirstSide || card.question,
+                      contentFlipSide: card.contentFlipSide || card.answer,
+                      setId: parseInt(bulkMoveTargetSetId),
+                      cardTags: card.cardTags || [],
+                      isForced: false,
+                    }));
+
+                    const res = await addListOfCardsToSet(bulkMoveTargetSetId, cardRequests);
+
+                    if (res.errorCode) {
+                      setErrorMessage(res.message);
+                    } else {
+                      setSuccessMessage("Fiszki przeniesione!");
+                      setTimeout(() => setSuccessMessage(""), 2000);
+                      setIsBulkMoveModalOpen(false);
+                      setIsSelectMode(false);
+                      setSelectedCards([]);
+                      setBulkMoveTargetSetId("");
+                      fetchData();
+                    }
+                  }}
+                  style={{
+                    background: theme.colors.secondary,
+                    color: theme.colors.white,
+                  }}
+                >
+                  Przenieś
+                </ModalButton>
+                <ModalButton
+                  type="button"
+                  onClick={() => {
+                    setIsBulkMoveModalOpen(false);
+                    setBulkMoveTargetSetId("");
+                    setErrorMessage("");
+                  }}
                 >
                   Anuluj
                 </ModalButton>
@@ -2925,7 +3882,10 @@ const FlashcardsPage = () => {
               <Text bold="true" as="h2" text="Usuń fiszkę" />
               <Text
                 text="Czy na pewno chcesz usunąć tę fiszkę?"
-                style={{ margin: "20px 0 30px 0", color: theme.colors.textLight }}
+                style={{
+                  margin: "20px 0 30px 0",
+                  color: theme.colors.textLight,
+                }}
               />
 
               <div
@@ -3086,7 +4046,10 @@ const FlashcardsPage = () => {
               <Text bold="true" as="h2" text="Trwająca sesja" />
               <Text
                 text="Masz już rozpoczętą sesję nauki w tym zestawie. Co chcesz zrobić?"
-                style={{ margin: "20px 0 30px 0", color: theme.colors.textLight }}
+                style={{
+                  margin: "20px 0 30px 0",
+                  color: theme.colors.textLight,
+                }}
               />
 
               <div

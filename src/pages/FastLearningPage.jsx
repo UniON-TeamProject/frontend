@@ -515,8 +515,6 @@ export default function FastLearningPage() {
   const [hoverSide, setHoverSide] = useState(null);
   const backRef = useRef(null);
 
-  const [isExitModalOpen, setIsExitModalOpen] = useState(false);
-  const [rememberExitChoice, setRememberExitChoice] = useState(false);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editQ, setEditQ] = useState("");
@@ -636,17 +634,6 @@ export default function FastLearningPage() {
   };
 
   const handleExitClick = () => {
-    if (localStorage.getItem("skipExitModal") === "true") {
-      navigate(`/learning/set/${setId}`);
-    } else {
-      setIsExitModalOpen(true);
-    }
-  };
-
-  const handleConfirmExit = () => {
-    if (rememberExitChoice) {
-      localStorage.setItem("skipExitModal", "true");
-    }
     navigate(`/learning/set/${setId}`);
   };
 
@@ -697,7 +684,7 @@ export default function FastLearningPage() {
   return (
     <PageContainer>
       <TopBar>
-        <ExitButton onClick={() => setIsExitModalOpen(true)}>
+        <ExitButton onClick={handleExitClick}>
           <svg
             fill="none"
             stroke="currentColor"
@@ -859,42 +846,6 @@ export default function FastLearningPage() {
         </EndScreenOverlay>
       )}
 
-      {/* MODAL WYJŚCIA */}
-      {isExitModalOpen && (
-        <>
-          <ModalOverlay onClick={() => setIsExitModalOpen(false)} />
-          <StyledPopup onClick={(e) => e.stopPropagation()}>
-            <Text bold="true" as="h2" text="Zakończyć tę sesję nauki?" />
-            <Text
-              text="Twój dotychczasowy postęp został zapisany. Możesz wznowić sesję w dowolnej chwili."
-              style={{ margin: "20px 0 30px 0", color: theme.colors.textLight }}
-            />
-
-            <CheckboxContainer>
-              <input
-                type="checkbox"
-                checked={rememberExitChoice}
-                onChange={(e) => setRememberExitChoice(e.target.checked)}
-              />
-              Nie pytaj ponownie (zapamiętaj mój wybór)
-            </CheckboxContainer>
-
-            <div
-              style={{ display: "flex", justifyContent: "center", gap: "15px" }}
-            >
-              <ModalButton
-                $danger
-                onClick={() => navigate(`/learning/set/${setId}`)}
-              >
-                Zakończ
-              </ModalButton>
-              <ModalButton onClick={() => setIsExitModalOpen(false)}>
-                Zostań
-              </ModalButton>
-            </div>
-          </StyledPopup>
-        </>
-      )}
 
       {/* MODAL EDYCJI FISZKI */}
       {isEditModalOpen && (

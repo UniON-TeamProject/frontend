@@ -98,7 +98,7 @@ const StyledTag = styled.div`
   min-height: 28px;
   margin: 3px;
   background-color: ${({ theme, $inactive }) =>
-    $inactive ? "rgba(200, 212, 184, 0.7)" : theme.colors.secondary};
+    $inactive ? theme.colors.lightPrimary : theme.colors.secondary};
   border-radius: 12px;
   color: ${({ theme }) => theme.colors.white};
   font-weight: 500;

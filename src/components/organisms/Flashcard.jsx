@@ -399,7 +399,7 @@ export default function Flashcard({
             <div style={{ padding: "0 12px" }}>
               <DropdownSectionLabel>Tagi</DropdownSectionLabel>
               <TagsContainer>
-                {card?.tags?.map((tag, idx) => (
+                {card?.cardTags?.map((tag, idx) => (
                   <StyledTag key={idx}>
                     {tag}
                     <div

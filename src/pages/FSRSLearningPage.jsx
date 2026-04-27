@@ -411,8 +411,6 @@ export default function FsrsLearningPage() {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const [isExitModalOpen, setIsExitModalOpen] = useState(false);
-  const [rememberExitChoice, setRememberExitChoice] = useState(false);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editQ, setEditQ] = useState("");
@@ -509,17 +507,6 @@ export default function FsrsLearningPage() {
 
   const handleExitClick = (e) => {
     e.preventDefault();
-    if (localStorage.getItem("skipExitModal") === "true") {
-      navigate(`/learning/set/${setId}`);
-    } else {
-      setIsExitModalOpen(true);
-    }
-  };
-
-  const handleConfirmExit = () => {
-    if (rememberExitChoice) {
-      localStorage.setItem("skipExitModal", "true");
-    }
     navigate(`/learning/set/${setId}`);
   };
 
@@ -784,44 +771,6 @@ export default function FsrsLearningPage() {
       </AppContainer>
 
       {/* MODAL WYJŚCIA */}
-      {isExitModalOpen && (
-        <>
-          <ModalOverlay onClick={() => setIsExitModalOpen(false)} />
-          <StyledPopup
-            onClick={(e) => e.stopPropagation()}
-            style={{ textAlign: "center" }}
-          >
-            <Text bold="true" as="h2" text="Zakończyć powtórki?" />
-            <Text
-              text="Twój dotychczasowy postęp został zapisany. Możesz wznowić sesję w dowolnej chwili."
-              style={{ margin: "20px 0 30px 0", color: theme.colors.textLight }}
-            />
-
-            <CheckboxContainer>
-              <input
-                type="checkbox"
-                checked={rememberExitChoice}
-                onChange={(e) => setRememberExitChoice(e.target.checked)}
-              />
-              Nie pytaj ponownie (zapamiętaj mój wybór)
-            </CheckboxContainer>
-
-            <div
-              style={{ display: "flex", justifyContent: "center", gap: "15px" }}
-            >
-              <ModalButton type="button" $danger onClick={handleConfirmExit}>
-                Zakończ
-              </ModalButton>
-              <ModalButton
-                type="button"
-                onClick={() => setIsExitModalOpen(false)}
-              >
-                Zostań
-              </ModalButton>
-            </div>
-          </StyledPopup>
-        </>
-      )}
 
       {/* MODAL EDYCJI Z TAGAMI */}
       {isEditModalOpen && (

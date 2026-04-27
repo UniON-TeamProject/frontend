@@ -35,6 +35,7 @@ import { getToken, parseJwt } from "../token";
 import Input from "../components/atoms/Input";
 import Layout from "../components/organisms/Layout";
 import AIFlashcardModal from "../components/editor/AIFlashcardModal.jsx";
+import TagSelector from "../components/organisms/TagSelector";
 
 const noteNameRegex = /^[a-zA-Z0-9 _\-ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+$/;
 
@@ -2391,75 +2392,27 @@ const Notes = () => {
                   }}
                 />
               </div>
-              <TagsContainer
-                style={{ justifyContent: "flex-start", marginBottom: "30px" }}
-              >
-                <p>Tagi: </p>
-                {[...new Set([...suggestedTags, ...chosenTags])].map(
-                  (tag, index) => {
-                    const isActive = chosenTags.includes(tag);
-                    return (
-                      <StyledTag
-                        $inactive={!isActive}
-                        key={index}
-                        onClick={() => {
-                          if (isActive) {
-                            setChosenTags((prev) =>
-                              prev.filter((t) => t !== tag)
-                            );
-                          } else {
-                            setChosenTags((prev) => [...prev, tag]);
-                          }
-                        }}
-                      >
-                        {tag}
-                        {!suggestedTags.includes(tag) && (
-                          <div
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setChosenTags((prev) =>
-                                prev.filter((t) => t !== tag)
-                              );
-                            }}
-                          >
-                            x
-                          </div>
-                        )}
-                      </StyledTag>
-                    );
+              <TagSelector
+                suggestedTags={suggestedTags}
+                chosenTags={chosenTags}
+                isAddingTag={isAddingTag}
+                newTag={newTag}
+                onToggleTag={(tag) => {
+                  setChosenTags((prev) => [...prev, tag]);
+                }}
+                onAddNewTag={(tag) => {
+                  if (!chosenTags.includes(tag)) {
+                    setChosenTags((prev) => [...prev, tag]);
                   }
-                )}
-                {isAddingTag && (
-                  <StyledTagInput
-                    autoFocus
-                    value={newTag}
-                    onChange={(e) => setNewTag(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && newTag.trim()) {
-                        setChosenTags((prev) =>
-                          prev.includes(newTag.trim())
-                            ? prev
-                            : [...prev, newTag.trim()]
-                        );
-                        setNewTag("");
-                      }
-                      if (e.key === "Escape") {
-                        setIsAddingTag(false);
-                        setNewTag("");
-                      }
-                    }}
-                    onBlur={() => {
-                      setIsAddingTag(false);
-                      setNewTag("");
-                    }}
-                  />
-                )}
-                {!isAddingTag && (
-                  <StyledAddTagButton onClick={() => setIsAddingTag(true)}>
-                    + Dodaj
-                  </StyledAddTagButton>
-                )}
-              </TagsContainer>
+                }}
+                onRemoveTag={(tag) => {
+                  setChosenTags((prev) =>
+                    prev.filter((t) => t !== tag)
+                  );
+                }}
+                onSetIsAddingTag={setIsAddingTag}
+                onSetNewTag={setNewTag}
+              />
 
               <div style={{ display: "flex", justifyContent: "center" }}>
                 <SubmitButton
