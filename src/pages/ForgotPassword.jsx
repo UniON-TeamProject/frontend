@@ -182,12 +182,7 @@ const ForgotPassword = () => {
                 <StyledMessage color="danger">{errorMessage}</StyledMessage>
               )}
               {emailErrorMessage && (
-                <Text
-                  as="h2"
-                  id=" melo"
-                  color="danger"
-                  text={emailErrorMessage}
-                />
+                <Text color="danger" text={emailErrorMessage} />
               )}
               <Input
                 label="Wpisz adres e-mail, na który ma zostać wysłane przypomnienie hasła"
