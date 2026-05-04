@@ -1,0 +1,1582 @@
+import React, { useState, useEffect } from 'react';
+import styled from 'styled-components';
+import { useParams, useNavigate } from 'react-router-dom';
+import Layout from '../components/organisms/Layout';
+import { getToken, parseJwt } from '../token';
+import { 
+  getSocialGroup, 
+  editSocialGroup, 
+  deleteSocialGroup, 
+  createInvitationLink,
+  addNote,
+  addFlashcardSet,
+  getAllNotes,
+  getAllFlashcardSets,
+  copyNoteToGroup,
+  copyFlashcardSetToGroup,
+  deleteNote,
+  deleteFlashcardSet,
+  renameNote,
+  editFlashcardSet,
+  getSocialGroupUsers,
+  changeSocialGroupRole
+} from '../api';
+
+const PageContainer = styled.div`
+  padding: 20px 40px 100px;
+  min-height: 100vh;
+  max-width: 1500px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+`;
+
+const StyledUserHeader = styled.div`
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  min-height: 60px;
+`;
+
+const BackButton = styled.div`
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors?.darkGrey};
+  transition: color 0.2s;
+  user-select: none;
+  
+  &:hover {
+    color: ${({ theme }) => theme.colors?.text};
+  }
+  
+  > svg {
+    margin-right: 8px;
+  }
+`;
+
+const HeaderRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 30px;
+`;
+
+const TitleArea = styled.div`
+  max-width: 800px;
+`;
+
+const PageTitle = styled.h1`
+  color: ${({ theme }) => theme.colors?.text};
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin: 0 0 10px 0;
+  line-height: 1.2;
+`;
+
+const PageSubtitle = styled.p`
+  color: ${({ theme }) => theme.colors?.darkGrey};
+  font-size: 1rem;
+  margin: 0;
+  line-height: 1.5;
+`;
+
+const SettingsBtn = styled.button`
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid ${({ theme }) => theme.colors?.lightGrey};
+  background-color: transparent !important;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${({ theme }) => theme.colors?.darkGrey};
+  transition: all 0.2s;
+  &:hover { background: ${({ theme }) => theme.colors?.lightGrey}; color: ${({ theme }) => theme.colors?.text}; }
+`;
+
+const TopCardsGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+  margin-bottom: 40px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const Card = styled.div`
+  background: ${({ theme }) => theme.colors?.white};
+  border-radius: 20px;
+  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.03);
+  border: 1px solid ${({ theme }) => theme.colors?.lightGrey };
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+`;
+
+const CardHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+`;
+
+const CardTitleWrap = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+`;
+
+const IconBox = styled.div`
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: ${({ theme }) => theme.colors?.lightGrey };
+  color: ${({ theme }) => theme.colors?.secondary };
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const CardTitle = styled.h2`
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: ${({ theme }) => theme.colors?.text};
+  margin: 0;
+`;
+
+const CardSubtitle = styled.span`
+  font-size: 0.8rem;
+  color: ${({ theme }) => theme.colors?.darkGrey};
+  font-weight: 500;
+`;
+
+const InviteText = styled.p`
+  font-size: 0.9rem;
+  color: ${({ theme }) => theme.colors?.darkGrey};
+  line-height: 1.5;
+  margin: 0 0 20px 0;
+`;
+
+const InviteBox = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+`;
+
+const InviteInput = styled.input`
+  flex: 1;
+  padding: 10px 15px;
+  border-radius: 10px;
+  border: 3px solid ${({ theme }) => theme.colors?.lightGrey};
+  background: #fdfdfc;
+  color: ${({ theme }) => theme.colors?.dark};
+  font-size: 0.9rem;
+  outline: none;
+`;
+
+const InviteRoleSelect = styled.select`
+  padding: 10px 15px;
+  border-radius: 10px;
+  border: 3px solid ${({ theme }) => theme.colors?.lightGrey };
+  background: #fdfdfc;
+  color: ${({ theme }) => theme.colors?.dark};
+  font-size: 0.9rem;
+  outline: none;
+  cursor: pointer;
+`;
+
+const CopyBtn = styled.button`
+  background-color: ${({ $primary, $success, theme }) => 
+    $success ? (theme.colors?.secondary) : 
+    $primary ? theme.colors?.text : 'transparent'};
+  color: ${({ $primary, $success, theme }) => ($primary || $success) ? '#fff' : theme.colors?.text};
+  border: ${({ $primary, $success, theme }) => ($primary || $success) ? 'none' : `1px solid ${theme.colors?.darkGrey}`};
+  border-radius: 10px;
+  padding: 0 20px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  
+  &:hover { opacity: 0.8; }
+  &:disabled { opacity: 0.7; cursor: wait; }
+`;
+
+const ManageLink = styled.button`
+  background: transparent;
+  border: none;
+  color: ${({ theme }) => theme.colors?.secondary};
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  &:hover { text-decoration: underline; }
+`;
+
+const MembersGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-top: 10px;
+`;
+
+const MemberItem = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const Avatar = styled.div`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: ${({ $bg, theme }) => $bg || theme.colors?.lightGrey};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors?.text};
+`;
+
+const MemberInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const MemberName = styled.span`
+  font-size: 0.9rem;
+  color: ${({ theme }) => theme.colors?.text};
+  font-weight: 600;
+`;
+
+const MemberRole = styled.span`
+  font-size: 0.7rem;
+  color: ${({ theme }) => theme.colors?.darkGrey};
+  text-transform: uppercase;
+  font-weight: 700;
+`;
+
+
+const MaterialsSection = styled.div`
+  background: ${({ theme }) => theme.colors?.white};
+  border-radius: 20px;
+  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.03);
+  border: 1px solid ${({ theme }) => theme.colors?.lightGrey};
+  padding: 25px 60px;
+  flex: 1;
+`;
+
+const StyledToolbar = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 25px;
+  border-bottom: 2px solid ${({ theme }) => theme.colors?.lightGrey };
+  padding-bottom: 0px; 
+  flex-wrap: wrap;
+  gap: 15px;
+`;
+
+const StyledTabsContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 25px;
+`;
+
+const StyledTab = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 15px 0;
+  color: ${({ $active, theme }) => $active ? (theme.colors?.secondary ) : theme.colors?.darkGrey};
+  border-bottom: 3px solid ${({ $active, theme }) => $active ? (theme.colors?.secondary ) : 'transparent'};
+  transition: color 0.15s;
+  margin-bottom: -2px;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors?.secondary };
+  }
+
+  > svg {
+    width: 20px;
+    height: 20px;
+  }
+`;
+
+const ActionRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  gap: 15px;
+`;
+
+const StyledSearchInput = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: #f4f5f7;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  padding: 8px 16px;
+  gap: 8px;
+  transition: all 0.2s;
+  width: 100%;
+  max-width: 400px;
+  
+  &:focus-within {
+    background-color: ${({ theme }) => theme.colors?.white };
+    border-color: ${({ theme }) => theme.colors?.secondary };
+  }
+  
+  > input {
+    border: none;
+    background: transparent;
+    outline: none;
+    color: ${({ theme }) => theme.colors?.text};
+    font-size: 0.95rem;
+    width: 100%;
+    
+    &::placeholder {
+      color: #a0a0a0;
+    }
+  }
+  
+  > svg {
+    color: #a0a0a0;
+    flex-shrink: 0;
+  }
+`;
+
+const AddMaterialBtn = styled.button`
+  background: ${({ theme }) => theme.colors?.secondary };
+  color: ${({ theme }) => theme.colors?.white };
+  border: none;
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: opacity 0.2s;
+  &:hover { opacity: 0.8; }
+`;
+
+const MaterialList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+`;
+
+const MaterialItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 25px; 
+  padding: 20px 20px 20px 0; 
+  width: 95%; 
+  max-width: 1100px;
+  border-radius: 16px;
+  background: ${({ theme, $selected }) => $selected ? (theme.colors?.lightGrey ) : 'transparent'};
+  border: 2px solid ${({ theme, $selected }) => $selected ? (theme.colors?.secondary) : 'transparent'};
+  transition: all 0.2s;
+  cursor: pointer;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors?.lightGrey };
+  }
+`;
+
+const MaterialIcon = styled.div`
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background: ${({ theme }) => theme.colors?.secondary ? theme.colors.secondary + '20' : '#e8f0fe'};
+  color: ${({ theme }) => theme.colors?.secondary};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  svg { 
+    width: 50px; 
+    height: 50px; 
+  }
+`;
+
+const MaterialInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+`;
+
+const MaterialTitle = styled.div`
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors?.text};
+`;
+
+const MaterialMeta = styled.div`
+  font-size: 0.85rem;
+  color: ${({ theme }) => theme.colors?.darkGrey};
+  display: flex;
+  align-items: center;
+`;
+
+const OptionsMenuButton = styled.button`
+  background: transparent;
+  border: none;
+  color: ${({ theme }) => theme.colors?.darkGrey};
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  
+  &:hover {
+    background: ${({ theme }) => theme.colors?.lightGrey};
+    color: ${({ theme }) => theme.colors?.text};
+  }
+`;
+
+const DropdownMenu = styled.div`
+  position: absolute;
+  top: 45px;
+  left: 0;
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  padding: 10px;
+  z-index: 20;
+  width: 220px;
+  display: flex;
+  flex-direction: column;
+  cursor: default;
+`;
+
+const DropdownItem = styled.button`
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #333;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  
+  &.danger { color: #e74c3c; }
+  &:hover { background-color: #f9f9f9; }
+
+  svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 999;
+`;
+
+const StyledPopup = styled.div`
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 40px 50px;
+  border-radius: 25px;
+  background-color: ${({ theme }) => theme.colors?.white };
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  
+  &::-webkit-scrollbar { width: 6px; }
+  &::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 4px; }
+  
+  @media(max-width:768px){
+    width: 90%;
+    padding: 30px;
+  }
+`;
+
+const ModalTitle = styled.h2`
+  text-align: center;
+  color: ${({ theme }) => theme.colors?.text};
+  margin-top: 0;
+  margin-bottom: 25px;
+  font-weight: 800;
+`;
+
+const FormGroup = styled.div`
+  margin-bottom: 20px;
+  width: 100%;
+`;
+
+const InputLabel = styled.label`
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors?.text};
+  margin-bottom: 8px;
+`;
+
+const ModalInput = styled.input`
+  width: 100%;
+  padding: 12px 15px;
+  border-radius: 12px;
+  border: 1px solid ${({ $error, theme }) => $error ? (theme.colors?.danger) : (theme.colors?.lightGrey )};
+  background: ${({ theme }) => theme.colors?.white};
+  font-size: 1rem;
+  color: ${({ theme }) => theme.colors?.text};
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+  
+  &:focus {
+    border-color: ${({ theme }) => theme.colors?.secondary};
+  }
+`;
+
+const ModalTextarea = styled.textarea`
+  width: 100%;
+  padding: 12px 15px;
+  border-radius: 12px;
+  border: 1px solid ${({ theme }) => theme.colors?.lightGrey };
+  background: ${({ theme }) => theme.colors?.white};
+  font-size: 1rem;
+  color: ${({ theme }) => theme.colors?.text};
+  outline: none;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 100px;
+  font-family: inherit;
+  transition: border-color 0.2s;
+  
+  &:focus {
+    border-color: ${({ theme }) => theme.colors?.secondary};
+  }
+`;
+
+const ErrorText = styled.span`
+  color: ${({ theme }) => theme.colors?.danger};
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 5px;
+  display: block;
+  text-align: center;
+`;
+
+const ButtonGroup = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 15px;
+`;
+
+const ModalButton = styled.button`
+  background-color: ${({ $primary, $danger, theme }) => 
+    $danger ? (theme.colors?.danger ) : 
+    $primary ? theme.colors?.text : 'transparent'};
+  color: ${({ $primary, $danger, theme }) => ($primary || $danger) ? '#fff' : theme.colors?.text};
+  border: ${({ $primary, $danger, theme }) => ($primary || $danger) ? 'none' : `1px solid ${theme.colors?.darkGrey}`};
+  padding: 12px 25px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 120px;
+  flex: 1;
+  
+  &:hover {
+    opacity: 0.8;
+  }
+`;
+
+const BigSelectButton = styled.button`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  padding: 30px;
+  background: ${({ theme }) => theme.colors?.lightGrey }50;
+  border: 2px solid transparent;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  margin-bottom: 15px;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors?.lightGrey };
+    border-color: ${({ theme }) => theme.colors?.secondary };
+    transform: translateY(-2px);
+  }
+
+  span {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: ${({ theme }) => theme.colors?.text};
+  }
+
+  svg {
+    width: 40px;
+    height: 40px;
+    color: ${({ theme }) => theme.colors?.secondary };
+  }
+`;
+
+const ManageMembersList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 50vh;
+  overflow-y: auto;
+  padding-right: 10px;
+  margin-top: 10px;
+
+  &::-webkit-scrollbar { width: 6px; }
+  &::-webkit-scrollbar-thumb { background: ${({ theme }) => theme.colors?.lightGrey }; border-radius: 4px; }
+`;
+
+const ManageMemberItem = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 15px;
+  background: ${({ theme }) => theme.colors?.lightGrey}50;
+  border-radius: 12px;
+  border: 1px solid transparent;
+`;
+
+const MemberActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 15px;
+`;
+
+const TrashButton = styled.button`
+  background: transparent;
+  border: none;
+  color: ${({ theme }) => theme.colors?.danger };
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s;
+
+  &:hover:not(:disabled) {
+    background: ${({ theme }) => theme.colors?.danger}20;
+  }
+  
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+`;
+
+const StackedCardsIcon = () => (
+    <svg viewBox="0 0 140 100" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
+        <rect x="15" y="10" width="115" height="75" rx="5" transform="rotate(-4 15 10)" fill="white" stroke="black" strokeWidth="2" />
+        <circle cx="22" cy="18" r="3" fill="white" stroke="black" strokeWidth="1.5" transform="rotate(-4 15 10)" />
+        <rect x="5" y="20" width="115" height="75" rx="5" fill="white" stroke="black" strokeWidth="2.5" />
+        <circle cx="15" cy="32" r="3" fill="white" stroke="black" strokeWidth="1.5" />
+    </svg>
+);
+
+
+const SocialGroupDetails = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('notes');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [group, setGroup] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // kopiowanie linku
+  const [inviteLink, setInviteLink] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const [inviteRole, setInviteRole] = useState("EDITOR");
+
+  // modal ustawien (edycja/usuwanie grupy)
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editDesc, setEditDesc] = useState("");
+  const [settingsError, setSettingsError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // MODAL MATERIAŁÓW
+  const [isMaterialModalOpen, setIsMaterialModalOpen] = useState(false);
+  const [materialMode, setMaterialMode] = useState(null);   // null (wybor) lub CREATE lub IMPORT
+  const [newMaterialName, setNewMaterialName] = useState("");
+  const [userPrivateMaterials, setUserPrivateMaterials] = useState([]);
+  const [selectedPrivateMaterialId, setSelectedPrivateMaterialId] = useState(null);
+  const [isMaterialSaving, setIsMaterialSaving] = useState(false);
+  const [materialError, setMaterialError] = useState("");
+
+  const [activeMenuId, setActiveMenuId] = useState(null);
+  const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [materialToRename, setMaterialToRename] = useState(null);
+  const [newRenameValue, setNewRenameValue] = useState("");
+  const [renameError, setRenameError] = useState("");
+
+  const [groupMembers, setGroupMembers] = useState([]);
+
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, id: null, name: "", type: "" });
+  const [confirmGroupDeleteModal, setConfirmGroupDeleteModal] = useState(false);
+
+  // ZARZADZANIE CZLONKAMI
+  const [isRoleSaving, setIsRoleSaving] = useState(false);
+  const [isManageMembersModalOpen, setIsManageMembersModalOpen] = useState(false);
+  const [updatingUserId, setUpdatingUserId] = useState(null);
+
+  // admin nie bedzie mogl zmienic sobie roli 
+  const jwt = getToken();
+  const currentUser = jwt ? parseJwt(jwt).sub : "";
+
+  useEffect(() => {
+    fetchGroupDetails();
+    fetchGroupMembers();
+    
+    const closeMenu = () => setActiveMenuId(null);
+    document.addEventListener("click", closeMenu);
+    return () => document.removeEventListener("click", closeMenu);
+  }, [id, navigate]);
+
+  const fetchGroupDetails = async () => {
+    setIsLoading(true);
+    setError("");
+    
+    const res = await getSocialGroup(id);
+    
+    if (res.errorCode) {
+      if (res.errorCode === "TOKEN_UNDEFINED") navigate("/", { replace: true });
+      else setError(res.message || "Nie udało się pobrać szczegółów grupy.");
+    } else {
+      setGroup({
+        id: res.id,
+        name: res.name,
+        description: res.description,
+        userRole: res.userRole,
+        notes: res.noteResponseList || [],
+        flashcards: res.cardSetResponseList || []
+      });
+    }
+    setIsLoading(false);
+  };
+
+  const fetchGroupMembers = async () => {
+    const res = await getSocialGroupUsers(id);
+    if (!res.errorCode) {
+      setGroupMembers(res);
+    } else {
+      console.error("Błąd pobierania członków:", res.message);
+    }
+  };
+
+  const translateRole = (role) => {
+    if (role === 'ADMIN') return 'Administrator';
+    if (role === 'EDITOR') return 'Edytor';
+    if (role === 'VIEWER') return 'Obserwator';
+    return 'Członek';
+  };
+
+  const handleOpenSettings = () => {
+    setEditName(group.name);
+    setEditDesc(group.description || "");
+    setSettingsError("");
+    setIsSettingsModalOpen(true);
+  };
+
+  const handleSaveChanges = async (e) => {
+    e.preventDefault();
+    setSettingsError("");
+    if (!editName.trim()) { setSettingsError("Nazwa grupy nie może być pusta."); return; }
+
+    setIsSaving(true);
+    const res = await editSocialGroup(group.id, editName.trim(), editDesc.trim());
+    
+    if (res.errorCode) {
+      setSettingsError(res.message || "Wystąpił błąd.");
+    } else {
+      setGroup(prev => ({ ...prev, name: res.name, description: res.description }));
+      setIsSettingsModalOpen(false);
+    }
+    setIsSaving(false);
+  };
+
+  const handleDeleteGroup = async () => {
+    setIsDeleting(true);
+    const res = await deleteSocialGroup(group.id);
+    
+    if (!res.errorCode) {
+        navigate('/social', { replace: true });
+    } else { 
+        setSettingsError(res.message); 
+        setIsDeleting(false); 
+    }
+  };
+
+  const handleGenerateOrCopyLink = async () => {
+    if (inviteLink) {
+      navigator.clipboard.writeText(inviteLink);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } else {
+      setIsGenerating(true);
+      const res = await createInvitationLink(group.id, inviteRole);
+      if (!res.errorCode) {
+        setInviteLink(res.link); 
+      } else {
+        alert(res.message || "Błąd generowania linku.");
+      }
+      setIsGenerating(false);
+    }
+  };
+
+  const handleRoleChange = async (userId, newRole) => {
+    setUpdatingUserId(userId);
+    const res = await changeSocialGroupRole(group.id, userId, newRole);
+    if (!res.errorCode) {
+      fetchGroupMembers();
+    } else {
+      alert(res.message || "Błąd podczas zmiany roli.");
+    }
+    setUpdatingUserId(null);
+  };
+
+
+  // OBSLUGA MATERIAŁÓW
+  const handleOpenMaterialModal = () => {
+    setMaterialMode(null);
+    setNewMaterialName("");
+    setMaterialError("");
+    setSelectedPrivateMaterialId(null);
+    setIsMaterialModalOpen(true);
+  };
+
+  const handleSelectMode = async (mode) => {
+    setMaterialMode(mode);
+    setMaterialError("");
+    
+    if (mode === 'IMPORT') {
+      setIsMaterialSaving(true);
+      if (activeTab === 'notes') {
+        const res = await getAllNotes();
+        setUserPrivateMaterials(res.notes || []);
+      } else {
+        const res = await getAllFlashcardSets();
+        setUserPrivateMaterials(res.sets || []);
+      }
+      setIsMaterialSaving(false);
+    }
+  };
+
+  const handleSubmitMaterial = async (e) => {
+    e.preventDefault();
+    setMaterialError("");
+
+    if (materialMode === 'CREATE' && !newMaterialName.trim()) {
+      setMaterialError("Podaj nazwę materiału."); return;
+    }
+    if (materialMode === 'IMPORT' && !selectedPrivateMaterialId) {
+      setMaterialError("Wybierz plik do zaimportowania."); return;
+    }
+    if (materialMode === 'IMPORT' && !newMaterialName.trim()) {
+      setMaterialError("Podaj nową nazwę (lub zostaw domyślną)."); return;
+    }
+
+    setIsMaterialSaving(true);
+    let res;
+
+    // tworzenie pustego
+    if (materialMode === 'CREATE') {
+      if (activeTab === 'notes') {
+        res = await addNote(newMaterialName.trim(), "/", group.id);
+      } else {
+        res = await addFlashcardSet(newMaterialName.trim(), [], group.id);
+      }
+    } 
+    // kopowianie (udostepnianie)
+    else if (materialMode === 'IMPORT') {
+      if (activeTab === 'notes') {
+        res = await copyNoteToGroup(selectedPrivateMaterialId, group.id, newMaterialName.trim());
+      } else {
+        res = await copyFlashcardSetToGroup(selectedPrivateMaterialId, group.id, newMaterialName.trim());
+      }
+    }
+
+    if (res && res.errorCode) {
+      setMaterialError(res.message || "Wystąpił błąd podczas zapisywania.");
+      setIsMaterialSaving(false);
+    } else {
+      setIsMaterialModalOpen(false);
+      setIsMaterialSaving(false);
+      fetchGroupDetails();
+    }
+  };
+
+  // MENU MATERIALY
+  const handleRemoveMaterial = async (matId) => {
+    let res;
+    if (activeTab === 'notes') {
+      res = await deleteNote(matId, group.id); 
+    } else {
+      res = await deleteFlashcardSet(matId, group.id); 
+    }
+
+    if (res && res.errorCode) {
+      alert(res.message || "Błąd podczas usuwania.");
+    } else {
+      fetchGroupDetails(); 
+    }
+  };
+
+  const handleOpenRename = (mat) => {
+    setMaterialToRename(mat);
+    setNewRenameValue(mat.name || mat.title || "");
+    setRenameError("");
+    setIsRenameModalOpen(true);
+  };
+
+  const handleSubmitRename = async (e) => {
+    e.preventDefault();
+    if (!newRenameValue.trim()) {
+      setRenameError("Nazwa nie może być pusta.");
+      return;
+    }
+
+    let res;
+    if (activeTab === 'notes') {
+      res = await renameNote(materialToRename.id, newRenameValue.trim(), group.id);
+    } else {
+      res = await editFlashcardSet(materialToRename.id, newRenameValue.trim(), materialToRename.tags || [], group.id);
+    }
+
+    if (res && res.errorCode) {
+      setRenameError(res.message || "Błąd zmiany nazwy.");
+    } else {
+      setIsRenameModalOpen(false);
+      fetchGroupDetails();
+    }
+  };
+
+  if (isLoading || error || !group) {
+    return (
+      <Layout>
+        <PageContainer>
+          <div style={{ textAlign: 'center', marginTop: '50px', color: error ? '#e74c3c' : '#a0a69b' }}>
+            {isLoading ? "Ładowanie szczegółów grupy..." : (error || "Nie znaleziono grupy.")}
+          </div>
+        </PageContainer>
+      </Layout>
+    );
+  }
+
+  const displayedMaterials = activeTab === 'notes' ? group.notes : group.flashcards;
+  const filteredMaterials = displayedMaterials.filter(m => (m.name || m.title || "").toLowerCase().includes(searchQuery.toLowerCase()));
+  
+  return (
+    <Layout>
+      <PageContainer>
+        
+        <StyledUserHeader>
+          <BackButton onClick={() => navigate('/social')}>
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+              <path fillRule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z" />
+            </svg>
+            Powrót
+          </BackButton>
+        </StyledUserHeader>
+
+        <HeaderRow>
+          <TitleArea>
+            <PageTitle>{group.name}</PageTitle>
+            <PageSubtitle>{group.description || "Brak opisu"}</PageSubtitle>
+          </TitleArea>
+          
+          {/* PRZYCISK USTAWIEŃ WIDOCZNY TYLKO DLA ADMINA */}
+          {group.userRole === 'ADMIN' && (
+            <SettingsBtn title="Ustawienia grupy" onClick={handleOpenSettings}>
+              <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ width: 24, height: 24 }}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </SettingsBtn>
+          )}
+        </HeaderRow>
+
+        <TopCardsGrid>
+          {/* KARTA SPOŁECZNOŚĆ */}
+          <Card>
+            <CardHeader>
+              <CardTitleWrap>
+                <IconBox>
+                  <svg fill="currentColor" viewBox="0 0 16 16" style={{ width: 20, height: 20}}>
+                     <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275zM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4" />
+                  </svg>
+                </IconBox>
+                <div>
+                  <CardTitle>Społeczność</CardTitle>
+                  <CardSubtitle>{groupMembers.length} członków</CardSubtitle>
+                </div>
+              </CardTitleWrap>
+            </CardHeader>
+            <InviteText>
+              Zaproś znajomych ze swojego roku, aby wspólnie wymieniać się notatkami i przygotowywać do egzaminów. Im nas więcej, tym łatwiej!
+            </InviteText>
+            {group.userRole === 'ADMIN' ? (
+              <InviteBox>
+                <InviteRoleSelect 
+                  value={inviteRole} 
+                  onChange={e => {
+                    setInviteRole(e.target.value);
+                    setInviteLink("");
+                  }}
+                >
+                  <option value="EDITOR">Rola: Edytor</option>
+                  <option value="VIEWER">Rola: Obserwator</option>
+                </InviteRoleSelect>
+
+                <InviteInput 
+                  type="text" 
+                  readOnly 
+                  value={inviteLink || "Kliknij 'Generuj', aby stworzyć link"} 
+                />
+                <CopyBtn 
+                  onClick={handleGenerateOrCopyLink} 
+                  disabled={isGenerating}
+                  $isCopied={isCopied}
+                >
+                  {isCopied ? (
+                    <>
+                      <svg fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24" style={{ width: 18, height: 18 }}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                      Skopiowano!
+                    </>
+                  ) : isGenerating ? (
+                    "Czekaj..."
+                  ) : (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" className="bi bi-link-45deg" viewBox="0 0 16 16">
+                        <path d="M4.715 6.542 3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1 1 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4 4 0 0 1-.128-1.287z"/>
+                        <path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 1 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 1 0-4.243-4.243z"/>
+                      </svg>
+                      {inviteLink ? "Kopiuj" : "Generuj"}
+                    </>
+                  )}
+                </CopyBtn>
+              </InviteBox>
+            ) : (
+              <div style={{ padding: '10px', background: '#f8f9fa', borderRadius: '10px', fontSize: '0.9rem', color: '#666' }}>
+                Tylko administratorzy grupy mogą generować nowe linki zaproszeniowe.
+              </div>
+            )}
+          </Card>
+
+          {/* KARTA CZŁONKOWIE */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Członkowie grupy</CardTitle>
+              {group.userRole === 'ADMIN' && (
+                <ManageLink onClick={() => setIsManageMembersModalOpen(true)}>Zarządzaj</ManageLink>
+              )}
+            </CardHeader>
+            <MembersGrid>
+              {groupMembers.length > 0 ? (
+                <>
+                  {groupMembers.slice(0, 3).map((member) => (
+                    <MemberItem key={member.id} style={{justifyContent: 'flex-start', gap: '15px', padding: '10px 5px'}}>
+                      <Avatar>{member.username.charAt(0).toUpperCase()}</Avatar>
+                      <MemberInfo>
+                        <MemberName style={{ fontSize: '1rem' }}>{member.username}</MemberName>
+                        <MemberRole style={{ fontSize: '0.75rem', marginTop: '2px' }}>{translateRole(member.role)}</MemberRole>
+                      </MemberInfo>
+                    </MemberItem>
+                  ))}
+                  
+                  {groupMembers.length === 4 && (
+                    <MemberItem key={groupMembers[3].id} style={{justifyContent: 'flex-start', gap: '15px', padding: '10px 5px'}}>
+                      <Avatar>{groupMembers[3].username.charAt(0).toUpperCase()}</Avatar>
+                      <MemberInfo>
+                        <MemberName style={{ fontSize: '1rem' }}>{groupMembers[3].username}</MemberName>
+                        <MemberRole style={{ fontSize: '0.75rem', marginTop: '2px' }}>{translateRole(groupMembers[3].role)}</MemberRole>
+                      </MemberInfo>
+                    </MemberItem>
+                  )}
+
+                  {groupMembers.length > 4 && (
+                    <MemberItem 
+                      style={{justifyContent: 'flex-start', gap: '15px', padding: '10px 5px'}}
+                    >
+                      <Avatar style={{ backgroundColor: '#e9ece1', color: '#122818', fontSize: '1.2rem' }}>
+                        +
+                      </Avatar>
+                      <MemberInfo style={{ justifyContent: 'center' }}>
+                        <MemberRole style={{ fontSize: '0.85rem', margin: 0 }}>
+                          {groupMembers.length - 3} innych członków
+                        </MemberRole>
+                      </MemberInfo>
+                    </MemberItem>
+                  )}
+                </>
+              ) : (
+                <div style={{ color: '#a0a69b', fontSize: '0.9rem', padding: '10px 5px' }}>Ładowanie członków...</div>
+              )}
+            </MembersGrid>
+          </Card>
+        </TopCardsGrid>
+
+        {/* SEKCJA UDOSTĘPNIONCYH MATERIAŁÓW */}
+        <MaterialsSection>
+          
+          <StyledToolbar>
+            <StyledTabsContainer>
+              <StyledTab $active={activeTab === 'notes'} onClick={() => { setActiveTab('notes'); setSearchQuery(''); }}>
+                <svg fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783" />
+                </svg>
+                Notatki ({group.notes.length})
+              </StyledTab>
+              <StyledTab $active={activeTab === 'flashcards'} onClick={() => { setActiveTab('flashcards'); setSearchQuery(''); }}>
+                <svg fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M8.211 2.047a.5.5 0 0 0-.422 0l-7.5 3.5a.5.5 0 0 0 .025.917l7.5 3a.5.5 0 0 0 .372 0L14 7.14V13a1 1 0 0 0-1 1v2h3v-2a1 1 0 0 0-1-1V6.739l.686-.275a.5.5 0 0 0 .025-.917zM8 8.46 1.758 5.965 8 3.052l6.242 2.913z" />
+                  <path d="M4.176 9.032a.5.5 0 0 0-.656.327l-.5 1.7a.5.5 0 0 0 .294.605l4.5 1.8a.5.5 0 0 0 .372 0l4.5-1.8a.5.5 0 0 0 .294-.605l-.5-1.7a.5.5 0 0 0-.656-.327L8 10.466zm-.068 1.873.22-.748 3.496 1.311a.5.5 0 0 0 .352 0l3.496-1.311.22.748L8 12.46z" />
+                </svg>
+                Zestawy fiszek ({group.flashcards.length})
+              </StyledTab>
+            </StyledTabsContainer>
+          </StyledToolbar>
+
+          <ActionRow>
+            <StyledSearchInput>
+              <svg width="15" height="15" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" />
+              </svg>
+              <input 
+                placeholder={`Szukaj w ${activeTab === 'notes' ? 'notatkach' : 'zestawach'}...`} 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </StyledSearchInput>
+            
+            {/* TYLKO ADMIN I EDYTOR MOGA DODAWAC PLIKI */}
+            {(group.userRole === 'ADMIN' || group.userRole === 'EDITOR') && (
+              <AddMaterialBtn onClick={handleOpenMaterialModal}>
+                + Dodaj materiał
+              </AddMaterialBtn>
+            )}
+          </ActionRow>
+
+          <MaterialList>
+            {filteredMaterials.length > 0 ? (
+              filteredMaterials.map(mat => (
+                <MaterialItem 
+                  key={mat.id}
+                  onClick={() => {
+                    if (activeTab === 'notes') {
+                      navigate(`/note/${mat.id}?socialId=${group.id}`);
+                    } else {
+                      navigate(`/learning/set/${mat.id}?socialId=${group.id}`);
+                    }
+                  }}
+                >
+                  {(group.userRole === 'ADMIN' || group.userRole === 'EDITOR') ? (
+                    <div style={{ position: 'relative' }}>
+                      <OptionsMenuButton onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveMenuId(activeMenuId === mat.id ? null : mat.id);
+                      }}>
+                        <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                          <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
+                        </svg>
+                      </OptionsMenuButton>
+
+                      {activeMenuId === mat.id && (
+                        <DropdownMenu onClick={(e) => e.stopPropagation()}>
+                          <DropdownItem onClick={() => { setActiveMenuId(null); handleOpenRename(mat); }}>
+                            <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                            Zmień nazwę
+                          </DropdownItem>
+                          <DropdownItem className="danger" onClick={() => { 
+                            setActiveMenuId(null); 
+                            setDeleteModal({ isOpen: true, id: mat.id, name: mat.name || mat.title, type: activeTab === 'notes' ? "notatkę" : "zestaw fiszek" }); 
+                          }}>
+                            <svg fill="currentColor" viewBox="0 0 16 16">
+                              <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/>
+                            </svg>
+                            Usuń ze społeczności
+                          </DropdownItem>
+                        </DropdownMenu>
+                      )}
+                    </div>
+                  ) : (
+                    <div style={{ width: '40px' }}></div> 
+                  )}
+
+                  <MaterialIcon $isNote={activeTab === 'notes'}>
+                    {activeTab === 'notes' ? (
+                      <svg fill="currentColor" viewBox="0 0 16 16">
+                         <path d="M5 10.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5"/>
+                         <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2"/>
+                         <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z" />
+                      </svg>
+                    ) : (
+                      <StackedCardsIcon />
+                    )}
+                  </MaterialIcon>
+
+                  <MaterialInfo>
+                    <MaterialTitle>{mat.name || mat.title || "Bez nazwy"}</MaterialTitle>
+                    <MaterialMeta>
+                      Dodane przez: <strong style={{ color: '#333', margin: '0 4px' }}>{mat.creatorUsername || mat.authorUsername || "Autora"}</strong> 
+                    </MaterialMeta>
+                  </MaterialInfo>
+
+                </MaterialItem>
+              ))
+            ) : (
+              <div style={{ padding: '20px', textAlign: 'center', color: '#a0a69b' }}>
+                Brak materiałów.
+              </div>
+            )}
+          </MaterialList>
+
+        </MaterialsSection>
+
+        {/* MODAL USTAWIEŃ GRUPY */}
+        {isSettingsModalOpen && (
+          <>
+            <ModalOverlay onClick={() => !isSaving && !isDeleting && setIsSettingsModalOpen(false)} />
+            <StyledPopup onClick={(e) => e.stopPropagation()}>
+              <ModalTitle>Ustawienia grupy</ModalTitle>
+              
+              <form onSubmit={handleSaveChanges}>
+                <FormGroup>
+                  <InputLabel>Nazwa grupy</InputLabel>
+                  <ModalInput 
+                    type="text" 
+                    value={editName}
+                    onChange={(e) => {
+                      setEditName(e.target.value);
+                      if (settingsError) setSettingsError("");
+                    }}
+                    maxLength={55}
+                    $error={!!settingsError && !editName.trim()}
+                    disabled={isSaving || isDeleting}
+                  />
+                </FormGroup>
+
+                <FormGroup>
+                  <InputLabel>Krótki opis</InputLabel>
+                  <ModalTextarea 
+                    value={editDesc}
+                    onChange={(e) => setEditDesc(e.target.value)}
+                    maxLength={255}
+                    disabled={isSaving || isDeleting}
+                  />
+                </FormGroup>
+
+                {settingsError && <ErrorText>{settingsError}</ErrorText>}
+
+                <ButtonGroup style={{ marginTop: '25px', borderBottom: '1px solid #eee', paddingBottom: '25px' }}>
+                  <ModalButton type="button" onClick={() => setIsSettingsModalOpen(false)} disabled={isSaving || isDeleting}>
+                    Anuluj
+                  </ModalButton>
+                  <ModalButton type="submit" $primary disabled={isSaving || isDeleting}>
+                    {isSaving ? "Zapisywanie..." : "Zapisz zmiany"}
+                  </ModalButton>
+                </ButtonGroup>
+                
+                <div style={{ marginTop: '20px', textAlign: 'center' }}>
+                  <ModalButton 
+                    type="button" 
+                    $danger 
+                    onClick={() => {
+                      setIsSettingsModalOpen(false); 
+                      setConfirmGroupDeleteModal(true); 
+                    }} 
+                    disabled={isSaving || isDeleting}
+                  >
+                    {isDeleting ? "Usuwanie..." : "Usuń bezpowrotnie grupę"}
+                  </ModalButton>
+                </div>
+
+              </form>
+            </StyledPopup>
+          </>
+        )}
+
+        {/* MODAL DODAWANIA MATERIAŁÓW */}
+        {isMaterialModalOpen && (
+          <>
+            <ModalOverlay onClick={() => !isMaterialSaving && setIsMaterialModalOpen(false)} />
+            <StyledPopup onClick={(e) => e.stopPropagation()}>
+              
+              {materialMode === null && (
+                <>
+                  <ModalTitle>Dodaj {activeTab === 'notes' ? 'notatkę' : 'zestaw fiszek'}</ModalTitle>
+                  <p style={{textAlign: 'center', color: '#a0a69b', marginBottom: '25px'}}>
+                    Wybierz, w jaki sposób chcesz dodać materiał do tej grupy.
+                  </p>
+                  <BigSelectButton onClick={() => handleSelectMode('CREATE')}>
+                    <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Stwórz całkowicie nowy</span>
+                  </BigSelectButton>
+                  
+                  <BigSelectButton onClick={() => handleSelectMode('IMPORT')}>
+                    <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                    </svg>
+                    <span>Sklonuj ze swoich prywatnych</span>
+                  </BigSelectButton>
+                </>
+              )}
+
+              {materialMode !== null && (
+                <form onSubmit={handleSubmitMaterial}>
+                  <ModalTitle>
+                    {materialMode === 'CREATE' ? 'Tworzenie nowego pliku' : 'Import prywatnego pliku'}
+                  </ModalTitle>
+                  
+                  {materialMode === 'IMPORT' && (
+                    <FormGroup>
+                      <InputLabel>Wybierz plik z Twojej biblioteki</InputLabel>
+                      {isMaterialSaving ? (
+                        <div style={{padding: '10px', color: '#a0a69b'}}>Wczytywanie Twoich plików...</div>
+                      ) : userPrivateMaterials.length === 0 ? (
+                        <div style={{padding: '10px', color: '#e74c3c'}}>Nie masz żadnych prywatnych materiałów tego typu.</div>
+                      ) : (
+                        <MaterialList style={{maxHeight: '200px', overflowY: 'auto', marginBottom: '15px', border: '1px solid #e9ece1', borderRadius: '12px', padding: '5px'}}>
+                          {userPrivateMaterials.map(mat => (
+                            <MaterialItem 
+                              key={mat.id} 
+                              $selected={selectedPrivateMaterialId === mat.id}
+                              onClick={() => {
+                                setSelectedPrivateMaterialId(mat.id);
+                                setNewMaterialName(mat.name || mat.title || "");
+                                setMaterialError("");
+                              }}
+                              style={{padding: '10px'}}
+                            >
+                              <MaterialTitle style={{fontSize: '0.95rem'}}>{mat.name || mat.title}</MaterialTitle>
+                            </MaterialItem>
+                          ))}
+                        </MaterialList>
+                      )}
+                    </FormGroup>
+                  )}
+
+                  {((materialMode === 'CREATE') || (materialMode === 'IMPORT' && selectedPrivateMaterialId)) && (
+                    <FormGroup>
+                      <InputLabel>Nazwa materiału w grupie</InputLabel>
+                      <ModalInput 
+                        type="text" 
+                        value={newMaterialName}
+                        onChange={(e) => { setNewMaterialName(e.target.value); setMaterialError(""); }}
+                        placeholder="Wpisz nazwę..."
+                        disabled={isMaterialSaving}
+                        autoFocus={materialMode === 'CREATE'}
+                      />
+                    </FormGroup>
+                  )}
+
+                  {materialError && <ErrorText>{materialError}</ErrorText>}
+
+                  <ButtonGroup style={{ marginTop: '25px' }}>
+                    <ModalButton type="button" onClick={() => setMaterialMode(null)} disabled={isMaterialSaving}>
+                      Wróć
+                    </ModalButton>
+                    <ModalButton type="submit" $primary disabled={isMaterialSaving || (materialMode === 'IMPORT' && !selectedPrivateMaterialId)}>
+                      {isMaterialSaving ? "Zapisywanie..." : "Dodaj do grupy"}
+                    </ModalButton>
+                  </ButtonGroup>
+                </form>
+              )}
+
+            </StyledPopup>
+          </>
+        )}
+
+        {/* MODAL ZMIANY NAZWY MATERIALU */}
+        {isRenameModalOpen && (
+          <>
+            <ModalOverlay onClick={() => setIsRenameModalOpen(false)} />
+            <StyledPopup onClick={e => e.stopPropagation()}>
+              <ModalTitle>Zmień nazwę</ModalTitle>
+              <form onSubmit={handleSubmitRename}>
+                <FormGroup>
+                  <InputLabel>Nowa nazwa dla: {materialToRename?.name || materialToRename?.title}</InputLabel>
+                  <ModalInput 
+                    autoFocus
+                    type="text"
+                    value={newRenameValue}
+                    onChange={(e) => {
+                      setNewRenameValue(e.target.value);
+                      setRenameError("");
+                    }}
+                    $error={!!renameError}
+                  />
+                  {renameError && <ErrorText>{renameError}</ErrorText>}
+                </FormGroup>
+                <ButtonGroup>
+                  <ModalButton type="button" onClick={() => setIsRenameModalOpen(false)}>Anuluj</ModalButton>
+                  <ModalButton type="submit" $primary>Zapisz nazwę</ModalButton>
+                </ButtonGroup>
+              </form>
+            </StyledPopup>
+          </>
+        )}
+
+        {deleteModal.isOpen && (
+          <>
+            <ModalOverlay onClick={() => setDeleteModal({ ...deleteModal, isOpen: false })} />
+            <StyledPopup onClick={e => e.stopPropagation()} style={{ textAlign: 'center' }}>
+              <ModalTitle>Potwierdź usunięcie</ModalTitle>
+              <p style={{ color: '#666', marginBottom: '30px' }}>
+                Czy na pewno chcesz bezpowrotnie usunąć {deleteModal.type} <b>{deleteModal.name}</b> ze społeczności?
+              </p>
+              <ButtonGroup>
+                <ModalButton type="button" onClick={() => setDeleteModal({ ...deleteModal, isOpen: false })}>Anuluj</ModalButton>
+                <ModalButton 
+                    $danger 
+                    onClick={async () => {
+                        await handleRemoveMaterial(deleteModal.id);
+                        setDeleteModal({ ...deleteModal, isOpen: false });
+                    }}
+                >
+                  Usuń plik
+                </ModalButton>
+              </ButtonGroup>
+            </StyledPopup>
+          </>
+        )}
+
+        {confirmGroupDeleteModal && (
+          <>
+            <ModalOverlay onClick={() => !isDeleting && setConfirmGroupDeleteModal(false)} />
+            <StyledPopup onClick={e => e.stopPropagation()} style={{ textAlign: 'center' }}>
+              <ModalTitle>Usuń społeczność</ModalTitle>
+              <p style={{ color: '#666', marginBottom: '30px', fontSize: '1rem', lineHeight: '1.5' }}>
+                Czy na pewno chcesz bezpowrotnie usunąć społeczność <b style={{color: '#122818'}}>{group.name}</b>? Ta operacja jest nieodwracalna, a wszyscy członkowie stracą do niej dostęp.
+              </p>
+              <ButtonGroup>
+                <ModalButton 
+                  type="button" 
+                  onClick={() => {
+                    setConfirmGroupDeleteModal(false); 
+                    setIsSettingsModalOpen(true); 
+                  }} 
+                  disabled={isDeleting}
+                >
+                  Anuluj
+                </ModalButton>
+                <ModalButton type="button" $danger onClick={handleDeleteGroup} disabled={isDeleting}>
+                  {isDeleting ? "Usuwanie..." : "Tak, usuń"}
+                </ModalButton>
+              </ButtonGroup>
+            </StyledPopup>
+          </>
+        )}
+
+        {/* MODAL ZARZĄDZANIA CZŁONKAMI */}
+        {isManageMembersModalOpen && (
+          <>
+            <ModalOverlay onClick={() => setIsManageMembersModalOpen(false)} />
+            <StyledPopup onClick={e => e.stopPropagation()} style={{ width: '600px' }}>
+              <ModalTitle>Zarządzaj członkami</ModalTitle>
+              
+              <ManageMembersList>
+                {groupMembers.map((member) => (
+                  <ManageMemberItem key={member.id}>
+                    
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <Avatar>{member.username.charAt(0).toUpperCase()}</Avatar>
+                      <MemberInfo>
+                        <MemberName>{member.username}</MemberName>
+                        <MemberRole>{translateRole(member.role)}</MemberRole>
+                      </MemberInfo>
+                    </div>
+
+                    <MemberActions>
+                      <InviteRoleSelect
+                        style={{ padding: '6px 12px', fontSize: '0.85rem' }}
+                        value={member.role}
+                        // blok zmianę swojej własnej roli
+                        disabled={updatingUserId === member.id || member.username === currentUser}
+                        onChange={(e) => handleRoleChange(member.id, e.target.value)}
+                      >
+                        <option value="ADMIN">Administrator</option>
+                        <option value="EDITOR">Edytor</option>
+                        <option value="VIEWER">Obserwator</option>
+                      </InviteRoleSelect>
+                      
+                      <TrashButton disabled title=" chyba bedzie sie dalo a jak nie to sory, zostajesz tu do konca zycia">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                          <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                          <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                        </svg>
+                      </TrashButton>
+                    </MemberActions>
+
+                  </ManageMemberItem>
+                ))}
+              </ManageMembersList>
+
+              <ButtonGroup style={{ marginTop: '25px' }}>
+                <ModalButton type="button" onClick={() => setIsManageMembersModalOpen(false)}>
+                  Zamknij
+                </ModalButton>
+              </ButtonGroup>
+            </StyledPopup>
+          </>
+        )}
+
+      </PageContainer>
+    </Layout>
+  );
+};
+
+export default SocialGroupDetails;

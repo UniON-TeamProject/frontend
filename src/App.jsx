@@ -18,6 +18,11 @@ import FSRSLearningPage from './pages/FSRSLearningPage';
 import Calendar from './pages/Calendar';
 import UsosCallback from './pages/UsosCallback';
 
+import SocialGroups from './pages/SocialGroups';
+import SocialGroupDetails from './pages/SocialGroupDetails';
+import Friends from './pages/Friends';
+import JoinGroup from './pages/JoinGroup';
+
 const ProtectedRoute = ({ children }) => {
   return getToken() ? children : <Navigate to="/" replace />;
 };
@@ -44,6 +49,11 @@ function App() {
           <Route path="/learning/fast/:setId" element={<FastLearningPage />} />
           <Route path="/learning/fsrs/:setId" element={<FSRSLearningPage />} />
           <Route path="/learning/trash" element={<FlashcardsPage />} />
+
+          <Route path="/social" element={<SocialGroups />} />
+          <Route path="/social/:id" element={<SocialGroupDetails />} />
+          <Route path="/social/friends" element={<Friends />} />
+          <Route path="/validateInvitation" element={<JoinGroup />} />
         </Routes>
       </BrowserRouter>
     </>

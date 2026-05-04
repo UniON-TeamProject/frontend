@@ -9,7 +9,9 @@ import {
     getAllDeletedFlashcardSets, restoreFlashcardSet, hardDeleteFlashcardSet, clearFlashcardSetsTrash,
     addFlashcardTag, removeFlashcardTag,
     addListOfCardsToSet,
-    getFlashcardSetStats
+    getFlashcardSetStats,
+    getFlashcardSet,
+    getSocialGroup
 } from '../api';
 import { getToken } from '../token';
 import Flashcard from '../components/organisms/Flashcard';
@@ -859,6 +861,8 @@ const FlashcardsPage = () => {
     const location = useLocation();
     const { setId } = useParams();
 
+    const socialId = new URLSearchParams(location.search).get('socialId');
+
     const isTrashView = location.pathname.includes('trash');
 
     const [activeSetId, setActiveSetId] = useState(null);
@@ -935,25 +939,65 @@ const FlashcardsPage = () => {
     const [isResetConfirmModalOpen, setIsResetConfirmModalOpen] = useState(false);
     const [pendingMode, setPendingMode] = useState(null); //fast lub fsrs
 
+    const [groupRole, setGroupRole] = useState(null);
+
     const fetchData = async () => {
         setErrorMessage("");
         
         const setsRes = isTrashView ? await getAllDeletedFlashcardSets() : await getAllFlashcardSets();
         
+        let safeSets = [];
         if (!setsRes.errorCode) {
-            // wymuszamy aby sets zawsze było tablicą
-            const safeSets = Array.isArray(setsRes.sets) ? setsRes.sets : (Array.isArray(setsRes) ? setsRes : []);
-            setSets(safeSets);
+            safeSets = Array.isArray(setsRes.sets) ? [...setsRes.sets] : (Array.isArray(setsRes) ? [...setsRes] : []);
         } else {
-            if (setsRes.errorCode === "TOKEN_UNDEFINED") navigate("/", { replace: true });
+            if (setsRes.errorCode === "TOKEN_UNDEFINED") { navigate("/", { replace: true }); return; }
             else setErrorMessage(setsRes.message);
         }
+
+        if (setId && !isTrashView) {
+            const parsedId = parseInt(setId);
+            let targetSet = safeSets.find(s => s.id === parsedId);
+
+            if (!targetSet) {
+                const sId = new URLSearchParams(location.search).get('socialId');
+                if (sId) {
+                    const singleRes = await getFlashcardSet(parsedId, sId);
+                    
+                    if (!singleRes.errorCode && singleRes.id) {
+                        safeSets = [...safeSets, singleRes]; 
+                        targetSet = singleRes; 
+
+                        const groupRes = await getSocialGroup(sId);
+                        if (!groupRes.errorCode) {
+                            setGroupRole(groupRes.userRole);
+                        }
+                    } else {
+                        setErrorMessage(singleRes.message || "Brak dostępu do zestawu grupowego.");
+                    }
+                }
+            }
+            else {
+                setGroupRole(null);
+            }
+
+            if (targetSet) {
+                setActiveSetId(targetSet.id);
+            } else {
+                setActiveSetId(null);
+            }
+        } else {
+            setActiveSetId(null);
+            setIsLearningMenuOpen(false);
+            setIsAddingMode(false);
+        }
+
+        setSets(safeSets);
     };
 
     useEffect(() => {
         if (!getToken()) { navigate("/", { replace: true }); return; }
         fetchData();
-    }, [isTrashView]);
+    }, [isTrashView, setId, location.search]);
 
     useEffect(() => {
         if (setId && sets.length > 0 && !isTrashView) {
@@ -969,6 +1013,8 @@ const FlashcardsPage = () => {
     }, [setId, sets, isTrashView]);
 
     const currentSet = sets.find(s => s.id === activeSetId);
+
+    const isReadOnly = socialId ? (groupRole !== 'ADMIN' && groupRole !== 'EDITOR') : false;
 
     useEffect(() => {
         const q = searchQuery.trim();
@@ -1199,7 +1245,7 @@ const FlashcardsPage = () => {
 
     const handleRenameSetInline = async (set, newName) => {
         if (!newName.trim() || newName === set.name) return;
-        const res = await editFlashcardSet(set.id, newName, set.tags || []);
+        const res = await editFlashcardSet(set.id, newName, set.tags || [], socialId);
         if (!res.errorCode) fetchData();
         else setErrorMessage(res.message);
     };
@@ -1207,13 +1253,13 @@ const FlashcardsPage = () => {
     const handleInlineSetTagAdd = async (set, tagToAdd) => {
         if (set.tags?.includes(tagToAdd)) return; 
         const updatedTags = [...(set.tags || []), tagToAdd];
-        const res = await editFlashcardSet(set.id, set.name, updatedTags);
+        const res = await editFlashcardSet(set.id, set.name, updatedTags, socialId); 
         if (!res.errorCode) fetchData();
     };
 
     const handleInlineSetTagRemove = async (set, tagToRemove) => {
         const updatedTags = (set.tags || []).filter(t => t !== tagToRemove);
-        const res = await editFlashcardSet(set.id, set.name, updatedTags);
+        const res = await editFlashcardSet(set.id, set.name, updatedTags, socialId);
         if (!res.errorCode) fetchData();
     };
 
@@ -1245,7 +1291,7 @@ const FlashcardsPage = () => {
         
         const res = isTrashView 
             ? await hardDeleteFlashcardSet(setToDelete) 
-            : await deleteFlashcardSet(setToDelete); 
+            : await deleteFlashcardSet(setToDelete, socialId);
             
         if (res.errorCode) {
             if (res.errorCode === "TOKEN_UNDEFINED") { navigate("/", { replace: true }); return; }
@@ -1298,7 +1344,7 @@ const FlashcardsPage = () => {
         }
 
         const tagsArray = setTags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
-        const res = await addFlashcardSet(setName, tagsArray, "/");
+        const res = await addFlashcardSet(setName, tagsArray);
 
         if (res.errorCode) {
             if (res.errorCode === "TOKEN_UNDEFINED") navigate("/", { replace: true });
@@ -1562,21 +1608,24 @@ const FlashcardsPage = () => {
                         <ToolbarActions>
                             {!isTrashView && (
                                 <FilterContainer>
-                                    <ToolbarButton 
-                                        className="outline" 
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setIsFilterMenuOpen(!isFilterMenuOpen);
-                                        }}
-                                    >
-                                        <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                                            <path fillRule="evenodd" d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3m-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1z"/>
-                                        </svg>
-                                        Filtruj
-                                        {selectedTagsFilter.length > 0 && (
-                                            <ActiveFilterBadge>{selectedTagsFilter.length}</ActiveFilterBadge>
-                                        )}
-                                    </ToolbarButton>
+                                    {!isReadOnly && (
+                                        <ToolbarButton 
+                                            className="outline" 
+                                            disabled={!currentSet?.cards || currentSet.cards.length === 0}
+                                            onClick={() => { 
+                                                if (!currentSet?.cards || currentSet.cards.length === 0) return;
+                                                setIsSelectMode(!isSelectMode); 
+                                                setSelectedCards([]); 
+                                            }}
+                                            title={(!currentSet?.cards || currentSet.cards.length === 0) ? "Brak fiszek do zaznaczenia" : ""}
+                                        >
+                                            <svg fill="currentColor" viewBox="0 0 16 16" width="14" height="14" style={{ opacity: (!currentSet?.cards || currentSet.cards.length === 0) ? 0.5 : 1 }}>
+                                                <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z"/>
+                                                <path d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425z"/>
+                                            </svg>
+                                            {isSelectMode ? "Anuluj zaznaczanie" : "Zaznacz fiszki"}
+                                        </ToolbarButton>
+                                    )}
 
                                     {/* MENU FILTRÓW */}
                                     {isFilterMenuOpen && (
@@ -1763,92 +1812,94 @@ const FlashcardsPage = () => {
                                             style={{ color: '#888', fontSize: '0.85rem', fontWeight: '500' }} 
                                         />
                                         
-                                        <StyledItemHeader onClick={(e) => {
-                                            e.stopPropagation();
-                                            if (activeMenuId !== set.id) {
-                                                setIsAddingItemTag(false);
-                                                setNewItemTag('');
-                                            }
-                                            setActiveMenuId(activeMenuId === set.id ? null : set.id);
-                                        }}>
-                                            <EllipsisIcon />
+                                        {!isReadOnly && (
+                                            <StyledItemHeader onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (activeMenuId !== set.id) {
+                                                    setIsAddingItemTag(false);
+                                                    setNewItemTag('');
+                                                }
+                                                setActiveMenuId(activeMenuId === set.id ? null : set.id);
+                                            }}>
+                                                <EllipsisIcon />
                                             
-                                            {activeMenuId === set.id && (
-                                                <StyledItemOptions onClick={e => e.stopPropagation()}>
-                                                    <div style={{ padding: '0 10px' }}>
-                                                        <DropdownSectionLabel>Nazwa</DropdownSectionLabel>
-                                                    </div>
-                                                    <input
-                                                        autoFocus
-                                                        defaultValue={set.name}
-                                                        maxLength={55}
-                                                        onBlur={(e) => {
-                                                            const newName = e.target.value;
-                                                            if (newName.trim() && newName.trim() !== set.name) {
-                                                                handleRenameSetInline(set, newName.trim());
-                                                            }
-                                                        }}
-                                                        onKeyDown={e => {
-                                                            if (e.key === 'Enter') {
+                                                {activeMenuId === set.id && (
+                                                    <StyledItemOptions onClick={e => e.stopPropagation()}>
+                                                        <div style={{ padding: '0 10px' }}>
+                                                            <DropdownSectionLabel>Nazwa</DropdownSectionLabel>
+                                                        </div>
+                                                        <input
+                                                            autoFocus
+                                                            defaultValue={set.name}
+                                                            maxLength={55}
+                                                            onBlur={(e) => {
                                                                 const newName = e.target.value;
                                                                 if (newName.trim() && newName.trim() !== set.name) {
                                                                     handleRenameSetInline(set, newName.trim());
                                                                 }
-                                                                setActiveMenuId(null);
-                                                            }
-                                                            if (e.key === 'Escape') {
-                                                                setActiveMenuId(null);
-                                                            }
-                                                        }}
-                                                        onClick={e => e.stopPropagation()}
-                                                    />
+                                                            }}
+                                                            onKeyDown={e => {
+                                                                if (e.key === 'Enter') {
+                                                                    const newName = e.target.value;
+                                                                    if (newName.trim() && newName.trim() !== set.name) {
+                                                                        handleRenameSetInline(set, newName.trim());
+                                                                    }
+                                                                    setActiveMenuId(null);
+                                                                }
+                                                                if (e.key === 'Escape') {
+                                                                    setActiveMenuId(null);
+                                                                }
+                                                            }}
+                                                            onClick={e => e.stopPropagation()}
+                                                        />
 
-                                                    <div style={{ padding: '0 12px' }}>
-                                                        <DropdownSectionLabel>Tagi</DropdownSectionLabel>
-                                                        <TagsContainer style={{ justifyContent: 'flex-start', margin: '0 0 10px 0' }}>
-                                                            {set.tags?.map((tag, idx) => (
-                                                                <StyledTag key={idx}>
-                                                                    {tag}
-                                                                    <div onClick={(e) => { e.stopPropagation(); handleInlineSetTagRemove(set, tag); }}>x</div>
-                                                                </StyledTag>
-                                                            ))}
-                                                            
-                                                            {isAddingItemTag ? (
-                                                                <StyledTagInput
-                                                                    autoFocus
-                                                                    value={newItemTag}
-                                                                    onChange={e => setNewItemTag(e.target.value)}
-                                                                    onKeyDown={e => {
-                                                                        if (e.key === 'Enter' && newItemTag.trim()) {
-                                                                            handleInlineSetTagAdd(set, newItemTag.trim());
-                                                                            setNewItemTag('');
-                                                                            setIsAddingItemTag(false);
-                                                                        }
-                                                                        if (e.key === 'Escape') {
-                                                                            setIsAddingItemTag(false);
-                                                                            setNewItemTag('');
-                                                                        }
-                                                                    }}
-                                                                    onBlur={() => { setIsAddingItemTag(false); setNewItemTag(''); }}
-                                                                    onClick={e => e.stopPropagation()}
-                                                                />
-                                                            ) : (
-                                                                <StyledAddTagButton onClick={(e) => { e.stopPropagation(); setIsAddingItemTag(true); }}>
-                                                                    + Dodaj
-                                                                </StyledAddTagButton>
-                                                            )}
-                                                        </TagsContainer>
-                                                    </div>
+                                                        <div style={{ padding: '0 12px' }}>
+                                                            <DropdownSectionLabel>Tagi</DropdownSectionLabel>
+                                                            <TagsContainer style={{ justifyContent: 'flex-start', margin: '0 0 10px 0' }}>
+                                                                {set.tags?.map((tag, idx) => (
+                                                                    <StyledTag key={idx}>
+                                                                        {tag}
+                                                                        <div onClick={(e) => { e.stopPropagation(); handleInlineSetTagRemove(set, tag); }}>x</div>
+                                                                    </StyledTag>
+                                                                ))}
+                                                                
+                                                                {isAddingItemTag ? (
+                                                                    <StyledTagInput
+                                                                        autoFocus
+                                                                        value={newItemTag}
+                                                                        onChange={e => setNewItemTag(e.target.value)}
+                                                                        onKeyDown={e => {
+                                                                            if (e.key === 'Enter' && newItemTag.trim()) {
+                                                                                handleInlineSetTagAdd(set, newItemTag.trim());
+                                                                                setNewItemTag('');
+                                                                                setIsAddingItemTag(false);
+                                                                            }
+                                                                            if (e.key === 'Escape') {
+                                                                                setIsAddingItemTag(false);
+                                                                                setNewItemTag('');
+                                                                            }
+                                                                        }}
+                                                                        onBlur={() => { setIsAddingItemTag(false); setNewItemTag(''); }}
+                                                                        onClick={e => e.stopPropagation()}
+                                                                    />
+                                                                ) : (
+                                                                    <StyledAddTagButton onClick={(e) => { e.stopPropagation(); setIsAddingItemTag(true); }}>
+                                                                        + Dodaj
+                                                                    </StyledAddTagButton>
+                                                                )}
+                                                            </TagsContainer>
+                                                        </div>
 
-                                                    <div style={{ height: '1px', background: '#eee', margin: '5px 0' }}></div>
+                                                        <div style={{ height: '1px', background: '#eee', margin: '5px 0' }}></div>
 
-                                                    <StyledItemOption className="danger" onClick={(e) => { e.stopPropagation(); confirmDeleteSet(set.id); }}>
-                                                        <svg fill="currentColor" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" /></svg>
-                                                        Usuń zestaw
-                                                    </StyledItemOption>
-                                                </StyledItemOptions>
-                                            )}
-                                        </StyledItemHeader>
+                                                        <StyledItemOption className="danger" onClick={(e) => { e.stopPropagation(); confirmDeleteSet(set.id); }}>
+                                                            <svg fill="currentColor" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" /></svg>
+                                                            Usuń zestaw
+                                                        </StyledItemOption>
+                                                    </StyledItemOptions>
+                                                )}
+                                            </StyledItemHeader>
+                                        )}
                                     </StyledItemHeaderWrapper>
                                     
                                 </SetItemWrapper>
@@ -1883,6 +1934,7 @@ const FlashcardsPage = () => {
                                     isSelectMode={isSelectMode}
                                     isSelected={selectedCards.some(c => c.id === card.id)}
                                     onToggleSelect={() => toggleCardSelection(card)}
+                                    isReadOnly={isReadOnly}
                                 />
                             ))
                         )}
@@ -1924,7 +1976,7 @@ const FlashcardsPage = () => {
                     </CardsFormContainer>
                 )}
 
-                {!isTrashView && (
+                {!isTrashView && !isReadOnly && (
                     <FloatingActionButton onClick={() => {
                         if (isAddingMode) {
                             handleSaveNewCards();

@@ -1,10 +1,11 @@
 import styled from 'styled-components';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getToken, parseJwt, removeToken } from '../token';
 import Layout from '../components/organisms/Layout';
-import { getAllNotes, getAllFolders, getRecentFlashcardSets, getFlashcardSetStats, getEventsBetween } from '../api';
+import { getAllNotes, getAllFolders, getRecentFlashcardSets, getFlashcardSetStats, getEventsBetween, getNotifications, getUserSocialGroups } from '../api';
 import CalendarGrid, { getWeekStart, mapBackendEvent, TAG_CONFIG } from '../components/organisms/CalendarGrid';
+import NotificationsDropdown from '../components/organisms/NotificationsDropdown';
 
 const MONTHS_PL = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
 
@@ -50,20 +51,6 @@ const HeaderRight = styled.div`
     align-items: center;
     gap: 15px;
 `
-/*
-const SearchInput = styled.input`
-    padding: 0 15px;
-    border-radius: 8px;
-    border: 1px solid #d1d4c9;
-    background-color: #ffffff;
-    font-size: 0.9rem;
-    outline: none;
-    width: 200px;
-    height: 40px; 
-    transition: border-color 0.2s;
-    &:focus { border-color: #122818; }
-`
-*/
 
 const StyledLogoutButton = styled.button`
     padding: 0 20px;
@@ -93,11 +80,23 @@ const DashboardLayout = styled.div`
     }
 `
 
+const BottomRow = styled.div`
+    display: grid;
+    grid-template-columns: 6fr 4fr;
+    gap: 20px;
+    margin-top: 20px;
+
+    @media(max-width: 1024px) {
+        grid-template-columns: 1fr; 
+    }
+`
+
 const LeftColumn = styled.div`
     display: flex;
     flex-direction: column;
     gap: 15px;
     height: 100%; 
+    justify-content: space-between;
 `
 
 const RightColumn = styled.div`
@@ -117,16 +116,11 @@ const CardBox = styled.div`
     box-sizing: border-box;
 `
 
-const FiszkiBox = styled(CardBox)` flex: 5.5; `
-const NotatkiBox = styled(CardBox)` flex: 4.5; `
-const CalendarBox = styled(CardBox)` flex: 6.5; `
-
-const BottomRow = styled.div`
-    flex: 4.5;
-    display: grid;
-    grid-template-columns: 1fr 1fr; 
-    gap: 30px;
-`
+const FiszkiBox = styled(CardBox)` min-height: 250px; `
+const NotatkiBox = styled(CardBox)` min-height: 250px; `
+const DeadlinesBox = styled(CardBox)` flex: 1; min-height: 250px; `
+const CalendarBox = styled(CardBox)` flex: 2; height: 650px; `
+const SocialBox = styled(CardBox)` flex: 1; min-height: 250px; `
 
 const CardTitle = styled.h3`
     color: #122818;
@@ -179,8 +173,9 @@ const ItemInfo = styled.div`
     display: flex;
     flex-direction: column;
     gap: 4px;
-    max-width: 60%;
-`
+    flex: 1; 
+    min-width: 0; 
+`;
 
 const ItemTitle = styled.span`
     font-weight: 700;
@@ -189,13 +184,18 @@ const ItemTitle = styled.span`
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-`
+    display: block;
+`;
 
 const ItemSub = styled.span`
     font-size: 0.75rem;
     color: #555;
     font-weight: 500;
-`
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+`;
 
 const ItemMeta = styled.div`
     display: flex;
@@ -269,14 +269,29 @@ const FolderName = styled.span`
     color: #122818;
     width: 100%;
     text-align: center;
-    
-    /* zamiast jednej linijki pozwalamy na max 2 linijki tekstu */
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     word-wrap: break-word;
 `
+
+const BellIconWrapper = styled.div`
+    position: relative;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: #122818;
+    
+    svg {
+        width: 28px;
+        height: 28px;
+        transition: transform 0.2s, color 0.2s;
+        &:hover {
+            transform: scale(1.1);
+        }
+    }
+`;
 
 const Home = () => {
     const [username, setUsername] = useState("");
@@ -286,13 +301,51 @@ const Home = () => {
     
     const [allFoldersList, setAllFoldersList] = useState([]);
 
+    const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    const [allGroups, setAllGroups] = useState([]);
+    const [pinnedGroupIds, setPinnedGroupIds] = useState(() => JSON.parse(localStorage.getItem('pinnedSocialGroups') || '[]'));
+
     const navigate = useNavigate();
 
     const [currentDate, setCurrentDate] = useState(new Date());
     const [calendarView, setCalendarView] = useState(() => localStorage.getItem("calendarView") || "week");
     const [events, setEvents] = useState([]);
 
-    const upcomingDeadlines = events.filter(ev => ev.isDeadline).sort((a, b) => a.date - b.date).slice(0, 3);
+    const upcomingDeadlines = useMemo(() => {
+        const now = new Date();
+
+        return events
+        .filter(ev => {
+            if (!ev.isDeadline) return false;
+
+            const eventEnd = new Date(ev.endDate || ev.date);
+            
+            if (ev.allDay) {
+            eventEnd.setHours(23, 59, 59, 999);
+            } else {
+            eventEnd.setHours(
+                ev.endHour !== undefined ? ev.endHour : 23, 
+                ev.endMin !== undefined ? ev.endMin : 59, 
+                59, 
+                999
+            );
+            }
+
+            return eventEnd >= now;
+        })
+        .sort((a, b) => {
+            const startA = new Date(a.date);
+            startA.setHours(a.allDay ? 0 : (a.startHour || 0), a.allDay ? 0 : (a.startMin || 0), 0, 0);
+            
+            const startB = new Date(b.date);
+            startB.setHours(b.allDay ? 0 : (b.startHour || 0), b.allDay ? 0 : (b.startMin || 0), 0, 0);
+            
+            return startA - startB;
+        })
+        .slice(0, 3);
+    }, [events]);
 
     useEffect(() => {
         const fetchEvents = async () => {
@@ -343,7 +396,6 @@ const Home = () => {
         return `${MONTHS_PL[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
     };
 
-
     useEffect(() => {
         const jwt = getToken();
         if (!jwt) {
@@ -355,10 +407,11 @@ const Home = () => {
 
         const fetchData = async () => {
             try {
-                const [notesData, foldersData, recentSetsData] = await Promise.all([
+                const [notesData, foldersData, recentSetsData, groupsData] = await Promise.all([
                     getAllNotes(),
                     getAllFolders(),
-                    getRecentFlashcardSets()
+                    getRecentFlashcardSets(),
+                    getUserSocialGroups()
                 ]);
 
                 const notesArray = Array.isArray(notesData) ? notesData : (notesData.notes || []);
@@ -396,6 +449,9 @@ const Home = () => {
                 setRecentNotes(sortedNotes.slice(0, 3)); 
                 setRecentFolders(sortedFolders.slice(0, 4));
                 setAllFoldersList(foldersArray);
+
+                const groupsArray = groupsData.errorCode ? [] : groupsData;
+                setAllGroups(groupsArray);
             } catch (error) {
                 console.error("Błąd pobierania danych:", error);
             }
@@ -404,13 +460,45 @@ const Home = () => {
         fetchData();
     }, [navigate]);
 
+    const refreshUnreadCount = async () => {
+        const res = await getNotifications();
+        if (!res.errorCode) {
+            const count = res.notifications.filter(n => !n.isRead).length;
+            setUnreadCount(count);
+        }
+    };
+
+    useEffect(() => {
+        refreshUnreadCount(); 
+    }, []);
+
+    const recentGroups = useMemo(() => {
+        const sorted = [...allGroups].sort((a, b) => {
+            const aPinned = pinnedGroupIds.includes(a.id);
+            const bPinned = pinnedGroupIds.includes(b.id);
+            if (aPinned && !bPinned) return -1;
+            if (!aPinned && bPinned) return 1;
+            return b.id - a.id;
+        });
+        return sorted.slice(0, 3);
+    }, [allGroups, pinnedGroupIds]);
+
+    const togglePinGroup = (e, groupId) => {
+        e.stopPropagation();
+        setPinnedGroupIds(prev => {
+            const newPinned = prev.includes(groupId) 
+                ? prev.filter(id => id !== groupId) 
+                : [...prev, groupId];
+            localStorage.setItem('pinnedSocialGroups', JSON.stringify(newPinned));
+            return newPinned;
+        });
+    };
 
     const formatActivityDate = (timestamp) => {
         if (!timestamp || timestamp === 0) return "Brak aktywności";
         const date = new Date(timestamp);
         return date.toLocaleDateString('pl-PL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
     };
-
 
     const getFolderFullPath = (folder) => {
         if (!folder || folder.name === "/") return "";
@@ -419,17 +507,13 @@ const Home = () => {
 
     const getNotePath = (note) => {
         if (note.folderId !== undefined && note.folderId !== null) {
-            
             const parentFolder = allFoldersList.find(f => f.id === note.folderId);
-            
             if (parentFolder && parentFolder.name !== "/") {
                 const fullPath = getFolderFullPath(parentFolder);
                 const formatted = fullPath.split('/').filter(Boolean).join(' > ');
-                
                 if (formatted) return formatted;
             }
         }
-        
         return "Katalog główny";
     };
 
@@ -439,11 +523,31 @@ const Home = () => {
         navigate(`/notes/${segments.join('/')}`);
     };
 
-    // funkcje do pokazywania pustych slotow jesli uzytkownik ma za malo notatek fiszek i terminow
-    const renderEmptySlots = (currentLength, maxSlots) => {
+    const renderEmptyNotes = (currentLength, maxSlots) => {
         const emptySlots = [];
         for (let i = currentLength; i < maxSlots; i++) {
-            emptySlots.push(<ListItem key={`empty-${i}`} $isEmpty={true}><ItemTitle>&nbsp;</ItemTitle></ListItem>);
+            emptySlots.push(
+                <ListItem key={`empty-note-${i}`} $isEmpty={true}>
+                    <ItemInfo>
+                        <ItemTitle>&nbsp;</ItemTitle>
+                    </ItemInfo>
+                </ListItem>
+            );
+        }
+        return emptySlots;
+    };
+
+    const renderEmptySets = (currentLength, maxSlots) => {
+        const emptySlots = [];
+        for (let i = currentLength; i < maxSlots; i++) {
+            emptySlots.push(
+                <ListItem key={`empty-set-${i}`} $isEmpty={true}>
+                    <ItemInfo>
+                        <ItemTitle>&nbsp;</ItemTitle>
+                        <ItemSub>&nbsp;</ItemSub>
+                    </ItemInfo>
+                </ListItem>
+            );
         }
         return emptySlots;
     };
@@ -451,7 +555,32 @@ const Home = () => {
     const renderEmptyDeadlines = (currentLength, maxSlots) => {
         const emptySlots = [];
         for (let i = currentLength; i < maxSlots; i++) {
-            emptySlots.push(<SimpleListItem key={`empty-dl-${i}`} $isEmpty={true}><span>&nbsp;</span></SimpleListItem>);
+            emptySlots.push(
+                <ListItem key={`empty-dl-${i}`} $isEmpty={true}>
+                    <ItemInfo>
+                        <ItemTitle>&nbsp;</ItemTitle>
+                        <ItemSub>&nbsp;</ItemSub>
+                    </ItemInfo>
+                </ListItem>
+            );
+        }
+        return emptySlots;
+    };
+
+    const renderEmptyGroups = (currentLength, maxSlots) => {
+        const emptySlots = [];
+        for (let i = currentLength; i < maxSlots; i++) {
+            emptySlots.push(
+                <ListItem key={`empty-grp-${i}`} $isEmpty={true}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
+                        <div style={{ width: '38px', height: '38px', flexShrink: 0 }}></div>
+                        <ItemInfo>
+                            <ItemTitle>&nbsp;</ItemTitle>
+                            <ItemSub>&nbsp;</ItemSub>
+                        </ItemInfo>
+                    </div>
+                </ListItem>
+            );
         }
         return emptySlots;
     };
@@ -472,17 +601,44 @@ const Home = () => {
                 <StyledHeader>
                     <StyledName>Witaj, {username || "użytkowniku"}!</StyledName>
                     <HeaderRight>
+                        <BellIconWrapper>
+                            <svg 
+                                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)} 
+                                fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                            
+                            {unreadCount > 0 && (
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '-2px',
+                                    right: '-2px',
+                                    width: '12px',
+                                    height: '12px',
+                                    backgroundColor: '#e74c3c',
+                                    borderRadius: '50%',
+                                    border: '2px solid white'
+                                }} />
+                            )}
+                            
+                            {isNotificationsOpen && (
+                                <NotificationsDropdown 
+                                    onClose={() => setIsNotificationsOpen(false)} 
+                                    onRefresh={refreshUnreadCount}
+                                />
+                            )}
+                        </BellIconWrapper>
+
                         <StyledLogoutButton onClick={() => { removeToken(); navigate("/"); }}>
                             Wyloguj
                         </StyledLogoutButton>
                     </HeaderRight>
                 </StyledHeader>
 
+                {/* GÓRNY RZĄD */}
                 <DashboardLayout>
-                    
-                    {/* LEWA KOLUMNA */}
                     <LeftColumn>
-                        
                         <FiszkiBox>
                             <CardTitle>Wróć do nauki</CardTitle>
                             <ItemList>
@@ -507,7 +663,7 @@ const Home = () => {
                                         </ListItem>
                                     );
                                 })}
-                                {renderEmptySlots(recentSets.length, 3)}
+                                {renderEmptySets(recentSets.length, 3)}
                             </ItemList>
                             <MoreButton onClick={() => navigate("/learning")}>Więcej...</MoreButton>
                         </FiszkiBox>
@@ -527,13 +683,13 @@ const Home = () => {
                                         </FolderBox>
                                     ))
                                 ) : (
-                                    <FolderBox>
+                                    <FolderBox onClick={() => navigate('/notes')}>
                                         <FolderIcon>
                                             <svg fill="currentColor" viewBox="0 0 16 16">
                                                 <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139q.323-.119.684-.12h5.396z" />
                                             </svg>
                                         </FolderIcon>
-                                        <FolderName>Brak</FolderName>
+                                        <FolderName>Katalog główny</FolderName>
                                     </FolderBox>
                                 )}
                             </FoldersRow>
@@ -549,26 +705,14 @@ const Home = () => {
                                         </ItemMeta>
                                     </ListItem>
                                 ))}
-                                {renderEmptySlots(recentNotes.length, 3)}
+                                {renderEmptyNotes(recentNotes.length, 3)}
                             </ItemList>
                             <MoreButton onClick={() => navigate("/notes")}>Więcej...</MoreButton>
                         </NotatkiBox>
-
-                        <CardBox>
-                            <CardTitle>Społeczności</CardTitle>
-                            <div style={{ flexGrow: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#b3b9a8', fontSize: '0.95rem', textAlign: 'center', minHeight: '80px' }}>
-                                Brak nowych aktywności.
-                            </div>
-                            <MoreButton>Więcej...</MoreButton>
-                        </CardBox>
-
                     </LeftColumn>
 
-                    {/* PRAWA KOLUMNA */}
                     <RightColumn>
-                        
                         <CalendarBox style={{ padding: '24px', display: 'flex', flexDirection: 'column', height: '650px' }}>
-                            
                             <CardTitle style={{ marginBottom: '15px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                     <button onClick={handlePrev} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.4rem', color: '#122818', padding: '0 5px' }}>‹</button>
@@ -603,54 +747,121 @@ const Home = () => {
                                     />
                                 </div>
                             </div>
-                            
                         </CalendarBox>
-
-                        <CardBox>
-                            <CardTitle>Bliskie terminy</CardTitle>
-                            <ItemList>
-                                {upcomingDeadlines.length > 0 ? (
-                                    upcomingDeadlines.map((deadline) => {
-                                        const categoryTag = deadline.tags && deadline.tags.length > 0 ? deadline.tags[0] : null;
-                                        const categoryLabel = categoryTag && TAG_CONFIG[categoryTag] 
-                                            ? TAG_CONFIG[categoryTag].label 
-                                            : "TERMIN";
-
-                                        return (
-                                            <ListItem 
-                                                key={deadline.id} 
-                                                onClick={() => navigate('/calendar')}
-                                                style={{ borderLeft: '4px solid #e74c3c' }}
-                                            >
-                                                <ItemInfo>
-                                                    <ItemTitle>{deadline.title}</ItemTitle>
-                                                    <ItemSub>
-                                                        {deadline.date.toLocaleDateString('pl-PL', { day: '2-digit', month: 'short' })}
-                                                        {deadline.allDay ? '' : ` o ${String(deadline.startHour).padStart(2, '0')}:${String(deadline.startMin).padStart(2, '0')}`}
-                                                    </ItemSub>
-                                                </ItemInfo>
-                                                <ItemMeta>
-                                                    <TagPill style={{ color: '#e74c3c', textTransform: 'uppercase' }}>
-                                                        {categoryLabel}
-                                                    </TagPill>
-                                                </ItemMeta>
-                                            </ListItem>
-                                        );
-                                    })
-                                ) : (
-                                    renderEmptyDeadlines(0, 3)
-                                )}
-                                
-                                {upcomingDeadlines.length > 0 && upcomingDeadlines.length < 3 && 
-                                    renderEmptyDeadlines(upcomingDeadlines.length, 3)
-                                }
-                            </ItemList>
-                            <MoreButton onClick={() => navigate('/calendar')}>Więcej...</MoreButton>
-                        </CardBox>
-
                     </RightColumn>
-
                 </DashboardLayout>
+
+                {/* DOLNY RZĄD */}
+                <BottomRow>
+                    <SocialBox>
+                        <CardTitle>Społeczności</CardTitle>
+                        <ItemList>
+                            {recentGroups.length > 0 ? (
+                                recentGroups.map((group) => {
+                                    const isPinned = pinnedGroupIds.includes(group.id);
+                                    
+                                    return (
+                                        <ListItem key={group.id} onClick={() => navigate(`/social/${group.id}`)}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0, paddingRight: '10px' }}>
+                                                <div style={{ 
+                                                    width: '38px', height: '38px', borderRadius: '10px', 
+                                                    backgroundColor: '#e9ece1', color: '#122818', 
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 
+                                                }}>
+                                                    <svg fill="currentColor" viewBox="0 0 16 16" style={{ width: '20px', height: '20px' }}>
+                                                        <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275zM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4" />
+                                                    </svg>
+                                                </div>
+                                                
+                                                <ItemInfo>
+                                                    <ItemTitle>{group.name}</ItemTitle>
+                                                    <ItemSub>{group.description || "Brak opisu"}</ItemSub>
+                                                </ItemInfo>
+                                            </div>
+
+                                            <ItemMeta style={{ flexDirection: 'row', alignItems: 'center', gap: '10px' }}>
+                                                <TagPill style={{ backgroundColor: '#e9ece1', padding: '3px 8px', borderRadius: '8px' }}>
+                                                    {group.userRole === 'ADMIN' ? 'Administrator' : 
+                                                     group.userRole === 'EDITOR' ? 'Edytor' : 
+                                                     group.userRole === 'VIEWER' ? 'Obserwator' : 'Członek'}
+                                                </TagPill>
+                                                
+                                                <div 
+                                                    onClick={(e) => togglePinGroup(e, group.id)}
+                                                    title={isPinned ? "Odepnij" : "Przypnij na górze"}
+                                                    style={{ 
+                                                        cursor: 'pointer', 
+                                                        color: isPinned ? '#f1c40f' : '#c4c9b9', 
+                                                        display: 'flex', alignItems: 'center',
+                                                        transition: 'color 0.2s, transform 0.2s'
+                                                    }}
+                                                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.2)'}
+                                                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                                                >
+                                                    <svg fill="currentColor" viewBox="0 0 16 16" style={{ width: '18px', height: '18px' }}>
+                                                        <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+                                                    </svg>
+                                                </div>
+                                            </ItemMeta>
+                                        </ListItem>
+                                    );
+                                })
+                            ) : (
+                                <div style={{ flexGrow: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#b3b9a8', fontSize: '0.95rem', textAlign: 'center', minHeight: '80px' }}>
+                                    Nie należysz do żadnej społeczności.
+                                </div>
+                            )}
+                            
+                            {recentGroups.length > 0 && recentGroups.length < 3 && 
+                                renderEmptyGroups(recentGroups.length, 3)
+                            }
+                        </ItemList>
+                        <MoreButton onClick={() => navigate("/social")}>Więcej...</MoreButton>
+                    </SocialBox>
+
+                    <DeadlinesBox>
+                        <CardTitle>Bliskie terminy</CardTitle>
+                        <ItemList>
+                            {upcomingDeadlines.length > 0 ? (
+                                upcomingDeadlines.map((deadline) => {
+                                    const categoryTag = deadline.tags && deadline.tags.length > 0 ? deadline.tags[0] : null;
+                                    const categoryLabel = categoryTag && TAG_CONFIG[categoryTag] 
+                                        ? TAG_CONFIG[categoryTag].label 
+                                        : "TERMIN";
+
+                                    return (
+                                        <ListItem 
+                                            key={deadline.id} 
+                                            onClick={() => navigate('/calendar')}
+                                            style={{ borderLeft: '4px solid #ef4444' }}
+                                        >
+                                            <ItemInfo>
+                                                <ItemTitle>{deadline.title}</ItemTitle>
+                                                <ItemSub>
+                                                    {deadline.date.toLocaleDateString('pl-PL', { day: '2-digit', month: 'short' })}
+                                                    {deadline.allDay ? '' : ` o ${String(deadline.startHour).padStart(2, '0')}:${String(deadline.startMin).padStart(2, '0')}`}
+                                                </ItemSub>
+                                            </ItemInfo>
+                                            <ItemMeta>
+                                                <TagPill style={{ color: '#ef4444', textTransform: 'uppercase' }}>
+                                                    {categoryLabel}
+                                                </TagPill>
+                                            </ItemMeta>
+                                        </ListItem>
+                                    );
+                                })
+                            ) : (
+                                renderEmptyDeadlines(0, 3)
+                            )}
+                            
+                            {upcomingDeadlines.length > 0 && upcomingDeadlines.length < 3 && 
+                                renderEmptyDeadlines(upcomingDeadlines.length, 3)
+                            }
+                        </ItemList>
+                        <MoreButton onClick={() => navigate('/calendar')}>Więcej...</MoreButton>
+                    </DeadlinesBox>
+                </BottomRow>
+
             </StyledContainer>
         </Layout>
     );

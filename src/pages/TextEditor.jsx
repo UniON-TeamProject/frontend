@@ -3,10 +3,10 @@ import { BubbleMenu } from '@tiptap/react/menus'
 import { Markdown } from 'tiptap-markdown'
 import StarterKit from '@tiptap/starter-kit'
 import { Placeholder } from '@tiptap/extensions'
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import Typography from '@tiptap/extension-typography'
 import React, { useState, useEffect, useRef } from 'react'
-import { getNoteDetails, editNote, renameNote, addNoteTag, removeNoteTag, getNoteTags, getNoteSuggestedTags } from '../api'
+import { getNoteDetails, editNote, renameNote, addNoteTag, removeNoteTag, getNoteTags, getNoteSuggestedTags, getSocialGroup } from '../api'
 import styled from 'styled-components'
 import Image from '@tiptap/extension-image'
 import { Extension } from '@tiptap/core';
@@ -401,6 +401,12 @@ const TextEditor = () => {
   const collapsingSectionRef = useRef(null);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
+  const location = useLocation();
+  const socialId = React.useMemo(() => new URLSearchParams(location.search).get('socialId'), [location.search]);
+  const [groupRole, setGroupRole] = useState(null);
+
+  const isReadyForAutoSave = useRef(false);
+
   const SaveShortcut = Extension.create({
     name: 'saveShortcut',
 
@@ -486,6 +492,7 @@ const TextEditor = () => {
     ],
     content: '',
     onUpdate() {
+      if (!isReadyForAutoSave.current) return;
       if (saveTimeout.current) clearTimeout(saveTimeout.current);
       saveTimeout.current = setTimeout(() => save(), 2000)
     },
@@ -494,7 +501,17 @@ const TextEditor = () => {
 
   const fetchNoteDetails = async () => {
     setErrorMessage("");
-    const result = await getNoteDetails(id);
+    const result = await getNoteDetails(id, socialId);
+
+    let currentRole = null;
+    if (socialId) {
+        const groupRes = await getSocialGroup(socialId);
+        if (!groupRes.errorCode) {
+            currentRole = groupRes.userRole;
+            setGroupRole(currentRole);
+        }
+    }
+
     if (result.errorCode) {
       if (result.errorCode == "NOTE_NOT_FOUND") {
         setNoteNotFoundError(true);
@@ -512,8 +529,17 @@ const TextEditor = () => {
       }
       if (result.content !== undefined) {
         setContent(result.content);
-        if (editor)
-          editor.commands.setContent(result.content);
+        if (editor) {
+          isReadyForAutoSave.current = false;
+          editor.commands.setContent(result.content, false);
+          
+          const isReadOnly = socialId ? (currentRole !== 'ADMIN' && currentRole !== 'EDITOR') : false;
+          editor.setEditable(!isReadOnly);
+
+          setTimeout(() => {
+              isReadyForAutoSave.current = true;
+          }, 1000);
+        }
       }
       handleFetchTags();
       handleFetchSuggestedTags(result.folderId);
@@ -522,7 +548,7 @@ const TextEditor = () => {
 
   const handleRenameNote = async () => {
     setErrorMessage("");
-    const result = await renameNote(id, newName.trim());
+    const result = await renameNote(id, newName.trim(), socialId);
     if (result.errorCode) {
       if (result.errorCode == "NOTE_NOT_FOUND") {
         setNoteNotFoundError(true);
@@ -539,8 +565,9 @@ const TextEditor = () => {
   }
 
   const handleFetchTags = async () => {
+    if (socialId) return;
     setErrorMessage("");
-    const result = await getNoteTags(id);
+    const result = await getNoteTags(id, socialId);
     if (result.errorCode) {
       if (result.errorCode == "NOTE_NOT_FOUND") {
         setNoteNotFoundError(true);
@@ -557,7 +584,7 @@ const TextEditor = () => {
   }
 
   const handleFetchSuggestedTags = async (folderId) => {
-    if (!folderId) return;
+    if (!folderId || socialId) return;
     const result = await getNoteSuggestedTags(folderId);
     if (!result.errorCode) {
       setSuggestedTags(result.tags);
@@ -566,7 +593,7 @@ const TextEditor = () => {
 
   const handleAddTag = async (tagName) => {
     setErrorMessage("");
-    const result = await addNoteTag(id, tagName);
+    const result = await addNoteTag(id, tagName, socialId);
     if (result.errorCode) {
       if (result.errorCode == "NOTE_NOT_FOUND") {
         setNoteNotFoundError(true);
@@ -584,7 +611,7 @@ const TextEditor = () => {
 
   const handleRemoveTag = async (tagName) => {
     setErrorMessage("");
-    const result = await removeNoteTag(id, tagName);
+    const result = await removeNoteTag(id, tagName, socialId);
     if (result.errorCode) {
       if (result.errorCode == "NOTE_NOT_FOUND") {
         setNoteNotFoundError(true);
@@ -601,12 +628,12 @@ const TextEditor = () => {
   }
 
   const save = async () => {
-    if (!editor) return;
+    if (!editor || !editor.isEditable) return;
     const html = editor.getHTML();
     if (!html || html === '<p></p>')
       return;
 
-    const result = await editNote(id, html);
+    const result = await editNote(id, html, socialId);
     if (result.errorCode) {
       if (result.errorCode === "NOTE_NOT_FOUND") {
         setNoteNotFoundError(true);
@@ -624,6 +651,7 @@ const TextEditor = () => {
     const handler = (e) => {
       if (e.key === 's' && (navigator.userAgent.includes('Mac') ? e.metaKey : e.ctrlKey))
         e.preventDefault();
+        save();
     };
     document.addEventListener('keydown', handler);
 
@@ -645,11 +673,11 @@ const TextEditor = () => {
       document.removeEventListener('keydown', handler);
       window.removeEventListener('scroll', handleScroll);
     };
-  }, []);
+  }, [id, socialId]);
 
   useEffect(() => {
     if (editor && content !== undefined)
-      editor.commands.setContent(content)
+      editor.commands.setContent(content, false)
   }, [editor, content])
 
   useEffect(() => {
@@ -706,6 +734,8 @@ const TextEditor = () => {
     });
   };
 
+  const isReadOnly = socialId ? (groupRole !== 'ADMIN' && groupRole !== 'EDITOR') : false;
+
   return (
     noteNotFoundError ?
       <>
@@ -716,21 +746,23 @@ const TextEditor = () => {
       <Layout>
         <StyledContainer>
           <StyledHeader>
-            <div style={{ position: 'absolute', top: 25, right: 20, display: 'flex', gap: 8, zIndex: 11 }}>
-              <FlashcardToggleButton style={{ position: 'static' }} onClick={() => setIsSidebarOpen(o => !o)}>
-                <svg fill="currentColor" viewBox="0 0 16 16">
-                  <path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2z" />
-                  <path d="M3 5.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M3 8a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 8m0 2.5a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5" />
-                </svg>
-                Kreator fiszek
-              </FlashcardToggleButton>
-              <FlashcardToggleButton style={{ position: 'static' }} onClick={() => setIsAIModalOpen(true)}>
-                <svg fill="currentColor" viewBox="0 0 16 16">
-                  <path d="M6 12.796V3.204L11.481 8zm.659.753 5.48-4.796a1 1 0 0 0 0-1.506L6.66 2.451C6.011 1.885 5 2.345 5 3.204v9.592a1 1 0 0 0 1.659.753" />
-                </svg>
-                Stwórz fiszki AI
-              </FlashcardToggleButton>
-            </div>
+          {!isReadOnly && (
+              <div style={{ position: 'absolute', top: 25, right: 20, display: 'flex', gap: 8, zIndex: 11 }}>
+                <FlashcardToggleButton style={{ position: 'static' }} onClick={() => setIsSidebarOpen(o => !o)}>
+                  <svg fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2z" />
+                    <path d="M3 5.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M3 8a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 8m0 2.5a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5" />
+                  </svg>
+                  Kreator fiszek
+                </FlashcardToggleButton>
+                <FlashcardToggleButton style={{ position: 'static' }} onClick={() => setIsAIModalOpen(true)}>
+                  <svg fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M6 12.796V3.204L11.481 8zm.659.753 5.48-4.796a1 1 0 0 0 0-1.506L6.66 2.451C6.011 1.885 5 2.345 5 3.204v9.592a1 1 0 0 0 1.659.753" />
+                  </svg>
+                  Stwórz fiszki AI
+                </FlashcardToggleButton>
+              </div>
+            )}
 
             <TopControlsWrapper $collapsed={isScrolled}>
                 <ReturnButton onClick={() => history.back()}>
@@ -755,58 +787,67 @@ const TextEditor = () => {
             />
             <CollapsingSection ref={collapsingSectionRef} $collapsed={isScrolled}>
               {renameNoteError && <Text style={{ width: "65%", textAlign: 'left' }} color="danger" text={renameNoteErrorMessage} />}
-              <StyledTitleInput
-                type="text"
-                name="name"
-                value={newName}
-                $mode={renameNoteError ? "error" : ""}
-                autoComplete="off"
-                onChange={e => {
-                  setRenameNoteError(false);
-                  setRenameNoteErrorMessage("");
-                  setNewName(e.target.value);
-                }}
-              />
-              <TagsContainer>
-                <p>TAGI: </p>
-                {tags.map((tag, index) => (
-                  <StyledTag key={index}>
-                    {tag}
-                    <div onClick={() => { handleRemoveTag(tag) }}>x</div>
-                  </StyledTag>
-                ))}
-                {suggestedTags.filter(t => !tags.includes(t)).map((tag, index) => (
-                  <StyledTag key={`suggested-${index}`} $inactive onClick={() => handleAddTag(tag)}>
-                    {tag}
-                  </StyledTag>
-                ))}
-                {isAddingTag && (
-                  <StyledTagInput
-                    autoFocus
-                    value={newTag}
-                    onChange={e => setNewTag(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') addTag()
-                      if (e.key === 'Escape') {
-                        setIsAddingTag(false)
-                        setNewTag('')
-                      }
-                    }}
-                    onBlur={() => {
-                      setIsAddingTag(false)
-                      setNewTag('')
+              {isReadOnly ? (
+                  <Text as="h1" bold="true" text={newName} style={{ width: '65%', fontSize: '3rem', margin: '10px 0', textAlign: 'left' }} />
+              ) : (
+                  <StyledTitleInput
+                    type="text"
+                    name="name"
+                    value={newName}
+                    $mode={renameNoteError ? "error" : ""}
+                    autoComplete="off"
+                    onChange={e => {
+                      setRenameNoteError(false);
+                      setRenameNoteErrorMessage("");
+                      setNewName(e.target.value);
                     }}
                   />
-                )}
-                {!isAddingTag && (
-                  <StyledAddTagButton onClick={() => setIsAddingTag(true)}>
-                    +
-                  </StyledAddTagButton>
-                )}
-              </TagsContainer>
+              )}
+              
+              {!socialId && (
+                <TagsContainer>
+                  <p>TAGI: </p>
+                  {tags.map((tag, index) => (
+                    <StyledTag key={index}>
+                      {tag}
+                      <div onClick={() => { handleRemoveTag(tag) }}>x</div>
+                    </StyledTag>
+                  ))}
+                  
+                  {suggestedTags.filter(t => !tags.includes(t)).map((tag, index) => (
+                    <StyledTag key={`suggested-${index}`} $inactive onClick={() => handleAddTag(tag)}>
+                      {tag}
+                    </StyledTag>
+                  ))}
+                  
+                  {isAddingTag && (
+                    <StyledTagInput
+                      autoFocus
+                      value={newTag}
+                      onChange={e => setNewTag(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') addTag()
+                        if (e.key === 'Escape') {
+                          setIsAddingTag(false)
+                          setNewTag('')
+                        }
+                      }}
+                      onBlur={() => {
+                        setIsAddingTag(false)
+                        setNewTag('')
+                      }}
+                    />
+                  )}
+                  {!isAddingTag && (
+                    <StyledAddTagButton onClick={() => setIsAddingTag(true)}>
+                      +
+                    </StyledAddTagButton>
+                  )}
+                </TagsContainer>
+              )}
               <TagsDivider />
             </CollapsingSection>
-            <TextEditorFormatting editor={editor} />
+            {!isReadOnly && <TextEditorFormatting editor={editor} />}
           </StyledHeader >
           {errorMessage && <Text color="danger" text={errorMessage} />}
           <ContentContainer
