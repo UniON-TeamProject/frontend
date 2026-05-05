@@ -19,7 +19,9 @@ import {
   renameNote,
   editFlashcardSet,
   getSocialGroupUsers,
-  changeSocialGroupRole
+  changeSocialGroupRole,
+  removeUserFromSocialGroup,
+  leaveSocialGroup
 } from '../api';
 
 const PageContainer = styled.div`
@@ -98,6 +100,7 @@ const SettingsBtn = styled.button`
   color: ${({ theme }) => theme.colors?.darkGrey};
   transition: all 0.2s;
   &:hover { background: ${({ theme }) => theme.colors?.lightGrey}; color: ${({ theme }) => theme.colors?.text}; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
 `;
 
 const TopCardsGrid = styled.div`
@@ -255,7 +258,7 @@ const MemberInfo = styled.div`
 
 const MemberName = styled.span`
   font-size: 0.9rem;
-  color: ${({ theme }) => theme.colors?.text};
+  color: ${({ theme, $isMe }) => $isMe ? theme.colors?.secondary : theme.colors?.text};
   font-weight: 600;
 `;
 
@@ -767,9 +770,17 @@ const SocialGroupDetails = () => {
   const [isManageMembersModalOpen, setIsManageMembersModalOpen] = useState(false);
   const [updatingUserId, setUpdatingUserId] = useState(null);
 
-  // admin nie bedzie mogl zmienic sobie roli 
+  // admin nie bedzie mogl zmienic sobie roli / usunac siebie samego
   const jwt = getToken();
   const currentUser = jwt ? parseJwt(jwt).sub : "";
+
+  const [roleChangeError, setRoleChangeError] = useState("");
+  
+  const [confirmRemoveUserModal, setConfirmRemoveUserModal] = useState({ isOpen: false, userId: null });
+  const [removeUserError, setRemoveUserError] = useState("");
+  
+  const [confirmLeaveGroupModal, setConfirmLeaveGroupModal] = useState(false);
+  const [leaveGroupError, setLeaveGroupError] = useState("");
 
   useEffect(() => {
     fetchGroupDetails();
@@ -805,14 +816,39 @@ const SocialGroupDetails = () => {
   const fetchGroupMembers = async () => {
     const res = await getSocialGroupUsers(id);
     if (!res.errorCode) {
-      setGroupMembers(res);
+      
+      // wagi ról (im mniejsza waga tym wyżej na liście)
+      const roleWeight = {
+        'ADMIN': 1,
+        'EDITOR': 2,
+        'VIEWER': 3
+      };
+
+      const sortedMembers = res.sort((a, b) => {
+        // najpierw ja
+        if (a.username === currentUser) return -1;
+        if (b.username === currentUser) return 1;
+
+        // potem po rolach
+        const weightA = roleWeight[a.role] || 4;
+        const weightB = roleWeight[b.role] || 4;
+        
+        if (weightA !== weightB) {
+          return weightA - weightB;
+        }
+
+        // jeśli mają taką samą rolę to alfabetycznie
+        return a.username.localeCompare(b.username);
+      });
+
+      setGroupMembers(sortedMembers);
     } else {
       console.error("Błąd pobierania członków:", res.message);
     }
   };
 
   const translateRole = (role) => {
-    if (role === 'ADMIN') return 'Administrator';
+    if (role === 'ADMIN') return 'Admin';
     if (role === 'EDITOR') return 'Edytor';
     if (role === 'VIEWER') return 'Obserwator';
     return 'Członek';
@@ -872,14 +908,55 @@ const SocialGroupDetails = () => {
   };
 
   const handleRoleChange = async (userId, newRole) => {
+    setRoleChangeError("");
     setUpdatingUserId(userId);
     const res = await changeSocialGroupRole(group.id, userId, newRole);
     if (!res.errorCode) {
       fetchGroupMembers();
     } else {
-      alert(res.message || "Błąd podczas zmiany roli.");
+      setRoleChangeError(res.message || "Błąd podczas zmiany roli.");
     }
     setUpdatingUserId(null);
+  };
+
+  const handleRemoveUserClick = (userId) => {
+    setIsManageMembersModalOpen(false);
+    setConfirmRemoveUserModal({ isOpen: true, userId });
+    setRemoveUserError("");
+  };
+
+  const executeRemoveUser = async () => {
+    const userId = confirmRemoveUserModal.userId;
+    setUpdatingUserId(userId);
+    setRemoveUserError("");
+    const res = await removeUserFromSocialGroup(group.id, userId);
+    
+    if (!res.errorCode) {
+      fetchGroupMembers();
+      setConfirmRemoveUserModal({ isOpen: false, userId: null });
+      setIsManageMembersModalOpen(true);
+    } else {
+      setRemoveUserError(res.message || "Błąd podczas usuwania członka.");
+    }
+    setUpdatingUserId(null);
+  };
+
+  const handleLeaveGroupClick = () => {
+    setConfirmLeaveGroupModal(true);
+    setLeaveGroupError("");
+  };
+
+  const executeLeaveGroup = async () => {
+    setIsDeleting(true); 
+    setLeaveGroupError("");
+    const res = await leaveSocialGroup(group.id);
+    
+    if (!res.errorCode) {
+        navigate('/social', { replace: true });
+    } else {
+        setLeaveGroupError(res.message || "Błąd opuszczania grupy.");
+        setIsDeleting(false);
+    }
   };
 
 
@@ -1031,16 +1108,23 @@ const SocialGroupDetails = () => {
             <PageTitle>{group.name}</PageTitle>
             <PageSubtitle>{group.description || "Brak opisu"}</PageSubtitle>
           </TitleArea>
-          
-          {/* PRZYCISK USTAWIEŃ WIDOCZNY TYLKO DLA ADMINA */}
-          {group.userRole === 'ADMIN' && (
-            <SettingsBtn title="Ustawienia grupy" onClick={handleOpenSettings}>
-              <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ width: 24, height: 24 }}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <SettingsBtn title="Opuść społeczność" onClick={handleLeaveGroupClick} disabled={isDeleting}>
+              <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ width: 22, height: 22, marginLeft: '4px' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
             </SettingsBtn>
-          )}
+          
+            {group.userRole === 'ADMIN' && (
+              <SettingsBtn title="Ustawienia grupy" onClick={handleOpenSettings} disabled={isDeleting}>
+                <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ width: 24, height: 24 }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </SettingsBtn>
+            )}
+          </div>
         </HeaderRow>
 
         <TopCardsGrid>
@@ -1127,7 +1211,9 @@ const SocialGroupDetails = () => {
                     <MemberItem key={member.id} style={{justifyContent: 'flex-start', gap: '15px', padding: '10px 5px'}}>
                       <Avatar>{member.username.charAt(0).toUpperCase()}</Avatar>
                       <MemberInfo>
-                        <MemberName style={{ fontSize: '1rem' }}>{member.username}</MemberName>
+                        <MemberName style={{ fontSize: '1rem' }} $isMe={member.username === currentUser}>
+                          {member.username} {member.username === currentUser && "(JA)"}
+                        </MemberName>
                         <MemberRole style={{ fontSize: '0.75rem', marginTop: '2px' }}>{translateRole(member.role)}</MemberRole>
                       </MemberInfo>
                     </MemberItem>
@@ -1137,7 +1223,9 @@ const SocialGroupDetails = () => {
                     <MemberItem key={groupMembers[3].id} style={{justifyContent: 'flex-start', gap: '15px', padding: '10px 5px'}}>
                       <Avatar>{groupMembers[3].username.charAt(0).toUpperCase()}</Avatar>
                       <MemberInfo>
-                        <MemberName style={{ fontSize: '1rem' }}>{groupMembers[3].username}</MemberName>
+                        <MemberName style={{ fontSize: '1rem' }} $isMe={groupMembers[3].username === currentUser}>
+                          {groupMembers[3].username} {groupMembers[3].username === currentUser && "(JA)"}
+                        </MemberName>
                         <MemberRole style={{ fontSize: '0.75rem', marginTop: '2px' }}>{translateRole(groupMembers[3].role)}</MemberRole>
                       </MemberInfo>
                     </MemberItem>
@@ -1535,7 +1623,9 @@ const SocialGroupDetails = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <Avatar>{member.username.charAt(0).toUpperCase()}</Avatar>
                       <MemberInfo>
-                        <MemberName>{member.username}</MemberName>
+                        <MemberName $isMe={member.username === currentUser}>
+                          {member.username} {member.username === currentUser && "(JA)"}
+                        </MemberName>
                         <MemberRole>{translateRole(member.role)}</MemberRole>
                       </MemberInfo>
                     </div>
@@ -1548,12 +1638,16 @@ const SocialGroupDetails = () => {
                         disabled={updatingUserId === member.id || member.username === currentUser}
                         onChange={(e) => handleRoleChange(member.id, e.target.value)}
                       >
-                        <option value="ADMIN">Administrator</option>
+                        <option value="ADMIN">Admin</option>
                         <option value="EDITOR">Edytor</option>
                         <option value="VIEWER">Obserwator</option>
                       </InviteRoleSelect>
                       
-                      <TrashButton disabled title=" chyba bedzie sie dalo a jak nie to sory, zostajesz tu do konca zycia">
+                      <TrashButton 
+                        disabled={updatingUserId === member.id || member.username === currentUser}
+                        onClick={() => handleRemoveUserClick(member.id)}
+                        title={member.username === currentUser ? "Aby opuścić grupę, kliknij ikonkę wyjścia obok nazwy grupy." : "Wyrzuć ze społeczności"}
+                      >
                         <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
                           <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
                           <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
@@ -1565,9 +1659,73 @@ const SocialGroupDetails = () => {
                 ))}
               </ManageMembersList>
 
+              {roleChangeError && <ErrorText style={{marginTop: '15px'}}>{roleChangeError}</ErrorText>}
+
               <ButtonGroup style={{ marginTop: '25px' }}>
                 <ModalButton type="button" onClick={() => setIsManageMembersModalOpen(false)}>
                   Zamknij
+                </ModalButton>
+              </ButtonGroup>
+            </StyledPopup>
+          </>
+        )}
+
+        {/* MODAL OPUSZCZANIA GRUPY */}
+        {confirmLeaveGroupModal && (
+          <>
+            <ModalOverlay onClick={() => !isDeleting && setConfirmLeaveGroupModal(false)} />
+            <StyledPopup onClick={e => e.stopPropagation()} style={{ textAlign: 'center' }}>
+              <ModalTitle>Opuść społeczność</ModalTitle>
+              <p style={{ color: '#666', marginBottom: '15px', fontSize: '1rem', lineHeight: '1.5' }}>
+                Czy na pewno chcesz opuścić tę społeczność? Utracisz dostęp do wszystkich materiałów grupowych.
+              </p>
+              {leaveGroupError && <ErrorText style={{marginBottom: '15px'}}>{leaveGroupError}</ErrorText>}
+              <ButtonGroup>
+                <ModalButton 
+                  type="button" 
+                  onClick={() => {
+                    setConfirmLeaveGroupModal(false);
+                    setLeaveGroupError("");
+                  }} 
+                  disabled={isDeleting}
+                >
+                  Anuluj
+                </ModalButton>
+                <ModalButton type="button" $danger onClick={executeLeaveGroup} disabled={isDeleting}>
+                  {isDeleting ? "Opuszczanie..." : "Tak, opuść"}
+                </ModalButton>
+              </ButtonGroup>
+            </StyledPopup>
+          </>
+        )}
+
+        {/* MODAL WYRZUCANIA UŻYTKOWNIKA Z GRUPY */}
+        {confirmRemoveUserModal.isOpen && (
+          <>
+            <ModalOverlay onClick={() => {
+              setConfirmRemoveUserModal({ isOpen: false, userId: null });
+              setRemoveUserError("");
+              setIsManageMembersModalOpen(true);
+            }} />
+            <StyledPopup onClick={e => e.stopPropagation()} style={{ textAlign: 'center' }}>
+              <ModalTitle>Wyrzuć użytkownika</ModalTitle>
+              <p style={{ color: '#666', marginBottom: '15px', fontSize: '1rem', lineHeight: '1.5' }}>
+                Czy na pewno chcesz wyrzucić tego użytkownika ze społeczności?
+              </p>
+              {removeUserError && <ErrorText style={{marginBottom: '15px'}}>{removeUserError}</ErrorText>}
+              <ButtonGroup>
+                <ModalButton 
+                  type="button" 
+                  onClick={() => {
+                    setConfirmRemoveUserModal({ isOpen: false, userId: null });
+                    setRemoveUserError("");
+                    setIsManageMembersModalOpen(true);
+                  }} 
+                >
+                  Anuluj
+                </ModalButton>
+                <ModalButton type="button" $danger onClick={executeRemoveUser}>
+                  Tak, wyrzuć
                 </ModalButton>
               </ButtonGroup>
             </StyledPopup>

@@ -2564,3 +2564,45 @@ export const changeSocialGroupRole = async (socialId, userId, role) => {
         return { errorCode: "CONNECTION_ERROR", message: "Błąd serwera" };
     }
 };
+
+export const removeUserFromSocialGroup = async (socialId, userId) => {
+    const token = getToken();
+    if (!token) return { errorCode: "TOKEN_UNDEFINED" };
+
+    try {
+        const resp = await fetch(`${API_HOST}/social/${socialId}/deleteUser/${userId}`, {
+            method: "PUT",
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        const authErr = checkUnauthorized(resp);
+        if (authErr) return authErr;
+
+        if (resp.ok) return { errorCode: "" };
+        
+        const data = await resp.json().catch(() => ({}));
+        return { errorCode: data.errorCode || "ERROR", message: data.message || "Błąd usuwania użytkownika." };
+    } catch {
+        return { errorCode: "CONNECTION_ERROR", message: "Błąd serwera." };
+    }
+};
+
+export const leaveSocialGroup = async (socialId) => {
+    const token = getToken();
+    if (!token) return { errorCode: "TOKEN_UNDEFINED" };
+
+    try {
+        const resp = await fetch(`${API_HOST}/leaveSocial/${socialId}`, {
+            method: "PUT",
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        const authErr = checkUnauthorized(resp);
+        if (authErr) return authErr;
+
+        if (resp.ok) return { errorCode: "" };
+        
+        const data = await resp.json().catch(() => ({}));
+        return { errorCode: data.errorCode || "ERROR", message: data.message || "Błąd podczas opuszczania grupy." };
+    } catch {
+        return { errorCode: "CONNECTION_ERROR", message: "Błąd serwera." };
+    }
+};
