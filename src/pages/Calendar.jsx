@@ -434,6 +434,15 @@ const AddBtn = styled.button`
   }
 `;
 
+const UsosBtn = styled(AddBtn)`
+  background: ${({ theme }) => theme.colors.white};
+  color: ${({ theme }) => theme.colors.text};
+  border: 1px solid ${({ theme }) => theme.colors.borderMuted};
+  padding: 9px 15px;
+  font-size: 14px;
+  font-weight: 600;
+`;
+
 const UsosLabel = styled.span`
   @media (max-width: 768px) {
     display: none;
@@ -460,7 +469,8 @@ const DetailSidebar = styled.div`
     width: ${({ $open }) => ($open ? "350px" : "0")};
     z-index: 50;
     border-left: none;
-    box-shadow: ${({ $open }) => ($open ? "-4px 0 16px rgba(0,0,0,0.1)" : "none")};
+    box-shadow: ${({ $open }) =>
+      $open ? "-4px 0 16px rgba(0,0,0,0.1)" : "none"};
   }
   @media (max-width: 768px) {
     bottom: 60px;
@@ -719,7 +729,8 @@ const FormSidebar = styled.div`
     width: ${({ $open }) => ($open ? "350px" : "0")};
     z-index: 50;
     border-left: none;
-    box-shadow: ${({ $open }) => ($open ? "-4px 0 16px rgba(0,0,0,0.1)" : "none")};
+    box-shadow: ${({ $open }) =>
+      $open ? "-4px 0 16px rgba(0,0,0,0.1)" : "none"};
   }
   @media (max-width: 768px) {
     bottom: 60px;
@@ -1447,6 +1458,12 @@ const Calendar = () => {
     const res = await getUsosAuthUrl();
     if (res.errorCode === "TOKEN_UNDEFINED") {
       routerNavigate("/", { replace: true });
+      return;
+    }
+    if (res.errorCode) {
+      routerNavigate("/user", {
+        state: { tab: "preferences", highlightUniversity: true },
+      });
       return;
     }
     if (res.authUrl) {
@@ -2434,7 +2451,9 @@ const Calendar = () => {
             <TagHelpIcon>
               ?
               <TagHelpTooltip>
-                Tagi pozwalają powiązać event z zestawami fiszek. Dzięki temu możesz szybko odnaleźć materiały do nauki przypisane do tego wydarzenia.
+                Tagi pozwalają powiązać event z zestawami fiszek. Dzięki temu
+                możesz szybko odnaleźć materiały do nauki przypisane do tego
+                wydarzenia.
               </TagHelpTooltip>
             </TagHelpIcon>
           </TagLabelRow>
@@ -3021,24 +3040,14 @@ const Calendar = () => {
           </PageHeader>
 
           <Header>
-            <AddBtn
-              onClick={handleUsosImport}
-              style={{
-                background: "transparent",
-                color: theme.colors.text,
-                marginLeft: 0,
-                paddingLeft: 0,
-                paddingRight: 0,
-              }}
-            >
+            <UsosBtn onClick={handleUsosImport}>
               <img
                 src="/icons/usos2.png"
                 alt="USOS"
-                style={{ width: 24, height: 24, borderRadius: 6 }}
+                style={{ width: 20, height: 20, borderRadius: 4 }}
               />
               <UsosLabel>Importuj z USOS</UsosLabel>
-            </AddBtn>
-
+            </UsosBtn>
             <div
               style={{
                 marginLeft: "auto",

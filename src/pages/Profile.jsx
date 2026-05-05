@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 import Layout from "../components/organisms/Layout";
@@ -11,6 +11,8 @@ import {
   changePassword,
   changeTheme,
   deleteAccount,
+  getUniversities,
+  setUniversity,
 } from "../api";
 import { removeToken } from "../token";
 import { PASSWORD_REGEX } from "../helpers/validation";
@@ -180,7 +182,6 @@ const SectionTitle = styled.h3`
   margin: 0 0 14px 0;
 `;
 
-
 const ButtonsRow = styled.div`
   display: flex;
   gap: 10px;
@@ -348,7 +349,9 @@ const MiniPreview = styled.button`
   transition: transform 0.15s, box-shadow 0.2s;
   box-shadow: ${({ $active }) =>
     $active ? "0 3px 10px rgba(0,0,0,0.2)" : "0 1px 4px rgba(0,0,0,0.08)"};
-  &:hover { transform: scale(1.06); }
+  &:hover {
+    transform: scale(1.06);
+  }
 `;
 
 const MiniSidebar = styled.div`
@@ -397,6 +400,33 @@ const ThemeFeedback = styled.p`
     $error ? theme.colors.danger : theme.colors.success};
 `;
 
+
+const UniSelect = styled.select`
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid ${({ $highlight, theme }) => $highlight ? theme.colors.danger : theme.colors.primary};
+  background-color: ${({ theme }) => theme.colors.white};
+  color: ${({ theme }) => theme.colors.veryDarkPrimary};
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+  margin-bottom: 14px;
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.colors.veryDarkPrimary};
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+
 const getInitials = (name) => {
   if (!name) return "?";
   const parts = name.trim().split(/\s+/);
@@ -406,13 +436,15 @@ const getInitials = (name) => {
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { state: locationState } = useLocation();
   const dispatch = useDispatch();
   const currentTheme = useSelector((state) => state.theme.color);
   const [loading, setLoading] = useState(true);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("account");
+  const [activeTab, setActiveTab] = useState(locationState?.tab ?? "account");
+  const [highlightUniversity, setHighlightUniversity] = useState(locationState?.highlightUniversity ?? false);
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
@@ -454,16 +486,33 @@ const Profile = () => {
   const [passwordRegexVisible, setPasswordRegexVisible] = useState(false);
 
   const [themeSaving, setThemeSaving] = useState(false);
-  const [themeFeedback, setThemeFeedback] = useState({ message: "", error: false });
+  const [themeFeedback, setThemeFeedback] = useState({
+    message: "",
+    error: false,
+  });
+
+  const [universities, setUniversities] = useState([]);
+  const [selectedUniversity, setSelectedUniversity] = useState("");
+  const [universitySaving, setUniversitySaving] = useState(false);
+  const [universityFeedback, setUniversityFeedback] = useState({
+    message: "",
+    error: false,
+  });
 
   useEffect(() => {
     (async () => {
-      const res = await getProfile();
-      if (!res.errorCode) {
-        setUsername(res.username || "");
-        setEmail(res.email || "");
-        if (res.themeColor) dispatch(setThemeColor(res.themeColor));
+      const [profileRes, uniRes] = await Promise.all([
+        getProfile(),
+        getUniversities(),
+      ]);
+      if (!profileRes.errorCode) {
+        setUsername(profileRes.username || "");
+        setEmail(profileRes.email || "");
+        if (profileRes.themeColor)
+          dispatch(setThemeColor(profileRes.themeColor));
+        if (profileRes.universityName) setSelectedUniversity(profileRes.universityName);
       }
+      if (!uniRes.errorCode) setUniversities(uniRes.universities);
       setLoading(false);
     })();
   }, [dispatch]);
@@ -646,6 +695,29 @@ const Profile = () => {
     setThemeFeedback({ message: res.message, error: false });
   };
 
+  const handleUniversitySubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedUniversity) {
+      setUniversityFeedback({
+        message: "Wybierz uczelnię z listy.",
+        error: true,
+      });
+      return;
+    }
+    setUniversityFeedback({ message: "", error: false });
+    setUniversitySaving(true);
+    const res = await setUniversity(selectedUniversity);
+    setUniversitySaving(false);
+    if (res.errorCode) {
+      setUniversityFeedback({
+        message: res.message || "Nie udało się zapisać uczelni.",
+        error: true,
+      });
+      return;
+    }
+    setUniversityFeedback({ message: res.message, error: false });
+  };
+
   return (
     <Layout>
       <StyledContainer>
@@ -700,37 +772,71 @@ const Profile = () => {
             <SectionTitle>Kolor motywu</SectionTitle>
 
             <MiniGrid>
-                {THEME_COLORS.map((color) => {
-                  const p = buildTheme(color).colors;
-                  const active = color === currentTheme;
-                  return (
-                    <MiniPreview
-                      key={color}
-                      $active={active}
-                      $dark={p.veryDarkPrimary}
-                      onClick={() => handleThemeChange(color)}
-                      disabled={themeSaving}
-                      title={THEME_LABELS[color]}
-                    >
-                      <MiniSidebar $color={p.lightPrimary}>
-                        <MiniDot $color={p.secondary} />
-                        <MiniDot $color={p.secondary} />
-                        <MiniDot $color={p.secondary} />
-                      </MiniSidebar>
-                      <MiniContent>
-                        <MiniCard $color={p.border} />
-                        <MiniBar $color={p.secondary} />
-                      </MiniContent>
-                    </MiniPreview>
-                  );
-                })}
-              </MiniGrid>
+              {THEME_COLORS.map((color) => {
+                const p = buildTheme(color).colors;
+                const active = color === currentTheme;
+                return (
+                  <MiniPreview
+                    key={color}
+                    $active={active}
+                    $dark={p.veryDarkPrimary}
+                    onClick={() => handleThemeChange(color)}
+                    disabled={themeSaving}
+                    title={THEME_LABELS[color]}
+                  >
+                    <MiniSidebar $color={p.lightPrimary}>
+                      <MiniDot $color={p.secondary} />
+                      <MiniDot $color={p.secondary} />
+                      <MiniDot $color={p.secondary} />
+                    </MiniSidebar>
+                    <MiniContent>
+                      <MiniCard $color={p.border} />
+                      <MiniBar $color={p.secondary} />
+                    </MiniContent>
+                  </MiniPreview>
+                );
+              })}
+            </MiniGrid>
 
             {themeFeedback.message && (
               <ThemeFeedback $error={themeFeedback.error}>
                 {themeFeedback.message}
               </ThemeFeedback>
             )}
+          </CardBox>
+        )}
+
+        {activeTab === "preferences" && (
+          <CardBox>
+            <SectionTitle>Uczelnia</SectionTitle>
+            {highlightUniversity && (
+              <FeedbackText $error>
+                Aby korzystać z integracji USOS, najpierw wybierz swoją uczelnię.
+              </FeedbackText>
+            )}
+            <form onSubmit={handleUniversitySubmit}>
+              <UniSelect
+                value={selectedUniversity}
+                onChange={(e) => { setSelectedUniversity(e.target.value); setHighlightUniversity(false); }}
+                disabled={universitySaving || universities.length === 0}
+                $highlight={highlightUniversity}
+              >
+                <option value="">Wybierz uczelnię..</option>
+                {universities.map((uni) => (
+                  <option key={uni.id} value={uni.name}>
+                    {uni.name}
+                  </option>
+                ))}
+              </UniSelect>
+              {universityFeedback.message && (
+                <FeedbackText $error={universityFeedback.error}>
+                  {universityFeedback.message}
+                </FeedbackText>
+              )}
+              <ActionButton type="submit" disabled={universitySaving}>
+                {universitySaving ? "Zapisywanie..." : "Zapisz uczelnię"}
+              </ActionButton>
+            </form>
           </CardBox>
         )}
 
@@ -794,7 +900,16 @@ const Profile = () => {
                     placeholder="Nowy adres e-mail"
                     disabled
                   />
-                  <label style={{ fontSize: "0.8rem", fontWeight: 400, display: "block", margin: "20px 0 6px" }}>Kod weryfikacyjny</label>
+                  <label
+                    style={{
+                      fontSize: "0.8rem",
+                      fontWeight: 400,
+                      display: "block",
+                      margin: "20px 0 6px",
+                    }}
+                  >
+                    Kod weryfikacyjny
+                  </label>
                   <VerificationInput
                     validChars="0-9"
                     inputProps={{ inputMode: "numeric" }}

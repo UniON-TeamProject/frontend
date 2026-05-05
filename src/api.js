@@ -2468,6 +2468,7 @@ export async function getProfile() {
         email: data.email,
         avatarId: data.avatarId ?? 0,
         themeColor: data.themeColor || "GREEN",
+        universityName: data.university || null,
         errorCode: "",
         message: "",
       };
@@ -2783,6 +2784,50 @@ export async function getAllUsersCards() {
       errorCode: "CONNECTION_ERROR",
       message: "Błąd serwera",
     };
+  }
+}
+
+export async function getUniversities() {
+  const token = getToken();
+  if (!token)
+    return { universities: [], errorCode: "TOKEN_UNDEFINED", message: "Brak tokena, zaloguj się ponownie" };
+  try {
+    const resp = await fetch(`${API_HOST}/universities`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      return { universities: data, errorCode: "", message: "" };
+    }
+    return { universities: [], errorCode: "FETCH_ERROR", message: "Nie udało się pobrać listy uczelni" };
+  } catch {
+    return { universities: [], errorCode: "CONNECTION_ERROR", message: "Nie udało się połączyć z serwerem" };
+  }
+}
+
+export async function setUniversity(universityName) {
+  const token = getToken();
+  if (!token)
+    return { errorCode: "TOKEN_UNDEFINED", message: "Brak tokena, zaloguj się ponownie" };
+  try {
+    const resp = await fetch(`${API_HOST}/addUniversity?universityName=${encodeURIComponent(universityName)}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+    if (resp.ok) return { errorCode: "", message: "Uczelnia została zapisana." };
+    const err = await parseErrorBody(resp);
+    return { errorCode: err.errorCode, message: err.message || "Nie udało się zapisać uczelni" };
+  } catch {
+    return { errorCode: "CONNECTION_ERROR", message: "Nie udało się połączyć z serwerem" };
   }
 }
 
