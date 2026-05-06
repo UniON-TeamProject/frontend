@@ -33,27 +33,39 @@ import FlashcardEditor from '../components/editor/FlashcardEditor';
 import TagSelector from "../components/organisms/TagSelector";
 
 const stripHtml = (html) => {
-    if (!html) return "";
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    return doc.body.textContent || "";
+  if (!html) return "";
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  return doc.body.textContent || "";
 };
 
 const StyledContainer = styled.div`
-    width: 100%;
-    height: 100%;
-    min-height: 100vh;
-    padding: 20px 40px;
-    position: relative;
-    background-color: transparent; 
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  padding: 20px 40px;
+  position: relative;
+  background-color: transparent;
+  box-sizing: border-box;
+  @media (max-width: 768px) {
+    padding: 12px 12px;
+  }
 `;
 
 const StyledUserHeader = styled.div`
-    display: flex;
-    flex-flow: row nowrap;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    min-height: 60px;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  min-height: 60px;
+  gap: 12px;
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    margin-bottom: 10px;
+    min-height: 40px;
+    gap: 8px;
+  }
 `;
 
 const SearchWrapper = styled.div`
@@ -67,313 +79,388 @@ const SearchWrapper = styled.div`
 `;
 
 const StyledSearchInput = styled.div`
-    position: relative;
-    display: flex;
-    align-items: center;
-    background-color: #f4f5f7;
-    border: 1px solid transparent;
-    border-radius: 20px;
-    padding: 8px 16px;
-    gap: 8px;
-    transition: all 0.2s;
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: ${({ theme }) => theme.colors.lightGrey};
+  border: 1px solid transparent;
+  border-radius: 20px;
+  padding: 8px 16px;
+  gap: 8px;
+  transition: all 0.2s;
 
-    border-color: ${({ theme }) => theme.colors?.secondary };
-    
-    &:focus-within {
-        background-color: ${({ theme }) => theme.colors?.white || '#fff'};
-        border-color: ${({ theme }) => theme.colors?.secondary || '#00b894'};
+  border-color: ${({ theme }) => theme.colors.secondary};
+
+  &:focus-within {
+    background-color: ${({ theme }) => theme.colors.white};
+    border-color: ${({ theme }) => theme.colors.secondary};
+  }
+
+  > input {
+    border: none;
+    background: transparent;
+    outline: none;
+    color: ${({ theme }) => theme.colors.text};
+    font-size: 0.95rem;
+    width: 200px;
+    min-width: 0;
+
+    &::placeholder {
+      color: ${({ theme }) => theme.colors.textMuted};
     }
-    
+  }
+
+  > svg {
+    color: ${({ theme }) => theme.colors.textMuted};
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 768px) {
+    padding: 6px 10px;
+    gap: 6px;
+
     > input {
-        border: none;
-        background: transparent;
-        outline: none;
-        color: ${({ theme }) => theme.colors?.text};
-        font-size: 0.95rem;
-        width: 200px;
-        
-        &::placeholder {
-            color: #a0a0a0;
-        }
+      font-size: 0.8rem;
+      width: 120px;
     }
-    
-    > svg {
-        color: #a0a0a0;
-        flex-shrink: 0;
-    }
+  }
 `;
 
 const StyledSearchDropdown = styled.div`
-    position: absolute;
-    top: calc(100% + 6px);
-    right: 0;
-    width: 360px;
-    background: ${({ theme }) => theme.colors?.white };
-    border: 1px solid ${({ theme }) => theme.colors?.darkGrey };
-    border-radius: 10px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
-    z-index: 200;
-    max-height: 420px;
-    overflow-y: auto;
-    padding: 6px 0;
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 360px;
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.darkGrey};
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  z-index: 200;
+  max-height: 420px;
+  overflow-y: auto;
+  padding: 6px 0;
 `;
 
 const StyledSearchSectionTitle = styled.div`
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: ${({ theme }) => theme.colors?.textLight };
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    padding: 8px 14px 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.textLight};
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 8px 14px 4px;
 `;
 
 const StyledSearchResultItem = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 7px 14px;
-    cursor: pointer;
-    transition: background 0.12s;
-    
-    &:hover {
-        background: ${({ theme }) => theme.colors?.lightGrey };
-    }
-    
-    > svg {
-        flex-shrink: 0;
-        color: ${({ theme }) => theme.colors?.textLight };
-    }
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: background 0.12s;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.lightGrey};
+  }
+
+  > svg {
+    flex-shrink: 0;
+    color: ${({ theme }) => theme.colors.textLight};
+  }
 `;
 
 const StyledSearchResultInfo = styled.div`
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 `;
 
 const StyledSearchResultName = styled.span`
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: ${({ theme }) => theme.colors?.text };
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.text};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 const StyledSearchResultPath = styled.span`
-    font-size: 0.72rem;
-    color: ${({ theme }) => theme.colors?.textLight };
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  font-size: 0.72rem;
+  color: ${({ theme }) => theme.colors.textLight};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 const StyledSearchEmpty = styled.div`
-    padding: 16px 14px;
-    font-size: 0.85rem;
-    color: ${({ theme }) => theme.colors?.textLight };
-    text-align: center;
+  padding: 16px 14px;
+  font-size: 0.85rem;
+  color: ${({ theme }) => theme.colors.textLight};
+  text-align: center;
 `;
 
 const StyledSearchDivider = styled.div`
-    height: 1px;
-    background: ${({ theme }) => theme.colors?.lightGrey };
-    margin: 4px 0;
+  height: 1px;
+  background: ${({ theme }) => theme.colors.lightGrey};
+  margin: 4px 0;
 `;
 
 const StyledName = styled.h2`
-    color: ${({ theme }) => theme.colors?.text };
-    font-size: 2.5rem;
-    margin: 0;
-    cursor: default;
-    @media(max-width:768px){
-        font-size: 2rem;
-    }
+  color: ${({ theme }) => theme.colors.text};
+  font-size: 2.5rem;
+  margin: 0;
+  cursor: default;
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
+  }
 `;
 
 const BackButton = styled.div`
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    color: ${({ theme }) => theme.colors?.darkGrey };
-    transition: color 0.2s;
-    
-    &:hover {
-        color: ${({ theme }) => theme.colors?.text };
-    }
-    
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: ${({ theme }) => theme.colors.darkGrey};
+  transition: color 0.2s;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.text};
+  }
+
+  > svg {
+    margin-right: 8px;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+
     > svg {
-        margin-right: 8px;
+      margin-right: 4px;
     }
+  }
 `;
 
 const ContentContainer = styled.div`
-    width: 100%; 
-    padding: 20px 0 120px 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, 350px);
-    gap: 30px;
-    justify-content: center;
+  width: 100%;
+  padding: 20px 0 120px 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, 350px);
+  gap: 30px;
+  justify-content: center;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    padding: 10px 0 100px 0;
+  }
 `;
 
 const StartLearningButton = styled.button`
-    background-color: ${({ theme }) => theme.colors?.secondary };
-    color: ${({ theme }) => theme.colors?.white };
-    border: none;
-    border-radius: 8px;
-    padding: 12px 25px;
-    font-size: 0.95rem;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    transition: opacity 0.2s;
-    
-    &:hover { opacity: 0.8; }
+  background-color: ${({ theme }) => theme.colors.secondary};
+  color: ${({ theme }) => theme.colors.white};
+  border: none;
+  border-radius: 8px;
+  padding: 12px 25px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  @media (max-width: 768px) {
+    padding: 8px 16px;
+    font-size: 0.8rem;
+  }
 `;
 
 const SetItemWrapper = styled.div`
-    width: 100%; 
-    max-width: 280px; 
-    height: 100%; 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 15px; 
-    position: relative; 
-    cursor: pointer;
-    z-index: ${({ $isActive }) => $isActive ? 50 : 1};
+  width: 100%;
+  max-width: 280px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 15px;
+  position: relative;
+  cursor: pointer;
+  z-index: ${({ $isActive }) => ($isActive ? 50 : 1)};
+
+  @media (max-width: 768px) {
+    max-width: 100%;
+    padding: 8px 4px;
+  }
 `;
 
 const SetIconContainer = styled.div`
-    position: relative;
-    width: 140px;
-    height: 100px;
-    margin: 0 auto 10px auto;
-    color: ${({ theme }) => theme.colors?.black };
+  position: relative;
+  width: 140px;
+  height: 100px;
+  margin: 0 auto 10px auto;
+  color: ${({ theme }) => theme.colors.black};
+
+  @media (max-width: 768px) {
+    width: 72px;
+    height: 52px;
+    margin-bottom: 4px;
+  }
 `;
 
 const StyledItemHeaderWrapper = styled.div`
-    text-align: center;
-    word-wrap: break-word;
-    word-break: break-word;
-    width: 100%;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
+  text-align: center;
+  word-wrap: break-word;
+  word-break: break-word;
+  width: 100%;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+
+  @media (max-width: 768px) {
+    h4 {
+      font-size: 0.78rem !important;
+      margin-bottom: 2px !important;
+    }
+    span,
+    p {
+      font-size: 0.7rem !important;
+    }
+  }
 `;
 
-
 const StyledItemHeader = styled.span`
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    color: ${({ theme }) => theme.colors?.text };
-    cursor: pointer;
-    z-index: 10;
-    transition: background-color 0.2s;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: ${({ theme }) => theme.colors.text};
+  cursor: pointer;
+  z-index: 10;
+  transition: background-color 0.2s;
 
-    &:hover {
-        background-color: ${({ theme }) => theme.colors?.lightGrey };
-    }
-    
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.lightGrey};
+  }
+
+  svg {
+    width: 18px;
+    height: 18px;
+    color: ${({ theme }) => theme.colors.darkGrey};
+  }
+
+  @media (max-width: 768px) {
+    top: 6px;
+    right: 6px;
+    width: 24px;
+    height: 24px;
+
     svg {
-        width: 18px;
-        height: 18px;
-        color: ${({ theme }) => theme.colors?.darkGrey };
+      width: 14px;
+      height: 14px;
     }
+  }
 `;
 
 const StyledItemOptions = styled.div`
-    position: absolute;
-    top: 45px; 
-    right: 10px; 
-    background: white;
-    border: 1px solid #eee;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-    padding: 10px;
-    z-index: 20;
-    width: 260px; 
-    display: flex;
-    flex-direction: column;
-    text-align: left;
-    cursor: default;
+  position: absolute;
+  top: 45px;
+  right: 10px;
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.borderLight};
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 10px;
+  z-index: 20;
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  cursor: default;
 
-    > input {
-        padding: 8px 12px;
-        margin: 0 10px 15px 10px;
-        width: calc(100% - 20px);
-        border-radius: 8px;
-        border: 1px solid transparent;
-        font-weight: 700;
-        font-family: inherit;
-        font-size: 0.95rem;
-        color: ${({ theme }) => theme.colors?.text };
-        background-color: ${({ theme }) => theme.colors?.lightGrey };
-        outline: none;
-        transition: border-color 0.2s;
-        
-        &:focus {
-            border-color: ${({ theme }) => theme.colors?.secondary };
-        }
+  > input {
+    padding: 8px 12px;
+    margin: 0 10px 15px 10px;
+    width: calc(100% - 20px);
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-weight: 700;
+    font-family: inherit;
+    font-size: 0.95rem;
+    color: ${({ theme }) => theme.colors.text};
+    background-color: ${({ theme }) => theme.colors.lightGrey};
+    outline: none;
+    transition: border-color 0.2s;
+
+    &:focus {
+      border-color: ${({ theme }) => theme.colors.secondary};
     }
+  }
 `;
 
 const StyledToolbar = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-    border-bottom: 1px solid #d1d5db;
-    padding-bottom: 15px;
-    flex-wrap: wrap;
-    gap: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.darkGrey};
+  padding-bottom: 15px;
+  flex-wrap: wrap;
+  gap: 15px;
+
+  @media (max-width: 768px) {
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    gap: 8px;
+  }
 `;
 
 const StyledTagInput = styled.input`
-    padding: 4px 10px;
-    border-radius: 8px;
-    color: white;
-    border: none;
-    width: 90px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    font-family: inherit;
-    background-color: ${({ theme }) => theme.colors?.secondary };
-    &:focus { outline: none; box-shadow: 0 0 0 2px rgba(0,0,0,0.1); }
+  padding: 4px 10px;
+  border-radius: 8px;
+  color: ${({ theme }) => theme.colors.white};
+  border: none;
+  width: 90px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: inherit;
+  background-color: ${({ theme }) => theme.colors.secondary};
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+  }
 `;
 
 const StyledAddTagButton = styled.div`
-    padding: 4px 12px;
-    background-color: transparent;
-    border: 1px dashed #ccc;
-    border-radius: 8px;
-    color: #666;
-    font-weight: 600;
-    font-size: 0.8rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
+  padding: 4px 12px;
+  background-color: transparent;
+  border: 1px dashed ${({ theme }) => theme.colors.darkGrey};
+  border-radius: 8px;
+  color: ${({ theme }) => theme.colors.textLight};
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
 
-    white-space: nowrap; 
-    display: inline-flex;
-    
-    &:hover { 
-        background-color: #f4f4f4; 
-        color: #333;
-        border-color: #333;
-    }
+  white-space: nowrap;
+  display: inline-flex;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.lightGrey};
+    color: ${({ theme }) => theme.colors.text};
+    border-color: ${({ theme }) => theme.colors.text};
+  }
 `;
+
 
 const scaleIn = keyframes`from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}`;
 
@@ -516,169 +603,187 @@ const TagDropdownCheck = styled.span`
 `;
 
 const StyledItemOption = styled.button`
-    padding: 10px 12px;
-    background: none;
-    border: none;
-    font-size: 14px;
-    font-family: inherit;
-    font-weight: 600;
-    cursor: pointer;
-    color: #333;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    text-align: left;
-    
-    &.danger { color: #e74c3c; }
-    &:hover { background-color: #f9f9f9; }
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  color: ${({ theme }) => theme.colors.text};
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
 
-    svg {
-        width: 16px;
-        height: 16px;
-        flex-shrink: 0;
-    }
+  &.danger {
+    color: ${({ theme }) => theme.colors.danger};
+  }
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.lightGrey};
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
 `;
 
 const DropdownSectionLabel = styled.div`
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #999;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
-    margin-top: 5px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.textMuted};
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  margin-top: 5px;
 `;
 
 const TagsContainer = styled.div`
-    box-sizing: border-box;
-    display: flex;
-    flex-flow: row wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    margin-bottom: 10px;
+  box-sizing: border-box;
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 10px;
 `;
 
 const StyledTag = styled.div`
-    padding: 2px 10px;
-    margin: 3px;
-    background-color: ${({ theme, $inactive }) => $inactive ? theme.colors?.darkGrey : theme.colors?.secondary};
-    border-radius: 10px;
-    color: ${({ theme }) => theme.colors?.white };
-    font-weight: 500;
-    font-size: 0.8rem;
-    display: flex;
-    flex-flow: row nowrap;
-    cursor: default;
-    
-    > div {
-        cursor: pointer;
-        font-weight: 700;
-        font-size: 0.9rem;
-        margin: 0 0 0 6px;
-        padding: 0;
-        position: relative;
-        bottom: 1px;
-    }
+  padding: 2px 10px;
+  margin: 3px;
+  background-color: ${({ theme, $inactive }) =>
+    $inactive ? theme.colors.darkGrey : theme.colors.secondary};
+  border-radius: 10px;
+  color: ${({ theme }) => theme.colors.white};
+  font-weight: 500;
+  font-size: 0.8rem;
+  display: flex;
+  flex-flow: row nowrap;
+  cursor: default;
+
+  > div {
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin: 0 0 0 6px;
+    padding: 0;
+    position: relative;
+    bottom: 1px;
+  }
 `;
 
 const CardsFormContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 40px;
-    align-items: center;
-    width: 100%;
-    max-width: 1000px;
-    margin: 0 auto 100px auto;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  align-items: center;
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto 100px auto;
 `;
 
 const CardInputRow = styled.div`
-    display: flex;
-    gap: 30px;
-    width: 100%;
-    justify-content: center;
+  display: flex;
+  gap: 30px;
+  width: 100%;
+  justify-content: center;
 `;
 
 const CardInputSide = styled.div`
-    display: flex;
-    flex-direction: column;
-    flex: 1;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 `;
 
 const SideLabel = styled.label`
-    font-size: 13px;
-    color: #888;
-    margin-bottom: 10px;
-    text-transform: uppercase;
+  font-size: 13px;
+  color: ${({ theme }) => theme.colors.textMuted};
+  margin-bottom: 10px;
+  text-transform: uppercase;
 `;
 
 const StyledCardTextarea = styled.textarea`
-    width: 100%;
-    height: 220px;
-    border-radius: 15px;
-    border: 1px solid #e0e0e0;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-    padding: 30px;
-    font-size: 16px;
-    resize: none;
-    outline: none;
-    font-family: inherit;
-    text-align: center;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    
-    &:focus {
-        border-color: #c2c5ba;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-    }
+  width: 100%;
+  height: 220px;
+  border-radius: 15px;
+  border: 1px solid ${({ theme }) => theme.colors.borderLight};
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+  padding: 30px;
+  font-size: 16px;
+  resize: none;
+  outline: none;
+  font-family: inherit;
+  text-align: center;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:focus {
+    border-color: ${({ theme }) => theme.colors.darkGrey};
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  }
 `;
 
-
 const AddMoreRowButton = styled.button`
-    background: transparent;
-    border: 2px dashed ${({ theme }) => theme.colors?.darkGrey };
-    border-radius: 10px;
-    padding: 15px 40px;
-    font-size: 1rem;
-    font-weight: 600;
-    color: ${({ theme }) => theme.colors?.text };
-    cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
-    opacity: ${props => props.disabled ? 0.5 : 1};
-    transition: all 0.2s;
-    
-    &:hover {
-        background: ${({ theme, disabled }) => disabled ? 'transparent' : theme.colors?.lightGrey };
-    }
+  background: transparent;
+  border: 2px dashed ${({ theme }) => theme.colors.darkGrey};
+  border-radius: 10px;
+  padding: 15px 40px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.text};
+  cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
+  opacity: ${(props) => (props.disabled ? 0.5 : 1)};
+  transition: all 0.2s;
+
+  &:hover {
+    background: ${({ theme, disabled }) =>
+      disabled ? "transparent" : theme.colors.lightGrey};
+  }
 `;
 
 const FloatingActionButton = styled.button`
-    position: fixed;
-    bottom: 40px;
-    right: 40px;
-    width: 70px;
-    height: 70px;
-    background-color: ${({ theme }) => theme.colors?.white };
-    border: none;
-    border-radius: 20px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    z-index: 100;
-    
-    &:hover {
-        transform: scale(1.05);
-        box-shadow: 0 6px 25px rgba(0,0,0,0.15);
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  width: 70px;
+  height: 70px;
+  background-color: ${({ theme }) => theme.colors.white};
+  border: none;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  z-index: 100;
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+  }
+
+  @media (max-width: 768px) {
+    bottom: 80px;
+    right: 16px;
+    width: 54px;
+    height: 54px;
+    border-radius: 16px;
+  }
+
+  svg {
+    width: 32px;
+    height: 32px;
+    color: ${({ theme }) => theme.colors.secondary};
+
+    @media (max-width: 768px) {
+      width: 24px;
+      height: 24px;
     }
-    
-    svg {
-        width: 32px;
-        height: 32px;
-        color: ${({ theme }) => theme.colors?.secondary };
-    }
+  }
 `;
 
 const FabMenu = styled.div`
@@ -714,138 +819,161 @@ const FabMenuItem = styled.button`
 `;
 
 const StyledPopup = styled.div`
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 600px;
-    min-height: 250px;
-    padding: 50px;
-    border-radius: 25px;
-    background-color: ${({ theme }) => theme.colors?.white };
-    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-    z-index: 1000;
-    
-    @media(max-width:768px){
-        width: 90%;
-        padding: 40px;
-    }
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  min-height: 250px;
+  padding: 50px;
+  border-radius: 25px;
+  background-color: ${({ theme }) => theme.colors.white};
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+
+  @media (max-width: 768px) {
+    width: 90%;
+    padding: 40px;
+  }
 `;
 
 const ModalOverlay = styled.div`
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.4);
-    z-index: 999;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 999;
 `;
 
 const EmptyStateContainer = styled.div`
-    width: 100%;
-    padding: 60px 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    color: ${({ theme }) => theme.colors?.text };
-    opacity: 0.5;
+  width: 100%;
+  padding: 60px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: ${({ theme }) => theme.colors.text};
+  opacity: 0.5;
 `;
 
 const StyledModalTextArea = styled.textarea`
-    width: 100%;
-    padding: 15px;
-    margin: 10px 0 20px 0;
-    border: 1px solid ${({ theme }) => theme.colors?.darkGrey };
-    border-radius: 5px;
-    font-family: inherit;
-    font-size: 1rem;
-    resize: vertical;
-    min-height: 100px;
-    background-color: ${({ theme }) => theme.colors?.lightGrey };
-    
-    &:focus {
-        outline: none;
-        border-color: ${({ theme }) => theme.colors?.secondary };
-    }
+  width: 100%;
+  padding: 15px;
+  margin: 10px 0 20px 0;
+  border: 1px solid ${({ theme }) => theme.colors.darkGrey};
+  border-radius: 5px;
+  font-family: inherit;
+  font-size: 1rem;
+  resize: vertical;
+  min-height: 100px;
+  background-color: ${({ theme }) => theme.colors.lightGrey};
+
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.colors.secondary};
+  }
 `;
 
 const SetHeaderControls = styled.div`
-    display: flex;
-    align-items: center;
-    margin-bottom: 30px;
-    gap: 20px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px;
+  gap: 20px;
 `;
 
 const ActionBanner = styled.div`
-    background-color: ${({ theme }) => theme.colors?.lightGrey };
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    border-radius: 8px;
-    padding: 12px 25px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: ${({ theme }) => theme.colors?.text };
-    cursor: pointer;
-    transition: background-color 0.2s;
-    
-    &:hover { background-color: ${({ theme }) => theme.colors?.darkGrey }; color: ${({ theme }) => theme.colors?.white }; }
+  background-color: ${({ theme }) => theme.colors.lightGrey};
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 12px 25px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.text};
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.darkGrey};
+    color: ${({ theme }) => theme.colors.white};
+  }
 `;
 
 const StyledTabsContainer = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 25px;
+  display: flex;
+  align-items: center;
+  gap: 25px;
+
+  @media (max-width: 768px) {
+    gap: 12px;
+  }
 `;
 
 const StyledTab = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    color: ${({ $active, theme }) => $active ? (theme.colors?.secondary || '#00b894') : '#6c757d'};
-    transition: color 0.15s;
-    
-    &:hover {
-        color: ${({ theme }) => theme.colors?.secondary || '#00b894'};
-    }
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: ${({ $active, theme }) =>
+    $active ? theme.colors.secondary : theme.colors.textLight};
+  transition: color 0.15s;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.secondary};
+  }
+
+  > svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+    gap: 4px;
 
     > svg {
-        width: 16px;
-        height: 16px;
+      width: 14px;
+      height: 14px;
     }
+  }
 `;
 
 const SortSelectContainer = styled.div`
-    position: relative;
-    display: flex;
-    align-items: center;
+  position: relative;
+  display: flex;
+  align-items: center;
 `;
 
 const SortSelect = styled.select`
-    appearance: none;
-    padding: 8px 32px 8px 16px;
-    border-radius: 8px;
-    border: 1px solid #ced4da;
-    background-color: white;
-    font-family: inherit;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #495057;
-    outline: none;
-    cursor: pointer;
-    
-    &:hover {
-        background-color: #f8f9fa;
-    }
+  appearance: none;
+  padding: 8px 32px 8px 16px;
+  border-radius: 8px;
+  border: 1px solid ${({ theme }) => theme.colors.darkGrey};
+  background-color: ${({ theme }) => theme.colors.white};
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.textLight};
+  outline: none;
+  cursor: pointer;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.lightGrey};
+  }
+
+  @media (max-width: 768px) {
+    padding: 6px 24px 6px 10px;
+    font-size: 0.78rem;
+  }
 `;
 
 const SortIconWrapper = styled.div`
-    position: absolute;
-    right: 12px;
-    pointer-events: none;
-    color: #495057;
-    display: flex;
-    align-items: center;
+  position: absolute;
+  right: 12px;
+  pointer-events: none;
+  color: ${({ theme }) => theme.colors.textLight};
+  display: flex;
+  align-items: center;
 `;
 
 const ModalButton = styled.button`
@@ -942,26 +1070,26 @@ const ToolbarButton = styled.button`
 `;
 
 const FilterContainer = styled.div`
-    position: relative;
-    display: flex;
-    align-items: center;
+  position: relative;
+  display: flex;
+  align-items: center;
 `;
 
 const FilterDropdown = styled.div`
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0; 
-    background: white;
-    border: 1px solid #ced4da;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-    padding: 15px;
-    z-index: 100;
-    width: 280px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    cursor: default;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.darkGrey};
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 15px;
+  z-index: 100;
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  cursor: default;
 `;
 
 const FilterTag = styled.div`
@@ -997,78 +1125,77 @@ const ActiveFilterBadge = styled.span`
 `;
 
 const HelpIcon = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    background-color: #e2e6ea;
-    color: #6c757d;
-    font-size: 0.9rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-left: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background-color: ${({ theme }) => theme.colors.borderLight};
+  color: ${({ theme }) => theme.colors.textLight};
+  font-size: 0.9rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-left: 10px;
 
-    &:hover {
-        background-color: #ced4da;
-        color: #343a40;
-        transform: scale(1.1);
-    }
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.darkGrey};
+    color: ${({ theme }) => theme.colors.text};
+    transform: scale(1.1);
+  }
 `;
 
 const ModeCard = styled.div`
-    background: #f8f9fa;
-    border: 1px solid #e9ecef;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 15px;
-    text-align: left;
+  background: ${({ theme }) => theme.colors.lightGrey};
+  border: 1px solid ${({ theme }) => theme.colors.borderLight};
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 15px;
+  text-align: left;
 
-    h3 {
-        margin-top: 0;
-        margin-bottom: 8px;
-        color: #212529;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 1.1rem;
-    }
+  h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    color: ${({ theme }) => theme.colors.text};
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.1rem;
+  }
 
-    p {
-        margin: 0;
-        color: #495057;
-        font-size: 0.95rem;
-        line-height: 1.5;
-    }
+  p {
+    margin: 0;
+    color: ${({ theme }) => theme.colors.textLight};
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
 `;
 
 const CloseButton = styled.button`
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: none;
-    border: none;
-    color: #a0a0a0;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 5px;
-    
-    &:hover {
-        color: #333;
-        transform: scale(1.1);
-    }
-    
-    svg {
-        width: 24px;
-        height: 24px;
-    }
-`;
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  color: ${({ theme }) => theme.colors.textMuted};
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
 
+  &:hover {
+    color: ${({ theme }) => theme.colors.text};
+    transform: scale(1.1);
+  }
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+`;
 
 const StackedCardsIcon = () => (
   <svg
@@ -1157,17 +1284,17 @@ const FlashcardsPage = () => {
 
     const socialId = new URLSearchParams(location.search).get('socialId');
 
-    const isTrashView = location.pathname.includes('trash');
+  const isTrashView = location.pathname.includes("trash");
 
-    const [activeSetId, setActiveSetId] = useState(null);
+  const [activeSetId, setActiveSetId] = useState(null);
 
-    const [editingName, setEditingName] = useState("");
-    const [isAddingItemTag, setIsAddingItemTag] = useState(false);
-    const [newItemTag, setNewItemTag] = useState("");
+  const [editingName, setEditingName] = useState("");
+  const [isAddingItemTag, setIsAddingItemTag] = useState(false);
+  const [newItemTag, setNewItemTag] = useState("");
 
-    const [sets, setSets] = useState([]);
-    const [errorMessage, setErrorMessage] = useState("");
-    const [successMessage, setSuccessMessage] = useState("");
+  const [sets, setSets] = useState([]);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
     const [isSetModalOpen, setIsSetModalOpen] = useState(false);
     const [editingSetId, setEditingSetId] = useState(null);
@@ -1177,80 +1304,71 @@ const FlashcardsPage = () => {
     const [isAddingTagForSet, setIsAddingTagForSet] = useState(false);
     const [newTagForSet, setNewTagForSet] = useState("");
 
-    const [isCardEditModalOpen, setIsCardEditModalOpen] = useState(false);
-    const [editingCardId, setEditingCardId] = useState(null);
-    const [editQuestion, setEditQuestion] = useState("");
-    const [editAnswer, setEditAnswer] = useState("");
+  const [isCardEditModalOpen, setIsCardEditModalOpen] = useState(false);
+  const [editingCardId, setEditingCardId] = useState(null);
+  const [editQuestion, setEditQuestion] = useState("");
+  const [editAnswer, setEditAnswer] = useState("");
 
-    const [isLearningMenuOpen, setIsLearningMenuOpen] = useState(false);
-    const [activeMenuId, setActiveMenuId] = useState(null);
+  const [isLearningMenuOpen, setIsLearningMenuOpen] = useState(false);
+  const [activeMenuId, setActiveMenuId] = useState(null);
 
-    const [isAddingMode, setIsAddingMode] = useState(false);
-    const [newCards, setNewCards] = useState([{ question: "", answer: "" }]);
-    const hasEmptyCard = newCards.some(
-        (card) => card.question.trim() === "" && card.answer.trim() === ""
-    );
+  const [isAddingMode, setIsAddingMode] = useState(false);
+  const [newCards, setNewCards] = useState([{ question: "", answer: "" }]);
+  const hasEmptyCard = newCards.some(
+    (card) => card.question.trim() === "" && card.answer.trim() === ""
+  );
 
-    // stany dla menu dodawania fiszkek
-    const [isAddModeMenuOpen, setIsAddModeMenuOpen] = useState(false);
-    const [isAddByTagMode, setIsAddByTagMode] = useState(false);
-    const [selectedCardsForAdding, setSelectedCardsForAdding] = useState(
-        new Set()
-    );
-    const [selectedSearchTags, setSelectedSearchTags] = useState([]);
-    const [searchTagText, setSearchTagText] = useState("");
-    const [showTagDropdown, setShowTagDropdown] = useState(false);
-    const tagSearchRef = useRef(null);
-    const tagSearchInputRef = useRef(null);
-    const [foundCards, setFoundCards] = useState([]);
-    const [allUserCards, setAllUserCards] = useState([]);
-    const [isLoadingCards, setIsLoadingCards] = useState(false);
-    const [hasSearchedCards, setHasSearchedCards] = useState(false);
+  // stany dla menu dodawania fiszkek
+  const [isAddModeMenuOpen, setIsAddModeMenuOpen] = useState(false);
+  const [isAddByTagMode, setIsAddByTagMode] = useState(false);
+  const [selectedCardsForAdding, setSelectedCardsForAdding] = useState(
+    new Set()
+  );
+  const [selectedSearchTags, setSelectedSearchTags] = useState([]);
+  const [searchTagText, setSearchTagText] = useState("");
+  const [showTagDropdown, setShowTagDropdown] = useState(false);
+  const tagSearchRef = useRef(null);
+  const tagSearchInputRef = useRef(null);
+  const [foundCards, setFoundCards] = useState([]);
+  const [allUserCards, setAllUserCards] = useState([]);
+  const [isLoadingCards, setIsLoadingCards] = useState(false);
+  const [hasSearchedCards, setHasSearchedCards] = useState(false);
 
-    const [setSortOption, setSetSortOption] = useState(() => {
-        return localStorage.getItem("flashcardSetsSortOption") || "oldest";
-    });
+  const [setSortOption, setSetSortOption] = useState(() => {
+    return localStorage.getItem("flashcardSetsSortOption") || "oldest";
+  });
 
-    const [cardSortOption, setCardSortOption] = useState(() => {
-        return localStorage.getItem("flashcardsSortOption") || "oldest";
-    });
+  const [cardSortOption, setCardSortOption] = useState(() => {
+    return localStorage.getItem("flashcardsSortOption") || "oldest";
+  });
 
-    //zapisywanie w localstorage ostatniego wyboru sortowania
-    useEffect(() => {
-        localStorage.setItem("flashcardSetsSortOption", setSortOption);
-    }, [setSortOption]);
-    useEffect(() => {
-        localStorage.setItem("flashcardsSortOption", cardSortOption);
-    }, [cardSortOption]);
+  //zapisywanie w localstorage ostatniego wyboru sortowania
+  useEffect(() => {
+    localStorage.setItem("flashcardSetsSortOption", setSortOption);
+  }, [setSortOption]);
+  useEffect(() => {
+    localStorage.setItem("flashcardsSortOption", cardSortOption);
+  }, [cardSortOption]);
 
-    const [isExitAddModeModalOpen, setIsExitAddModeModalOpen] = useState(false);
+  const [isExitAddModeModalOpen, setIsExitAddModeModalOpen] = useState(false);
 
-    const [searchQuery, setSearchQuery] = useState("");
-    const [isSearchFocused, setIsSearchFocused] = useState(false);
-    const [globalSearchResults, setGlobalSearchResults] = useState({
-        sets: [],
-        cards: [],
-    });
-    const [isSearchLoading, setIsSearchLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [globalSearchResults, setGlobalSearchResults] = useState({
+    sets: [],
+    cards: [],
+  });
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
 
-    const [setToDelete, setSetToDelete] = useState(null);
-    const [cardToDelete, setCardToDelete] = useState(null);
+  const [setToDelete, setSetToDelete] = useState(null);
+  const [cardToDelete, setCardToDelete] = useState(null);
 
-    const [isConfirmingTrashClear, setIsConfirmingTrashClear] = useState(false);
+  const [isConfirmingTrashClear, setIsConfirmingTrashClear] = useState(false);
 
-    const [selectedTagsFilter, setSelectedTagsFilter] = useState([]);
-    const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
+  const [selectedTagsFilter, setSelectedTagsFilter] = useState([]);
+  const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
 
-    const [duplicateWarning, setDuplicateWarning] = useState(null);
-
-    const [isSelectMode, setIsSelectMode] = useState(false);
-    const [selectedCards, setSelectedCards] = useState([]);
-    
-    // stany dla kopiowania
-    const [isBulkCopyModalOpen, setIsBulkCopyModalOpen] = useState(false);
-    const [bulkTargetSetId, setBulkTargetSetId] = useState("");
-    const [bulkNewSetName, setBulkNewSetName] = useState("");
-    const [bulkApplyTags, setBulkApplyTags] = useState(false);
+  const [duplicateWarning, setDuplicateWarning] = useState(null);
 
     // stany dla dodawania tagów do zaznaczonych fiszek
     const [isBulkTagsModalOpen, setIsBulkTagsModalOpen] = useState(false);
@@ -1265,8 +1383,15 @@ const FlashcardsPage = () => {
 
     const [isLearningInfoModalOpen, setIsLearningInfoModalOpen] = useState(false);
 
-    const [isResetConfirmModalOpen, setIsResetConfirmModalOpen] = useState(false);
-    const [pendingMode, setPendingMode] = useState(null); //fast lub fsrs
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [selectedCards, setSelectedCards] = useState([]);
+
+
+  // stany dla kopiowania
+  const [isBulkCopyModalOpen, setIsBulkCopyModalOpen] = useState(false);
+  const [bulkTargetSetId, setBulkTargetSetId] = useState("");
+  const [bulkNewSetName, setBulkNewSetName] = useState("");
+  const [bulkApplyTags, setBulkApplyTags] = useState(false);
 
     const [groupRole, setGroupRole] = useState(null);
 
@@ -1330,19 +1455,6 @@ const FlashcardsPage = () => {
         fetchData();
     }, [isTrashView, setId, location.search]);
 
-    useEffect(() => {
-        if (setId && sets.length > 0 && !isTrashView) {
-            const setToOpen = sets.find(set => set.id === parseInt(setId));
-            if (setToOpen) {
-                setActiveSetId(setToOpen.id);
-            }
-        } else if (!setId) {
-            setActiveSetId(null);
-            setIsLearningMenuOpen(false);
-            setIsAddingMode(false);
-        }
-    }, [setId, sets, isTrashView]);
-
     // Załaduj wszystkie fiszki gdy otwieramy tryb AddByTagMode
     useEffect(() => {
         const loadAllCards = async () => {
@@ -1397,7 +1509,7 @@ const FlashcardsPage = () => {
 
     const isReadOnly = socialId ? (groupRole !== 'ADMIN' && groupRole !== 'EDITOR') : false;
 
-useEffect(() => {
+    useEffect(() => {
         const q = searchQuery.trim();
         if (q.length < 2) {
             setGlobalSearchResults({ sets: [], cards: [] });
@@ -1447,61 +1559,85 @@ useEffect(() => {
         
         return () => clearTimeout(timer);
     }, [searchQuery, sets]);
+    
+  const [isResetConfirmModalOpen, setIsResetConfirmModalOpen] = useState(false);
+  const [pendingMode, setPendingMode] = useState(null); //fast lub fsrs
 
-    const getSortedSets = () => {
-        let sorted = [...sets];
+  useEffect(() => {
+    if (!getToken()) {
+      navigate("/", { replace: true });
+      return;
+    }
+    fetchData();
+  }, [isTrashView]);
 
-        //LOGIKA FILTROWANIA PO TAGACH (zakładamy że zestaw musi mieć WSZYSTKIE wybrane tagi)
-        if (selectedTagsFilter.length > 0) {
-            sorted = sorted.filter(set =>
-                selectedTagsFilter.every(tag => set.tags?.includes(tag))
-            );
-        }
+  useEffect(() => {
+    if (setId && sets.length > 0 && !isTrashView) {
+      const setToOpen = sets.find((set) => set.id === parseInt(setId));
+      if (setToOpen) {
+        setActiveSetId(setToOpen.id);
+      }
+    } else if (!setId) {
+      setActiveSetId(null);
+      setIsLearningMenuOpen(false);
+      setIsAddingMode(false);
+    }
+  }, [setId, sets, isTrashView]);
 
-        //LOGIKA SORTOWANIA
-        if (setSortOption === "oldest") {
-            sorted.sort((a, b) => a.id - b.id);
-        } else if (setSortOption === "newest") {
-            sorted.sort((a, b) => b.id - a.id);
-        } else if (setSortOption === "alphabetical") {
-            sorted.sort((a, b) => {
-                const textA = (a.name || "").toLowerCase();
-                const textB = (b.name || "").toLowerCase();
-                return textA.localeCompare(textB);
-            });
-        }
-        return sorted;
-    };
+  const getSortedSets = () => {
+    let sorted = [...sets];
 
-    const getSortedCards = () => {
-        if (!currentSet || !currentSet.cards) return [];
-        const sorted = [...currentSet.cards];
-        
-        if (cardSortOption === "oldest") {
-            sorted.sort((a, b) => a.id - b.id);
-        } else if (cardSortOption === "newest") {
-            sorted.sort((a, b) => b.id - a.id);
-        } else if (cardSortOption === "alphabetical") {
-            sorted.sort((a, b) => {
-                const textA = (a.contentFirstSide || a.question || "").toLowerCase();
-                const textB = (b.contentFirstSide || b.question || "").toLowerCase();
-                return textA.localeCompare(textB);
-            });
-        }
-        return sorted;
-    };
+    //LOGIKA FILTROWANIA PO TAGACH (zakładamy że zestaw musi mieć WSZYSTKIE wybrane tagi)
+    if (selectedTagsFilter.length > 0) {
+      sorted = sorted.filter((set) =>
+        selectedTagsFilter.every((tag) => set.tags?.includes(tag))
+      );
+    }
 
-    const sortedSets = getSortedSets();
-    const sortedCards = getSortedCards();
+    //LOGIKA SORTOWANIA
+    if (setSortOption === "oldest") {
+      sorted.sort((a, b) => a.id - b.id);
+    } else if (setSortOption === "newest") {
+      sorted.sort((a, b) => b.id - a.id);
+    } else if (setSortOption === "alphabetical") {
+      sorted.sort((a, b) => {
+        const textA = (a.name || "").toLowerCase();
+        const textB = (b.name || "").toLowerCase();
+        return textA.localeCompare(textB);
+      });
+    }
+    return sorted;
+  };
 
-    // DODAWANIE FISZEK
-    const updateNewCard = (index, field, value) => {
-        const updated = [...newCards];
-        updated[index][field] = value;
-        setNewCards(updated);
-    };
+  const getSortedCards = () => {
+    if (!currentSet || !currentSet.cards) return [];
+    const sorted = [...currentSet.cards];
 
-    const handleSaveNewCards = async (ignoreDuplicates = false) => {
+    if (cardSortOption === "oldest") {
+      sorted.sort((a, b) => a.id - b.id);
+    } else if (cardSortOption === "newest") {
+      sorted.sort((a, b) => b.id - a.id);
+    } else if (cardSortOption === "alphabetical") {
+      sorted.sort((a, b) => {
+        const textA = (a.contentFirstSide || a.question || "").toLowerCase();
+        const textB = (b.contentFirstSide || b.question || "").toLowerCase();
+        return textA.localeCompare(textB);
+      });
+    }
+    return sorted;
+  };
+
+  const sortedSets = getSortedSets();
+  const sortedCards = getSortedCards();
+
+  // DODAWANIE FISZEK
+  const updateNewCard = (index, field, value) => {
+    const updated = [...newCards];
+    updated[index][field] = value;
+    setNewCards(updated);
+  };
+
+  const handleSaveNewCards = async (ignoreDuplicates = false) => {
         setErrorMessage("");
         
         if (!ignoreDuplicates) {
@@ -1540,21 +1676,9 @@ useEffect(() => {
 
         for (const card of newCards) {
             if (card.question.trim() && card.answer.trim()) {
-                const res = await addCard(
-                card.question,
-                card.answer,
-                parseInt(activeSetId),
-                inheritedTags
-                );
-                if (res.errorCode === "TOKEN_UNDEFINED") {
-                navigate("/", { replace: true });
-                return;
-                }
-                if (!res.errorCode) {
-                addedCount++;
-                } else {
-                setErrorMessage(`Błąd przy dodawaniu fiszki: ${res.message}`);
-                }
+                const res = await addCard(card.question, card.answer, parseInt(activeSetId), inheritedTags);
+                if (res.errorCode === "TOKEN_UNDEFINED") { navigate("/", { replace: true }); return; }
+                if (!res.errorCode) addedCount++;
             }
         }
 
@@ -1593,7 +1717,7 @@ useEffect(() => {
         const currentCardData = currentSet.cards.find(
             (c) => c.id === editingCardId
         );
-        const existingTags = currentCardData ? (currentCardData.tags || []) : [];
+        const existingTags = currentCardData ? currentCardData.cardTags || [] : [];
 
         const res = await editCard(
             editingCardId,
@@ -1639,7 +1763,7 @@ useEffect(() => {
     };
 
     const handleInlineCardTagAdd = async (card, tagToAdd) => {
-        if (card.tags?.includes(tagToAdd)) return; 
+        if (card.cardTags?.includes(tagToAdd)) return; 
         
         const res = await addFlashcardTag(card.id, tagToAdd);
         if (!res.errorCode) {
@@ -1820,7 +1944,7 @@ useEffect(() => {
             if (isAlreadySelected) return prev.filter(c => c.id !== card.id);
             return [...prev, card];
         });
-    };
+      }
 
     const handleBulkDelete = async () => {
         if (
@@ -3719,75 +3843,75 @@ useEffect(() => {
                     <>
                         <ModalOverlay onClick={() => setIsResetConfirmModalOpen(false)} />
                         <StyledPopup
-                        onClick={(e) => e.stopPropagation()}
-                        style={{ textAlign: "center" }}
-                        >
-                        <CloseButton
-                            type="button"
-                            onClick={() => setIsResetConfirmModalOpen(false)}
-                            title="Zamknij"
-                        >
-                            <svg
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            strokeWidth="2.5"
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ textAlign: "center" }}
                             >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M6 18L18 6M6 6l12 12"
+                            <CloseButton
+                                type="button"
+                                onClick={() => setIsResetConfirmModalOpen(false)}
+                                title="Zamknij"
+                            >
+                                <svg
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                strokeWidth="2.5"
+                                >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M6 18L18 6M6 6l12 12"
+                                />
+                                </svg>
+                            </CloseButton>
+                            <Text bold="true" as="h2" text="Trwająca sesja" />
+                            <Text
+                                text="Masz już rozpoczętą sesję nauki w tym zestawie. Co chcesz zrobić?"
+                                style={{
+                                margin: "20px 0 30px 0",
+                                color: theme.colors.textLight,
+                                }}
                             />
-                            </svg>
-                        </CloseButton>
-                        <Text bold="true" as="h2" text="Trwająca sesja" />
-                        <Text
-                            text="Masz już rozpoczętą sesję nauki w tym zestawie. Co chcesz zrobić?"
-                            style={{
-                            margin: "20px 0 30px 0",
-                            color: theme.colors.textLight,
-                            }}
-                        />
 
-                        <div
-                            style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "15px",
-                            alignItems: "center",
-                            }}
-                        >
-                            <ModalButton
-                            type="button"
-                            style={{ width: "85%", padding: "14px", fontSize: "1.05rem" }}
-                            onClick={() => {
-                                setIsResetConfirmModalOpen(false);
-                                goToLearning(pendingMode);
-                            }}
+                            <div
+                                style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "15px",
+                                alignItems: "center",
+                                }}
                             >
-                            Kontynuuj naukę
-                            </ModalButton>
-                            <ModalButton
-                            type="button"
-                            style={{
-                                width: "85%",
-                                padding: "14px",
-                                background: "transparent",
-                                border: `2px solid ${theme.colors.danger}`,
-                                color: theme.colors.danger,
-                                fontSize: "1.05rem",
-                            }}
-                            onClick={handleResetAndStart}
-                            >
-                            Zacznij od nowa (zresetuj postępy)
-                            </ModalButton>
-                        </div>
+                                <ModalButton
+                                type="button"
+                                style={{ width: "85%", padding: "14px", fontSize: "1.05rem" }}
+                                onClick={() => {
+                                    setIsResetConfirmModalOpen(false);
+                                    goToLearning(pendingMode);
+                                }}
+                                >
+                                    Kontynuuj naukę
+                                </ModalButton>
+                                <ModalButton
+                                    type="button"
+                                    style={{
+                                        width: "85%",
+                                        padding: "14px",
+                                        background: "transparent",
+                                        border: `2px solid ${theme.colors.danger}`,
+                                        color: theme.colors.danger,
+                                        fontSize: "1.05rem",
+                                    }}
+                                    onClick={handleResetAndStart}
+                                >
+                                    Zacznij od nowa (zresetuj postępy)
+                                </ModalButton>
+                            </div>
                         </StyledPopup>
                     </>
                 )}
             </StyledContainer>
         </Layout>
     );
-}
+};
 
 export default FlashcardsPage;

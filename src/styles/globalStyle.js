@@ -6,7 +6,7 @@ export const GlobalStyle = createGlobalStyle`
         font-weight: 400;
         color-scheme: light dark;
         color: ${({ theme }) => theme.colors.text};
-        background-color: ${({ theme }) => theme.colors.lightGrey};
+        background-color: ${({ theme }) => theme.colors.pageBg};
     }
     #root {
         width: 100%;

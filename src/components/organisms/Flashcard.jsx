@@ -1,320 +1,372 @@
-import React, { useState, useEffect, useRef } from 'react';
-import styled from 'styled-components';
+import React, { useState, useEffect, useRef } from "react";
+import styled, { useTheme } from "styled-components";
 
 const CardWrapper = styled.div`
-    perspective: 1000px;
-    width: 350px;
-    height: 350px;
-    position: relative;
-    margin: 10px;
+  perspective: 1000px;
+  width: 350px;
+  height: 350px;
+  position: relative;
+  margin: 10px;
 `;
 
 const CardInner = styled.div`
-    width: 100%;
-    height: 100%;
-    position: relative;
-    transform-style: preserve-3d;
-    transition: transform 0.6s ease;
-    transform: ${props => props.$isFlipped ? 'rotateY(180deg)' : 'none'};
-    cursor: pointer;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.6s ease;
+  transform: ${(props) => (props.$isFlipped ? "rotateY(180deg)" : "none")};
+  cursor: pointer;
 `;
 
 const CardFace = styled.div`
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    backface-visibility: hidden;
-    background-color: white;
-    border: 1px solid #eee;
-    border-radius: 15px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  background-color: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.borderLight};
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 `;
 
 const CardBack = styled(CardFace)`
-    transform: rotateY(180deg);
+  transform: rotateY(180deg);
 `;
 
 const CardContent = styled.div`
+  width: 100%;
+  height: 100%;
+  padding: 55px 35px 35px 35px;
+  font-size: 1.1rem;
+  color: ${({ theme }) => theme.colors.text};
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+
+  .inner-content {
+    margin: auto 0;
     width: 100%;
-    height: 100%;
-    padding: 55px 35px 35px 35px; 
-    font-size: 1.1rem;
-    color: #333;
+    text-align: center;
     display: flex;
     flex-direction: column;
-    overflow-y: auto;
+    align-items: center;
+  }
 
-    .inner-content {
-        margin: auto 0; 
-        width: 100%;
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    p { 
-        margin: 0.5em 0; 
-        word-break: break-word; 
-    }
-    ul, ol { 
-        padding-left: 1.5rem; 
-        text-align: left; 
-        margin: 0.5em 0;
-    }
-    code { 
-        background-color: #eee; 
-        padding: 2px 5px; 
-        border-radius: 4px; 
-        font-family: monospace;
-    }
-    pre { 
-        background-color: #2b2b2b; 
-        color: white; 
-        padding: 10px; 
-        border-radius: 8px; 
-        text-align: left;
-        width: 100%;
-        overflow-x: auto;
-    }
-    blockquote { 
-        border-left: 3px solid ${({ theme }) => theme.colors?.secondary }; 
-        padding-left: 10px; 
-        font-style: italic; 
-    }
+  p {
+    margin: 0.5em 0;
+    word-break: break-word;
+  }
+  ul,
+  ol {
+    padding-left: 1.5rem;
+    text-align: left;
+    margin: 0.5em 0;
+  }
+  code {
+    background-color: ${({ theme }) => theme.colors.borderLight};
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-family: monospace;
+  }
+  pre {
+    background-color: ${({ theme }) => theme.colors.dark};
+    color: ${({ theme }) => theme.colors.white};
+    padding: 10px;
+    border-radius: 8px;
+    text-align: left;
+    width: 100%;
+    overflow-x: auto;
+  }
+  blockquote {
+    border-left: 3px solid ${({ theme }) => theme.colors.secondary};
+    padding-left: 10px;
+    font-style: italic;
+  }
 `;
 
 const OptionsButton = styled.div`
-    position: absolute;
-    top: 15px; 
-    right: 15px;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    z-index: 10;
-    transition: background-color 0.2s;
-    
-    color: #888;
-    
-    &:hover { 
-        background-color: #f0f0f0; 
-        color: #333;
-    }
-    
-    svg {
-        width: 20px;
-        height: 20px;
-    }
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: background-color 0.2s;
+
+  color: ${({ theme }) => theme.colors.textMuted};
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.lightGrey};
+    color: ${({ theme }) => theme.colors.text};
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
 `;
 
 const DropdownMenu = styled.div`
-    position: absolute;
-    top: 45px; 
-    right: 10px; 
-    background: white;
-    border: 1px solid #eee;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-    padding: 10px;
-    z-index: 20;
-    width: 260px; 
-    display: flex;
-    flex-direction: column;
-    text-align: left;
-    cursor: default;
+  position: absolute;
+  top: 45px;
+  right: 10px;
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.borderLight};
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 10px;
+  z-index: 20;
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  cursor: default;
 `;
 
 const DropdownItem = styled.button`
-    padding: 10px 12px;
-    background: none;
-    border: none;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    color: #333;
-    border-radius: 8px;
-    
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    text-align: left;
-    
-    &.danger { color: #e74c3c; }
-    &:hover { background-color: #f9f9f9; }
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  color: ${({ theme }) => theme.colors.text};
+  border-radius: 8px;
 
-    svg {
-        width: 16px;
-        height: 16px;
-        flex-shrink: 0;
-    }
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+
+  &.danger {
+    color: ${({ theme }) => theme.colors.danger};
+  }
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.lightGrey};
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
 `;
 
 const DropdownSectionLabel = styled.div`
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #999;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
-    margin-top: 5px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.textMuted};
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  margin-top: 5px;
 `;
 
 const TagsContainer = styled.div`
-    width: 100%;
-    display: flex;
-    flex-flow: row wrap;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 6px;
-    margin-bottom: 10px;
+  width: 100%;
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  margin-bottom: 10px;
 `;
 
 const StyledTag = styled.div`
-    padding: 4px 10px;
-    background-color: ${({ theme }) => theme.colors?.secondary || '#555'};
-    border-radius: 8px;
-    color: white;
-    font-weight: 500;
-    font-size: 0.8rem;
-    display: flex;
-    flex-flow: row nowrap;
-    
-    > div {
-        cursor: pointer;
-        font-weight: 700;
-        margin-left: 6px;
-        transition: opacity 0.2s;
-        &:hover { opacity: 0.7; }
+  padding: 4px 10px;
+  background-color: ${({ theme }) => theme.colors.secondary};
+  border-radius: 8px;
+  color: ${({ theme }) => theme.colors.white};
+  font-weight: 500;
+  font-size: 0.8rem;
+  display: flex;
+  flex-flow: row nowrap;
+
+  > div {
+    cursor: pointer;
+    font-weight: 700;
+    margin-left: 6px;
+    transition: opacity 0.2s;
+    &:hover {
+      opacity: 0.7;
     }
+  }
 `;
 
 const StyledTagInput = styled.input`
-    padding: 4px 10px;
-    border-radius: 8px;
-    color: white;
-    border: none;
-    width: 90px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    font-family: inherit;
-    background-color: ${({ theme }) => theme.colors?.secondary || '#555'};
-    &:focus { outline: none; box-shadow: 0 0 0 2px rgba(0,0,0,0.1); }
+  padding: 4px 10px;
+  border-radius: 8px;
+  color: ${({ theme }) => theme.colors.white};
+  border: none;
+  width: 90px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: inherit;
+  background-color: ${({ theme }) => theme.colors.secondary};
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+  }
 `;
 
 const StyledAddTagButton = styled.div`
-    padding: 4px 12px;
-    background-color: transparent;
-    border: 1px dashed #ccc;
-    border-radius: 8px;
-    color: #666;
-    font-weight: 600;
-    font-size: 0.8rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    
-    &:hover { 
-        background-color: #f4f4f4; 
-        color: #333;
-        border-color: #333;
-    }
+  padding: 4px 12px;
+  background-color: transparent;
+  border: 1px dashed ${({ theme }) => theme.colors.darkGrey};
+  border-radius: 8px;
+  color: ${({ theme }) => theme.colors.textLight};
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.lightGrey};
+    color: ${({ theme }) => theme.colors.text};
+    border-color: ${({ theme }) => theme.colors.text};
+  }
 `;
 
 const SelectCircle = styled.div`
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    border: 2px solid ${({ $isSelected, theme }) => $isSelected ? (theme.colors?.secondary ) : '#ccc'};
-    background-color: ${({ $isSelected, theme }) => $isSelected ? (theme.colors?.secondary ) : 'white'};
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 20;
-    cursor: pointer;
-    transition: all 0.2s;
-    
-    &:hover {
-        transform: scale(1.1);
-    }
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid
+    ${({ $isSelected, theme }) =>
+      $isSelected ? theme.colors.secondary : theme.colors.darkGrey};
+  background-color: ${({ $isSelected, theme }) =>
+    $isSelected ? theme.colors.secondary : theme.colors.white};
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 20;
+  cursor: pointer;
+  transition: all 0.2s;
 
-    svg {
-        color: white;
-        width: 14px;
-        height: 14px;
-        opacity: ${({ $isSelected }) => $isSelected ? 1 : 0};
-    }
+  &:hover {
+    transform: scale(1.1);
+  }
+
+  svg {
+    color: ${({ theme }) => theme.colors.white};
+    width: 14px;
+    height: 14px;
+    opacity: ${({ $isSelected }) => ($isSelected ? 1 : 0)};
+  }
 `;
 
 const EllipsisIcon = () => (
-    <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-        <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
-    </svg>
+  <svg
+    viewBox="0 0 16 16"
+    fill="currentColor"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z" />
+  </svg>
 );
 
-export default function Flashcard({ card, question, answer, onEdit, onDelete, onTagAdd, onTagRemove, isSelectMode, isSelected, onToggleSelect, isReadOnly }) {    const [isFlipped, setIsFlipped] = useState(false);
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
+export default function Flashcard({
+  card,
+  question,
+  answer,
+  onEdit,
+  onDelete,
+  onTagAdd,
+  onTagRemove,
+  isSelectMode,
+  isSelected,
+  onToggleSelect,
+  isReadOnly
+}) {
+  const theme = useTheme();
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-    const [isAddingTag, setIsAddingTag] = useState(false);
-    const [newTag, setNewTag] = useState("");
+  const [isAddingTag, setIsAddingTag] = useState(false);
+  const [newTag, setNewTag] = useState("");
 
-    const menuRef = useRef(null);
+  const menuRef = useRef(null);
 
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (menuRef.current && !menuRef.current.contains(event.target)) {
-                setIsMenuOpen(false);
-                setIsAddingTag(false);
-            }
-        };
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+        setIsAddingTag(false);
+      }
+    };
 
-        if (isMenuOpen) {
-            document.addEventListener('mousedown', handleClickOutside);
+    if (isMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isMenuOpen]);
+
+  return (
+    <CardWrapper>
+      <CardInner
+        $isFlipped={isFlipped}
+        onClick={() =>
+          isSelectMode ? onToggleSelect() : setIsFlipped(!isFlipped)
         }
-        
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [isMenuOpen]);
-
-    return (
-        <CardWrapper>
-            <CardInner 
-                $isFlipped={isFlipped} 
-                onClick={() => isSelectMode ? onToggleSelect() : setIsFlipped(!isFlipped)}
+      >
+        {/* KÓŁKO ZAZNACZANIA */}
+        {isSelectMode && (
+          <SelectCircle
+            $isSelected={isSelected}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleSelect();
+            }}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             >
-                {/* KÓŁKO ZAZNACZANIA */}
-                {isSelectMode && (
-                    <SelectCircle $isSelected={isSelected} onClick={(e) => { e.stopPropagation(); onToggleSelect(); }}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                    </SelectCircle>
-                )}
-                
-                <CardFace>
-                    <CardContent>
-                        <div className="inner-content" dangerouslySetInnerHTML={{ __html: question }} />
-                    </CardContent>
-                </CardFace>
-                <CardBack>
-                    <CardContent>
-                        <div className="inner-content" dangerouslySetInnerHTML={{ __html: answer }} />
-                    </CardContent>
-                </CardBack>
-            </CardInner>
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </SelectCircle>
+        )}
+
+        <CardFace>
+          <CardContent>
+            <div
+              className="inner-content"
+              dangerouslySetInnerHTML={{ __html: question }}
+            />
+          </CardContent>
+        </CardFace>
+        <CardBack>
+          <CardContent>
+            <div
+              className="inner-content"
+              dangerouslySetInnerHTML={{ __html: answer }}
+            />
+          </CardContent>
+        </CardBack>
+      </CardInner>
 
             {!isReadOnly && (
                 <div ref={menuRef}>
@@ -339,7 +391,7 @@ export default function Flashcard({ card, question, answer, onEdit, onDelete, on
                             <div style={{ padding: '0 12px' }}>
                                 <DropdownSectionLabel>Tagi</DropdownSectionLabel>
                                 <TagsContainer>
-                                    {card?.tags?.map((tag, idx) => (
+                                    {card?.cardTags?.map((tag, idx) => (
                                         <StyledTag key={idx}>
                                             {tag}
                                             <div onClick={(e) => { e.stopPropagation(); onTagRemove(card, tag); }}>x</div>

@@ -1,5 +1,5 @@
 import { API_HOST } from "./config";
-import { getToken, removeToken } from "./token";
+import { getToken, removeToken, saveToken } from "./token";
 
 function checkUnauthorized(resp) {
   if (resp.status === 401 || resp.status === 403) {
@@ -894,7 +894,6 @@ export async function getFolderTags(id) {
   }
 }
 
-
 export async function addCard(
   question,
   answer,
@@ -1501,27 +1500,30 @@ export async function sendFastLearningAnswer(cardId, answerCode) {
 export async function resetFlashcardSetProgress(setId) {
   const token = getToken();
   if (!token) return { errorCode: "TOKEN_UNDEFINED", message: "Brak tokena" };
-  
+
   try {
     const resp = await fetch(`${API_HOST}/resetCards/${setId}`, {
       method: "PATCH",
       headers: { Authorization: `Bearer ${token}` },
     });
-    
+
     const authErr = checkUnauthorized(resp);
     if (authErr) return authErr;
 
     if (resp.ok) {
       return { errorCode: "", message: "" };
     }
-    
+
     const data = await resp.json().catch(() => ({}));
     return {
       errorCode: data.errorCode || "ERROR",
       message: data.message || "Nie udało się zresetować postępu nauki",
     };
   } catch (err) {
-    return { errorCode: "CONNECTION_ERROR", message: "Błąd połączenia z serwerem" };
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Błąd połączenia z serwerem",
+    };
   }
 }
 
@@ -1680,7 +1682,7 @@ export async function submitUsosVerifier(oauthVerifier) {
     const resp = await fetch(
       `${API_HOST}/oauth/access?oauth_verifier=${encodeURIComponent(
         oauthVerifier
-      )}`,
+      )}&override=true`,
       {
         method: "GET",
         headers: {
@@ -1705,12 +1707,17 @@ export async function submitUsosVerifier(oauthVerifier) {
   }
 }
 
-// ─── EVENT TAG API ────────────────────────────────────────────────────────────
+// EVENT TAG API
 
 export async function getEventTags(eventId) {
   const token = getToken();
   if (!token)
-    return { predefined: [], custom: [], errorCode: "TOKEN_UNDEFINED", message: "Brak tokena" };
+    return {
+      predefined: [],
+      custom: [],
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena",
+    };
   try {
     const resp = await fetch(`${API_HOST}/getEventTags/${eventId}`, {
       method: "GET",
@@ -1718,11 +1725,22 @@ export async function getEventTags(eventId) {
     });
     const authErr = checkUnauthorized(resp);
     if (authErr) return authErr;
-    if (!resp.ok) return { predefined: [], custom: [], errorCode: "FETCH_ERROR", message: "Nie udało się pobrać tagów" };
+    if (!resp.ok)
+      return {
+        predefined: [],
+        custom: [],
+        errorCode: "FETCH_ERROR",
+        message: "Nie udało się pobrać tagów",
+      };
     const data = await resp.json();
     return { ...data, errorCode: "", message: "" };
   } catch {
-    return { predefined: [], custom: [], errorCode: "CONNECTION_ERROR", message: "Nie udało się połączyć z serwerem" };
+    return {
+      predefined: [],
+      custom: [],
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem",
+    };
   }
 }
 
@@ -1737,29 +1755,72 @@ export async function getPredefinedEventTags() {
     });
     const authErr = checkUnauthorized(resp);
     if (authErr) return authErr;
-    if (!resp.ok) return { tags: [], errorCode: "FETCH_ERROR", message: "Nie udało się pobrać tagów" };
+    if (!resp.ok)
+      return {
+        tags: [],
+        errorCode: "FETCH_ERROR",
+        message: "Nie udało się pobrać tagów",
+      };
     const tags = await resp.json();
     return { tags, errorCode: "", message: "" };
   } catch {
-    return { tags: [], errorCode: "CONNECTION_ERROR", message: "Nie udało się połączyć z serwerem" };
+    return {
+      tags: [],
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem",
+    };
   }
 }
 
 export async function getContentByTag(tagName) {
   const token = getToken();
-  if (!token) return { notes: [], cardSets: [], folders: [], cards: [], errorCode: "TOKEN_UNDEFINED", message: "Brak tokena" };
+  if (!token)
+    return {
+      notes: [],
+      cardSets: [],
+      folders: [],
+      cards: [],
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena",
+    };
   try {
-    const resp = await fetch(`${API_HOST}/getContentByTag?tagName=${encodeURIComponent(tagName)}`, {
-      method: "GET",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const resp = await fetch(
+      `${API_HOST}/getContentByTag?tagName=${encodeURIComponent(tagName)}`,
+      {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
     const authErr = checkUnauthorized(resp);
-    if (authErr) return { notes: [], cardSets: [], folders: [], cards: [], ...authErr };
+    if (authErr)
+      return { notes: [], cardSets: [], folders: [], cards: [], ...authErr };
     const data = await resp.json();
-    if (resp.ok) return { notes: data.notes || [], cardSets: data.cardSets || [], folders: data.folders || [], cards: data.cards || [], errorCode: "", message: "" };
-    return { notes: [], cardSets: [], folders: [], cards: [], errorCode: data.errorCode || "ERROR", message: data.message || "Nie znaleziono treści" };
+    if (resp.ok)
+      return {
+        notes: data.notes || [],
+        cardSets: data.cardSets || [],
+        folders: data.folders || [],
+        cards: data.cards || [],
+        errorCode: "",
+        message: "",
+      };
+    return {
+      notes: [],
+      cardSets: [],
+      folders: [],
+      cards: [],
+      errorCode: data.errorCode || "ERROR",
+      message: data.message || "Nie znaleziono treści",
+    };
   } catch {
-    return { notes: [], cardSets: [], folders: [], cards: [], errorCode: "CONNECTION_ERROR", message: "Nie udało się połączyć z serwerem" };
+    return {
+      notes: [],
+      cardSets: [],
+      folders: [],
+      cards: [],
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem",
+    };
   }
 }
 
@@ -1767,16 +1828,24 @@ export async function addRegularTagToEvent(eventId, tagName) {
   const token = getToken();
   if (!token) return { errorCode: "TOKEN_UNDEFINED", message: "Brak tokena" };
   try {
-    const resp = await fetch(`${API_HOST}/addRegularTag/${eventId}?tagName=${encodeURIComponent(tagName)}`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const resp = await fetch(
+      `${API_HOST}/addRegularTag/${eventId}?tagName=${encodeURIComponent(
+        tagName
+      )}`,
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
     const authErr = checkUnauthorized(resp);
     if (authErr) return authErr;
     if (resp.ok) return { errorCode: "", message: "" };
     return { errorCode: "ERROR", message: "Nie udało się dodać tagu" };
   } catch {
-    return { errorCode: "CONNECTION_ERROR", message: "Nie udało się połączyć z serwerem" };
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem",
+    };
   }
 }
 
@@ -1784,23 +1853,46 @@ export async function removeRegularTagFromEvent(eventId, tagName) {
   const token = getToken();
   if (!token) return { errorCode: "TOKEN_UNDEFINED", message: "Brak tokena" };
   try {
-    const resp = await fetch(`${API_HOST}/removeRegularTag/${eventId}?tagName=${encodeURIComponent(tagName)}`, {
-      method: "PATCH",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const resp = await fetch(
+      `${API_HOST}/removeRegularTag/${eventId}?tagName=${encodeURIComponent(
+        tagName
+      )}`,
+      {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
     const authErr = checkUnauthorized(resp);
     if (authErr) return authErr;
     if (resp.ok) return { errorCode: "", message: "" };
     return { errorCode: "ERROR", message: "Nie udało się usunąć tagu" };
   } catch {
-    return { errorCode: "CONNECTION_ERROR", message: "Nie udało się połączyć z serwerem" };
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem",
+    };
   }
 }
 
-export async function addEvent(title, description, eventTags, regularTags, start, end, color, isDeadline) {
+export async function addEvent(
+  title,
+  description,
+  eventTags,
+  regularTags,
+  start,
+  end,
+  color,
+  isDeadline,
+  recurrenceRule = null,
+  recurringEventTags = null
+) {
   const token = getToken();
   if (!token)
-    return { event: null, errorCode: "TOKEN_UNDEFINED", message: "Brak tokena, zaloguj się ponownie" };
+    return {
+      event: null,
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
   try {
     const resp = await fetch(`${API_HOST}/addEvent`, {
       method: "POST",
@@ -1808,22 +1900,56 @@ export async function addEvent(title, description, eventTags, regularTags, start
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ title, description, eventTags, regularTags, start, end, color, isDeadline }),
+      body: JSON.stringify({
+        title,
+        description,
+        eventTags,
+        regularTags,
+        start,
+        end,
+        color,
+        isDeadline,
+        recurringEventTags,
+        recurrenceRule,
+      }),
     });
     const authErr = checkUnauthorized(resp);
     if (authErr) return authErr;
     const data = await resp.json();
-    if (resp.ok) return { event: data.event || data, errorCode: "", message: "" };
-    return { event: null, errorCode: data.errorCode || "ERROR", message: data.message || "Nie udało się dodać eventu" };
+    if (resp.ok)
+      return { event: data.event || data, errorCode: "", message: "" };
+    return {
+      event: null,
+      errorCode: data.errorCode || "ERROR",
+      message: data.message || "Nie udało się dodać eventu",
+    };
   } catch {
-    return { event: null, errorCode: "CONNECTION_ERROR", message: "Nie udało się połączyć z serwerem" };
+    return {
+      event: null,
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem",
+    };
   }
 }
 
-export async function editEventApi(id, title, description, eventTags, regularTags, start, end, color, isDeadline) {
+export async function editEventApi(
+  id,
+  title,
+  description,
+  eventTags,
+  regularTags,
+  start,
+  end,
+  color,
+  isDeadline
+) {
   const token = getToken();
   if (!token)
-    return { event: null, errorCode: "TOKEN_UNDEFINED", message: "Brak tokena, zaloguj się ponownie" };
+    return {
+      event: null,
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
   try {
     const resp = await fetch(`${API_HOST}/editEvent/${id}`, {
       method: "PATCH",
@@ -1831,22 +1957,43 @@ export async function editEventApi(id, title, description, eventTags, regularTag
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ title, description, eventTags, regularTags, start, end, color, isDeadline }),
+      body: JSON.stringify({
+        title,
+        description,
+        eventTags,
+        regularTags,
+        start,
+        end,
+        color,
+        isDeadline,
+      }),
     });
     const authErr = checkUnauthorized(resp);
     if (authErr) return authErr;
     const data = await resp.json();
-    if (resp.ok) return { event: data.event || data, errorCode: "", message: "" };
-    return { event: null, errorCode: data.errorCode || "ERROR", message: data.message || "Nie udało się edytować eventu" };
+    if (resp.ok)
+      return { event: data.event || data, errorCode: "", message: "" };
+    return {
+      event: null,
+      errorCode: data.errorCode || "ERROR",
+      message: data.message || "Nie udało się edytować eventu",
+    };
   } catch {
-    return { event: null, errorCode: "CONNECTION_ERROR", message: "Nie udało się połączyć z serwerem" };
+    return {
+      event: null,
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem",
+    };
   }
 }
 
 export async function deleteEventApi(id) {
   const token = getToken();
   if (!token)
-    return { errorCode: "TOKEN_UNDEFINED", message: "Brak tokena, zaloguj się ponownie" };
+    return {
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
   try {
     const resp = await fetch(`${API_HOST}/deleteEvent/${id}`, {
       method: "DELETE",
@@ -1858,32 +2005,197 @@ export async function deleteEventApi(id) {
     if (authErr) return authErr;
     if (resp.ok) return { errorCode: "", message: "" };
     const data = await resp.json().catch(() => ({}));
-    return { errorCode: data.errorCode || "ERROR", message: data.message || "Nie udało się usunąć eventu" };
+    return {
+      errorCode: data.errorCode || "ERROR",
+      message: data.message || "Nie udało się usunąć eventu",
+    };
   } catch {
-    return { errorCode: "CONNECTION_ERROR", message: "Nie udało się połączyć z serwerem" };
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem",
+    };
+  }
+}
+
+export async function editThisAndFollowingApi(
+  eventId,
+  title,
+  description,
+  eventTags,
+  regularTags,
+  start,
+  end,
+  color,
+  isDeadline,
+  recurrenceRule
+) {
+  const token = getToken();
+  if (!token)
+    return {
+      events: [],
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+  try {
+    const body = {
+      title,
+      description,
+      eventTags,
+      recurringEventTags: eventTags,
+      regularTags,
+      start,
+      end,
+      color,
+      isDeadline,
+      recurrenceRule,
+    };
+    const resp = await fetch(`${API_HOST}/editThisAndFollowing/${eventId}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+    if (resp.ok) {
+      const events = await resp.json();
+      return { events, errorCode: "", message: "" };
+    }
+    const data = await resp.json().catch(() => ({}));
+    return {
+      events: [],
+      errorCode: data.errorCode || "ERROR",
+      message: data.message || "Nie udało się edytować serii",
+    };
+  } catch {
+    return {
+      events: [],
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem",
+    };
+  }
+}
+
+export async function editAllInSeriesApi(
+  eventId,
+  title,
+  description,
+  eventTags,
+  regularTags,
+  start,
+  end,
+  color,
+  isDeadline
+) {
+  const token = getToken();
+  if (!token)
+    return {
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+  try {
+    const resp = await fetch(`${API_HOST}/editAllInSeries/${eventId}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title,
+        description,
+        eventTags,
+        regularTags,
+        start,
+        end,
+        color,
+        isDeadline,
+      }),
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+    if (resp.ok) return { errorCode: "", message: "" };
+    const data = await resp.json().catch(() => ({}));
+    return {
+      errorCode: data.errorCode || "ERROR",
+      message: data.message || "Nie udało się edytować serii",
+    };
+  } catch {
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem",
+    };
+  }
+}
+
+export async function deleteAllInSeriesApi(eventId) {
+  const token = getToken();
+  if (!token)
+    return {
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+  try {
+    const resp = await fetch(`${API_HOST}/deleteAllInSeries/${eventId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+    if (resp.ok) return { errorCode: "", message: "" };
+    const data = await resp.json().catch(() => ({}));
+    return {
+      errorCode: data.errorCode || "ERROR",
+      message: data.message || "Nie udało się usunąć serii",
+    };
+  } catch {
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem",
+    };
   }
 }
 
 export async function getEventsBetween(startDate, endDate) {
   const token = getToken();
   if (!token)
-    return { events: [], errorCode: "TOKEN_UNDEFINED", message: "Brak tokena, zaloguj się ponownie" };
+    return {
+      events: [],
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
   try {
-    const resp = await fetch(`${API_HOST}/getEventsBetween/${encodeURIComponent(startDate)}/${encodeURIComponent(endDate)}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
+    const resp = await fetch(
+      `${API_HOST}/getEventsBetween/${encodeURIComponent(
+        startDate
+      )}/${encodeURIComponent(endDate)}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
     const authErr = checkUnauthorized(resp);
     if (authErr) return authErr;
     if (!resp.ok)
-      return { events: [], errorCode: "FETCH_ERROR", message: "Nie udało się pobrać eventów" };
+      return {
+        events: [],
+        errorCode: "FETCH_ERROR",
+        message: "Nie udało się pobrać eventów",
+      };
     const events = await resp.json();
     return { events, errorCode: "", message: "" };
   } catch {
-    return { events: [], errorCode: "CONNECTION_ERROR", message: "Nie udało się połączyć z serwerem" };
+    return {
+      events: [],
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem",
+    };
   }
 }
 
@@ -1896,7 +2208,7 @@ export async function getUsosEvents() {
       message: "Brak tokena, zaloguj się ponownie",
     };
   try {
-    const resp = await fetch(`${API_HOST}/getEventsByTag?tag=usos`, {
+    const resp = await fetch(`${API_HOST}/getEventsByTags?tags=usos`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -1923,8 +2235,6 @@ export async function getUsosEvents() {
     };
   }
 }
-
-
 
 export async function addFlashcardTag(id, tagName) {
   const token = getToken();
@@ -1989,7 +2299,6 @@ export async function removeFlashcardTag(id, tagName) {
     };
   }
 }
-
 
 export async function getAllDeletedFlashcardSets() {
   const token = getToken();

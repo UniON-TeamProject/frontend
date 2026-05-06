@@ -1,5 +1,8 @@
 import { Routes, Route, BrowserRouter } from 'react-router-dom';
-import { React } from 'react'
+import { React, useEffect } from 'react'
+import { useDispatch } from 'react-redux';
+import { setThemeColor } from './store/themeSlice';
+import { getProfile } from './api';
 import Notes from './pages/Notes';
 import Login from './pages/Login';
 import Home from './pages/Home';
@@ -17,6 +20,7 @@ import FastLearningPage from './pages/FastLearningPage';
 import FSRSLearningPage from './pages/FSRSLearningPage';
 import Calendar from './pages/Calendar';
 import UsosCallback from './pages/UsosCallback';
+import Profile from './pages/Profile';
 
 import SocialGroups from './pages/SocialGroups';
 import SocialGroupDetails from './pages/SocialGroupDetails';
@@ -28,6 +32,18 @@ const ProtectedRoute = ({ children }) => {
 };
 
 function App() {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (getToken()) {
+      getProfile().then((res) => {
+        if (!res.errorCode && res.themeColor) {
+          dispatch(setThemeColor(res.themeColor));
+        }
+      });
+    }
+  }, [dispatch]);
+
   return (
     <>
       <BrowserRouter>
@@ -42,6 +58,7 @@ function App() {
           <Route path="/reset-password" element={<ForgotPassword />} />
           <Route path="/note/:id" element={<ProtectedRoute><TextEditor /></ProtectedRoute>} />
 
+          <Route path="/user" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
           <Route path="/usos-callback" element={<ProtectedRoute><UsosCallback /></ProtectedRoute>} />
           <Route path="/learning" element={<FlashcardsPage />} />

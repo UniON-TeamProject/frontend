@@ -7,11 +7,11 @@ const DropdownContainer = styled.div`
   position: absolute;
   top: 50px;
   right: 0;
-  width: 380px;
-  background: ${({ theme }) => theme.colors?.white || '#fff'};
+  width: 420px;
+  background: ${({ theme }) => theme.colors?.white };
   border-radius: 16px;
   box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-  border: 1px solid ${({ theme }) => theme.colors?.lightGrey || '#e9ece1'};
+  border: 1px solid ${({ theme }) => theme.colors?.lightGrey};
   z-index: 1000;
   display: flex;
   flex-direction: column;
@@ -25,11 +25,11 @@ const DropdownContainer = styled.div`
 
 const Header = styled.div`
   padding: 15px 20px;
-  border-bottom: 1px solid ${({ theme }) => theme.colors?.lightGrey || '#f0f2eb'};
+  border-bottom: 1px solid ${({ theme }) => theme.colors?.lightGrey };
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: ${({ theme }) => theme.colors?.lightGrey || '#f9faf8'}30;
+  background: ${({ theme }) => theme.colors?.lightGrey }30;
 `;
 
 const Title = styled.h3`
@@ -47,7 +47,7 @@ const ActionLinks = styled.div`
 const TextBtn = styled.button`
   background: none;
   border: none;
-  color: ${({ theme }) => theme.colors?.secondary || '#00b894'};
+  color: ${({ theme }) => theme.colors?.secondary };
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
@@ -65,15 +65,15 @@ const NotificationsList = styled.div`
 
 const NotificationItem = styled.div`
   padding: 15px 20px;
-  border-bottom: 1px solid ${({ theme }) => theme.colors?.lightGrey || '#f0f2eb'};
-  background: ${({ $isRead, theme }) => $isRead ? 'transparent' : (theme.colors?.lightGrey || '#f0f2eb') + '50'};
+  border-bottom: 1px solid ${({ theme }) => theme.colors?.lightGrey };
+  background: ${({ $isRead, theme }) => $isRead ? 'transparent' : (theme.colors?.lightGrey ) + '50'};
   cursor: pointer;
   transition: background 0.2s;
   display: flex;
   gap: 15px;
 
   &:hover {
-    background: ${({ theme }) => theme.colors?.lightGrey || '#f9faf8'};
+    background: ${({ theme }) => theme.colors?.lightGrey };
   }
 `;
 
@@ -81,7 +81,7 @@ const UnreadDot = styled.div`
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: ${({ theme }) => theme.colors?.secondary || '#00b894'};
+  background: ${({ theme }) => theme.colors?.secondary };
   flex-shrink: 0;
   margin-top: 5px;
   display: ${({ $visible }) => $visible ? 'block' : 'none'};
@@ -125,7 +125,7 @@ const StyledPopup = styled.div`
   width: 400px;
   padding: 35px 40px;
   border-radius: 25px;
-  background-color: ${({ theme }) => theme.colors?.white || '#fff'};
+  background-color: ${({ theme }) => theme.colors?.white };
   box-shadow: 0 10px 40px rgba(0,0,0,0.2);
   z-index: 1100;
   display: flex;
@@ -163,7 +163,7 @@ const ButtonGroup = styled.div`
 
 const ModalButton = styled.button`
   background-color: ${({ $danger, theme }) => 
-    $danger ? (theme.colors?.danger || '#e74c3c') : 'transparent'};
+    $danger ? (theme.colors?.danger ) : 'transparent'};
   color: ${({ $danger, theme }) => $danger ? '#fff' : theme.colors?.text};
   border: ${({ $danger, theme }) => $danger ? 'none' : `1px solid ${theme.colors?.darkGrey}`};
   padding: 10px 20px;
@@ -195,7 +195,7 @@ const StyledCheckbox = styled.input`
   width: 16px;
   height: 16px;
   cursor: pointer;
-  accent-color: ${({ theme }) => theme.colors?.danger || '#e74c3c'};
+  accent-color: ${({ theme }) => theme.colors?.danger };
 `;
 
 const NotificationsDropdown = ({ onClose, onRefresh }) => {

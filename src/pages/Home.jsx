@@ -57,13 +57,13 @@ const StyledContainer = styled.div`
 `
 
 const StyledHeader = styled.div`
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    flex-shrink: 0;
-    min-height: 42px;
-`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+  min-height: 42px;
+`;
 
 const StyledName = styled.h2`
     color: ${({ theme }) => theme.colors.veryDarkPrimary};
@@ -90,10 +90,10 @@ const DashboardLayout = styled.div`
     align-items: stretch; 
     min-width: 0;
 
-    @media(max-width: 1024px) {
-        grid-template-columns: 1fr; 
-    }
-`
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+`;
 
 const LeftColumn = styled.div`
     display: flex;
@@ -147,25 +147,25 @@ const BottomRow = styled.div`
 `
 
 const CardTitle = styled.h3`
-    color: #122818;
-    font-size: 1.4rem; 
-    font-weight: 700;
-    margin-top: 0;
-    margin-bottom: 24px; 
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-shrink: 0;
-`
+  color: ${({ theme }) => theme.colors.veryDarkPrimary};
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-top: 0;
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+`;
 const ItemList = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    flex-grow: 1; 
-`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex-grow: 1;
+`;
 
 const ListItem = styled.div`
-  background-color: ${({ $isEmpty }) => ($isEmpty ? '#e6eadb' : '#dbe0d0')}; 
+  background-color: ${({ $isEmpty, theme }) => ($isEmpty ? theme.colors.lightPrimary : theme.colors.darkPageBg)};
   opacity: ${({ $isEmpty }) => ($isEmpty ? 0.6 : 1)};
   border-radius: 12px;
   padding: 12px 15px;
@@ -182,7 +182,7 @@ const ListItem = styled.div`
 `;
 
 const SimpleListItem = styled.div`
-  background-color: ${({ $isEmpty }) => ($isEmpty ? '#e6eadb' : '#dbe0d0')}; 
+  background-color: ${({ $isEmpty, theme }) => ($isEmpty ? theme.colors.lightPrimary : theme.colors.darkPageBg)}; 
   opacity: ${({ $isEmpty }) => ($isEmpty ? 0.6 : 1)};
   border-radius: 12px;
   padding: 12px 15px;
@@ -191,7 +191,7 @@ const SimpleListItem = styled.div`
   align-items: center;
   font-weight: 700;
   font-size: 0.95rem;
-  color: #122818;
+  color: ${({ theme }) => theme.colors.veryDarkPrimary};
   min-height: 40px;
 `;
 
@@ -205,7 +205,7 @@ const ItemInfo = styled.div`
 
 const ItemTitle = styled.span`
   font-weight: 700;
-  color: #122818;
+  color: ${({ theme }) => theme.colors.veryDarkPrimary};
   font-size: 0.95rem;
   white-space: nowrap;
   overflow: hidden;
@@ -224,11 +224,11 @@ const ItemSub = styled.span`
 `;
 
 const ItemMeta = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 5px;
-`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+`;
 
 const ProgressBar = styled.div`
     width: 60px;
@@ -240,7 +240,7 @@ const ProgressBar = styled.div`
 `
 const ProgressGreen = styled.div`
   width: 50%; 
-  background-color: #5ba354;
+  background-color: ${({ theme }) => theme.colors.secondary};
 `;
 
 const ProgressBlue = styled.div`
@@ -274,17 +274,17 @@ const FoldersRow = styled.div`
     @media (max-width: 768px) {
         gap: 12px;
         flex-wrap: wrap;
-  }
+    }
 `
 
 const FolderBox = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    width: 90px;
-`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  width: 90px;
+`;
 
 const FolderIcon = styled.div`
     width: 45px;
@@ -294,11 +294,11 @@ const FolderIcon = styled.div`
     align-items: center;
     justify-content: center;
 
-    svg {
-        width: 140%;
-        height: 140%;
-    }
-`
+  svg {
+    width: 140%;
+    height: 140%;
+  }
+`;
 
 const FolderName = styled.span`
     font-size: 0.75rem;
@@ -350,9 +350,7 @@ const Home = () => {
     const navigate = useNavigate();
 
     const [currentDate, setCurrentDate] = useState(new Date());
-    const [calendarView, setCalendarView] = useState(
-        () => localStorage.getItem("calendarView") || "week"
-    );
+    const [calendarView, setCalendarView] = useState(() => localStorage.getItem("calendarView") || "week");
     const [events, setEvents] = useState([]);
 
     const upcomingDeadlines = useMemo(() => {
@@ -365,14 +363,14 @@ const Home = () => {
             const eventEnd = new Date(ev.endDate || ev.date);
             
             if (ev.allDay) {
-            eventEnd.setHours(23, 59, 59, 999);
+                eventEnd.setHours(23, 59, 59, 999);
             } else {
-            eventEnd.setHours(
-                ev.endHour !== undefined ? ev.endHour : 23, 
-                ev.endMin !== undefined ? ev.endMin : 59, 
-                59, 
-                999
-            );
+                eventEnd.setHours(
+                    ev.endHour !== undefined ? ev.endHour : 23, 
+                    ev.endMin !== undefined ? ev.endMin : 59, 
+                    59, 
+                    999
+                );
             }
 
             return eventEnd >= now;
@@ -394,27 +392,15 @@ const Home = () => {
             let startDate, endDate;
             if (calendarView === "week") {
                 const ws = getWeekStart(currentDate);
-                const margin = new Date(ws);
-                margin.setDate(margin.getDate() - 7);
-                const we = new Date(ws);
-                we.setDate(we.getDate() + 13);
+                const margin = new Date(ws); margin.setDate(margin.getDate() - 7);
+                const we = new Date(ws); we.setDate(we.getDate() + 13);
                 startDate = toLocalDateTimeISO(margin, 0, 0);
                 endDate = toLocalDateTimeISO(we, 23, 59);
             } else {
-                const first = new Date(
-                    currentDate.getFullYear(),
-                    currentDate.getMonth(),
-                    1
-                );
-                const margin = new Date(first);
-                margin.setDate(margin.getDate() - 7);
-                const last = new Date(
-                    currentDate.getFullYear(),
-                    currentDate.getMonth() + 1,
-                    0
-                );
-                const marginEnd = new Date(last);
-                marginEnd.setDate(marginEnd.getDate() + 7);
+                const first = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+                const margin = new Date(first); margin.setDate(margin.getDate() - 7);
+                const last = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+                const marginEnd = new Date(last); marginEnd.setDate(marginEnd.getDate() + 7);
                 startDate = toLocalDateTimeISO(margin, 0, 0);
                 endDate = toLocalDateTimeISO(marginEnd, 23, 59);
             }
@@ -429,33 +415,23 @@ const Home = () => {
     const handlePrev = () => {
         const d = new Date(currentDate);
         if (calendarView === "week") d.setDate(d.getDate() - 7);
-        else {
-            d.setDate(1);
-            d.setMonth(d.getMonth() - 1);
-        }
+        else { d.setDate(1); d.setMonth(d.getMonth() - 1); }
         setCurrentDate(d);
     };
 
     const handleNext = () => {
         const d = new Date(currentDate);
         if (calendarView === "week") d.setDate(d.getDate() + 7);
-        else {
-            d.setDate(1);
-            d.setMonth(d.getMonth() + 1);
-        }
+        else { d.setDate(1); d.setMonth(d.getMonth() + 1); }
         setCurrentDate(d);
     };
 
     const headerTitle = () => {
         if (calendarView === "week") {
-        const weekStart = getWeekStart(currentDate);
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekEnd.getDate() + 6);
-        if (weekStart.getMonth() === weekEnd.getMonth())
-            return `${MONTHS_PL[weekStart.getMonth()]} ${weekStart.getFullYear()}`;
-        return `${MONTHS_PL[weekStart.getMonth()]} – ${
-            MONTHS_PL[weekEnd.getMonth()]
-        } ${weekEnd.getFullYear()}`;
+            const weekStart = getWeekStart(currentDate);
+            const weekEnd = new Date(weekStart); weekEnd.setDate(weekEnd.getDate() + 6);
+            if (weekStart.getMonth() === weekEnd.getMonth()) return `${MONTHS_PL[weekStart.getMonth()]} ${weekStart.getFullYear()}`;
+            return `${MONTHS_PL[weekStart.getMonth()]} – ${MONTHS_PL[weekEnd.getMonth()]} ${weekEnd.getFullYear()}`;
         }
         return `${MONTHS_PL[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
     };
@@ -489,19 +465,10 @@ const Home = () => {
                     if (isNaN(rawStats)) rawStats = 0; 
                     let progressPercent = rawStats <= 1 && rawStats > 0 ? rawStats * 100 : rawStats; 
                     
-                    const activityVal =
-                        set.lastActivity ??
-                        set.last_activity ??
-                        set.lastActivityTime ??
-                        set.updatedAt ??
-                        set.createTime;
+                    const activityVal = set.lastActivity ?? set.last_activity ?? set.lastActivityTime ?? set.updatedAt ?? set.createTime;
                     const timestamp = parseDateFromBackend(activityVal);
 
-                    return {
-                        ...set,
-                        progress: progressPercent || 0,
-                        _sortTime: timestamp,
-                    };
+                    return { ...set, progress: progressPercent || 0, _sortTime: timestamp };
                 }));
 
                 setsWithStats.sort((a, b) => b._sortTime - a._sortTime);
@@ -510,17 +477,13 @@ const Home = () => {
                     .filter(f => f.name !== "/")
                     .sort((a, b) => (b.id || 0) - (a.id || 0));
 
-                const sortedNotes = [...notesArray].sort((a, b) => {
-                    const dateA = new Date(
-                        a.editTime ?? a.lastEdited ?? a.createTime ?? 0
-                    ).getTime();
-                    const dateB = new Date(
-                        b.editTime ?? b.lastEdited ?? b.createTime ?? 0
-                    ).getTime();
-                    if (!dateA || isNaN(dateA) || dateA === 0)
-                        return (b.id || 0) - (a.id || 0);
-                    return dateB - dateA;
-                });
+                const sortedNotes = [...notesArray]
+                    .sort((a, b) => {
+                        const dateA = new Date(a.editTime ?? a.lastEdited ?? a.createTime ?? 0).getTime();
+                        const dateB = new Date(b.editTime ?? b.lastEdited ?? b.createTime ?? 0).getTime();
+                        if (!dateA || isNaN(dateA) || dateA === 0) return (b.id || 0) - (a.id || 0); 
+                        return dateB - dateA;
+                    });
 
                 setRecentSets(setsWithStats.slice(0, 3)); 
                 setRecentNotes(sortedNotes.slice(0, 3)); 
@@ -574,42 +537,29 @@ const Home = () => {
     const formatActivityDate = (timestamp) => {
         if (!timestamp || timestamp === 0) return "Brak aktywności";
         const date = new Date(timestamp);
-        return date.toLocaleDateString("pl-PL", {
-            day: "2-digit",
-            month: "short",
-            hour: "2-digit",
-            minute: "2-digit",
-        });
+        return date.toLocaleDateString('pl-PL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
     };
 
     const getFolderFullPath = (folder) => {
         if (!folder || folder.name === "/") return "";
-        return folder.path === "/"
-            ? "/" + folder.name
-            : folder.path + "/" + folder.name;
+        return folder.path === "/" ? "/" + folder.name : folder.path + "/" + folder.name;
     };
 
     const getNotePath = (note) => {
         if (note.folderId !== undefined && note.folderId !== null) {
             const parentFolder = allFoldersList.find(f => f.id === note.folderId);
-
             if (parentFolder && parentFolder.name !== "/") {
                 const fullPath = getFolderFullPath(parentFolder);
                 const formatted = fullPath.split('/').filter(Boolean).join(' > ');
-
                 if (formatted) return formatted;
             }
         }
-
         return "Katalog główny";
     };
 
     const handleFolderClick = (folder) => {
         const fullPath = getFolderFullPath(folder);
-        const segments = fullPath
-            .split('/')
-            .filter(Boolean)
-            .map(s => encodeURIComponent(s));
+        const segments = fullPath.split('/').filter(Boolean).map(s => encodeURIComponent(s));
         navigate(`/notes/${segments.join('/')}`);
     };
 
@@ -678,14 +628,7 @@ const Home = () => {
     const parseDateFromBackend = (dateVal) => {
         if (!dateVal) return 0;
         if (Array.isArray(dateVal) && dateVal.length >= 3) {
-            return new Date(
-                dateVal[0],
-                dateVal[1] - 1,
-                dateVal[2],
-                dateVal[3] || 0,
-                dateVal[4] || 0,
-                dateVal[5] || 0
-            ).getTime();
+            return new Date(dateVal[0], dateVal[1] - 1, dateVal[2], dateVal[3] || 0, dateVal[4] || 0, dateVal[5] || 0).getTime();
         }
         const parsed = new Date(dateVal).getTime();
         return isNaN(parsed) ? 0 : parsed;
@@ -694,6 +637,7 @@ const Home = () => {
     return (
         <Layout>
             <StyledContainer>
+                
                 <StyledHeader>
                     <StyledName>Witaj, {username || "użytkowniku"}!</StyledName>
                     <HeaderRight>
@@ -712,7 +656,7 @@ const Home = () => {
                                     right: '-2px',
                                     width: '12px',
                                     height: '12px',
-                                    backgroundColor: '#e74c3c',
+                                    backgroundColor: theme.colors?.danger || '#e74c3c',
                                     borderRadius: '50%',
                                     border: '2px solid white'
                                 }} />
@@ -725,6 +669,7 @@ const Home = () => {
                                 />
                             )}
                         </BellIconWrapper>
+
                     </HeaderRight>
                 </StyledHeader>
 
@@ -740,18 +685,12 @@ const Home = () => {
                                     const blueWidth = 100 - greenWidth;
 
                                     return (
-                                        <ListItem
-                                            key={set.id}
-                                            onClick={() => navigate(`/learning/fast/${set.id}`)}
-                                        >
+                                        <ListItem key={set.id} onClick={() => navigate(`/learning/fast/${set.id}`)}>
                                             <ItemInfo>
                                                 <ItemTitle>{set.name}</ItemTitle>
-                                                <ItemSub>
-                                                    Ostatnia aktywność:{" "}
-                                                    {formatActivityDate(set._sortTime)}
-                                                </ItemSub>
+                                                <ItemSub>Ostatnia aktywność: {formatActivityDate(set._sortTime)}</ItemSub>
                                             </ItemInfo>
-
+                                            
                                             <ItemMeta>
                                                 <ProgressBar>
                                                     <ProgressGreen style={{ width: `${greenWidth}%` }} />
@@ -763,9 +702,7 @@ const Home = () => {
                                 })}
                                 {renderEmptySets(recentSets.length, 3)}
                             </ItemList>
-                            <MoreButton onClick={() => navigate("/learning")}>
-                                Więcej...
-                            </MoreButton>
+                            <MoreButton onClick={() => navigate("/learning")}>Więcej...</MoreButton>
                         </FiszkiBox>
 
                         <NotatkiBox>
@@ -773,10 +710,7 @@ const Home = () => {
                             <FoldersRow>
                                 {recentFolders.length > 0 ? (
                                     recentFolders.map((folder) => (
-                                        <FolderBox
-                                            key={folder.id}
-                                            onClick={() => handleFolderClick(folder)}
-                                        >
+                                        <FolderBox key={folder.id} onClick={() => handleFolderClick(folder)}>
                                             <FolderIcon>
                                                 <svg fill="currentColor" viewBox="0 0 16 16">
                                                     <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139q.323-.119.684-.12h5.396z" />
@@ -799,155 +733,55 @@ const Home = () => {
                             
                             <ItemList>
                                 {recentNotes.map((note) => (
-                                    <ListItem
-                                        key={note.id}
-                                        onClick={() => navigate(`/note/${note.id}`)}
-                                    >
+                                    <ListItem key={note.id} onClick={() => navigate(`/note/${note.id}`)}>
                                         <ItemInfo>
                                             <ItemTitle>{note.name || "Brak nazwy"}</ItemTitle>
                                         </ItemInfo>
                                         <ItemMeta>
-                                            <TagPill>
-                                                <i>{getNotePath(note)}</i>
-                                            </TagPill>
+                                            <TagPill><i>{getNotePath(note)}</i></TagPill>
                                         </ItemMeta>
                                     </ListItem>
                                 ))}
                                 {renderEmptyNotes(recentNotes.length, 3)}
                             </ItemList>
-                            <MoreButton onClick={() => navigate("/notes")}>
-                                Więcej...
-                            </MoreButton>
+                            <MoreButton onClick={() => navigate("/notes")}>Więcej...</MoreButton>
                         </NotatkiBox>
                     </LeftColumn>
 
                     <RightColumn>
-                        <CalendarBox
-                            style={{
-                                padding: "24px",
-                                display: "flex",
-                                flexDirection: "column",
-                                height: "650px",
-                            }}
-                            >
-                            <CardTitle style={{ marginBottom: "15px" }}>
-                                <div
-                                style={{ display: "flex", alignItems: "center", gap: "10px" }}
-                                >
-                                <button
-                                    onClick={handlePrev}
-                                    style={{
-                                    border: "none",
-                                    background: "transparent",
-                                    cursor: "pointer",
-                                    fontSize: "1.4rem",
-                                    color: theme.colors.veryDarkPrimary,
-                                    padding: "0 5px",
-                                    }}
-                                >
-                                    ‹
-                                </button>
-                                <span
-                                    style={{
-                                    fontSize: "1.15rem",
-                                    minWidth: "130px",
-                                    textAlign: "center",
-                                    }}
-                                >
-                                    {headerTitle()}
-                                </span>
-                                <button
-                                    onClick={handleNext}
-                                    style={{
-                                    border: "none",
-                                    background: "transparent",
-                                    cursor: "pointer",
-                                    fontSize: "1.4rem",
-                                    color: theme.colors.veryDarkPrimary,
-                                    padding: "0 5px",
-                                    }}
-                                >
-                                    ›
-                                </button>
+                        <CalendarBox style={{ padding: '24px', display: 'flex', flexDirection: 'column', height: '650px' }}>
+                            <CardTitle style={{ marginBottom: '15px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <button onClick={handlePrev} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.4rem', color: theme.colors?.veryDarkPrimary || '#122818', padding: '0 5px' }}>‹</button>
+                                    <span style={{ fontSize: '1.15rem', minWidth: '130px', textAlign: 'center' }}>{headerTitle()}</span>
+                                    <button onClick={handleNext} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.4rem', color: theme.colors?.veryDarkPrimary || '#122818', padding: '0 5px' }}>›</button>
                                 </div>
-
-                                <div
-                                style={{
-                                    display: "flex",
-                                    gap: "5px",
-                                    fontSize: "0.85rem",
-                                    fontWeight: "600",
-                                }}
-                                >
-                                <button
-                                    onClick={() => {
-                                    setCalendarView("week");
-                                    localStorage.setItem("calendarView", "week");
-                                    }}
-                                    style={{
-                                    border: "none",
-                                    background:
-                                        calendarView === "week" ? theme.colors.lightPrimary : "transparent",
-                                    padding: "6px 12px",
-                                    borderRadius: "8px",
-                                    cursor: "pointer",
-                                    color: theme.colors.veryDarkPrimary,
-                                    transition: "all 0.2s",
-                                    }}
-                                >
-                                    Tydzień
-                                </button>
-                                <button
-                                    onClick={() => {
-                                    setCalendarView("month");
-                                    localStorage.setItem("calendarView", "month");
-                                    }}
-                                    style={{
-                                    border: "none",
-                                    background:
-                                        calendarView === "month" ? theme.colors.lightPrimary : "transparent",
-                                    padding: "6px 12px",
-                                    borderRadius: "8px",
-                                    cursor: "pointer",
-                                    color: theme.colors.veryDarkPrimary,
-                                    transition: "all 0.2s",
-                                    }}
-                                >
-                                    Miesiąc
-                                </button>
+                                
+                                <div style={{ display: 'flex', gap: '5px', fontSize: '0.85rem', fontWeight: '600' }}>
+                                    <button 
+                                        onClick={() => { setCalendarView('week'); localStorage.setItem('calendarView', 'week'); }} 
+                                        style={{ border: 'none', background: calendarView === 'week' ? (theme.colors?.lightPrimary || '#e6eadb') : 'transparent', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', color: theme.colors?.veryDarkPrimary || '#122818', transition: 'all 0.2s' }}>
+                                        Tydzień
+                                    </button>
+                                    <button 
+                                        onClick={() => { setCalendarView('month'); localStorage.setItem('calendarView', 'month'); }} 
+                                        style={{ border: 'none', background: calendarView === 'month' ? (theme.colors?.lightPrimary || '#e6eadb') : 'transparent', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', color: theme.colors?.veryDarkPrimary || '#122818', transition: 'all 0.2s' }}>
+                                        Miesiąc
+                                    </button>
                                 </div>
                             </CardTitle>
 
-                            <div
-                                style={{
-                                position: "relative",
-                                flex: "1 1 auto",
-                                overflow: "hidden",
-                                borderTop: `1px solid ${theme.colors.borderLight}`,
-                                paddingTop: "10px",
-                                }}
-                            >
-                                <div
-                                style={{
-                                    position: "absolute",
-                                    top: "10px",
-                                    left: 0,
-                                    right: 0,
-                                    bottom: 0,
-                                    overflowY: "auto",
-                                    display: "flex",
-                                    flexDirection: "column",
-                                }}
-                                >
-                                <CalendarGrid
-                                    view={calendarView}
-                                    currentDate={currentDate}
-                                    events={events}
-                                    onDayClick={() => navigate("/calendar")}
-                                    startHour={8}
-                                    endHour={22}
-                                    dashboardMode={true}
-                                />
+                            <div style={{ position: 'relative', flex: '1 1 auto', overflow: 'hidden', borderTop: `1px solid ${theme.colors?.borderLight || '#eee'}`, paddingTop: '10px' }}>
+                                <div style={{ position: 'absolute', top: '10px', left: 0, right: 0, bottom: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+                                    <CalendarGrid
+                                        view={calendarView}
+                                        currentDate={currentDate}
+                                        events={events}
+                                        onDayClick={() => navigate('/calendar')}
+                                        startHour={8}
+                                        endHour={22}
+                                        dashboardMode={true}
+                                    />
                                 </div>
                             </div>
                         </CalendarBox>
@@ -968,7 +802,7 @@ const Home = () => {
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0, paddingRight: '10px' }}>
                                                 <div style={{ 
                                                     width: '38px', height: '38px', borderRadius: '10px', 
-                                                    backgroundColor: '#e9ece1', color: '#122818', 
+                                                    backgroundColor: theme.colors?.lightGrey || '#e9ece1', color: theme.colors?.veryDarkPrimary || '#122818', 
                                                     display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 
                                                 }}>
                                                     <svg fill="currentColor" viewBox="0 0 16 16" style={{ width: '20px', height: '20px' }}>
@@ -983,7 +817,7 @@ const Home = () => {
                                             </div>
 
                                             <ItemMeta style={{ flexDirection: 'row', alignItems: 'center', gap: '10px' }}>
-                                                <TagPill style={{ backgroundColor: '#e9ece1', padding: '3px 8px', borderRadius: '8px' }}>
+                                                <TagPill style={{ backgroundColor: theme.colors?.lightGrey || '#e9ece1', padding: '3px 8px', borderRadius: '8px' }}>
                                                     {group.userRole === 'ADMIN' ? 'Administrator' : 
                                                      group.userRole === 'EDITOR' ? 'Edytor' : 
                                                      group.userRole === 'VIEWER' ? 'Obserwator' : 'Członek'}
@@ -994,7 +828,7 @@ const Home = () => {
                                                     title={isPinned ? "Odepnij" : "Przypnij na górze"}
                                                     style={{ 
                                                         cursor: 'pointer', 
-                                                        color: isPinned ? '#f1c40f' : '#c4c9b9', 
+                                                        color: isPinned ? '#f1c40f' : (theme.colors?.borderMuted || '#c4c9b9'), 
                                                         display: 'flex', alignItems: 'center',
                                                         transition: 'color 0.2s, transform 0.2s'
                                                     }}
@@ -1010,7 +844,7 @@ const Home = () => {
                                     );
                                 })
                             ) : (
-                                <div style={{ flexGrow: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#b3b9a8', fontSize: '0.95rem', textAlign: 'center', minHeight: '80px' }}>
+                                <div style={{ flexGrow: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', color: theme.colors?.textLight || '#b3b9a8', fontSize: '0.95rem', textAlign: 'center', minHeight: '80px' }}>
                                     Nie należysz do żadnej społeczności.
                                 </div>
                             )}
@@ -1036,7 +870,7 @@ const Home = () => {
                                         <ListItem 
                                             key={deadline.id} 
                                             onClick={() => navigate('/calendar')}
-                                            style={{ borderLeft: '4px solid #ef4444' }}
+                                            style={{ borderLeft: `4px solid ${theme.colors?.danger || '#ef4444'}` }}
                                         >
                                             <ItemInfo>
                                                 <ItemTitle>{deadline.title}</ItemTitle>
@@ -1046,7 +880,7 @@ const Home = () => {
                                                 </ItemSub>
                                             </ItemInfo>
                                             <ItemMeta>
-                                                <TagPill style={{ color: '#ef4444', textTransform: 'uppercase' }}>
+                                                <TagPill style={{ color: theme.colors?.danger || '#ef4444', textTransform: 'uppercase' }}>
                                                     {categoryLabel}
                                                 </TagPill>
                                             </ItemMeta>
