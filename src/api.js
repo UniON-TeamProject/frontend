@@ -1929,59 +1929,72 @@ export async function getUsosEvents() {
 export async function addFlashcardTag(id, tagName) {
   const token = getToken();
   if (!token) return { errorCode: "TOKEN_UNDEFINED", message: "Brak tokena" };
-  
+
   try {
     const resp = await fetch(`${API_HOST}/addCardTag`, {
       method: "PATCH",
-      headers: { 
+      headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ id, tagName })
+      body: JSON.stringify({ id, tagName }),
     });
-    
+
     const authErr = checkUnauthorized(resp);
     if (authErr) return authErr;
-    
+
     if (resp.ok) return { errorCode: "", message: "" };
-    
+
     const data = await resp.json().catch(() => ({}));
-    return { errorCode: data.errorCode || "ERROR", message: data.message || "Nie udało się dodać tagu" };
+    return {
+      errorCode: data.errorCode || "ERROR",
+      message: data.message || "Nie udało się dodać tagu",
+    };
   } catch {
-    return { errorCode: "CONNECTION_ERROR", message: "Nie udało się połączyć z serwerem" };
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem",
+    };
   }
 }
 
 export async function removeFlashcardTag(id, tagName) {
   const token = getToken();
   if (!token) return { errorCode: "TOKEN_UNDEFINED", message: "Brak tokena" };
-  
+
   try {
     const resp = await fetch(`${API_HOST}/deleteCardTag`, {
       method: "PATCH",
-      headers: { 
+      headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ id, tagName })
+      body: JSON.stringify({ id, tagName }),
     });
-    
+
     const authErr = checkUnauthorized(resp);
     if (authErr) return authErr;
-    
+
     if (resp.ok) return { errorCode: "", message: "" };
-    
+
     const data = await resp.json().catch(() => ({}));
-    return { errorCode: data.errorCode || "ERROR", message: data.message || "Nie udało się usunąć tagu" };
+    return {
+      errorCode: data.errorCode || "ERROR",
+      message: data.message || "Nie udało się usunąć tagu",
+    };
   } catch {
-    return { errorCode: "CONNECTION_ERROR", message: "Nie udało się połączyć z serwerem" };
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem",
+    };
   }
 }
 
 
 export async function getAllDeletedFlashcardSets() {
   const token = getToken();
-  if (!token) return { sets: [], errorCode: "TOKEN_UNDEFINED", message: "Brak tokena" };
+  if (!token)
+    return { sets: [], errorCode: "TOKEN_UNDEFINED", message: "Brak tokena" };
 
   try {
     const resp = await fetch(`${API_HOST}/deletedSets`, {
@@ -1996,7 +2009,11 @@ export async function getAllDeletedFlashcardSets() {
       return { sets, errorCode: "", message: "" };
     }
     const data = await resp.json().catch(() => ({}));
-    return { sets: [], errorCode: data.errorCode || "ERROR", message: data.message || "Błąd pobierania kosza" };
+    return {
+      sets: [],
+      errorCode: data.errorCode || "ERROR",
+      message: data.message || "Błąd pobierania kosza",
+    };
   } catch {
     return { sets: [], errorCode: "CONNECTION_ERROR", message: "Błąd serwera" };
   }
@@ -2016,7 +2033,10 @@ export async function restoreFlashcardSet(setId) {
 
     if (resp.ok) return { errorCode: "", message: "" };
     const data = await resp.json().catch(() => ({}));
-    return { errorCode: data.errorCode || "ERROR", message: data.message || "Błąd przywracania zestawu" };
+    return {
+      errorCode: data.errorCode || "ERROR",
+      message: data.message || "Błąd przywracania zestawu",
+    };
   } catch {
     return { errorCode: "CONNECTION_ERROR", message: "Błąd serwera" };
   }
@@ -2036,63 +2056,65 @@ export async function hardDeleteFlashcardSet(setId) {
 
     if (resp.ok) return { errorCode: "", message: "" };
     const data = await resp.json().catch(() => ({}));
-    return { errorCode: data.errorCode || "ERROR", message: data.message || "Błąd trwałego usuwania" };
+    return {
+      errorCode: data.errorCode || "ERROR",
+      message: data.message || "Błąd trwałego usuwania",
+    };
   } catch {
     return { errorCode: "CONNECTION_ERROR", message: "Błąd serwera" };
   }
 }
 
 export async function clearFlashcardSetsTrash(setIdsArray) {
-  const promises = setIdsArray.map(id => hardDeleteFlashcardSet(id));
+  const promises = setIdsArray.map((id) => hardDeleteFlashcardSet(id));
   const results = await Promise.all(promises);
-  
-  const errorResult = results.find(r => r.errorCode);
+
+  const errorResult = results.find((r) => r.errorCode);
   if (errorResult) return errorResult;
-  
+
   return { errorCode: "", message: "" };
 }
 
-
-
 export async function getRecentFlashcardSets() {
-    const token = getToken();
-    if (!token) return { sets: [], errorCode: "TOKEN_UNDEFINED", message: "Brak tokena" };
-    
-    try {
-        const resp = await fetch(`${API_HOST}/getLastActivity`, {
-            method: "GET",
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        const authErr = checkUnauthorized(resp);
-        if (authErr) return authErr;
-        
-        if (resp.ok) {
-            const data = await resp.json();
-            return { sets: data, errorCode: "", message: "" };
-        }
-        return { sets: [], errorCode: "FETCH_ERROR", message: "Błąd pobierania" };
-    } catch {
-        return { sets: [], errorCode: "CONNECTION_ERROR", message: "Błąd serwera" };
+  const token = getToken();
+  if (!token)
+    return { sets: [], errorCode: "TOKEN_UNDEFINED", message: "Brak tokena" };
+
+  try {
+    const resp = await fetch(`${API_HOST}/getLastActivity`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+
+    if (resp.ok) {
+      const data = await resp.json();
+      return { sets: data, errorCode: "", message: "" };
     }
+    return { sets: [], errorCode: "FETCH_ERROR", message: "Błąd pobierania" };
+  } catch {
+    return { sets: [], errorCode: "CONNECTION_ERROR", message: "Błąd serwera" };
+  }
 }
 
 export async function getFlashcardSetStats(setId) {
-    const token = getToken();
-    if (!token) return { stats: 0, errorCode: "TOKEN_UNDEFINED" };
-    
-    try {
-        const resp = await fetch(`${API_HOST}/stats/${setId}`, {
-            method: "GET",
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        if (resp.ok) {
-            const data = await resp.json();
-            return { stats: data, errorCode: "" };
-        }
-        return { stats: 0, errorCode: "FETCH_ERROR" };
-    } catch {
-        return { stats: 0, errorCode: "CONNECTION_ERROR" };
+  const token = getToken();
+  if (!token) return { stats: 0, errorCode: "TOKEN_UNDEFINED" };
+
+  try {
+    const resp = await fetch(`${API_HOST}/stats/${setId}`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      return { stats: data, errorCode: "" };
     }
+    return { stats: 0, errorCode: "FETCH_ERROR" };
+  } catch {
+    return { stats: 0, errorCode: "CONNECTION_ERROR" };
+  }
 }
 
 export async function getCardDues(cardId) {
@@ -2117,6 +2139,7 @@ export async function getCardDues(cardId) {
   }
 }
 
+
 export async function getFolderItemsCount(folderId) {
   const token = getToken();
   if (!token) return { count: 0, errorCode: "TOKEN_UNDEFINED" };
@@ -2136,6 +2159,448 @@ export async function getFolderItemsCount(folderId) {
     return { count: 0, errorCode: "FETCH_ERROR" };
   } catch {
     return { count: 0, errorCode: "CONNECTION_ERROR" };
+  }
+}
+
+async function parseErrorBody(resp) {
+  try {
+    const data = await resp.json();
+    return {
+      errorCode: data.errorCode || "ERROR",
+      message: data.message || "",
+    };
+  } catch {
+    return { errorCode: "ERROR", message: "" };
+  }
+}
+
+export async function getProfile() {
+  const token = getToken();
+  if (!token)
+    return {
+      username: "",
+      email: "",
+      avatarId: 0,
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+  try {
+    const resp = await fetch(`${API_HOST}/profile`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return { username: "", email: "", avatarId: 0, ...authErr };
+
+    if (resp.ok) {
+      const data = await resp.json();
+      return {
+        username: data.username,
+        email: data.email,
+        avatarId: data.avatarId ?? 0,
+        themeColor: data.themeColor || "GREEN",
+        universityName: data.university || null,
+        errorCode: "",
+        message: "",
+      };
+    }
+    const err = await parseErrorBody(resp);
+    return {
+      username: "",
+      email: "",
+      avatarId: 0,
+      errorCode: err.errorCode,
+      message: err.message || "Nie udało się pobrać profilu",
+    };
+  } catch {
+    return {
+      username: "",
+      email: "",
+      avatarId: 0,
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
+    };
+  }
+}
+
+export async function changeUsername(newUsername) {
+  const token = getToken();
+  if (!token)
+    return {
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+  try {
+    const resp = await fetch(`${API_HOST}/changeUsername`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ newUsername }),
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data.newToken) {
+        const isPersistent = !!localStorage.getItem("token");
+        saveToken(data.newToken, isPersistent);
+      }
+      return {
+        username: data.username,
+        errorCode: "",
+        message: "Nazwa użytkownika została zaktualizowana.",
+      };
+    }
+    const err = await parseErrorBody(resp);
+    return {
+      errorCode: err.errorCode,
+      message: err.message || "Nie udało się zmienić nazwy użytkownika",
+    };
+  } catch {
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
+    };
+  }
+}
+
+export async function changeEmail(newEmail) {
+  const token = getToken();
+  if (!token)
+    return {
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+  try {
+    const resp = await fetch(`${API_HOST}/changeEmail`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ newEmail }),
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+
+    if (resp.ok) {
+      return {
+        errorCode: "",
+        message: "Wysłaliśmy kod weryfikacyjny na nowy adres e-mail.",
+      };
+    }
+    const err = await parseErrorBody(resp);
+    return {
+      errorCode: err.errorCode,
+      message: err.message || "Nie udało się zmienić adresu e-mail",
+    };
+  } catch {
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
+    };
+  }
+}
+
+export async function confirmEmailChange(email, verificationCode) {
+  const token = getToken();
+  if (!token)
+    return {
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+  try {
+    const resp = await fetch(`${API_HOST}/confirmEmailChange`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, token: verificationCode }),
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+
+    if (resp.ok) {
+      return { errorCode: "", message: "Adres e-mail został zaktualizowany." };
+    }
+    const err = await parseErrorBody(resp);
+    return {
+      errorCode: err.errorCode,
+      message: err.message || "Nie udało się potwierdzić zmiany adresu e-mail",
+    };
+  } catch {
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
+    };
+  }
+}
+
+export async function changePassword(oldPassword, newPassword) {
+  const token = getToken();
+  if (!token)
+    return {
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+  try {
+    const resp = await fetch(`${API_HOST}/changePassword`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ oldPassword, newPassword }),
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+
+    if (resp.ok) {
+      return { errorCode: "", message: "Hasło zostało zmienione." };
+    }
+    const err = await parseErrorBody(resp);
+    return {
+      errorCode: err.errorCode,
+      message: err.message || "Nie udało się zmienić hasła",
+    };
+  } catch {
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
+    };
+  }
+}
+
+export async function changeAvatar(avatarId) {
+  const token = getToken();
+  if (!token)
+    return {
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+  try {
+    const resp = await fetch(`${API_HOST}/changeAvatar`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ avatarId }),
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+
+    if (resp.ok) {
+      return { errorCode: "", message: "Awatar został zaktualizowany." };
+    }
+    const err = await parseErrorBody(resp);
+    return {
+      errorCode: err.errorCode,
+      message: err.message || "Nie udało się zmienić awatara",
+    };
+  } catch {
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
+    };
+  }
+}
+
+export async function changeTheme(themeColor) {
+  const token = getToken();
+  if (!token)
+    return {
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+  try {
+    const resp = await fetch(`${API_HOST}/changeTheme`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ themeColor }),
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+
+    if (resp.ok) {
+      return { errorCode: "", message: "Motyw został zmieniony." };
+    }
+    const err = await parseErrorBody(resp);
+    return {
+      errorCode: err.errorCode,
+      message: err.message || "Nie udało się zmienić motywu",
+    };
+  } catch {
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
+    };
+  }
+}
+
+export async function deleteAccount(password) {
+  const token = getToken();
+  if (!token)
+    return {
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
+  try {
+    const resp = await fetch(`${API_HOST}/deleteAccount`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ password }),
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+
+    if (resp.ok) {
+      return { errorCode: "", message: "Konto zostało usunięte." };
+    }
+    const err = await parseErrorBody(resp);
+    return {
+      errorCode: err.errorCode,
+      message: err.message || "Nie udało się usunąć konta",
+    };
+  } catch {
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem. Spróbuj ponownie",
+    };
+  }
+}
+
+export async function getAllUsersCards() {
+  const token = getToken();
+  if (!token)
+    return {
+      cards: [],
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena",
+    };
+
+  try {
+    const resp = await fetch(`${API_HOST}/getAllUsersCards`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+
+    if (!resp.ok)
+      return {
+        cards: [],
+        errorCode: "FETCH_ERROR",
+        message: "Nie udało się pobrać fiszkek",
+      };
+
+    const cards = await resp.json();
+    return { cards, errorCode: "", message: "" };
+  } catch {
+    return {
+      cards: [],
+      errorCode: "CONNECTION_ERROR",
+      message: "Błąd serwera",
+    };
+  }
+}
+
+export async function getUniversities() {
+  const token = getToken();
+  if (!token)
+    return { universities: [], errorCode: "TOKEN_UNDEFINED", message: "Brak tokena, zaloguj się ponownie" };
+  try {
+    const resp = await fetch(`${API_HOST}/universities`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      return { universities: data, errorCode: "", message: "" };
+    }
+    return { universities: [], errorCode: "FETCH_ERROR", message: "Nie udało się pobrać listy uczelni" };
+  } catch {
+    return { universities: [], errorCode: "CONNECTION_ERROR", message: "Nie udało się połączyć z serwerem" };
+  }
+}
+
+export async function setUniversity(universityName) {
+  const token = getToken();
+  if (!token)
+    return { errorCode: "TOKEN_UNDEFINED", message: "Brak tokena, zaloguj się ponownie" };
+  try {
+    const resp = await fetch(`${API_HOST}/addUniversity?universityName=${encodeURIComponent(universityName)}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+    if (resp.ok) return { errorCode: "", message: "Uczelnia została zapisana." };
+    const err = await parseErrorBody(resp);
+    return { errorCode: err.errorCode, message: err.message || "Nie udało się zapisać uczelni" };
+  } catch {
+    return { errorCode: "CONNECTION_ERROR", message: "Nie udało się połączyć z serwerem" };
+  }
+}
+
+export async function getCardsByTags(tags) {
+  const token = getToken();
+  if (!token)
+    return {
+      cards: [],
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena",
+    };
+
+  try {
+    const resp = await fetch(`${API_HOST}/getCardsByTags`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ tags }),
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+
+    if (!resp.ok)
+      return {
+        cards: [],
+        errorCode: "FETCH_ERROR",
+        message: "Nie udało się pobrać fiszkek",
+      };
+
+    const cards = await resp.json();
+    return { cards, errorCode: "", message: "" };
+  } catch {
+    return {
+      cards: [],
+      errorCode: "CONNECTION_ERROR",
+      message: "Błąd serwera",
+    };
   }
 }
 

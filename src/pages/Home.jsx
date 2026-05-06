@@ -1,13 +1,38 @@
-import styled from 'styled-components';
+import styled, { useTheme } from "styled-components";
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getToken, parseJwt, removeToken } from '../token';
 import Layout from '../components/organisms/Layout';
-import { getAllNotes, getAllFolders, getRecentFlashcardSets, getFlashcardSetStats, getEventsBetween, getNotifications, getUserSocialGroups } from '../api';
-import CalendarGrid, { getWeekStart, mapBackendEvent, TAG_CONFIG } from '../components/organisms/CalendarGrid';
+import {
+    getAllNotes,
+    getAllFolders,
+    getRecentFlashcardSets,
+    getFlashcardSetStats,
+    getEventsBetween,
+    getNotifications,
+    getUserSocialGroups
+} from '../api';
+import CalendarGrid, {
+    getWeekStart,
+    mapBackendEvent,
+    TAG_CONFIG 
+} from '../components/organisms/CalendarGrid';
 import NotificationsDropdown from '../components/organisms/NotificationsDropdown';
 
-const MONTHS_PL = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
+const MONTHS_PL = [
+  "Styczeń",
+  "Luty",
+  "Marzec",
+  "Kwiecień",
+  "Maj",
+  "Czerwiec",
+  "Lipiec",
+  "Sierpień",
+  "Wrzesień",
+  "Październik",
+  "Listopad",
+  "Grudzień",
+];
 
 function toLocalDateTimeISO(date, hour, min) {
   const y = date.getFullYear();
@@ -26,6 +51,9 @@ const StyledContainer = styled.div`
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
+    @media (max-width: 768px) {
+        padding: 16px 12px 20px;
+    }
 `
 
 const StyledHeader = styled.div`
@@ -38,12 +66,15 @@ const StyledHeader = styled.div`
 `
 
 const StyledName = styled.h2`
-    color: #122818;
+    color: ${({ theme }) => theme.colors.veryDarkPrimary};
     font-size: 1.7rem; 
     font-weight: 800;
     cursor: default;
     margin: 0;
     line-height: 1;
+    @media (max-width: 768px) {
+        font-size: 1.3rem;
+    }
 `
 
 const HeaderRight = styled.div`
@@ -52,39 +83,12 @@ const HeaderRight = styled.div`
     gap: 15px;
 `
 
-const StyledLogoutButton = styled.button`
-    padding: 0 20px;
-    background-color: #ffffff;
-    color: #122818;
-    border: 1px solid #d1d4c9;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 0.9rem;
-    cursor: pointer;
-    height: 40px; 
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    &:hover { background-color: #e9ece1; }
-`
-
 const DashboardLayout = styled.div`
     display: grid;
     grid-template-columns: 3.8fr 6.2fr;
     gap: 20px;
     align-items: stretch; 
-
-    @media(max-width: 1024px) {
-        grid-template-columns: 1fr; 
-    }
-`
-
-const BottomRow = styled.div`
-    display: grid;
-    grid-template-columns: 6fr 4fr;
-    gap: 20px;
-    margin-top: 20px;
+    min-width: 0;
 
     @media(max-width: 1024px) {
         grid-template-columns: 1fr; 
@@ -97,6 +101,7 @@ const LeftColumn = styled.div`
     gap: 15px;
     height: 100%; 
     justify-content: space-between;
+    min-width: 0;
 `
 
 const RightColumn = styled.div`
@@ -104,16 +109,20 @@ const RightColumn = styled.div`
     flex-direction: column;
     gap: 15px;
     height: 100%; 
+    min-width: 0;
 `
 
 const CardBox = styled.div`
-    background-color: #ffffff;
+    background-color: ${({ theme }) => theme.colors.white};
     border-radius: 24px;
     box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.05);
     padding: 30px;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
+    @media (max-width: 768px) {
+        padding: 18px 14px;
+    }
 `
 
 const FiszkiBox = styled(CardBox)` min-height: 250px; `
@@ -121,6 +130,21 @@ const NotatkiBox = styled(CardBox)` min-height: 250px; `
 const DeadlinesBox = styled(CardBox)` flex: 1; min-height: 250px; `
 const CalendarBox = styled(CardBox)` flex: 2; height: 650px; `
 const SocialBox = styled(CardBox)` flex: 1; min-height: 250px; `
+
+const BottomRow = styled.div`
+    display: grid;
+    grid-template-columns: 6fr 4fr;
+    gap: 20px;
+    margin-top: 20px;
+
+    @media(max-width: 1024px) {
+        grid-template-columns: 1fr; 
+    }
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+        gap: 15px;
+  }
+`
 
 const CardTitle = styled.h3`
     color: #122818;
@@ -141,33 +165,35 @@ const ItemList = styled.div`
 `
 
 const ListItem = styled.div`
-    background-color: ${({ $isEmpty }) => $isEmpty ? '#e6eadb' : '#dbe0d0'}; 
-    opacity: ${({ $isEmpty }) => $isEmpty ? 0.6 : 1};
-    border-radius: 12px;
-    padding: 12px 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: ${({ $isEmpty }) => $isEmpty ? 'default' : 'pointer'};
-    transition: transform 0.2s;
-    min-height: 40px;
+  background-color: ${({ $isEmpty }) => ($isEmpty ? '#e6eadb' : '#dbe0d0')}; 
+  opacity: ${({ $isEmpty }) => ($isEmpty ? 0.6 : 1)};
+  border-radius: 12px;
+  padding: 12px 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: ${({ $isEmpty }) => ($isEmpty ? "default" : "pointer")};
+  transition: transform 0.2s;
+  min-height: 40px;
 
-    &:hover { transform: ${({ $isEmpty }) => $isEmpty ? 'none' : 'translateX(5px)'}; }
-`
+  &:hover {
+    transform: ${({ $isEmpty }) => ($isEmpty ? "none" : "translateX(5px)")};
+  }
+`;
 
 const SimpleListItem = styled.div`
-    background-color: ${({ $isEmpty }) => $isEmpty ? '#e6eadb' : '#dbe0d0'}; 
-    opacity: ${({ $isEmpty }) => $isEmpty ? 0.6 : 1};
-    border-radius: 12px;
-    padding: 12px 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: 700;
-    font-size: 0.95rem;
-    color: #122818;
-    min-height: 40px;
-`
+  background-color: ${({ $isEmpty }) => ($isEmpty ? '#e6eadb' : '#dbe0d0')}; 
+  opacity: ${({ $isEmpty }) => ($isEmpty ? 0.6 : 1)};
+  border-radius: 12px;
+  padding: 12px 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #122818;
+  min-height: 40px;
+`;
 
 const ItemInfo = styled.div`
     display: flex;
@@ -178,23 +204,23 @@ const ItemInfo = styled.div`
 `;
 
 const ItemTitle = styled.span`
-    font-weight: 700;
-    color: #122818;
-    font-size: 0.95rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: block;
+  font-weight: 700;
+  color: #122818;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
 `;
 
 const ItemSub = styled.span`
-    font-size: 0.75rem;
-    color: #555;
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: block;
+  font-size: 0.75rem;
+  color: #555;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
 `;
 
 const ItemMeta = styled.div`
@@ -210,27 +236,34 @@ const ProgressBar = styled.div`
     border-radius: 4px;
     display: flex;
     overflow: hidden;
-    background-color: #c4c9b9;
+    background-color: ${({ theme }) => theme.colors.borderMuted};
 `
-const ProgressGreen = styled.div`width: 50%; background-color: #5ba354;`
-const ProgressBlue = styled.div`width: 50%; background-color: #e4fafd;`
+const ProgressGreen = styled.div`
+  width: 50%; 
+  background-color: #5ba354;
+`;
+
+const ProgressBlue = styled.div`
+  width: 50%; 
+  background-color: #e4fafd;
+`;
 
 const TagPill = styled.span`
     font-size: 0.65rem;
-    color: #555;
+    color: ${({ theme }) => theme.colors.textLight};
     font-weight: 600;
 `
 
 const MoreButton = styled.div`
-    text-align: right;
-    margin-top: auto; 
-    color: #707a73;
-    font-size: 0.85rem;
-    font-weight: 700;
-    cursor: pointer;
-    padding-top: 15px;
-    &:hover { color: #122818; }
-`
+  text-align: right;
+  margin-top: auto; 
+  color: #707a73;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding-top: 15px;
+  &:hover { color: #122818; }
+`;
 
 const FoldersRow = styled.div`
     display: flex;
@@ -238,6 +271,10 @@ const FoldersRow = styled.div`
     gap: 25px;
     margin-bottom: 24px;
     flex-shrink: 0;
+    @media (max-width: 768px) {
+        gap: 12px;
+        flex-wrap: wrap;
+  }
 `
 
 const FolderBox = styled.div`
@@ -252,7 +289,7 @@ const FolderBox = styled.div`
 const FolderIcon = styled.div`
     width: 45px;
     height: 40px;
-    color: #122818;
+    color: ${({ theme }) => theme.colors.veryDarkPrimary};
     display: flex;
     align-items: center;
     justify-content: center;
@@ -266,9 +303,11 @@ const FolderIcon = styled.div`
 const FolderName = styled.span`
     font-size: 0.75rem;
     font-weight: 800;
-    color: #122818;
+    color: ${({ theme }) => theme.colors.veryDarkPrimary};
     width: 100%;
     text-align: center;
+
+    /* zamiast jednej linijki pozwalamy na max 2 linijki tekstu */
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -281,7 +320,7 @@ const BellIconWrapper = styled.div`
     display: flex;
     align-items: center;
     cursor: pointer;
-    color: #122818;
+    color: ${({ theme }) => theme.colors.veryDarkPrimary};
     
     svg {
         width: 28px;
@@ -294,6 +333,7 @@ const BellIconWrapper = styled.div`
 `;
 
 const Home = () => {
+    const theme = useTheme();
     const [username, setUsername] = useState("");
     const [recentSets, setRecentSets] = useState([]);
     const [recentNotes, setRecentNotes] = useState([]);
@@ -310,7 +350,9 @@ const Home = () => {
     const navigate = useNavigate();
 
     const [currentDate, setCurrentDate] = useState(new Date());
-    const [calendarView, setCalendarView] = useState(() => localStorage.getItem("calendarView") || "week");
+    const [calendarView, setCalendarView] = useState(
+        () => localStorage.getItem("calendarView") || "week"
+    );
     const [events, setEvents] = useState([]);
 
     const upcomingDeadlines = useMemo(() => {
@@ -352,15 +394,27 @@ const Home = () => {
             let startDate, endDate;
             if (calendarView === "week") {
                 const ws = getWeekStart(currentDate);
-                const margin = new Date(ws); margin.setDate(margin.getDate() - 7);
-                const we = new Date(ws); we.setDate(we.getDate() + 13);
+                const margin = new Date(ws);
+                margin.setDate(margin.getDate() - 7);
+                const we = new Date(ws);
+                we.setDate(we.getDate() + 13);
                 startDate = toLocalDateTimeISO(margin, 0, 0);
                 endDate = toLocalDateTimeISO(we, 23, 59);
             } else {
-                const first = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-                const margin = new Date(first); margin.setDate(margin.getDate() - 7);
-                const last = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-                const marginEnd = new Date(last); marginEnd.setDate(marginEnd.getDate() + 7);
+                const first = new Date(
+                    currentDate.getFullYear(),
+                    currentDate.getMonth(),
+                    1
+                );
+                const margin = new Date(first);
+                margin.setDate(margin.getDate() - 7);
+                const last = new Date(
+                    currentDate.getFullYear(),
+                    currentDate.getMonth() + 1,
+                    0
+                );
+                const marginEnd = new Date(last);
+                marginEnd.setDate(marginEnd.getDate() + 7);
                 startDate = toLocalDateTimeISO(margin, 0, 0);
                 endDate = toLocalDateTimeISO(marginEnd, 23, 59);
             }
@@ -375,23 +429,33 @@ const Home = () => {
     const handlePrev = () => {
         const d = new Date(currentDate);
         if (calendarView === "week") d.setDate(d.getDate() - 7);
-        else { d.setDate(1); d.setMonth(d.getMonth() - 1); }
+        else {
+            d.setDate(1);
+            d.setMonth(d.getMonth() - 1);
+        }
         setCurrentDate(d);
     };
 
     const handleNext = () => {
         const d = new Date(currentDate);
         if (calendarView === "week") d.setDate(d.getDate() + 7);
-        else { d.setDate(1); d.setMonth(d.getMonth() + 1); }
+        else {
+            d.setDate(1);
+            d.setMonth(d.getMonth() + 1);
+        }
         setCurrentDate(d);
     };
 
     const headerTitle = () => {
         if (calendarView === "week") {
-            const weekStart = getWeekStart(currentDate);
-            const weekEnd = new Date(weekStart); weekEnd.setDate(weekEnd.getDate() + 6);
-            if (weekStart.getMonth() === weekEnd.getMonth()) return `${MONTHS_PL[weekStart.getMonth()]} ${weekStart.getFullYear()}`;
-            return `${MONTHS_PL[weekStart.getMonth()]} – ${MONTHS_PL[weekEnd.getMonth()]} ${weekEnd.getFullYear()}`;
+        const weekStart = getWeekStart(currentDate);
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekEnd.getDate() + 6);
+        if (weekStart.getMonth() === weekEnd.getMonth())
+            return `${MONTHS_PL[weekStart.getMonth()]} ${weekStart.getFullYear()}`;
+        return `${MONTHS_PL[weekStart.getMonth()]} – ${
+            MONTHS_PL[weekEnd.getMonth()]
+        } ${weekEnd.getFullYear()}`;
         }
         return `${MONTHS_PL[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
     };
@@ -425,10 +489,19 @@ const Home = () => {
                     if (isNaN(rawStats)) rawStats = 0; 
                     let progressPercent = rawStats <= 1 && rawStats > 0 ? rawStats * 100 : rawStats; 
                     
-                    const activityVal = set.lastActivity ?? set.last_activity ?? set.lastActivityTime ?? set.updatedAt ?? set.createTime;
+                    const activityVal =
+                        set.lastActivity ??
+                        set.last_activity ??
+                        set.lastActivityTime ??
+                        set.updatedAt ??
+                        set.createTime;
                     const timestamp = parseDateFromBackend(activityVal);
 
-                    return { ...set, progress: progressPercent || 0, _sortTime: timestamp };
+                    return {
+                        ...set,
+                        progress: progressPercent || 0,
+                        _sortTime: timestamp,
+                    };
                 }));
 
                 setsWithStats.sort((a, b) => b._sortTime - a._sortTime);
@@ -437,13 +510,17 @@ const Home = () => {
                     .filter(f => f.name !== "/")
                     .sort((a, b) => (b.id || 0) - (a.id || 0));
 
-                const sortedNotes = [...notesArray]
-                    .sort((a, b) => {
-                        const dateA = new Date(a.editTime ?? a.lastEdited ?? a.createTime ?? 0).getTime();
-                        const dateB = new Date(b.editTime ?? b.lastEdited ?? b.createTime ?? 0).getTime();
-                        if (!dateA || isNaN(dateA) || dateA === 0) return (b.id || 0) - (a.id || 0); 
-                        return dateB - dateA;
-                    });
+                const sortedNotes = [...notesArray].sort((a, b) => {
+                    const dateA = new Date(
+                        a.editTime ?? a.lastEdited ?? a.createTime ?? 0
+                    ).getTime();
+                    const dateB = new Date(
+                        b.editTime ?? b.lastEdited ?? b.createTime ?? 0
+                    ).getTime();
+                    if (!dateA || isNaN(dateA) || dateA === 0)
+                        return (b.id || 0) - (a.id || 0);
+                    return dateB - dateA;
+                });
 
                 setRecentSets(setsWithStats.slice(0, 3)); 
                 setRecentNotes(sortedNotes.slice(0, 3)); 
@@ -497,29 +574,42 @@ const Home = () => {
     const formatActivityDate = (timestamp) => {
         if (!timestamp || timestamp === 0) return "Brak aktywności";
         const date = new Date(timestamp);
-        return date.toLocaleDateString('pl-PL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+        return date.toLocaleDateString("pl-PL", {
+            day: "2-digit",
+            month: "short",
+            hour: "2-digit",
+            minute: "2-digit",
+        });
     };
 
     const getFolderFullPath = (folder) => {
         if (!folder || folder.name === "/") return "";
-        return folder.path === "/" ? "/" + folder.name : folder.path + "/" + folder.name;
+        return folder.path === "/"
+            ? "/" + folder.name
+            : folder.path + "/" + folder.name;
     };
 
     const getNotePath = (note) => {
         if (note.folderId !== undefined && note.folderId !== null) {
             const parentFolder = allFoldersList.find(f => f.id === note.folderId);
+
             if (parentFolder && parentFolder.name !== "/") {
                 const fullPath = getFolderFullPath(parentFolder);
                 const formatted = fullPath.split('/').filter(Boolean).join(' > ');
+
                 if (formatted) return formatted;
             }
         }
+
         return "Katalog główny";
     };
 
     const handleFolderClick = (folder) => {
         const fullPath = getFolderFullPath(folder);
-        const segments = fullPath.split('/').filter(Boolean).map(s => encodeURIComponent(s));
+        const segments = fullPath
+            .split('/')
+            .filter(Boolean)
+            .map(s => encodeURIComponent(s));
         navigate(`/notes/${segments.join('/')}`);
     };
 
@@ -588,7 +678,14 @@ const Home = () => {
     const parseDateFromBackend = (dateVal) => {
         if (!dateVal) return 0;
         if (Array.isArray(dateVal) && dateVal.length >= 3) {
-            return new Date(dateVal[0], dateVal[1] - 1, dateVal[2], dateVal[3] || 0, dateVal[4] || 0, dateVal[5] || 0).getTime();
+            return new Date(
+                dateVal[0],
+                dateVal[1] - 1,
+                dateVal[2],
+                dateVal[3] || 0,
+                dateVal[4] || 0,
+                dateVal[5] || 0
+            ).getTime();
         }
         const parsed = new Date(dateVal).getTime();
         return isNaN(parsed) ? 0 : parsed;
@@ -597,7 +694,6 @@ const Home = () => {
     return (
         <Layout>
             <StyledContainer>
-                
                 <StyledHeader>
                     <StyledName>Witaj, {username || "użytkowniku"}!</StyledName>
                     <HeaderRight>
@@ -629,10 +725,6 @@ const Home = () => {
                                 />
                             )}
                         </BellIconWrapper>
-
-                        <StyledLogoutButton onClick={() => { removeToken(); navigate("/"); }}>
-                            Wyloguj
-                        </StyledLogoutButton>
                     </HeaderRight>
                 </StyledHeader>
 
@@ -648,12 +740,18 @@ const Home = () => {
                                     const blueWidth = 100 - greenWidth;
 
                                     return (
-                                        <ListItem key={set.id} onClick={() => navigate(`/learning/fast/${set.id}`)}>
+                                        <ListItem
+                                            key={set.id}
+                                            onClick={() => navigate(`/learning/fast/${set.id}`)}
+                                        >
                                             <ItemInfo>
                                                 <ItemTitle>{set.name}</ItemTitle>
-                                                <ItemSub>Ostatnia aktywność: {formatActivityDate(set._sortTime)}</ItemSub>
+                                                <ItemSub>
+                                                    Ostatnia aktywność:{" "}
+                                                    {formatActivityDate(set._sortTime)}
+                                                </ItemSub>
                                             </ItemInfo>
-                                            
+
                                             <ItemMeta>
                                                 <ProgressBar>
                                                     <ProgressGreen style={{ width: `${greenWidth}%` }} />
@@ -665,7 +763,9 @@ const Home = () => {
                                 })}
                                 {renderEmptySets(recentSets.length, 3)}
                             </ItemList>
-                            <MoreButton onClick={() => navigate("/learning")}>Więcej...</MoreButton>
+                            <MoreButton onClick={() => navigate("/learning")}>
+                                Więcej...
+                            </MoreButton>
                         </FiszkiBox>
 
                         <NotatkiBox>
@@ -673,7 +773,10 @@ const Home = () => {
                             <FoldersRow>
                                 {recentFolders.length > 0 ? (
                                     recentFolders.map((folder) => (
-                                        <FolderBox key={folder.id} onClick={() => handleFolderClick(folder)}>
+                                        <FolderBox
+                                            key={folder.id}
+                                            onClick={() => handleFolderClick(folder)}
+                                        >
                                             <FolderIcon>
                                                 <svg fill="currentColor" viewBox="0 0 16 16">
                                                     <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139q.323-.119.684-.12h5.396z" />
@@ -696,55 +799,155 @@ const Home = () => {
                             
                             <ItemList>
                                 {recentNotes.map((note) => (
-                                    <ListItem key={note.id} onClick={() => navigate(`/note/${note.id}`)}>
+                                    <ListItem
+                                        key={note.id}
+                                        onClick={() => navigate(`/note/${note.id}`)}
+                                    >
                                         <ItemInfo>
                                             <ItemTitle>{note.name || "Brak nazwy"}</ItemTitle>
                                         </ItemInfo>
                                         <ItemMeta>
-                                            <TagPill><i>{getNotePath(note)}</i></TagPill>
+                                            <TagPill>
+                                                <i>{getNotePath(note)}</i>
+                                            </TagPill>
                                         </ItemMeta>
                                     </ListItem>
                                 ))}
                                 {renderEmptyNotes(recentNotes.length, 3)}
                             </ItemList>
-                            <MoreButton onClick={() => navigate("/notes")}>Więcej...</MoreButton>
+                            <MoreButton onClick={() => navigate("/notes")}>
+                                Więcej...
+                            </MoreButton>
                         </NotatkiBox>
                     </LeftColumn>
 
                     <RightColumn>
-                        <CalendarBox style={{ padding: '24px', display: 'flex', flexDirection: 'column', height: '650px' }}>
-                            <CardTitle style={{ marginBottom: '15px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <button onClick={handlePrev} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.4rem', color: '#122818', padding: '0 5px' }}>‹</button>
-                                    <span style={{ fontSize: '1.15rem', minWidth: '130px', textAlign: 'center' }}>{headerTitle()}</span>
-                                    <button onClick={handleNext} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.4rem', color: '#122818', padding: '0 5px' }}>›</button>
+                        <CalendarBox
+                            style={{
+                                padding: "24px",
+                                display: "flex",
+                                flexDirection: "column",
+                                height: "650px",
+                            }}
+                            >
+                            <CardTitle style={{ marginBottom: "15px" }}>
+                                <div
+                                style={{ display: "flex", alignItems: "center", gap: "10px" }}
+                                >
+                                <button
+                                    onClick={handlePrev}
+                                    style={{
+                                    border: "none",
+                                    background: "transparent",
+                                    cursor: "pointer",
+                                    fontSize: "1.4rem",
+                                    color: theme.colors.veryDarkPrimary,
+                                    padding: "0 5px",
+                                    }}
+                                >
+                                    ‹
+                                </button>
+                                <span
+                                    style={{
+                                    fontSize: "1.15rem",
+                                    minWidth: "130px",
+                                    textAlign: "center",
+                                    }}
+                                >
+                                    {headerTitle()}
+                                </span>
+                                <button
+                                    onClick={handleNext}
+                                    style={{
+                                    border: "none",
+                                    background: "transparent",
+                                    cursor: "pointer",
+                                    fontSize: "1.4rem",
+                                    color: theme.colors.veryDarkPrimary,
+                                    padding: "0 5px",
+                                    }}
+                                >
+                                    ›
+                                </button>
                                 </div>
-                                
-                                <div style={{ display: 'flex', gap: '5px', fontSize: '0.85rem', fontWeight: '600' }}>
-                                    <button 
-                                        onClick={() => { setCalendarView('week'); localStorage.setItem('calendarView', 'week'); }} 
-                                        style={{ border: 'none', background: calendarView === 'week' ? '#e6eadb' : 'transparent', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', color: '#122818', transition: 'all 0.2s' }}>
-                                        Tydzień
-                                    </button>
-                                    <button 
-                                        onClick={() => { setCalendarView('month'); localStorage.setItem('calendarView', 'month'); }} 
-                                        style={{ border: 'none', background: calendarView === 'month' ? '#e6eadb' : 'transparent', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', color: '#122818', transition: 'all 0.2s' }}>
-                                        Miesiąc
-                                    </button>
+
+                                <div
+                                style={{
+                                    display: "flex",
+                                    gap: "5px",
+                                    fontSize: "0.85rem",
+                                    fontWeight: "600",
+                                }}
+                                >
+                                <button
+                                    onClick={() => {
+                                    setCalendarView("week");
+                                    localStorage.setItem("calendarView", "week");
+                                    }}
+                                    style={{
+                                    border: "none",
+                                    background:
+                                        calendarView === "week" ? theme.colors.lightPrimary : "transparent",
+                                    padding: "6px 12px",
+                                    borderRadius: "8px",
+                                    cursor: "pointer",
+                                    color: theme.colors.veryDarkPrimary,
+                                    transition: "all 0.2s",
+                                    }}
+                                >
+                                    Tydzień
+                                </button>
+                                <button
+                                    onClick={() => {
+                                    setCalendarView("month");
+                                    localStorage.setItem("calendarView", "month");
+                                    }}
+                                    style={{
+                                    border: "none",
+                                    background:
+                                        calendarView === "month" ? theme.colors.lightPrimary : "transparent",
+                                    padding: "6px 12px",
+                                    borderRadius: "8px",
+                                    cursor: "pointer",
+                                    color: theme.colors.veryDarkPrimary,
+                                    transition: "all 0.2s",
+                                    }}
+                                >
+                                    Miesiąc
+                                </button>
                                 </div>
                             </CardTitle>
 
-                            <div style={{ position: 'relative', flex: '1 1 auto', overflow: 'hidden', borderTop: '1px solid #eee', paddingTop: '10px' }}>
-                                <div style={{ position: 'absolute', top: '10px', left: 0, right: 0, bottom: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-                                    <CalendarGrid
-                                        view={calendarView}
-                                        currentDate={currentDate}
-                                        events={events}
-                                        onDayClick={() => navigate('/calendar')}
-                                        startHour={8}
-                                        endHour={22}
-                                        dashboardMode={true}
-                                    />
+                            <div
+                                style={{
+                                position: "relative",
+                                flex: "1 1 auto",
+                                overflow: "hidden",
+                                borderTop: `1px solid ${theme.colors.borderLight}`,
+                                paddingTop: "10px",
+                                }}
+                            >
+                                <div
+                                style={{
+                                    position: "absolute",
+                                    top: "10px",
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    overflowY: "auto",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                }}
+                                >
+                                <CalendarGrid
+                                    view={calendarView}
+                                    currentDate={currentDate}
+                                    events={events}
+                                    onDayClick={() => navigate("/calendar")}
+                                    startHour={8}
+                                    endHour={22}
+                                    dashboardMode={true}
+                                />
                                 </div>
                             </div>
                         </CalendarBox>
