@@ -1386,6 +1386,9 @@ const FlashcardsPage = () => {
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [selectedCards, setSelectedCards] = useState([]);
 
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
+  const [isDeletingBulk, setIsDeletingBulk] = useState(false);
+
 
   // stany dla kopiowania
   const [isBulkCopyModalOpen, setIsBulkCopyModalOpen] = useState(false);
@@ -1530,16 +1533,12 @@ const FlashcardsPage = () => {
                 
                 if (set.cards && Array.isArray(set.cards)) {
                     set.cards.forEach(card => {
-                        const textFront = (
-                            card.contentFirstSide ||
-                            card.question ||
-                            ""
+                        const textFront = stripHtml(
+                            card.contentFirstSide || card.question || ""
                         ).toLowerCase();
 
-                        const textBack = (
-                            card.contentFlipSide ||
-                            card.answer ||
-                            ""
+                        const textBack = stripHtml(
+                            card.contentFlipSide || card.answer || ""
                         ).toLowerCase();
                         
                         if (textFront.includes(lower) || textBack.includes(lower)) {
@@ -1896,9 +1895,9 @@ const FlashcardsPage = () => {
 
         let res;
         if (editingSetId) {
-            res = await editFlashcardSet(editingSetId, setName, chosenTagsForSet);
+            res = await editFlashcardSet(editingSetId, setName, chosenTagsForSet, socialId);
         } else {
-            res = await addFlashcardSet(setName, chosenTagsForSet, "/");
+            res = await addFlashcardSet(setName, chosenTagsForSet, socialId);
         }
 
         if (res.errorCode) {
@@ -1946,16 +1945,16 @@ const FlashcardsPage = () => {
         });
       }
 
-    const handleBulkDelete = async () => {
-        if (
-            !window.confirm(
-                `Czy na pewno chcesz trwale usunąć zaznaczone fiszki (${selectedCards.length})?`
-            )
-        )
-            return;
-        
+    const handleBulkDeleteClick = () => {
+        setIsBulkDeleteModalOpen(true);
+    };
+
+    const executeBulkDelete = async () => {
+        setIsDeletingBulk(true);
         await Promise.all(selectedCards.map(c => deleteCard(c.id)));
         
+        setIsDeletingBulk(false);
+        setIsBulkDeleteModalOpen(false);
         setIsSelectMode(false);
         setSelectedCards([]);
         fetchData();
@@ -1978,7 +1977,7 @@ const FlashcardsPage = () => {
                 setErrorMessage("Podaj nazwę nowego zestawu");
                 return;
             }
-            const res = await addFlashcardSet(bulkNewSetName.trim(), [], "/");
+            const res = await addFlashcardSet(bulkNewSetName.trim(), [], socialId);
             if (res.errorCode) {
                 setErrorMessage(res.message);
                 return;
@@ -2202,8 +2201,9 @@ const FlashcardsPage = () => {
                                                         Fiszki
                                                     </StyledSearchSectionTitle>
                                                     {globalSearchResults.cards.map((c) => {
-                                                        const textFront =
-                                                            c.contentFirstSide || c.question || "";
+                                                        const textFront = stripHtml(
+                                                            c.contentFirstSide || c.question || ""
+                                                        );
                                                         return (
                                                             <StyledSearchResultItem
                                                                 key={`card-${c.id}`}
@@ -3351,27 +3351,27 @@ const FlashcardsPage = () => {
                 {isSelectMode && selectedCards.length > 0 && (
                     <SelectionBar>
                         <SelectionBarCount>
-                        Zaznaczono: {selectedCards.length}
+                            Zaznaczono: {selectedCards.length}
                         </SelectionBarCount>
                         <ModalButton onClick={() => setIsBulkTagsModalOpen(true)}>
-                        Dodaj tagi
+                            Dodaj tagi
                         </ModalButton>
                         <ModalButtonPrimary onClick={() => setIsBulkMoveModalOpen(true)}>
-                        Przenieś do..
+                            Przenieś do..
                         </ModalButtonPrimary>
                         <ModalButtonPrimary onClick={() => setIsBulkCopyModalOpen(true)}>
-                        Kopiuj do..
+                            Kopiuj do..
                         </ModalButtonPrimary>
-                        <ModalButton $danger onClick={handleBulkDelete}>
-                        Usuń
+                        <ModalButton $danger onClick={handleBulkDeleteClick}>
+                            Usuń
                         </ModalButton>
                         <ModalButtonGhost
-                        onClick={() => {
-                            setIsSelectMode(false);
-                            setSelectedCards([]);
-                        }}
+                            onClick={() => {
+                                setIsSelectMode(false);
+                                setSelectedCards([]);
+                            }}
                         >
-                        Anuluj
+                            Anuluj
                         </ModalButtonGhost>
                     </SelectionBar>
                 )}
@@ -3904,6 +3904,50 @@ const FlashcardsPage = () => {
                                     onClick={handleResetAndStart}
                                 >
                                     Zacznij od nowa (zresetuj postępy)
+                                </ModalButton>
+                            </div>
+                        </StyledPopup>
+                    </>
+                )}
+
+                {/* MODAL USUWANIA FISZEK Z ZAZNACZENIA */}
+                {isBulkDeleteModalOpen && (
+                    <>
+                        <ModalOverlay onClick={() => !isDeletingBulk && setIsBulkDeleteModalOpen(false)} />
+                        <StyledPopup
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ textAlign: "center" }}
+                        >
+                            <Text bold="true" as="h2" text="Usuń zaznaczone fiszki" />
+                            <Text
+                                text={`Czy na pewno chcesz trwale usunąć zaznaczone fiszki (${selectedCards.length})?`}
+                                style={{
+                                    margin: "20px 0 30px 0",
+                                    color: theme.colors.textLight,
+                                }}
+                            />
+
+                            <div
+                                style={{
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    gap: "15px",
+                                }}
+                            >
+                                <ModalButton 
+                                    type="button" 
+                                    $danger 
+                                    onClick={executeBulkDelete}
+                                    disabled={isDeletingBulk}
+                                >
+                                    {isDeletingBulk ? "Usuwanie..." : "Tak, usuń"}
+                                </ModalButton>
+                                <ModalButton
+                                    type="button"
+                                    onClick={() => setIsBulkDeleteModalOpen(false)}
+                                    disabled={isDeletingBulk}
+                                >
+                                    Anuluj
                                 </ModalButton>
                             </div>
                         </StyledPopup>

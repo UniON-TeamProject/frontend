@@ -447,6 +447,16 @@ const TagsContainer = styled.div`
   }
 `;
 
+const ItemTag = styled.span`
+  background-color: ${({ theme }) => theme.colors.lightGrey};
+  color: ${({ theme }) => theme.colors.textLight};
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+`;
+
 const StyledTag = styled.div`
     padding: 2px 10px;
     margin: 3px;
@@ -1696,23 +1706,108 @@ const Notes = () => {
 
           <ToolbarActions>
             {!isTrashView && (
-              <>
-                <ToolbarButton className="outline" disabled title="ni ma">
-                  <svg
-                    width="14"
-                    height="14"
-                    fill="currentColor"
-                    viewBox="0 0 16 16"
+                <FilterContainer>
+                  <ToolbarButton
+                    className="outline"
+                    disabled={subFolders.length === 0 && notes.length === 0}
+                    title={(subFolders.length === 0 && notes.length === 0) ? "Brak elementów do filtrowania" : ""}
+                    onClick={(e) => {
+                      if (subFolders.length === 0 && notes.length === 0) return;
+                      e.stopPropagation();
+                      setIsFilterMenuOpen(!isFilterMenuOpen);
+                    }}
                   >
-                    <path
-                      fillRule="evenodd"
-                      d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3m-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1z"
-                    />
-                  </svg>
-                  Filtruj
-                </ToolbarButton>
-              </>
-            )}
+                    <svg
+                      width="14"
+                      height="14"
+                      fill="currentColor"
+                      viewBox="0 0 16 16"
+                      style={{ opacity: (subFolders.length === 0 && notes.length === 0) ? 0.5 : 1 }}
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3m-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1z"
+                      />
+                    </svg>
+                    Filtruj
+                    {selectedTagsFilter.length > 0 && (
+                      <ActiveFilterBadge>
+                        {selectedTagsFilter.length}
+                      </ActiveFilterBadge>
+                    )}
+                  </ToolbarButton>
+
+                  {/* MENU FILTRÓW */}
+                  {isFilterMenuOpen && (
+                    <FilterDropdown onClick={(e) => e.stopPropagation()}>
+                      <Text
+                        bold="true"
+                        text="Filtruj po tagach"
+                        style={{ fontSize: "0.95rem", margin: "0 0 5px 5px" }}
+                      />
+
+                      {allAvailableTags.length === 0 ? (
+                        <Text
+                          text="Brak przypisanych tagów do folderów i notatek."
+                          style={{
+                            fontSize: "0.85rem",
+                            color: theme.colors.textMuted,
+                            marginLeft: "5px",
+                          }}
+                        />
+                      ) : (
+                        <div
+                          style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: "8px",
+                          }}
+                        >
+                          {allAvailableTags.map((tag) => {
+                            const isActive = selectedTagsFilter.includes(tag);
+                            return (
+                              <FilterTag
+                                key={tag}
+                                $active={isActive}
+                                onClick={() => {
+                                  if (isActive) {
+                                    setSelectedTagsFilter((prev) =>
+                                      prev.filter((t) => t !== tag)
+                                    );
+                                  } else {
+                                    setSelectedTagsFilter((prev) => [
+                                      ...prev,
+                                      tag,
+                                    ]);
+                                  }
+                                }}
+                              >
+                                {tag}
+                              </FilterTag>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {selectedTagsFilter.length > 0 && (
+                        <div
+                          style={{
+                            fontSize: "0.8rem",
+                            color: theme.colors.danger,
+                            cursor: "pointer",
+                            marginTop: "10px",
+                            textAlign: "center",
+                            fontWeight: "bold",
+                          }}
+                          onClick={() => setSelectedTagsFilter([])}
+                        >
+                          Wyczyść filtry
+                        </div>
+                      )}
+                    </FilterDropdown>
+                  )}
+                </FilterContainer>
+              )}
 
             {(subFolders.length > 0 || notes.length > 0) && (
               <SortSelectContainer>
@@ -1870,6 +1965,17 @@ const Notes = () => {
                           fontWeight: "500",
                         }}
                       />
+                    )}
+
+                    {folder.tags && folder.tags.length > 0 && (
+                      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "4px", marginTop: "8px" }}>
+                        {folder.tags.slice(0, 3).map((tag, idx) => (
+                          <ItemTag key={idx}>{tag}</ItemTag>
+                        ))}
+                        {folder.tags.length > 3 && (
+                          <ItemTag>+{folder.tags.length - 3}</ItemTag>
+                        )}
+                      </div>
                     )}
                   </div>
 
@@ -2095,6 +2201,17 @@ const Notes = () => {
                       text={d.name}
                       style={{ marginBottom: "10px", fontSize: "1.05rem" }}
                     />
+                    
+                    {d.tags && d.tags.length > 0 && (
+                      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "4px", marginTop: "-4px", marginBottom: "8px" }}>
+                        {d.tags.slice(0, 3).map((tag, idx) => (
+                          <ItemTag key={idx}>{tag}</ItemTag>
+                        ))}
+                        {d.tags.length > 3 && (
+                          <ItemTag>+{d.tags.length - 3}</ItemTag>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <StyledItemHeader
