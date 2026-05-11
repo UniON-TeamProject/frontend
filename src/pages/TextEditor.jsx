@@ -130,6 +130,9 @@ const StyledTagInput = styled.input`
   &:focus{
     outline:none;
   }
+  @media (max-width: 768px) {
+    font-size: 16px;
+  }
 `
 
 const ContentContainer = styled.div`

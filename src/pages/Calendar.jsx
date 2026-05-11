@@ -54,7 +54,6 @@ const Wrapper = styled.div`
   overflow: hidden;
   @media (max-width: 768px) {
     height: auto;
-    min-height: calc(100vh - 60px);
     overflow: visible;
   }
 `;

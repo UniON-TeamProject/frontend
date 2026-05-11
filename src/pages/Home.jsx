@@ -83,6 +83,21 @@ const HeaderRight = styled.div`
     gap: 15px;
 `
 
+const MobileProfileButton = styled.div`
+    display: none;
+    @media (max-width: 768px) {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: ${({ theme }) => theme.colors.veryDarkPrimary};
+        svg {
+            width: 28px;
+            height: 28px;
+        }
+    }
+`
+
 const DashboardLayout = styled.div`
     display: grid;
     grid-template-columns: 3.8fr 6.2fr;
@@ -657,6 +672,11 @@ const Home = () => {
                 <StyledHeader>
                     <StyledName>Witaj, {username || "użytkowniku"}!</StyledName>
                     <HeaderRight>
+                        <MobileProfileButton onClick={() => navigate("/user")}>
+                            <svg fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3Zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                            </svg>
+                        </MobileProfileButton>
                         <BellIconWrapper>
                             <svg 
                                 onClick={() => setIsNotificationsOpen(!isNotificationsOpen)} 

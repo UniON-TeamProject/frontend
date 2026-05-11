@@ -78,6 +78,9 @@ const StyledTagInput = styled.input`
   font-weight: 600;
   font-family: inherit;
   background-color: ${({ theme }) => theme.colors.secondary};
+  @media (max-width: 768px) {
+    font-size: 16px;
+  }
   &:focus {
     outline: none;
     box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);

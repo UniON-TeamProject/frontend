@@ -41,17 +41,17 @@ const noteNameRegex = /^[a-zA-Z0-9 _\-ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+$/;
 
 const StyledContainer = styled.div`
   width: 100%;
-  height: 100%;
-  min-height: 100vh;
   padding: 20px 40px;
   position: relative;
   box-sizing: border-box;
+  opacity: ${({ $ready }) => ($ready ? 1 : 0)};
+  transition: opacity 0.2s ease;
   @media (max-width: 768px) {
     padding: 12px 12px;
   }
 `;
 
-const StyledUserHeader = styled.div`
+const StyledHeader = styled.div`
   display: flex;
   flex-flow: row nowrap;
   justify-content: space-between;
@@ -63,7 +63,7 @@ const StyledUserHeader = styled.div`
     flex-wrap: wrap;
     justify-content: flex-start;
     margin-bottom: 10px;
-    min-height: 40px;
+    min-height: 90px;
     gap: 8px;
   }
 `;
@@ -202,8 +202,8 @@ const FabMenu = styled.div`
   gap: 8px;
   z-index: 100;
   @media (max-width: 768px) {
-    bottom: 164px;
-    right: 20px;
+    bottom: 142px;
+    right: 15px;
   }
 `;
 
@@ -305,7 +305,8 @@ const StyledItemHeaderWrapper = styled.div`
       font-size: 0.78rem !important;
       margin-bottom: 2px !important;
     }
-    span, p {
+    span,
+    p {
       font-size: 0.7rem !important;
     }
   }
@@ -341,6 +342,7 @@ const StyledItemHeader = styled.span`
     right: 6px;
     width: 24px;
     height: 24px;
+    z-index: 50;
 
     svg {
       width: 14px;
@@ -361,6 +363,8 @@ const StyledItemOptions = styled.div`
   z-index: 20;
   text-align: left;
   cursor: default;
+  max-height: 300px;
+  overflow-y: auto;
 
   ${({ $centerBelow }) =>
     $centerBelow
@@ -381,7 +385,20 @@ const StyledItemOptions = styled.div`
       ? "right:100%; margin-right:10px;"
       : "left:100%; margin-left:10px;")}
 
-    > input {
+  @media (max-width: 768px) {
+    position: fixed;
+    top: ${({ $flipUp, $dropdownY }) => ($flipUp ? "50%" : `${$dropdownY}px`)};
+    left: 50%;
+    transform: ${({ $flipUp }) =>
+      $flipUp ? "translate(-50%, -50%)" : "translateX(-50%)"};
+    right: auto;
+    bottom: auto;
+    margin: 0;
+    width: calc(100vw - 80px);
+    max-width: 300px;
+  }
+
+  > input {
     padding: 8px 12px;
     margin: 0 10px 15px 10px;
     width: calc(100% - 20px);
@@ -394,6 +411,10 @@ const StyledItemOptions = styled.div`
     background-color: ${({ theme }) => theme.colors.lightGrey};
     outline: none;
     transition: border-color 0.2s;
+
+    @media (max-width: 768px) {
+      font-size: 16px;
+    }
 
     &:focus {
       border-color: ${({ theme }) => theme.colors.secondary};
@@ -463,7 +484,8 @@ const StyledTag = styled.div`
     background-color: ${({ theme, $inactive }) =>
       $inactive ? theme.colors.borderLight : theme.colors.secondary};
     border-radius: 10px;
-    color: ${({ theme, $inactive }) => ($inactive ? theme.colors.textLight : theme.colors.white)};
+    color: ${({ theme, $inactive }) =>
+      $inactive ? theme.colors.textLight : theme.colors.white};
     font-weight: 500;
     font-size: 0.9rem;
     display: flex;
@@ -522,6 +544,9 @@ const StyledTagInput = styled.input`
     outline: none;
     box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
   }
+  @media (max-width: 768px) {
+    font-size: 16px;
+  }
 `;
 
 const StyledTreeItem = styled.div`
@@ -544,7 +569,11 @@ const StyledTreeItemLabel = styled.div`
   pointer-events: ${({ $disabled }) => ($disabled ? "none" : "auto")};
   &:hover {
     background-color: ${({ $selected, $disabled, theme }) =>
-      $disabled ? undefined : $selected ? theme.colors.primary : theme.colors.lightGrey};
+      $disabled
+        ? undefined
+        : $selected
+        ? theme.colors.primary
+        : theme.colors.lightGrey};
   }
   > svg {
     width: 16px;
@@ -567,8 +596,11 @@ const StyledPopup = styled.div`
   z-index: 1000;
 
   @media (max-width: 768px) {
-    width: 90%;
-    padding: 40px;
+    width: 92%;
+    padding: 24px 20px;
+    min-height: unset;
+    max-height: 90vh;
+    overflow-y: auto;
   }
 `;
 
@@ -597,6 +629,7 @@ const SearchWrapper = styled.div`
   margin-left: auto;
   @media (max-width: 768px) {
     margin-left: 0;
+    width: 100%;
   }
 `;
 
@@ -638,12 +671,14 @@ const StyledSearchInput = styled.div`
   }
 
   @media (max-width: 768px) {
-    padding: 6px 10px;
+    padding: 10px 14px;
     gap: 6px;
+    width: 100%;
+    border-radius: 12px;
 
     > input {
-      font-size: 0.8rem;
-      width: 120px;
+      font-size: 16px;
+      width: 100%;
     }
   }
 `;
@@ -728,6 +763,12 @@ const StyledTabsContainer = styled.div`
   }
 `;
 
+const TabLabel = styled.span`
+  @media (max-width: 768px) {
+    display: none;
+  }
+`;
+
 const StyledTab = styled.div`
   display: flex;
   align-items: center;
@@ -746,10 +787,11 @@ const StyledTab = styled.div`
   @media (max-width: 768px) {
     font-size: 0.8rem;
     gap: 4px;
+    display: ${({ $active }) => ($active ? "none" : "flex")};
 
     > svg {
-      width: 14px;
-      height: 14px;
+      width: 22px;
+      height: 22px;
     }
   }
 
@@ -841,11 +883,13 @@ const StyledToolbar = styled.div`
   padding-bottom: 15px;
   flex-wrap: wrap;
   gap: 15px;
+  min-height: 48px;
 
   @media (max-width: 768px) {
     margin-bottom: 12px;
     padding-bottom: 10px;
     gap: 8px;
+    min-height: 45px;
   }
 `;
 
@@ -912,6 +956,16 @@ const FilterDropdown = styled.div`
   flex-direction: column;
   gap: 10px;
   cursor: default;
+
+  @media (max-width: 768px) {
+    position: fixed;
+    top: ${({ $filterDropdownY }) => $filterDropdownY}px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: calc(100vw - 80px);
+    max-width: 300px;
+  }
 `;
 
 const FilterTag = styled.div`
@@ -922,7 +976,8 @@ const FilterTag = styled.div`
   cursor: pointer;
   background-color: ${({ $active, theme }) =>
     $active ? theme.colors.secondary : theme.colors.lightGrey};
-  color: ${({ $active, theme }) => ($active ? theme.colors.white : theme.colors.textLight)};
+  color: ${({ $active, theme }) =>
+    $active ? theme.colors.white : theme.colors.textLight};
   transition: all 0.2s;
 
   &:hover {
@@ -991,6 +1046,8 @@ const Notes = () => {
   const [editingName, setEditingName] = useState("");
   const [flipLeft, setFlipLeft] = useState(false);
   const [centerBelow, setCenterBelow] = useState(false);
+  const [dropdownY, setDropdownY] = useState(0);
+  const [flipUp, setFlipUp] = useState(false);
   const [itemTags, setItemTags] = useState([]);
   const [itemSuggestedTags, setItemSuggestedTags] = useState([]);
   const [isAddingItemTag, setIsAddingItemTag] = useState(false);
@@ -1025,6 +1082,7 @@ const Notes = () => {
 
   const [selectedTagsFilter, setSelectedTagsFilter] = useState([]);
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
+  const [filterDropdownY, setFilterDropdownY] = useState(0);
 
   const allAvailableTags = [
     ...new Set([
@@ -1264,15 +1322,30 @@ const Notes = () => {
       return;
     }
     setCurrentFolder(res.currentFolder);
-    setSubFolders(res.subFolders || []);
     setNotes(sortNotes(res.notes || []));
     if (isTrashView && pathSegments.length === 0) {
       setTrashHasItems(res.subFolders?.length > 0 || res.notes?.length > 0);
     }
+
+    const folders = res.subFolders || [];
+    if (folders.length > 0) {
+      const counts = {};
+      await Promise.all(
+        folders.map(async (folder) => {
+          const r = await getFolderItemsCount(folder.id);
+          if (!r.errorCode) counts[folder.id] = r.count;
+        })
+      );
+      setFolderCounts(counts);
+    } else {
+      setFolderCounts({});
+    }
+    setSubFolders(folders);
     setIsLoading(false);
   };
 
   const handleOpenFolder = (folder) => {
+    if (activeFolderOptionsId !== null || activeNoteOptionsId !== null) return;
     setSearchQuery("");
     const encodedName = encodeURIComponent(folder.name);
     const newUrl = urlPath
@@ -1461,25 +1534,19 @@ const Notes = () => {
   }, [urlPath]);
 
   useEffect(() => {
-    const fetchCounts = async () => {
-      const counts = {};
-      const promises = subFolders.map(async (folder) => {
-        const res = await getFolderItemsCount(folder.id);
-        if (!res.errorCode) {
-          counts[folder.id] = res.count;
-        }
-      });
-
-      await Promise.all(promises);
-      setFolderCounts(counts);
+    const handleScroll = () => {
+      const active = document.activeElement;
+      if (
+        active &&
+        (active.tagName === "INPUT" || active.tagName === "TEXTAREA")
+      )
+        return;
+      setActiveFolderOptionsId(null);
+      setActiveNoteOptionsId(null);
     };
-
-    if (subFolders && subFolders.length > 0) {
-      fetchCounts();
-    } else {
-      setFolderCounts({});
-    }
-  }, [subFolders]);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const getVisualSortedItems = (items) => {
     const sorted = [...items];
@@ -1523,6 +1590,7 @@ const Notes = () => {
   return (
     <Layout>
       <StyledContainer
+        $ready={!isLoading}
         onClick={() => {
           setActiveNoteOptionsId(null);
           setActiveFolderOptionsId(null);
@@ -1541,7 +1609,7 @@ const Notes = () => {
           setIsFilterMenuOpen(false);
         }}
       >
-        <StyledUserHeader>
+        <StyledHeader>
           {pathSegments.length === 0 ? (
             <StyledName>Notatki</StyledName>
           ) : (
@@ -1573,7 +1641,7 @@ const Notes = () => {
                 <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" />
               </svg>
               <input
-                placeholder="Szukaj wszędzie..."
+                placeholder="Szukaj..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
@@ -1628,7 +1696,7 @@ const Notes = () => {
                                     {f.name}
                                   </StyledSearchResultName>
                                   <StyledSearchResultPath>
-                                    {fullPath}
+                                    {f.path}
                                   </StyledSearchResultPath>
                                 </StyledSearchResultInfo>
                               </StyledSearchResultItem>
@@ -1680,7 +1748,7 @@ const Notes = () => {
               )}
             </StyledSearchInput>
           </SearchWrapper>
-        </StyledUserHeader>
+        </StyledHeader>
         {errorMessage && <Text color="danger" text={errorMessage} />}
         <StyledToolbar>
           <StyledTabsContainer>
@@ -1691,7 +1759,7 @@ const Notes = () => {
               <svg fill="currentColor" viewBox="0 0 16 16">
                 <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139q.323-.119.684-.12h5.396z" />
               </svg>
-              Moje pliki
+              <TabLabel>Moje pliki</TabLabel>
             </StyledTab>
             <StyledTab
               $active={isTrashView}
@@ -1700,114 +1768,123 @@ const Notes = () => {
               <svg fill="currentColor" viewBox="0 0 16 16">
                 <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
               </svg>
-              Kosz
+              <TabLabel>Kosz</TabLabel>
             </StyledTab>
           </StyledTabsContainer>
 
           <ToolbarActions>
             {!isTrashView && (
-                <FilterContainer>
-                  <ToolbarButton
-                    className="outline"
-                    disabled={subFolders.length === 0 && notes.length === 0}
-                    title={(subFolders.length === 0 && notes.length === 0) ? "Brak elementów do filtrowania" : ""}
-                    onClick={(e) => {
-                      if (subFolders.length === 0 && notes.length === 0) return;
-                      e.stopPropagation();
-                      setIsFilterMenuOpen(!isFilterMenuOpen);
+              <FilterContainer>
+                <ToolbarButton
+                  className="outline"
+                  disabled={subFolders.length === 0 && notes.length === 0}
+                  title={
+                    subFolders.length === 0 && notes.length === 0
+                      ? "Brak elementów do filtrowania"
+                      : ""
+                  }
+                  onClick={(e) => {
+                    if (subFolders.length === 0 && notes.length === 0) return;
+                    e.stopPropagation();
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    setFilterDropdownY(rect.bottom + 8);
+                    setIsFilterMenuOpen(!isFilterMenuOpen);
+                  }}
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    fill="currentColor"
+                    viewBox="0 0 16 16"
+                    style={{
+                      opacity:
+                        subFolders.length === 0 && notes.length === 0 ? 0.5 : 1,
                     }}
                   >
-                    <svg
-                      width="14"
-                      height="14"
-                      fill="currentColor"
-                      viewBox="0 0 16 16"
-                      style={{ opacity: (subFolders.length === 0 && notes.length === 0) ? 0.5 : 1 }}
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3m-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1z"
-                      />
-                    </svg>
-                    Filtruj
-                    {selectedTagsFilter.length > 0 && (
-                      <ActiveFilterBadge>
-                        {selectedTagsFilter.length}
-                      </ActiveFilterBadge>
-                    )}
-                  </ToolbarButton>
-
-                  {/* MENU FILTRÓW */}
-                  {isFilterMenuOpen && (
-                    <FilterDropdown onClick={(e) => e.stopPropagation()}>
-                      <Text
-                        bold="true"
-                        text="Filtruj po tagach"
-                        style={{ fontSize: "0.95rem", margin: "0 0 5px 5px" }}
-                      />
-
-                      {allAvailableTags.length === 0 ? (
-                        <Text
-                          text="Brak przypisanych tagów do folderów i notatek."
-                          style={{
-                            fontSize: "0.85rem",
-                            color: theme.colors.textMuted,
-                            marginLeft: "5px",
-                          }}
-                        />
-                      ) : (
-                        <div
-                          style={{
-                            display: "flex",
-                            flexWrap: "wrap",
-                            gap: "8px",
-                          }}
-                        >
-                          {allAvailableTags.map((tag) => {
-                            const isActive = selectedTagsFilter.includes(tag);
-                            return (
-                              <FilterTag
-                                key={tag}
-                                $active={isActive}
-                                onClick={() => {
-                                  if (isActive) {
-                                    setSelectedTagsFilter((prev) =>
-                                      prev.filter((t) => t !== tag)
-                                    );
-                                  } else {
-                                    setSelectedTagsFilter((prev) => [
-                                      ...prev,
-                                      tag,
-                                    ]);
-                                  }
-                                }}
-                              >
-                                {tag}
-                              </FilterTag>
-                            );
-                          })}
-                        </div>
-                      )}
-
-                      {selectedTagsFilter.length > 0 && (
-                        <div
-                          style={{
-                            fontSize: "0.8rem",
-                            color: theme.colors.danger,
-                            cursor: "pointer",
-                            marginTop: "10px",
-                            textAlign: "center",
-                            fontWeight: "bold",
-                          }}
-                          onClick={() => setSelectedTagsFilter([])}
-                        >
-                          Wyczyść filtry
-                        </div>
-                      )}
-                    </FilterDropdown>
+                    <path
+                      fillRule="evenodd"
+                      d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3m-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1z"
+                    />
+                  </svg>
+                  Filtruj
+                  {selectedTagsFilter.length > 0 && (
+                    <ActiveFilterBadge>
+                      {selectedTagsFilter.length}
+                    </ActiveFilterBadge>
                   )}
-                </FilterContainer>
-              )}
+                </ToolbarButton>
+
+                {/* MENU FILTRÓW */}
+                {isFilterMenuOpen && (
+                  <FilterDropdown $filterDropdownY={filterDropdownY} onClick={(e) => e.stopPropagation()}>
+                    <Text
+                      bold="true"
+                      text="Filtruj po tagach"
+                      style={{ fontSize: "0.95rem", margin: "0 0 5px 5px" }}
+                    />
+
+                    {allAvailableTags.length === 0 ? (
+                      <Text
+                        text="Brak przypisanych tagów do folderów i notatek."
+                        style={{
+                          fontSize: "0.85rem",
+                          color: theme.colors.textMuted,
+                          marginLeft: "5px",
+                        }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: "8px",
+                        }}
+                      >
+                        {allAvailableTags.map((tag) => {
+                          const isActive = selectedTagsFilter.includes(tag);
+                          return (
+                            <FilterTag
+                              key={tag}
+                              $active={isActive}
+                              onClick={() => {
+                                if (isActive) {
+                                  setSelectedTagsFilter((prev) =>
+                                    prev.filter((t) => t !== tag)
+                                  );
+                                } else {
+                                  setSelectedTagsFilter((prev) => [
+                                    ...prev,
+                                    tag,
+                                  ]);
+                                }
+                              }}
+                            >
+                              {tag}
+                            </FilterTag>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {selectedTagsFilter.length > 0 && (
+                      <div
+                        style={{
+                          fontSize: "0.8rem",
+                          color: theme.colors.danger,
+                          cursor: "pointer",
+                          marginTop: "10px",
+                          textAlign: "center",
+                          fontWeight: "bold",
+                        }}
+                        onClick={() => setSelectedTagsFilter([])}
+                      >
+                        Wyczyść filtry
+                      </div>
+                    )}
+                  </FilterDropdown>
+                )}
+              </FilterContainer>
+            )}
 
             {(subFolders.length > 0 || notes.length > 0) && (
               <SortSelectContainer>
@@ -1882,11 +1959,14 @@ const Notes = () => {
           {!isLoading && subFolders.length === 0 && notes.length === 0 && (
             <div
               style={{
+                gridColumn: "1 / -1",
                 width: "100%",
                 padding: "60px 0",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
+                justifyContent: "center",
+                textAlign: "center",
                 gap: "12px",
                 color: "inherit",
                 opacity: 0.4,
@@ -1968,7 +2048,15 @@ const Notes = () => {
                     )}
 
                     {folder.tags && folder.tags.length > 0 && (
-                      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "4px", marginTop: "8px" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          justifyContent: "center",
+                          gap: "4px",
+                          marginTop: "8px",
+                        }}
+                      >
                         {folder.tags.slice(0, 3).map((tag, idx) => (
                           <ItemTag key={idx}>{tag}</ItemTag>
                         ))}
@@ -1993,6 +2081,13 @@ const Notes = () => {
                       const fitsLeft = rect.left - 10 - 350 >= 0;
                       setCenterBelow(!fitsRight && !fitsLeft);
                       setFlipLeft(!fitsRight && fitsLeft);
+                      const estimatedHeight = 320;
+                      const wouldOverflow =
+                        rect.bottom + 4 + estimatedHeight > window.innerHeight;
+                      setFlipUp(wouldOverflow);
+                      setDropdownY(
+                        wouldOverflow ? rect.top - 4 : rect.bottom + 4
+                      );
                       setIsAddingItemTag(false);
                       setNewItemTag("");
                       setActiveFolderOptionsId(
@@ -2006,6 +2101,8 @@ const Notes = () => {
                       $flipLeft={flipLeft}
                       $centerBelow={centerBelow}
                       $narrow={isTrashView}
+                      $dropdownY={dropdownY}
+                      $flipUp={flipUp}
                       onClick={(e) => e.stopPropagation()}
                     >
                       {isTrashView ? (
@@ -2176,6 +2273,11 @@ const Notes = () => {
               <StyledItem key={d.id} $isActive={activeNoteOptionsId === d.id}>
                 <StyledNoteImage
                   onClick={() => {
+                    if (
+                      activeFolderOptionsId !== null ||
+                      activeNoteOptionsId !== null
+                    )
+                      return;
                     if (!isTrashView) navigate(`/note/${d.id}`);
                   }}
                 >
@@ -2191,6 +2293,11 @@ const Notes = () => {
                 <StyledItemHeaderWrapper>
                   <div
                     onClick={() => {
+                      if (
+                        activeFolderOptionsId !== null ||
+                        activeNoteOptionsId !== null
+                      )
+                        return;
                       if (!isTrashView) navigate(`/note/${d.id}`);
                     }}
                     style={{ cursor: "pointer" }}
@@ -2201,9 +2308,18 @@ const Notes = () => {
                       text={d.name}
                       style={{ marginBottom: "10px", fontSize: "1.05rem" }}
                     />
-                    
+
                     {d.tags && d.tags.length > 0 && (
-                      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "4px", marginTop: "-4px", marginBottom: "8px" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          justifyContent: "center",
+                          gap: "4px",
+                          marginTop: "-4px",
+                          marginBottom: "8px",
+                        }}
+                      >
                         {d.tags.slice(0, 3).map((tag, idx) => (
                           <ItemTag key={idx}>{tag}</ItemTag>
                         ))}
@@ -2228,6 +2344,13 @@ const Notes = () => {
                       const fitsLeft = rect.left - 10 - 350 >= 0;
                       setCenterBelow(!fitsRight && !fitsLeft);
                       setFlipLeft(!fitsRight && fitsLeft);
+                      const estimatedHeight = 320;
+                      const wouldOverflow =
+                        rect.bottom + 4 + estimatedHeight > window.innerHeight;
+                      setFlipUp(wouldOverflow);
+                      setDropdownY(
+                        wouldOverflow ? rect.top - 4 : rect.bottom + 4
+                      );
                       setIsAddingItemTag(false);
                       setNewItemTag("");
                       setActiveNoteOptionsId(
@@ -2241,6 +2364,8 @@ const Notes = () => {
                       $flipLeft={flipLeft}
                       $centerBelow={centerBelow}
                       $narrow={isTrashView}
+                      $dropdownY={dropdownY}
+                      $flipUp={flipUp}
                       onClick={(e) => e.stopPropagation()}
                     >
                       {isTrashView ? (
@@ -2523,9 +2648,7 @@ const Notes = () => {
                   }
                 }}
                 onRemoveTag={(tag) => {
-                  setChosenTags((prev) =>
-                    prev.filter((t) => t !== tag)
-                  );
+                  setChosenTags((prev) => prev.filter((t) => t !== tag));
                 }}
                 onSetIsAddingTag={setIsAddingTag}
                 onSetNewTag={setNewTag}
