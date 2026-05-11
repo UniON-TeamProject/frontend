@@ -120,6 +120,7 @@ const CardBox = styled.div`
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
+    min-width: 0;
     @media (max-width: 768px) {
         padding: 18px 14px;
     }
@@ -162,6 +163,7 @@ const ItemList = styled.div`
   flex-direction: column;
   gap: 12px;
   flex-grow: 1;
+  position: relative;
 `;
 
 const ListItem = styled.div`
@@ -201,6 +203,7 @@ const ItemInfo = styled.div`
     gap: 4px;
     flex: 1; 
     min-width: 0; 
+    padding-right: 15px;
 `;
 
 const ItemTitle = styled.span`
@@ -228,6 +231,7 @@ const ItemMeta = styled.div`
   flex-direction: column;
   align-items: flex-end;
   gap: 5px;
+  flex-shrink: 0;
 `;
 
 const ProgressBar = styled.div`
@@ -330,6 +334,18 @@ const BellIconWrapper = styled.div`
             transform: scale(1.1);
         }
     }
+`;
+
+const EmptyDataMessage = styled.div`
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: ${({ theme }) => theme.colors?.textLight };
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-align: center;
 `;
 
 const Home = () => {
@@ -679,28 +695,39 @@ const Home = () => {
                         <FiszkiBox>
                             <CardTitle>Wróć do nauki</CardTitle>
                             <ItemList>
-                                {recentSets.map((set) => {
-                                    const validProgress = isNaN(set.progress) ? 0 : set.progress;
-                                    const greenWidth = Math.min(Math.max(validProgress, 0), 100);
-                                    const blueWidth = 100 - greenWidth;
+                                {recentSets.length > 0 ? (
+                                    <>
+                                        {recentSets.map((set) => {
+                                            const validProgress = isNaN(set.progress) ? 0 : set.progress;
+                                            const greenWidth = Math.min(Math.max(validProgress, 0), 100);
+                                            const blueWidth = 100 - greenWidth;
 
-                                    return (
-                                        <ListItem key={set.id} onClick={() => navigate(`/learning/fast/${set.id}`)}>
-                                            <ItemInfo>
-                                                <ItemTitle>{set.name}</ItemTitle>
-                                                <ItemSub>Ostatnia aktywność: {formatActivityDate(set._sortTime)}</ItemSub>
-                                            </ItemInfo>
-                                            
-                                            <ItemMeta>
-                                                <ProgressBar>
-                                                    <ProgressGreen style={{ width: `${greenWidth}%` }} />
-                                                    <ProgressBlue style={{ width: `${blueWidth}%` }} />
-                                                </ProgressBar>
-                                            </ItemMeta>
-                                        </ListItem>
-                                    );
-                                })}
-                                {renderEmptySets(recentSets.length, 3)}
+                                            return (
+                                                <ListItem key={set.id} onClick={() => navigate(`/learning/fast/${set.id}`)}>
+                                                    <ItemInfo>
+                                                        <ItemTitle>{set.name}</ItemTitle>
+                                                        <ItemSub>Ostatnia aktywność: {formatActivityDate(set._sortTime)}</ItemSub>
+                                                    </ItemInfo>
+                                                    
+                                                    <ItemMeta>
+                                                        <ProgressBar>
+                                                            <ProgressGreen style={{ width: `${greenWidth}%` }} />
+                                                            <ProgressBlue style={{ width: `${blueWidth}%` }} />
+                                                        </ProgressBar>
+                                                    </ItemMeta>
+                                                </ListItem>
+                                            );
+                                        })}
+                                        {recentSets.length < 3 && renderEmptySets(recentSets.length, 3)}
+                                    </>
+                                ) : (
+                                    <>
+                                        <div style={{ opacity: 0, pointerEvents: "none", display: "flex", flexDirection: "column", gap: "12px", width: "100%" }}>
+                                            {renderEmptySets(0, 3)}
+                                        </div>
+                                        <EmptyDataMessage>Brak ostatnich zestawów.</EmptyDataMessage>
+                                    </>
+                                )}
                             </ItemList>
                             <MoreButton onClick={() => navigate("/learning")}>Więcej...</MoreButton>
                         </FiszkiBox>
@@ -732,17 +759,28 @@ const Home = () => {
                             </FoldersRow>
                             
                             <ItemList>
-                                {recentNotes.map((note) => (
-                                    <ListItem key={note.id} onClick={() => navigate(`/note/${note.id}`)}>
-                                        <ItemInfo>
-                                            <ItemTitle>{note.name || "Brak nazwy"}</ItemTitle>
-                                        </ItemInfo>
-                                        <ItemMeta>
-                                            <TagPill><i>{getNotePath(note)}</i></TagPill>
-                                        </ItemMeta>
-                                    </ListItem>
-                                ))}
-                                {renderEmptyNotes(recentNotes.length, 3)}
+                                {recentNotes.length > 0 ? (
+                                    <>
+                                        {recentNotes.map((note) => (
+                                            <ListItem key={note.id} onClick={() => navigate(`/note/${note.id}`)}>
+                                                <ItemInfo>
+                                                    <ItemTitle>{note.name || "Brak nazwy"}</ItemTitle>
+                                                </ItemInfo>
+                                                <ItemMeta>
+                                                    <TagPill><i>{getNotePath(note)}</i></TagPill>
+                                                </ItemMeta>
+                                            </ListItem>
+                                        ))}
+                                        {recentNotes.length < 3 && renderEmptyNotes(recentNotes.length, 3)}
+                                    </>
+                                ) : (
+                                    <>
+                                        <div style={{ opacity: 0, pointerEvents: "none", display: "flex", flexDirection: "column", gap: "12px", width: "100%" }}>
+                                            {renderEmptyNotes(0, 3)}
+                                        </div>
+                                        <EmptyDataMessage>Brak ostatnich notatek.</EmptyDataMessage>
+                                    </>
+                                )}
                             </ItemList>
                             <MoreButton onClick={() => navigate("/notes")}>Więcej...</MoreButton>
                         </NotatkiBox>
@@ -794,64 +832,66 @@ const Home = () => {
                         <CardTitle>Społeczności</CardTitle>
                         <ItemList>
                             {recentGroups.length > 0 ? (
-                                recentGroups.map((group) => {
-                                    const isPinned = pinnedGroupIds.includes(group.id);
-                                    
-                                    return (
-                                        <ListItem key={group.id} onClick={() => navigate(`/social/${group.id}`)}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0, paddingRight: '10px' }}>
-                                                <div style={{ 
-                                                    width: '38px', height: '38px', borderRadius: '10px', 
-                                                    backgroundColor: theme.colors?.lightGrey || '#e9ece1', color: theme.colors?.veryDarkPrimary || '#122818', 
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 
-                                                }}>
-                                                    <svg fill="currentColor" viewBox="0 0 16 16" style={{ width: '20px', height: '20px' }}>
-                                                        <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275zM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4" />
-                                                    </svg>
+                                <>
+                                    {recentGroups.map((group) => {
+                                        const isPinned = pinnedGroupIds.includes(group.id);
+                                        
+                                        return (
+                                            <ListItem key={group.id} onClick={() => navigate(`/social/${group.id}`)}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0, paddingRight: '10px' }}>
+                                                    <div style={{ 
+                                                        width: '38px', height: '38px', borderRadius: '10px', 
+                                                        backgroundColor: theme.colors?.lightGrey || '#e9ece1', color: theme.colors?.veryDarkPrimary || '#122818', 
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 
+                                                    }}>
+                                                        <svg fill="currentColor" viewBox="0 0 16 16" style={{ width: '20px', height: '20px' }}>
+                                                            <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275zM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4" />
+                                                        </svg>
+                                                    </div>
+                                                    
+                                                    <ItemInfo>
+                                                        <ItemTitle>{group.name}</ItemTitle>
+                                                        <ItemSub>{group.description || "Brak opisu"}</ItemSub>
+                                                    </ItemInfo>
                                                 </div>
-                                                
-                                                <ItemInfo>
-                                                    <ItemTitle>{group.name}</ItemTitle>
-                                                    <ItemSub>{group.description || "Brak opisu"}</ItemSub>
-                                                </ItemInfo>
-                                            </div>
 
-                                            <ItemMeta style={{ flexDirection: 'row', alignItems: 'center', gap: '10px' }}>
-                                                <TagPill style={{ backgroundColor: theme.colors?.lightGrey || '#e9ece1', padding: '3px 8px', borderRadius: '8px' }}>
-                                                    {group.userRole === 'ADMIN' ? 'Administrator' : 
-                                                     group.userRole === 'EDITOR' ? 'Edytor' : 
-                                                     group.userRole === 'VIEWER' ? 'Obserwator' : 'Członek'}
-                                                </TagPill>
-                                                
-                                                <div 
-                                                    onClick={(e) => togglePinGroup(e, group.id)}
-                                                    title={isPinned ? "Odepnij" : "Przypnij na górze"}
-                                                    style={{ 
-                                                        cursor: 'pointer', 
-                                                        color: isPinned ? '#f1c40f' : (theme.colors?.borderMuted || '#c4c9b9'), 
-                                                        display: 'flex', alignItems: 'center',
-                                                        transition: 'color 0.2s, transform 0.2s'
-                                                    }}
-                                                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.2)'}
-                                                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                                                >
-                                                    <svg fill="currentColor" viewBox="0 0 16 16" style={{ width: '18px', height: '18px' }}>
-                                                        <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
-                                                    </svg>
-                                                </div>
-                                            </ItemMeta>
-                                        </ListItem>
-                                    );
-                                })
+                                                <ItemMeta style={{ flexDirection: 'row', alignItems: 'center', gap: '10px' }}>
+                                                    <TagPill style={{ backgroundColor: theme.colors?.lightGrey || '#e9ece1', padding: '3px 8px', borderRadius: '8px' }}>
+                                                        {group.userRole === 'ADMIN' ? 'Administrator' : 
+                                                         group.userRole === 'EDITOR' ? 'Edytor' : 
+                                                         group.userRole === 'VIEWER' ? 'Obserwator' : 'Członek'}
+                                                    </TagPill>
+                                                    
+                                                    <div 
+                                                        onClick={(e) => togglePinGroup(e, group.id)}
+                                                        title={isPinned ? "Odepnij" : "Przypnij na górze"}
+                                                        style={{ 
+                                                            cursor: 'pointer', 
+                                                            color: isPinned ? '#f1c40f' : (theme.colors?.borderMuted || '#c4c9b9'), 
+                                                            display: 'flex', alignItems: 'center',
+                                                            transition: 'color 0.2s, transform 0.2s'
+                                                        }}
+                                                        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.2)'}
+                                                        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                                                    >
+                                                        <svg fill="currentColor" viewBox="0 0 16 16" style={{ width: '18px', height: '18px' }}>
+                                                            <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+                                                        </svg>
+                                                    </div>
+                                                </ItemMeta>
+                                            </ListItem>
+                                        );
+                                    })}
+                                    {recentGroups.length < 3 && renderEmptyGroups(recentGroups.length, 3)}
+                                </>
                             ) : (
-                                <div style={{ flexGrow: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', color: theme.colors?.textLight || '#b3b9a8', fontSize: '0.95rem', textAlign: 'center', minHeight: '80px' }}>
-                                    Nie należysz do żadnej społeczności.
-                                </div>
+                                <>
+                                    <div style={{ opacity: 0, pointerEvents: "none", display: "flex", flexDirection: "column", gap: "12px", width: "100%" }}>
+                                        {renderEmptyGroups(0, 3)}
+                                    </div>
+                                    <EmptyDataMessage>Nie należysz do żadnej społeczności.</EmptyDataMessage>
+                                </>
                             )}
-                            
-                            {recentGroups.length > 0 && recentGroups.length < 3 && 
-                                renderEmptyGroups(recentGroups.length, 3)
-                            }
                         </ItemList>
                         <MoreButton onClick={() => navigate("/social")}>Więcej...</MoreButton>
                     </SocialBox>
@@ -860,40 +900,50 @@ const Home = () => {
                         <CardTitle>Bliskie terminy</CardTitle>
                         <ItemList>
                             {upcomingDeadlines.length > 0 ? (
-                                upcomingDeadlines.map((deadline) => {
-                                    const categoryTag = deadline.tags && deadline.tags.length > 0 ? deadline.tags[0] : null;
-                                    const categoryLabel = categoryTag && TAG_CONFIG[categoryTag] 
-                                        ? TAG_CONFIG[categoryTag].label 
-                                        : "TERMIN";
+                                <>
+                                    {/* bedziemy wyswietlac ikonki zamiast kategorii */}
+                                    {upcomingDeadlines.map((deadline) => {
+                                        const icons = (deadline.tags || [])
+                                            .map(tag => TAG_CONFIG[tag]?.icon)
+                                            .filter(Boolean);
 
-                                    return (
-                                        <ListItem 
-                                            key={deadline.id} 
-                                            onClick={() => navigate('/calendar')}
-                                            style={{ borderLeft: `4px solid ${theme.colors?.danger || '#ef4444'}` }}
-                                        >
-                                            <ItemInfo>
-                                                <ItemTitle>{deadline.title}</ItemTitle>
-                                                <ItemSub>
-                                                    {deadline.date.toLocaleDateString('pl-PL', { day: '2-digit', month: 'short' })}
-                                                    {deadline.allDay ? '' : ` o ${String(deadline.startHour).padStart(2, '0')}:${String(deadline.startMin).padStart(2, '0')}`}
-                                                </ItemSub>
-                                            </ItemInfo>
-                                            <ItemMeta>
-                                                <TagPill style={{ color: theme.colors?.danger || '#ef4444', textTransform: 'uppercase' }}>
-                                                    {categoryLabel}
-                                                </TagPill>
-                                            </ItemMeta>
-                                        </ListItem>
-                                    );
-                                })
+                                        return (
+                                            <ListItem 
+                                                key={deadline.id} 
+                                                onClick={() => navigate('/calendar')}
+                                                style={{ borderLeft: `4px solid ${theme.colors?.danger || '#ef4444'}` }}
+                                            >
+                                                <ItemInfo>
+                                                    <ItemTitle>{deadline.title}</ItemTitle>
+                                                    <ItemSub>
+                                                        {deadline.date.toLocaleDateString('pl-PL', { day: '2-digit', month: 'short' })}
+                                                        {deadline.allDay ? '' : ` o ${String(deadline.startHour).padStart(2, '0')}:${String(deadline.startMin).padStart(2, '0')}`}
+                                                    </ItemSub>
+                                                </ItemInfo>
+                                                <ItemMeta>
+                                                    <div style={{ display: 'flex', gap: '4px', fontSize: '0.95rem', alignItems: 'center' }}>
+                                                        {icons.length > 0 ? (
+                                                            icons.map((icon, idx) => (
+                                                                <span key={idx} title="Kategoria">{icon}</span>
+                                                            ))
+                                                        ) : (
+                                                            <span title="Termin">⏰</span>
+                                                        )}
+                                                    </div>
+                                                </ItemMeta>
+                                            </ListItem>
+                                        );
+                                    })}
+                                    {upcomingDeadlines.length < 3 && renderEmptyDeadlines(upcomingDeadlines.length, 3)}
+                                </>
                             ) : (
-                                renderEmptyDeadlines(0, 3)
+                                <>
+                                    <div style={{ opacity: 0, pointerEvents: "none", display: "flex", flexDirection: "column", gap: "12px", width: "100%" }}>
+                                        {renderEmptyDeadlines(0, 3)}
+                                    </div>
+                                    <EmptyDataMessage>Brak bliskich terminów.</EmptyDataMessage>
+                                </>
                             )}
-                            
-                            {upcomingDeadlines.length > 0 && upcomingDeadlines.length < 3 && 
-                                renderEmptyDeadlines(upcomingDeadlines.length, 3)
-                            }
                         </ItemList>
                         <MoreButton onClick={() => navigate('/calendar')}>Więcej...</MoreButton>
                     </DeadlinesBox>
