@@ -14,7 +14,7 @@ function checkUnauthorized(resp) {
 
 export async function loginRequest(login, password) {
   try {
-    const resp = await fetch(`${API_HOST}/union/signIn`, {
+    const resp = await fetch(`${API_HOST}/signIn`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ login, password }),
@@ -35,7 +35,7 @@ export async function loginRequest(login, password) {
 
 export async function usernameVerificationRequest(username) {
   try {
-    const resp = await fetch(`${API_HOST}/union/checkUsername`, {
+    const resp = await fetch(`${API_HOST}/checkUsername`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: username,
@@ -60,7 +60,7 @@ export async function registerRequest(
   confirmPassword
 ) {
   try {
-    const resp = await fetch(`${API_HOST}/union/signUp`, {
+    const resp = await fetch(`${API_HOST}/signUp`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, username, password, confirmPassword }),
@@ -80,7 +80,7 @@ export async function registerRequest(
 
 export async function verificationRequest(email, verificationCode) {
   try {
-    const resp = await fetch(`${API_HOST}/union/verify`, {
+    const resp = await fetch(`${API_HOST}/verify`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, token: verificationCode }),
@@ -100,7 +100,7 @@ export async function verificationRequest(email, verificationCode) {
 
 export async function emailVerificationRequest(email) {
   try {
-    const resp = await fetch(`${API_HOST}/union/checkEmail`, {
+    const resp = await fetch(`${API_HOST}/checkEmail`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: email,
@@ -119,7 +119,7 @@ export async function emailVerificationRequest(email) {
 
 export async function resendVerificationCode(email) {
   try {
-    const resp = await fetch(`${API_HOST}/union/resendVerificationCode`, {
+    const resp = await fetch(`${API_HOST}/resendVerificationCode`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: email,
@@ -140,7 +140,7 @@ export async function resendVerificationCode(email) {
 
 export async function sendResetPasswordCode(email) {
   try {
-    const resp = await fetch(`${API_HOST}/union/forgotPassword`, {
+    const resp = await fetch(`${API_HOST}/forgotPassword`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
@@ -160,7 +160,7 @@ export async function sendResetPasswordCode(email) {
 
 export async function resetPassword(email, verificationCode, password) {
   try {
-    const resp = await fetch(`${API_HOST}/union/resetPassword`, {
+    const resp = await fetch(`${API_HOST}/resetPassword`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
