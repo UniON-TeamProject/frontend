@@ -23,6 +23,9 @@ const StyledInput = styled.input`
   color: ${({ theme }) => theme.colors.text};
   font-size: 0.9rem;
   background-color: ${({ theme }) => theme.colors.white};
+  @media (max-width: 768px) {
+    font-size: 16px;
+  }
   border: none;
   outline: ${({ theme, $mode }) =>
     $mode == "error"

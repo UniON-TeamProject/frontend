@@ -14,7 +14,7 @@ function checkUnauthorized(resp) {
 
 export async function loginRequest(login, password) {
   try {
-    const resp = await fetch(`${API_HOST}/studyUp/signIn`, {
+    const resp = await fetch(`${API_HOST}/union/signIn`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ login, password }),
@@ -35,7 +35,7 @@ export async function loginRequest(login, password) {
 
 export async function usernameVerificationRequest(username) {
   try {
-    const resp = await fetch(`${API_HOST}/studyUp/checkUsername`, {
+    const resp = await fetch(`${API_HOST}/union/checkUsername`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: username,
@@ -60,7 +60,7 @@ export async function registerRequest(
   confirmPassword
 ) {
   try {
-    const resp = await fetch(`${API_HOST}/studyUp/signUp`, {
+    const resp = await fetch(`${API_HOST}/union/signUp`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, username, password, confirmPassword }),
@@ -80,7 +80,7 @@ export async function registerRequest(
 
 export async function verificationRequest(email, verificationCode) {
   try {
-    const resp = await fetch(`${API_HOST}/studyUp/verify`, {
+    const resp = await fetch(`${API_HOST}/union/verify`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, token: verificationCode }),
@@ -100,7 +100,7 @@ export async function verificationRequest(email, verificationCode) {
 
 export async function emailVerificationRequest(email) {
   try {
-    const resp = await fetch(`${API_HOST}/studyUp/checkEmail`, {
+    const resp = await fetch(`${API_HOST}/union/checkEmail`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: email,
@@ -119,7 +119,7 @@ export async function emailVerificationRequest(email) {
 
 export async function resendVerificationCode(email) {
   try {
-    const resp = await fetch(`${API_HOST}/studyUp/resendVerificationCode`, {
+    const resp = await fetch(`${API_HOST}/union/resendVerificationCode`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: email,
@@ -140,7 +140,7 @@ export async function resendVerificationCode(email) {
 
 export async function sendResetPasswordCode(email) {
   try {
-    const resp = await fetch(`${API_HOST}/studyUp/forgotPassword`, {
+    const resp = await fetch(`${API_HOST}/union/forgotPassword`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
@@ -160,7 +160,7 @@ export async function sendResetPasswordCode(email) {
 
 export async function resetPassword(email, verificationCode, password) {
   try {
-    const resp = await fetch(`${API_HOST}/studyUp/resetPassword`, {
+    const resp = await fetch(`${API_HOST}/union/resetPassword`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -294,10 +294,10 @@ export async function getNoteDetails(id, socialId = null) {
       message: "Brak tokena, zaloguj się ponownie",
     };
   try {
-    const url = socialId 
+    const url = socialId
       ? `${API_HOST}/notes/readNote/${id}?socialId=${socialId}`
       : `${API_HOST}/notes/readNote/${id}`;
-    
+
     const resp = await fetch(url, {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },
@@ -328,7 +328,7 @@ export async function editNote(id, content, socialId = null) {
     };
 
   try {
-    const url = socialId 
+    const url = socialId
       ? `${API_HOST}/notes/editNote?socialId=${socialId}`
       : `${API_HOST}/notes/editNote`;
 
@@ -411,7 +411,7 @@ export async function getNoteTags(id, socialId = null) {
       message: "Brak tokena, zaloguj się ponownie",
     };
   try {
-    const url = socialId 
+    const url = socialId
       ? `${API_HOST}/notes/getNoteTags/${id}?socialId=${socialId}`
       : `${API_HOST}/notes/getNoteTags/${id}`;
 
@@ -459,8 +459,8 @@ export async function addNote(name, path = "/", socialId = null) {
     };
 
   try {
-    const url = socialId 
-      ? `${API_HOST}/notes/addNote?socialId=${socialId}` 
+    const url = socialId
+      ? `${API_HOST}/notes/addNote?socialId=${socialId}`
       : `${API_HOST}/notes/addNote`;
 
     const resp = await fetch(url, {
@@ -500,7 +500,7 @@ export async function addNoteTag(id, name, socialId = null) {
     };
 
   try {
-    const url = socialId 
+    const url = socialId
       ? `${API_HOST}/notes/addNoteTag?socialId=${socialId}`
       : `${API_HOST}/notes/addNoteTag`;
 
@@ -539,7 +539,7 @@ export async function removeNoteTag(id, name, socialId = null) {
     };
 
   try {
-    const url = socialId 
+    const url = socialId
       ? `${API_HOST}/notes/removeNoteTag?socialId=${socialId}`
       : `${API_HOST}/notes/removeNoteTag`;
 
@@ -617,7 +617,7 @@ export async function renameNote(id, name, socialId = null) {
     };
 
   try {
-    const url = socialId 
+    const url = socialId
       ? `${API_HOST}/notes/renameNote?socialId=${socialId}`
       : `${API_HOST}/notes/renameNote`;
 
@@ -657,7 +657,7 @@ export async function deleteNote(id, socialId = null) {
     };
 
   try {
-    const url = socialId 
+    const url = socialId
       ? `${API_HOST}/notes/deleteNote/${id}?socialId=${socialId}`
       : `${API_HOST}/notes/deleteNote/${id}`;
 
@@ -1054,8 +1054,8 @@ export async function addFlashcardSet(name, tags = [], socialId = null) {
     };
 
   try {
-    const url = socialId 
-      ? `${API_HOST}/addCardSet?socialId=${socialId}` 
+    const url = socialId
+      ? `${API_HOST}/addCardSet?socialId=${socialId}`
       : `${API_HOST}/addCardSet`;
 
     const resp = await fetch(url, {
@@ -1066,11 +1066,11 @@ export async function addFlashcardSet(name, tags = [], socialId = null) {
       },
       body: JSON.stringify({
         name: name,
-        tags: tags, 
+        tags: tags,
         cards: [],
       }),
     });
-    
+
     const authErr = checkUnauthorized(resp);
     if (authErr) return authErr;
 
@@ -1127,11 +1127,16 @@ export async function editCard(id, question, answer, setId, tags = []) {
   }
 }
 
-export async function editFlashcardSet(setId, name, tags = [], socialId = null) {
+export async function editFlashcardSet(
+  setId,
+  name,
+  tags = [],
+  socialId = null
+) {
   const token = getToken();
   if (!token) return { errorCode: "TOKEN_UNDEFINED", message: "Brak tokena" };
   try {
-    const url = socialId 
+    const url = socialId
       ? `${API_HOST}/editCardSet/${setId}?socialId=${socialId}`
       : `${API_HOST}/editCardSet/${setId}`;
 
@@ -1405,7 +1410,7 @@ export async function deleteFlashcardSet(setId, socialId = null) {
       message: "Brak tokena, zaloguj się ponownie",
     };
   try {
-    const url = socialId 
+    const url = socialId
       ? `${API_HOST}/deleteCardSet/${setId}?socialId=${socialId}`
       : `${API_HOST}/deleteCardSet/${setId}`;
 
@@ -2448,7 +2453,6 @@ export async function getCardDues(cardId) {
   }
 }
 
-
 export async function getFolderItemsCount(folderId) {
   const token = getToken();
   if (!token) return { count: 0, errorCode: "TOKEN_UNDEFINED" };
@@ -2833,7 +2837,11 @@ export async function getAllUsersCards() {
 export async function getUniversities() {
   const token = getToken();
   if (!token)
-    return { universities: [], errorCode: "TOKEN_UNDEFINED", message: "Brak tokena, zaloguj się ponownie" };
+    return {
+      universities: [],
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
   try {
     const resp = await fetch(`${API_HOST}/universities`, {
       method: "GET",
@@ -2846,31 +2854,54 @@ export async function getUniversities() {
       const data = await resp.json();
       return { universities: data, errorCode: "", message: "" };
     }
-    return { universities: [], errorCode: "FETCH_ERROR", message: "Nie udało się pobrać listy uczelni" };
+    return {
+      universities: [],
+      errorCode: "FETCH_ERROR",
+      message: "Nie udało się pobrać listy uczelni",
+    };
   } catch {
-    return { universities: [], errorCode: "CONNECTION_ERROR", message: "Nie udało się połączyć z serwerem" };
+    return {
+      universities: [],
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem",
+    };
   }
 }
 
 export async function setUniversity(universityName) {
   const token = getToken();
   if (!token)
-    return { errorCode: "TOKEN_UNDEFINED", message: "Brak tokena, zaloguj się ponownie" };
+    return {
+      errorCode: "TOKEN_UNDEFINED",
+      message: "Brak tokena, zaloguj się ponownie",
+    };
   try {
-    const resp = await fetch(`${API_HOST}/addUniversity?universityName=${encodeURIComponent(universityName)}`, {
-      method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
+    const resp = await fetch(
+      `${API_HOST}/addUniversity?universityName=${encodeURIComponent(
+        universityName
+      )}`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
     const authErr = checkUnauthorized(resp);
     if (authErr) return authErr;
-    if (resp.ok) return { errorCode: "", message: "Uczelnia została zapisana." };
+    if (resp.ok)
+      return { errorCode: "", message: "Uczelnia została zapisana." };
     const err = await parseErrorBody(resp);
-    return { errorCode: err.errorCode, message: err.message || "Nie udało się zapisać uczelni" };
+    return {
+      errorCode: err.errorCode,
+      message: err.message || "Nie udało się zapisać uczelni",
+    };
   } catch {
-    return { errorCode: "CONNECTION_ERROR", message: "Nie udało się połączyć z serwerem" };
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem",
+    };
   }
 }
 
@@ -2913,375 +2944,429 @@ export async function getCardsByTags(tags) {
   }
 }
 
-
 export const getUserSocialGroups = async () => {
-    const token = getToken();
-    try {
-        const response = await fetch(`${API_HOST}/social`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        const data = await response.json();
-        return response.ok ? data : { errorCode: data.errorCode || "ERROR", message: data.message };
-    } catch (error) {
-        return { errorCode: "NETWORK_ERROR", message: "Błąd sieci" };
-    }
+  const token = getToken();
+  try {
+    const response = await fetch(`${API_HOST}/social`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await response.json();
+    return response.ok
+      ? data
+      : { errorCode: data.errorCode || "ERROR", message: data.message };
+  } catch (error) {
+    return { errorCode: "NETWORK_ERROR", message: "Błąd sieci" };
+  }
 };
 
 export const createSocialGroup = async (name, description) => {
-    const token = getToken();
-    try {
-        const response = await fetch(`${API_HOST}/createSocial`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ name, description })
-        });
-        const data = await response.json();
-        return response.ok ? data : { errorCode: data.errorCode || "ERROR", message: data.message };
-    } catch (error) {
-        return { errorCode: "NETWORK_ERROR", message: "Błąd sieci" };
-    }
+  const token = getToken();
+  try {
+    const response = await fetch(`${API_HOST}/createSocial`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ name, description }),
+    });
+    const data = await response.json();
+    return response.ok
+      ? data
+      : { errorCode: data.errorCode || "ERROR", message: data.message };
+  } catch (error) {
+    return { errorCode: "NETWORK_ERROR", message: "Błąd sieci" };
+  }
 };
 
 export const getSocialGroup = async (id) => {
-    const token = getToken();
-    try {
-        const response = await fetch(`${API_HOST}/social/${id}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        const data = await response.json();
-        return response.ok ? data : { errorCode: data.errorCode || "ERROR", message: data.message };
-    } catch (error) {
-        return { errorCode: "NETWORK_ERROR", message: "Błąd sieci" };
-    }
+  const token = getToken();
+  try {
+    const response = await fetch(`${API_HOST}/social/${id}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await response.json();
+    return response.ok
+      ? data
+      : { errorCode: data.errorCode || "ERROR", message: data.message };
+  } catch (error) {
+    return { errorCode: "NETWORK_ERROR", message: "Błąd sieci" };
+  }
 };
 
 export const editSocialGroup = async (id, name, description) => {
-    const token = getToken();
-    try {
-        const response = await fetch(`${API_HOST}/social/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ name, description })
-        });
-        const data = await response.json();
-        return response.ok ? data : { errorCode: data.errorCode || "ERROR", message: data.message };
-    } catch (error) {
-        return { errorCode: "NETWORK_ERROR", message: "Błąd sieci" };
-    }
+  const token = getToken();
+  try {
+    const response = await fetch(`${API_HOST}/social/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ name, description }),
+    });
+    const data = await response.json();
+    return response.ok
+      ? data
+      : { errorCode: data.errorCode || "ERROR", message: data.message };
+  } catch (error) {
+    return { errorCode: "NETWORK_ERROR", message: "Błąd sieci" };
+  }
 };
 
 export const deleteSocialGroup = async (id) => {
-    const token = getToken();
-    try {
-        const response = await fetch(`${API_HOST}/social/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        if (response.ok) {
-             const data = await response.json().catch(() => true); 
-             return { success: data, errorCode: "" };
-        } else {
-             const errData = await response.json().catch(() => ({}));
-             return { errorCode: errData.errorCode || "ERROR", message: errData.message || "Błąd usuwania." };
-        }
-    } catch (error) {
-        return { errorCode: "NETWORK_ERROR", message: "Błąd sieci" };
+  const token = getToken();
+  try {
+    const response = await fetch(`${API_HOST}/social/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (response.ok) {
+      const data = await response.json().catch(() => true);
+      return { success: data, errorCode: "" };
+    } else {
+      const errData = await response.json().catch(() => ({}));
+      return {
+        errorCode: errData.errorCode || "ERROR",
+        message: errData.message || "Błąd usuwania.",
+      };
     }
+  } catch (error) {
+    return { errorCode: "NETWORK_ERROR", message: "Błąd sieci" };
+  }
 };
 
 export const getFriends = async () => {
-    const token = getToken();
-    try {
-        const response = await fetch(`${API_HOST}/getFriends`, {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await response.json();
-        return response.ok ? data : { errorCode: data.errorCode || "ERROR", message: data.message };
-    } catch (error) {
-        return { errorCode: "NETWORK_ERROR", message: "Błąd sieci" };
-    }
+  const token = getToken();
+  try {
+    const response = await fetch(`${API_HOST}/getFriends`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await response.json();
+    return response.ok
+      ? data
+      : { errorCode: data.errorCode || "ERROR", message: data.message };
+  } catch (error) {
+    return { errorCode: "NETWORK_ERROR", message: "Błąd sieci" };
+  }
 };
 
 export const getPendingInvites = async () => {
-    const token = getToken();
-    try {
-        const response = await fetch(`${API_HOST}/getPendingInvites`, {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await response.json();
-        return response.ok ? data : { errorCode: data.errorCode || "ERROR", message: data.message };
-    } catch (error) {
-        return { errorCode: "NETWORK_ERROR", message: "Błąd sieci" };
-    }
+  const token = getToken();
+  try {
+    const response = await fetch(`${API_HOST}/getPendingInvites`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await response.json();
+    return response.ok
+      ? data
+      : { errorCode: data.errorCode || "ERROR", message: data.message };
+  } catch (error) {
+    return { errorCode: "NETWORK_ERROR", message: "Błąd sieci" };
+  }
 };
 
 export const addFriend = async (receiverUsername) => {
-    const token = getToken();
-    try {
-        const payloadStr = String(receiverUsername).trim(); 
-        
-        const response = await fetch(`${API_HOST}/addFriend`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ receiverUsername: payloadStr }) 
-        });
-        const data = await response.json();
-        return response.ok ? data : { errorCode: data.errorCode || "ERROR", message: data.message };
-    } catch (error) {
-        return { errorCode: "NETWORK_ERROR", message: "Błąd sieci" };
-    }
+  const token = getToken();
+  try {
+    const payloadStr = String(receiverUsername).trim();
+
+    const response = await fetch(`${API_HOST}/addFriend`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ receiverUsername: payloadStr }),
+    });
+    const data = await response.json();
+    return response.ok
+      ? data
+      : { errorCode: data.errorCode || "ERROR", message: data.message };
+  } catch (error) {
+    return { errorCode: "NETWORK_ERROR", message: "Błąd sieci" };
+  }
 };
 
 export const removeFriend = async (friendId) => {
-    const token = getToken();
-    try {
-        const response = await fetch(`${API_HOST}/removeFriend/${friendId}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        return response.ok ? { success: true } : { errorCode: "ERROR", message: "Błąd usuwania" };
-    } catch (error) {
-        return { errorCode: "NETWORK_ERROR", message: "Błąd sieci" };
-    }
+  const token = getToken();
+  try {
+    const response = await fetch(`${API_HOST}/removeFriend/${friendId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.ok
+      ? { success: true }
+      : { errorCode: "ERROR", message: "Błąd usuwania" };
+  } catch (error) {
+    return { errorCode: "NETWORK_ERROR", message: "Błąd sieci" };
+  }
 };
 
 export const rejectFriend = async (senderId) => {
-    const token = getToken();
-    try {
-        const response = await fetch(`${API_HOST}/rejectFriend/${senderId}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        return response.ok ? { success: true } : { errorCode: "ERROR", message: "Nie udało się odrzucić" };
-    } catch (error) {
-        return { errorCode: "NETWORK_ERROR", message: "Błąd sieci" };
-    }
+  const token = getToken();
+  try {
+    const response = await fetch(`${API_HOST}/rejectFriend/${senderId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.ok
+      ? { success: true }
+      : { errorCode: "ERROR", message: "Nie udało się odrzucić" };
+  } catch (error) {
+    return { errorCode: "NETWORK_ERROR", message: "Błąd sieci" };
+  }
 };
 
-
 export const getNotifications = async () => {
-    const token = getToken();
-    if (!token) return { notifications: [], errorCode: "TOKEN_UNDEFINED" };
+  const token = getToken();
+  if (!token) return { notifications: [], errorCode: "TOKEN_UNDEFINED" };
 
-    try {
-        const resp = await fetch(`${API_HOST}/notifications`, {
-            method: "GET",
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        const authErr = checkUnauthorized(resp);
-        if (authErr) return { notifications: [], ...authErr };
+  try {
+    const resp = await fetch(`${API_HOST}/notifications`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return { notifications: [], ...authErr };
 
-        if (resp.ok) {
-            const data = await resp.json();
-            return { notifications: data, errorCode: "" };
-        }
-        return { notifications: [], errorCode: "FETCH_ERROR" };
-    } catch {
-        return { notifications: [], errorCode: "CONNECTION_ERROR" };
+    if (resp.ok) {
+      const data = await resp.json();
+      return { notifications: data, errorCode: "" };
     }
+    return { notifications: [], errorCode: "FETCH_ERROR" };
+  } catch {
+    return { notifications: [], errorCode: "CONNECTION_ERROR" };
+  }
 };
 
 export const markNotificationAsRead = async (id) => {
-    const token = getToken();
-    if (!token) return { errorCode: "TOKEN_UNDEFINED" };
+  const token = getToken();
+  if (!token) return { errorCode: "TOKEN_UNDEFINED" };
 
-    try {
-        const resp = await fetch(`${API_HOST}/markAsRead/${id}`, {
-            method: "PATCH",
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        const authErr = checkUnauthorized(resp);
-        if (authErr) return authErr;
+  try {
+    const resp = await fetch(`${API_HOST}/markAsRead/${id}`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
 
-        if (resp.ok) return { errorCode: "" };
-        return { errorCode: "ERROR" };
-    } catch {
-        return { errorCode: "CONNECTION_ERROR" };
-    }
+    if (resp.ok) return { errorCode: "" };
+    return { errorCode: "ERROR" };
+  } catch {
+    return { errorCode: "CONNECTION_ERROR" };
+  }
 };
 
 export const markAllNotificationsAsRead = async () => {
-    const token = getToken();
-    if (!token) return { errorCode: "TOKEN_UNDEFINED" };
+  const token = getToken();
+  if (!token) return { errorCode: "TOKEN_UNDEFINED" };
 
-    try {
-        const resp = await fetch(`${API_HOST}/markAllAsRead`, {
-            method: "PATCH",
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        const authErr = checkUnauthorized(resp);
-        if (authErr) return authErr;
+  try {
+    const resp = await fetch(`${API_HOST}/markAllAsRead`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
 
-        if (resp.ok) return { errorCode: "" };
-        return { errorCode: "ERROR" };
-    } catch {
-        return { errorCode: "CONNECTION_ERROR" };
-    }
+    if (resp.ok) return { errorCode: "" };
+    return { errorCode: "ERROR" };
+  } catch {
+    return { errorCode: "CONNECTION_ERROR" };
+  }
 };
 
 export const clearAllNotifications = async () => {
-    const token = getToken();
-    if (!token) return { errorCode: "TOKEN_UNDEFINED" };
+  const token = getToken();
+  if (!token) return { errorCode: "TOKEN_UNDEFINED" };
 
-    try {
-        const resp = await fetch(`${API_HOST}/clearNotifications`, {
-            method: "DELETE",
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        const authErr = checkUnauthorized(resp);
-        if (authErr) return authErr;
+  try {
+    const resp = await fetch(`${API_HOST}/clearNotifications`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
 
-        if (resp.ok) return { errorCode: "" };
-        return { errorCode: "ERROR" };
-    } catch {
-        return { errorCode: "CONNECTION_ERROR" };
-    }
+    if (resp.ok) return { errorCode: "" };
+    return { errorCode: "ERROR" };
+  } catch {
+    return { errorCode: "CONNECTION_ERROR" };
+  }
 };
 
-
 export const createInvitationLink = async (socialId, role = "MEMBER") => {
-    const token = getToken();
-    if (!token) return { errorCode: "TOKEN_UNDEFINED" };
+  const token = getToken();
+  if (!token) return { errorCode: "TOKEN_UNDEFINED" };
 
-    try {
-        const resp = await fetch(`${API_HOST}/createInvitationLink`, {
-            method: "POST",
-            headers: { 
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ socialId, role })
-        });
-        const authErr = checkUnauthorized(resp);
-        if (authErr) return authErr;
+  try {
+    const resp = await fetch(`${API_HOST}/createInvitationLink`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ socialId, role }),
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
 
-        if (resp.ok) {
-            const link = await resp.text();
-            return { link, errorCode: "" };
-        }
-        const data = await resp.json().catch(() => ({}));
-        return { errorCode: "ERROR", message: data.message || "Błąd generowania linku" };
-    } catch {
-        return { errorCode: "CONNECTION_ERROR" };
+    if (resp.ok) {
+      const link = await resp.text();
+      return { link, errorCode: "" };
     }
+    const data = await resp.json().catch(() => ({}));
+    return {
+      errorCode: "ERROR",
+      message: data.message || "Błąd generowania linku",
+    };
+  } catch {
+    return { errorCode: "CONNECTION_ERROR" };
+  }
 };
 
 export const validateInvitation = async (invitationToken) => {
-    const token = getToken();
-    if (!token) return { errorCode: "TOKEN_UNDEFINED" };
+  const token = getToken();
+  if (!token) return { errorCode: "TOKEN_UNDEFINED" };
 
-    try {
-        const resp = await fetch(`${API_HOST}/validateInvitation?token=${encodeURIComponent(invitationToken)}`, {
-            method: "GET",
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        const authErr = checkUnauthorized(resp);
-        if (authErr) return authErr;
+  try {
+    const resp = await fetch(
+      `${API_HOST}/validateInvitation?token=${encodeURIComponent(
+        invitationToken
+      )}`,
+      {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
 
-        const data = await resp.json();
-        if (resp.ok) return { ...data, errorCode: "" };
-        
-        return { errorCode: "ERROR", message: data.message || "Błąd walidacji zaproszenia" };
-    } catch {
-        return { errorCode: "CONNECTION_ERROR" };
-    }
+    const data = await resp.json();
+    if (resp.ok) return { ...data, errorCode: "" };
+
+    return {
+      errorCode: "ERROR",
+      message: data.message || "Błąd walidacji zaproszenia",
+    };
+  } catch {
+    return { errorCode: "CONNECTION_ERROR" };
+  }
 };
 
 export const acceptInvitation = async (invitationToken) => {
-    const token = getToken();
-    if (!token) return { errorCode: "TOKEN_UNDEFINED" };
+  const token = getToken();
+  if (!token) return { errorCode: "TOKEN_UNDEFINED" };
 
-    try {
-        const resp = await fetch(`${API_HOST}/acceptInvitation?token=${encodeURIComponent(invitationToken)}`, {
-            method: "POST",
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        const authErr = checkUnauthorized(resp);
-        if (authErr) return authErr;
+  try {
+    const resp = await fetch(
+      `${API_HOST}/acceptInvitation?token=${encodeURIComponent(
+        invitationToken
+      )}`,
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
 
-        const data = await resp.json();
-        if (resp.ok) return { success: data, errorCode: "" };
-        
-        return { errorCode: "ERROR", message: data.message || "Błąd akceptacji zaproszenia" };
-    } catch {
-        return { errorCode: "CONNECTION_ERROR" };
-    }
+    const data = await resp.json();
+    if (resp.ok) return { success: data, errorCode: "" };
+
+    return {
+      errorCode: "ERROR",
+      message: data.message || "Błąd akceptacji zaproszenia",
+    };
+  } catch {
+    return { errorCode: "CONNECTION_ERROR" };
+  }
 };
 
-
 export async function copyNoteToGroup(noteId, socialId, newName) {
-    const token = getToken();
-    if (!token) return { errorCode: "TOKEN_UNDEFINED" };
+  const token = getToken();
+  if (!token) return { errorCode: "TOKEN_UNDEFINED" };
 
-    try {
-        const resp = await fetch(`${API_HOST}/notes/copyNote/${noteId}?socialId=${socialId}&newName=${encodeURIComponent(newName)}`, {
-            method: "POST",
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        const authErr = checkUnauthorized(resp);
-        if (authErr) return authErr;
+  try {
+    const resp = await fetch(
+      `${API_HOST}/notes/copyNote/${noteId}?socialId=${socialId}&newName=${encodeURIComponent(
+        newName
+      )}`,
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
 
-        if (resp.ok) return { errorCode: "" };
-        const data = await resp.json().catch(() => ({}));
-        return { errorCode: "ERROR", message: data.message || "Błąd klonowania notatki" };
-    } catch {
-        return { errorCode: "CONNECTION_ERROR" };
-    }
+    if (resp.ok) return { errorCode: "" };
+    const data = await resp.json().catch(() => ({}));
+    return {
+      errorCode: "ERROR",
+      message: data.message || "Błąd klonowania notatki",
+    };
+  } catch {
+    return { errorCode: "CONNECTION_ERROR" };
+  }
 }
 
 export async function copyFlashcardSetToGroup(setId, socialId, newName) {
-    const token = getToken();
-    if (!token) return { errorCode: "TOKEN_UNDEFINED" };
+  const token = getToken();
+  if (!token) return { errorCode: "TOKEN_UNDEFINED" };
 
-    try {
-        const resp = await fetch(`${API_HOST}/copyCardSet/${setId}?socialId=${socialId}&newName=${encodeURIComponent(newName)}`, {
-            method: "POST",
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        const authErr = checkUnauthorized(resp);
-        if (authErr) return authErr;
+  try {
+    const resp = await fetch(
+      `${API_HOST}/copyCardSet/${setId}?socialId=${socialId}&newName=${encodeURIComponent(
+        newName
+      )}`,
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
 
-        if (resp.ok) return { errorCode: "" };
-        const data = await resp.json().catch(() => ({}));
-        return { errorCode: "ERROR", message: data.message || "Błąd klonowania zestawu" };
-    } catch {
-        return { errorCode: "CONNECTION_ERROR" };
-    }
+    if (resp.ok) return { errorCode: "" };
+    const data = await resp.json().catch(() => ({}));
+    return {
+      errorCode: "ERROR",
+      message: data.message || "Błąd klonowania zestawu",
+    };
+  } catch {
+    return { errorCode: "CONNECTION_ERROR" };
+  }
 }
 
 export const getSocialGroupUsers = async (id) => {
-    const token = getToken();
-    if (!token) return { errorCode: "TOKEN_UNDEFINED" };
+  const token = getToken();
+  if (!token) return { errorCode: "TOKEN_UNDEFINED" };
 
-    try {
-        const response = await fetch(`${API_HOST}/social/${id}/users`, {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await response.json();
-        return response.ok ? data : { errorCode: data.errorCode || "ERROR", message: data.message };
-    } catch (error) {
-        return { errorCode: "NETWORK_ERROR", message: "Błąd sieci" };
-    }
+  try {
+    const response = await fetch(`${API_HOST}/social/${id}/users`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await response.json();
+    return response.ok
+      ? data
+      : { errorCode: data.errorCode || "ERROR", message: data.message };
+  } catch (error) {
+    return { errorCode: "NETWORK_ERROR", message: "Błąd sieci" };
+  }
 };
 
 export async function getFlashcardSet(id, socialId = null) {
@@ -3289,15 +3374,15 @@ export async function getFlashcardSet(id, socialId = null) {
   if (!token) return { errorCode: "TOKEN_UNDEFINED" };
 
   try {
-    const url = socialId 
+    const url = socialId
       ? `${API_HOST}/getCardSet/${id}?socialId=${socialId}`
       : `${API_HOST}/getCardSet/${id}`;
-      
+
     const resp = await fetch(url, {
       method: "GET",
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` },
     });
-    
+
     const authErr = checkUnauthorized(resp);
     if (authErr) return authErr;
 
@@ -3305,78 +3390,93 @@ export async function getFlashcardSet(id, socialId = null) {
       const data = await resp.json();
       return { ...data, errorCode: "" };
     }
-    
+
     const errData = await resp.json().catch(() => ({}));
-    return { errorCode: "API_ERROR", message: errData.message || "Nie udało się pobrać zestawu" };
+    return {
+      errorCode: "API_ERROR",
+      message: errData.message || "Nie udało się pobrać zestawu",
+    };
   } catch {
     return { errorCode: "CONNECTION_ERROR", message: "Błąd serwera" };
   }
 }
 
 export const changeSocialGroupRole = async (socialId, userId, role) => {
-    const token = getToken();
-    if (!token) return { errorCode: "TOKEN_UNDEFINED" };
+  const token = getToken();
+  if (!token) return { errorCode: "TOKEN_UNDEFINED" };
 
-    try {
-        const resp = await fetch(`${API_HOST}/change/role`, {
-            method: "PUT",
-            headers: { 
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ socialId, userId, role })
-        });
-        
-        const authErr = checkUnauthorized(resp);
-        if (authErr) return authErr;
+  try {
+    const resp = await fetch(`${API_HOST}/change/role`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ socialId, userId, role }),
+    });
 
-        if (resp.ok) return { errorCode: "" };
-        
-        const data = await resp.json().catch(() => ({}));
-        return { errorCode: data.errorCode || "ERROR", message: data.message || "Błąd zmiany roli" };
-    } catch {
-        return { errorCode: "CONNECTION_ERROR", message: "Błąd serwera" };
-    }
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+
+    if (resp.ok) return { errorCode: "" };
+
+    const data = await resp.json().catch(() => ({}));
+    return {
+      errorCode: data.errorCode || "ERROR",
+      message: data.message || "Błąd zmiany roli",
+    };
+  } catch {
+    return { errorCode: "CONNECTION_ERROR", message: "Błąd serwera" };
+  }
 };
 
 export const removeUserFromSocialGroup = async (socialId, userId) => {
-    const token = getToken();
-    if (!token) return { errorCode: "TOKEN_UNDEFINED" };
+  const token = getToken();
+  if (!token) return { errorCode: "TOKEN_UNDEFINED" };
 
-    try {
-        const resp = await fetch(`${API_HOST}/social/${socialId}/deleteUser/${userId}`, {
-            method: "PUT",
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        const authErr = checkUnauthorized(resp);
-        if (authErr) return authErr;
+  try {
+    const resp = await fetch(
+      `${API_HOST}/social/${socialId}/deleteUser/${userId}`,
+      {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
 
-        if (resp.ok) return { errorCode: "" };
-        
-        const data = await resp.json().catch(() => ({}));
-        return { errorCode: data.errorCode || "ERROR", message: data.message || "Błąd usuwania użytkownika." };
-    } catch {
-        return { errorCode: "CONNECTION_ERROR", message: "Błąd serwera." };
-    }
+    if (resp.ok) return { errorCode: "" };
+
+    const data = await resp.json().catch(() => ({}));
+    return {
+      errorCode: data.errorCode || "ERROR",
+      message: data.message || "Błąd usuwania użytkownika.",
+    };
+  } catch {
+    return { errorCode: "CONNECTION_ERROR", message: "Błąd serwera." };
+  }
 };
 
 export const leaveSocialGroup = async (socialId) => {
-    const token = getToken();
-    if (!token) return { errorCode: "TOKEN_UNDEFINED" };
+  const token = getToken();
+  if (!token) return { errorCode: "TOKEN_UNDEFINED" };
 
-    try {
-        const resp = await fetch(`${API_HOST}/leaveSocial/${socialId}`, {
-            method: "PUT",
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        const authErr = checkUnauthorized(resp);
-        if (authErr) return authErr;
+  try {
+    const resp = await fetch(`${API_HOST}/leaveSocial/${socialId}`, {
+      method: "PUT",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
 
-        if (resp.ok) return { errorCode: "" };
-        
-        const data = await resp.json().catch(() => ({}));
-        return { errorCode: data.errorCode || "ERROR", message: data.message || "Błąd podczas opuszczania grupy." };
-    } catch {
-        return { errorCode: "CONNECTION_ERROR", message: "Błąd serwera." };
-    }
+    if (resp.ok) return { errorCode: "" };
+
+    const data = await resp.json().catch(() => ({}));
+    return {
+      errorCode: data.errorCode || "ERROR",
+      message: data.message || "Błąd podczas opuszczania grupy.",
+    };
+  } catch {
+    return { errorCode: "CONNECTION_ERROR", message: "Błąd serwera." };
+  }
 };
