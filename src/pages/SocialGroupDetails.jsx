@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import styled, { useTheme } from 'styled-components';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../components/organisms/Layout';
 import { getToken, parseJwt } from '../token';
@@ -712,6 +712,56 @@ const TrashButton = styled.button`
   }
 `;
 
+const RoleHelpIconWrapper = styled.div`
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: ${({ theme }) => theme.colors?.borderLight};
+  color: ${({ theme }) => theme.colors?.textLight};
+  font-size: 0.8rem;
+  font-weight: bold;
+  cursor: default;
+
+  &:hover > div {
+    display: block;
+  }
+`;
+
+const RoleHelpTooltip = styled.div`
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: ${({ theme }) => theme.colors?.veryDarkPrimary};
+  color: ${({ theme }) => theme.colors?.white};
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 8px;
+  width: 280px;
+  z-index: 100;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+  line-height: 1.4;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: ${({ theme }) => theme.colors?.veryDarkPrimary} transparent transparent transparent;
+  }
+`;
+
 const StackedCardsIcon = () => (
     <svg viewBox="0 0 140 100" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
         <rect x="15" y="10" width="115" height="75" rx="5" transform="rotate(-4 15 10)" fill="white" stroke="black" strokeWidth="2" />
@@ -723,6 +773,7 @@ const StackedCardsIcon = () => (
 
 
 const SocialGroupDetails = () => {
+  const theme = useTheme();
   const { id } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('notes');
@@ -1147,48 +1198,60 @@ const SocialGroupDetails = () => {
               Zaproś znajomych ze swojego roku, aby wspólnie wymieniać się notatkami i przygotowywać do egzaminów. Im nas więcej, tym łatwiej!
             </InviteText>
             {group.userRole === 'ADMIN' ? (
-              <InviteBox>
-                <InviteRoleSelect 
-                  value={inviteRole} 
-                  onChange={e => {
-                    setInviteRole(e.target.value);
-                    setInviteLink("");
-                  }}
-                >
-                  <option value="EDITOR">Rola: Edytor</option>
-                  <option value="VIEWER">Rola: Obserwator</option>
-                </InviteRoleSelect>
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: theme.colors?.darkGrey }}>Wybierz rolę zapraszanego:</span>
+                    <RoleHelpIconWrapper>
+                        ?
+                        <RoleHelpTooltip>
+                            <b style={{ color: theme.colors.secondary }}>Edytor</b> może przeglądać i edytować materiały oraz dodawać nowe.<br/><br/>
+                            <b style={{ color: theme.colors.secondary }}>Obserwator</b> może wyłącznie przeglądać materiały w grupie.
+                        </RoleHelpTooltip>
+                    </RoleHelpIconWrapper>
+                </div>
+                <InviteBox>
+                  <InviteRoleSelect 
+                    value={inviteRole} 
+                    onChange={e => {
+                      setInviteRole(e.target.value);
+                      setInviteLink("");
+                    }}
+                  >
+                    <option value="EDITOR">Rola: Edytor</option>
+                    <option value="VIEWER">Rola: Obserwator</option>
+                  </InviteRoleSelect>
 
-                <InviteInput 
-                  type="text" 
-                  readOnly 
-                  value={inviteLink || "Kliknij 'Generuj', aby stworzyć link"} 
-                />
-                <CopyBtn 
-                  onClick={handleGenerateOrCopyLink} 
-                  disabled={isGenerating}
-                  $isCopied={isCopied}
-                >
-                  {isCopied ? (
-                    <>
-                      <svg fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24" style={{ width: 18, height: 18 }}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                      Skopiowano!
-                    </>
-                  ) : isGenerating ? (
-                    "Czekaj..."
-                  ) : (
-                    <>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" className="bi bi-link-45deg" viewBox="0 0 16 16">
-                        <path d="M4.715 6.542 3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1 1 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4 4 0 0 1-.128-1.287z"/>
-                        <path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 1 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 1 0-4.243-4.243z"/>
-                      </svg>
-                      {inviteLink ? "Kopiuj" : "Generuj"}
-                    </>
-                  )}
-                </CopyBtn>
-              </InviteBox>
+                  <InviteInput 
+                    type="text" 
+                    readOnly 
+                    value={inviteLink || "Kliknij 'Generuj', aby stworzyć link"} 
+                  />
+                  <CopyBtn 
+                    onClick={handleGenerateOrCopyLink} 
+                    disabled={isGenerating}
+                    $isCopied={isCopied}
+                  >
+                    {isCopied ? (
+                      <>
+                        <svg fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24" style={{ width: 18, height: 18 }}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Skopiowano!
+                      </>
+                    ) : isGenerating ? (
+                      "Czekaj..."
+                    ) : (
+                      <>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" className="bi bi-link-45deg" viewBox="0 0 16 16">
+                          <path d="M4.715 6.542 3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1 1 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4 4 0 0 1-.128-1.287z"/>
+                          <path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 1 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 1 0-4.243-4.243z"/>
+                        </svg>
+                        {inviteLink ? "Kopiuj" : "Generuj"}
+                      </>
+                    )}
+                  </CopyBtn>
+                </InviteBox>
+              </>
             ) : (
               <div style={{ padding: '10px', background: '#f8f9fa', borderRadius: '10px', fontSize: '0.9rem', color: '#666' }}>
                 Tylko administratorzy grupy mogą generować nowe linki zaproszeniowe.
@@ -1200,9 +1263,9 @@ const SocialGroupDetails = () => {
           <Card>
             <CardHeader>
               <CardTitle>Członkowie grupy</CardTitle>
-              {group.userRole === 'ADMIN' && (
-                <ManageLink onClick={() => setIsManageMembersModalOpen(true)}>Zarządzaj</ManageLink>
-              )}
+              <ManageLink onClick={() => setIsManageMembersModalOpen(true)}>
+                {group.userRole === 'ADMIN' ? 'Zarządzaj' : 'Więcej'}
+              </ManageLink>
             </CardHeader>
             <MembersGrid>
               {groupMembers.length > 0 ? (
@@ -1634,9 +1697,9 @@ const SocialGroupDetails = () => {
                       <InviteRoleSelect
                         style={{ padding: '6px 12px', fontSize: '0.85rem' }}
                         value={member.role}
-                        // blok zmianę swojej własnej roli
-                        disabled={updatingUserId === member.id || member.username === currentUser}
+                        disabled={group.userRole !== 'ADMIN' || updatingUserId === member.id || member.username === currentUser}
                         onChange={(e) => handleRoleChange(member.id, e.target.value)}
+                        title={group.userRole !== 'ADMIN' ? "Tylko administrator może zmieniać role" : ""}
                       >
                         <option value="ADMIN">Admin</option>
                         <option value="EDITOR">Edytor</option>
@@ -1644,9 +1707,15 @@ const SocialGroupDetails = () => {
                       </InviteRoleSelect>
                       
                       <TrashButton 
-                        disabled={updatingUserId === member.id || member.username === currentUser}
+                        disabled={group.userRole !== 'ADMIN' || updatingUserId === member.id || member.username === currentUser}
                         onClick={() => handleRemoveUserClick(member.id)}
-                        title={member.username === currentUser ? "Aby opuścić grupę, kliknij ikonkę wyjścia obok nazwy grupy." : "Wyrzuć ze społeczności"}
+                        title={
+                          group.userRole !== 'ADMIN' 
+                            ? "Tylko administrator może usuwać członków" 
+                            : member.username === currentUser 
+                              ? "Aby opuścić grupę, użyj ikony wyjścia w prawym górnym rogu." 
+                              : "Wyrzuć ze społeczności"
+                        }
                       >
                         <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
                           <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>

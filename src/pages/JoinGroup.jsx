@@ -79,32 +79,51 @@ const JoinGroup = () => {
   }, [token]);
 
   const verifyToken = async () => {
-    const res = await validateInvitation(token);
-    
-    if (res.errorCode) {
-      if (res.errorCode === "TOKEN_UNDEFINED") {
-         navigate("/", { replace: true });
-         return;
+    try {
+      const res = await validateInvitation(token);
+      
+      if (res && res.errorCode) {
+        if (res.errorCode === "TOKEN_UNDEFINED") {
+          setStatus('ERROR');
+          setMessage("Sesja wygasła lub nie jesteś zalogowany. Zaloguj się ponownie, aby dołączyć.");
+          return;
+        }
+        setStatus('ERROR');
+        setMessage(res.message || "Ten link zapraszający jest nieważny lub wygasł.");
+      } else {
+        setStatus('READY');
+        setMessage(
+          res?.message || 
+          (res?.name ? `Czy chcesz dołączyć do społeczności: ${res.name}?` : "Link jest prawidłowy. Możesz dołączyć do grupy.")
+        );
       }
+    } catch (err) {
       setStatus('ERROR');
-      setMessage(res.message || "Ten link zapraszający jest nieważny lub wygasł.");
-    } else {
-      setStatus('READY');
-      setMessage(res.message);
+      setMessage("Wystąpił błąd komunikacji z serwerem podczas weryfikacji linku.");
     }
   };
 
   const handleJoin = async () => {
     setStatus('LOADING');
-    const res = await acceptInvitation(token);
-    
-    if (res.errorCode) {
+    try {
+      const res = await acceptInvitation(token);
+      
+      if (res && res.errorCode) {
+        if (res.errorCode === "TOKEN_UNDEFINED") {
+          setStatus('ERROR');
+          setMessage("Twoja sesja wygasła. Zaloguj się ponownie.");
+          return;
+        }
+        setStatus('ERROR');
+        setMessage(res.message || "Błąd podczas dołączania do grupy. Możliwe, że już w niej jesteś.");
+      } else {
+        setStatus('SUCCESS');
+        setMessage("Udało się! Zostałeś dodany do grupy.");
+        setTimeout(() => navigate('/social'), 2000); 
+      }
+    } catch (err) {
       setStatus('ERROR');
-      setMessage(res.message || "Błąd podczas dołączania.");
-    } else {
-      setStatus('SUCCESS');
-      setMessage("Udało się! Zostałeś dodany do grupy.");
-      setTimeout(() => navigate('/social'), 2000); 
+      setMessage("Wystąpił nieoczekiwany błąd podczas dołączania.");
     }
   };
 
@@ -124,15 +143,21 @@ const JoinGroup = () => {
           )}
 
           {status === 'SUCCESS' && (
-            <MessageText style={{ color: '#2ecc71', fontWeight: 'bold' }}>{message}</MessageText>
+            <MessageText style={{ color: '#1c9e52', fontWeight: 'bold' }}>{message}</MessageText>
           )}
 
           {status === 'ERROR' && (
             <>
               <ErrorText>{message}</ErrorText>
-              <Button onClick={() => navigate('/social')} style={{ backgroundColor: '#95a5a6' }}>
-                Wróć do społeczności
-              </Button>
+              {message.includes("Zaloguj") ? (
+                 <Button onClick={() => navigate('/')} style={{ backgroundColor: '#95a5a6' }}>
+                   Przejdź do logowania
+                 </Button>
+              ) : (
+                 <Button onClick={() => navigate('/social')} style={{ backgroundColor: '#95a5a6' }}>
+                   Wróć do społeczności
+                 </Button>
+              )}
             </>
           )}
         </Card>

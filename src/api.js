@@ -218,6 +218,7 @@ export async function getAllNotes() {
       createdAt: note.createdAt,
 
       folderId: note.folderId,
+      tags: note.tags || [],
     }));
 
     return {
@@ -268,6 +269,7 @@ export async function getAllDeletedNotes() {
       content: note.content,
       lastEdited: note.editTime,
       createdAt: note.createdAt,
+      tags: note.tags || [],
     }));
 
     return {
@@ -449,7 +451,7 @@ export async function getNoteTags(id, socialId = null) {
   }
 }
 
-export async function addNote(name, path = "/", socialId = null) {
+export async function addNote(name, path = "/", tags = [], socialId = null) {
   const token = getToken();
   if (!token)
     return {
@@ -473,6 +475,7 @@ export async function addNote(name, path = "/", socialId = null) {
         name,
         path,
         content: "",
+        tagNames: tags,
       }),
     });
     const authErr = checkUnauthorized(resp);

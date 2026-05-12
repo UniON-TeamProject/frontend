@@ -699,7 +699,7 @@ const TextEditor = () => {
   }, [newName]);
 
   const addTag = () => {
-    const value = newTag.trim()
+    const value = newTag.trim().substring(0, 55);
     setNewTag('')
     setIsAddingTag(false)
 
@@ -826,6 +826,7 @@ const TextEditor = () => {
                   {isAddingTag && (
                     <StyledTagInput
                       autoFocus
+                      maxLength={55}
                       value={newTag}
                       onChange={e => setNewTag(e.target.value)}
                       onKeyDown={e => {

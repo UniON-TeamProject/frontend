@@ -133,6 +133,7 @@ export default function TagSelector({
       {isAddingTag && (
         <StyledTagInput
           autoFocus
+          maxLength={55}
           value={newTag}
           onChange={(e) => onSetNewTag(e.target.value)}
           onKeyDown={(e) => {

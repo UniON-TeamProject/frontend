@@ -952,8 +952,11 @@ const CalendarGrid = ({
                     Math.min(endMins, widgetEnd)
                   );
 
-                  const top = clampedStart - widgetStart;
-                  const height = Math.max(24, clampedEnd - clampedStart);
+                  const rawHeight = Math.max(24, clampedEnd - clampedStart);
+
+                  const maxTop = (widgetEnd - widgetStart) - rawHeight;
+                  const top = Math.min(clampedStart - widgetStart, maxTop);
+                  const height = rawHeight;
 
                   if (clampedEnd <= widgetStart || clampedStart >= widgetEnd)
                     return null;

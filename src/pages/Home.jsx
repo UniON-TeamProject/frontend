@@ -363,6 +363,55 @@ const EmptyDataMessage = styled.div`
     text-align: center;
 `;
 
+const HelpIconWrapper = styled.div`
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: ${({ theme }) => theme.colors?.borderLight};
+  color: ${({ theme }) => theme.colors?.textLight};
+  font-size: 0.8rem;
+  font-weight: bold;
+  cursor: default;
+
+  &:hover > div {
+    display: block;
+  }
+`;
+
+const HelpTooltip = styled.div`
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: ${({ theme }) => theme.colors?.veryDarkPrimary};
+  color: ${({ theme }) => theme.colors?.white};
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: center;
+  padding: 14px;
+  border-radius: 8px;
+  width: 220px;
+  z-index: 100;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: ${({ theme }) => theme.colors.veryDarkPrimary} transparent transparent transparent;
+  }
+`;
+
 const Home = () => {
     const theme = useTheme();
     const [username, setUsername] = useState("");
@@ -713,7 +762,17 @@ const Home = () => {
                 <DashboardLayout>
                     <LeftColumn>
                         <FiszkiBox>
-                            <CardTitle>Wróć do nauki</CardTitle>
+                            <CardTitle>
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    Wróć do nauki
+                                    <HelpIconWrapper>
+                                        ?
+                                        <HelpTooltip>
+                                            Tu wyświetlają się Twoje aktywne sesje <b style={{ color: theme.colors.secondary }}>Szybkiej nauki</b>, które nie zostały ukończone w 100%.
+                                        </HelpTooltip>
+                                    </HelpIconWrapper>
+                                </div>
+                            </CardTitle>
                             <ItemList>
                                 {recentSets.length > 0 ? (
                                     <>
@@ -861,7 +920,7 @@ const Home = () => {
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0, paddingRight: '10px' }}>
                                                     <div style={{ 
                                                         width: '38px', height: '38px', borderRadius: '10px', 
-                                                        backgroundColor: theme.colors?.lightGrey || '#e9ece1', color: theme.colors?.veryDarkPrimary || '#122818', 
+                                                        backgroundColor: theme.colors?.lightGrey, color: theme.colors?.veryDarkPrimary, 
                                                         display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 
                                                     }}>
                                                         <svg fill="currentColor" viewBox="0 0 16 16" style={{ width: '20px', height: '20px' }}>
@@ -876,7 +935,7 @@ const Home = () => {
                                                 </div>
 
                                                 <ItemMeta style={{ flexDirection: 'row', alignItems: 'center', gap: '10px' }}>
-                                                    <TagPill style={{ backgroundColor: theme.colors?.lightGrey || '#e9ece1', padding: '3px 8px', borderRadius: '8px' }}>
+                                                    <TagPill style={{ backgroundColor: theme.colors?.lightGrey, padding: '3px 8px', borderRadius: '8px' }}>
                                                         {group.userRole === 'ADMIN' ? 'Administrator' : 
                                                          group.userRole === 'EDITOR' ? 'Edytor' : 
                                                          group.userRole === 'VIEWER' ? 'Obserwator' : 'Członek'}
@@ -887,14 +946,18 @@ const Home = () => {
                                                         title={isPinned ? "Odepnij" : "Przypnij na górze"}
                                                         style={{ 
                                                             cursor: 'pointer', 
-                                                            color: isPinned ? '#f1c40f' : (theme.colors?.borderMuted || '#c4c9b9'), 
-                                                            display: 'flex', alignItems: 'center',
+                                                            color: isPinned ? '#ffdf60' : (theme.colors?.borderMuted), 
+                                                            display: 'flex',
+                                                            alignItems: 'center',
                                                             transition: 'color 0.2s, transform 0.2s'
                                                         }}
                                                         onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.2)'}
                                                         onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                                                     >
-                                                        <svg fill="currentColor" viewBox="0 0 16 16" style={{ width: '18px', height: '18px' }}>
+                                                        <svg fill="currentColor" viewBox="0 0 16 16" style={{ width: '18px', height: '18px' }}
+                                                            stroke={isPinned ? '#d9a400' : 'currentColor'} 
+                                                            strokeWidth="0.5"
+                                                        >
                                                             <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
                                                         </svg>
                                                     </div>

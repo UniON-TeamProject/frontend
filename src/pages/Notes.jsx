@@ -468,16 +468,6 @@ const TagsContainer = styled.div`
   }
 `;
 
-const ItemTag = styled.span`
-  background-color: ${({ theme }) => theme.colors.lightGrey};
-  color: ${({ theme }) => theme.colors.textLight};
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 6px;
-  white-space: nowrap;
-`;
-
 const StyledTag = styled.div`
     padding: 2px 10px;
     margin: 3px;
@@ -980,6 +970,12 @@ const FilterTag = styled.div`
     $active ? theme.colors.white : theme.colors.textLight};
   transition: all 0.2s;
 
+  max-width: 100%;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
   &:hover {
     background-color: ${({ $active, theme }) =>
       $active ? theme.colors.secondary : theme.colors.borderLight};
@@ -1378,7 +1374,7 @@ const Notes = () => {
 
   const handleAddNote = async () => {
     setAddNoteErrorMessage("");
-    const res = await addNote(noteName.trim(), getCurrentPath());
+    const res = await addNote(noteName.trim(), getCurrentPath(), chosenTags);
     if (res.errorCode) {
       setAddNoteErrorMessage(res.message);
       if (res.errorCode == "TOKEN_UNDEFINED") navigate("/", { replace: true });
@@ -1390,6 +1386,8 @@ const Notes = () => {
         setIsSuccess(false);
         setIsAddingNote(false);
         setNoteName("");
+        setChosenTags([]);
+        setSuggestedTags([]);
         navigate(`/note/${newNoteId}`);
       }, 1000);
     }
@@ -1846,6 +1844,7 @@ const Notes = () => {
                             <FilterTag
                               key={tag}
                               $active={isActive}
+                              title={tag}
                               onClick={() => {
                                 if (isActive) {
                                   setSelectedTagsFilter((prev) =>
@@ -2046,25 +2045,6 @@ const Notes = () => {
                         }}
                       />
                     )}
-
-                    {folder.tags && folder.tags.length > 0 && (
-                      <div
-                        style={{
-                          display: "flex",
-                          flexWrap: "wrap",
-                          justifyContent: "center",
-                          gap: "4px",
-                          marginTop: "8px",
-                        }}
-                      >
-                        {folder.tags.slice(0, 3).map((tag, idx) => (
-                          <ItemTag key={idx}>{tag}</ItemTag>
-                        ))}
-                        {folder.tags.length > 3 && (
-                          <ItemTag>+{folder.tags.length - 3}</ItemTag>
-                        )}
-                      </div>
-                    )}
                   </div>
 
                   <StyledItemHeader
@@ -2177,7 +2157,7 @@ const Notes = () => {
                             {isAddingItemTag ? (
                               <StyledTagInput
                                 autoFocus
-                                maxLength={30}
+                                maxLength={55}
                                 value={newItemTag}
                                 onChange={(e) => setNewItemTag(e.target.value)}
                                 onKeyDown={(e) => {
@@ -2308,26 +2288,6 @@ const Notes = () => {
                       text={d.name}
                       style={{ marginBottom: "10px", fontSize: "1.05rem" }}
                     />
-
-                    {d.tags && d.tags.length > 0 && (
-                      <div
-                        style={{
-                          display: "flex",
-                          flexWrap: "wrap",
-                          justifyContent: "center",
-                          gap: "4px",
-                          marginTop: "-4px",
-                          marginBottom: "8px",
-                        }}
-                      >
-                        {d.tags.slice(0, 3).map((tag, idx) => (
-                          <ItemTag key={idx}>{tag}</ItemTag>
-                        ))}
-                        {d.tags.length > 3 && (
-                          <ItemTag>+{d.tags.length - 3}</ItemTag>
-                        )}
-                      </div>
-                    )}
                   </div>
 
                   <StyledItemHeader
@@ -2433,7 +2393,7 @@ const Notes = () => {
                             {isAddingItemTag ? (
                               <StyledTagInput
                                 autoFocus
-                                maxLength={30}
+                                maxLength={55}
                                 value={newItemTag}
                                 onChange={(e) => setNewItemTag(e.target.value)}
                                 onKeyDown={(e) => {
@@ -2569,6 +2529,26 @@ const Notes = () => {
                   }}
                 />
               </div>
+
+              <TagSelector
+                suggestedTags={suggestedTags}
+                chosenTags={chosenTags}
+                isAddingTag={isAddingTag}
+                newTag={newTag}
+                onToggleTag={(tag) => {
+                  setChosenTags((prev) => [...prev, tag]);
+                }}
+                onAddNewTag={(tag) => {
+                  if (!chosenTags.includes(tag)) {
+                    setChosenTags((prev) => [...prev, tag]);
+                  }
+                }}
+                onRemoveTag={(tag) => {
+                  setChosenTags((prev) => prev.filter((t) => t !== tag));
+                }}
+                onSetIsAddingTag={setIsAddingTag}
+                onSetNewTag={setNewTag}
+              />
 
               <div style={{ display: "flex", justifyContent: "center" }}>
                 <SubmitButton
@@ -2813,8 +2793,11 @@ const Notes = () => {
                 <FabMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
+                    if (currentFolder) handleFetchFolderSuggestedTags();
                     setIsAddingNote(true);
                     setIsActiveAddOptions(false);
+                    setChosenTags([]);
+                    setNewTag("");
                   }}
                 >
                   Nowy dokument
