@@ -380,16 +380,31 @@ const StyledItemOptions = styled.div`
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   padding: 10px;
   z-index: 20;
-  width: 260px;
+  width: ${({ $narrow }) => ($narrow ? "160px" : "260px")};
   display: flex;
   flex-direction: column;
   text-align: left;
   cursor: default;
 
+  max-height: 350px;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 5px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: ${({ theme }) => theme.colors.darkGrey};
+    border-radius: 10px;
+  }
+
   > input {
     padding: 8px 12px;
     margin: 0 10px 15px 10px;
     width: calc(100% - 20px);
+    box-sizing: border-box;
     border-radius: 8px;
     border: 1px solid transparent;
     font-weight: 700;
@@ -1057,6 +1072,7 @@ const ToolbarActions = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
+  min-height: 40px;
 
   @media (max-width: 768px) {
     gap: 6px;
@@ -1116,6 +1132,22 @@ const FilterDropdown = styled.div`
   flex-direction: column;
   gap: 10px;
   cursor: default;
+
+  box-sizing: border-box;
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: ${({ theme }) => theme.colors.darkGrey};
+    border-radius: 10px;
+  }
 `;
 
 const FilterTag = styled.div`
@@ -1129,6 +1161,12 @@ const FilterTag = styled.div`
   color: ${({ $active, theme }) =>
     $active ? theme.colors.white : theme.colors.textLight};
   transition: all 0.2s;
+
+  max-width: 100%;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
   &:hover {
     background-color: ${({ $active, theme }) =>
@@ -1164,11 +1202,47 @@ const HelpIcon = styled.div`
   cursor: pointer;
   transition: all 0.2s;
   margin-left: 10px;
+  position: relative;
 
   &:hover {
     background-color: ${({ theme }) => theme.colors.darkGrey};
     color: ${({ theme }) => theme.colors.text};
     transform: scale(1.1);
+  }
+  &:hover > span {
+    display: block;
+  }
+`;
+
+const HelpTooltip = styled.span`
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  background: ${({ theme }) => theme.colors.veryDarkPrimary};
+  color: ${({ theme }) => theme.colors.white};
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  width: 200px;
+  white-space: normal;
+  line-height: 1.5;
+  z-index: 100;
+  pointer-events: none;
+  text-align: left;
+  transform: scale(0.909); 
+  transform-origin: bottom right;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    right: 8px;
+    border: 5px solid transparent;
+    border-top-color: ${({ theme }) => theme.colors.veryDarkPrimary};
   }
 `;
 
@@ -1459,6 +1533,7 @@ const FlashcardsPage = () => {
   const [pendingIgnoreDuplicates, setPendingIgnoreDuplicates] = useState(false);
 
   const fetchData = async () => {
+    setIsReady(false);
     setErrorMessage("");
 
     const setsRes = isTrashView
@@ -2433,106 +2508,113 @@ const FlashcardsPage = () => {
             </StyledTabsContainer>
 
             <ToolbarActions>
-              {!isTrashView && (
-                <FilterContainer>
-                  <ToolbarButton
-                    className="outline"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsFilterMenuOpen(!isFilterMenuOpen);
-                    }}
+            {!isTrashView && (
+              <FilterContainer>
+                <ToolbarButton
+                  className="outline"
+                  disabled={sets.length === 0}
+                  title={sets.length === 0 ? "Brak zestawów do filtrowania" : ""}
+                  style={{ opacity: sets.length === 0 ? 0.5 : 1 }}
+                  onClick={(e) => {
+                    if (sets.length === 0) return;
+                    e.stopPropagation();
+                    setIsFilterMenuOpen(!isFilterMenuOpen);
+                  }}
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    fill="currentColor"
+                    viewBox="0 0 16 16"
                   >
-                    <svg
-                      width="14"
-                      height="14"
-                      fill="currentColor"
-                      viewBox="0 0 16 16"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3m-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1z"
-                      />
-                    </svg>
-                    Filtruj
-                    {selectedTagsFilter.length > 0 && (
-                      <ActiveFilterBadge>
-                        {selectedTagsFilter.length}
-                      </ActiveFilterBadge>
-                    )}
-                  </ToolbarButton>
-
-                  {/* MENU FILTRÓW */}
-                  {isFilterMenuOpen && (
-                    <FilterDropdown onClick={(e) => e.stopPropagation()}>
-                      <Text
-                        bold="true"
-                        text="Filtruj po tagach"
-                        style={{ fontSize: "0.95rem", margin: "0 0 5px 5px" }}
-                      />
-                      {allAvailableTags.length === 0 ? (
-                        <Text
-                          text="Brak tagów w Twoich zestawach."
-                          style={{
-                            fontSize: "0.85rem",
-                            color: theme.colors.textMuted,
-                            marginLeft: "5px",
-                          }}
-                        />
-                      ) : (
-                        <div
-                          style={{
-                            display: "flex",
-                            flexWrap: "wrap",
-                            gap: "8px",
-                          }}
-                        >
-                          {allAvailableTags.map((tag) => {
-                            const isActive = selectedTagsFilter.includes(tag);
-                            return (
-                              <FilterTag
-                                key={tag}
-                                $active={isActive}
-                                onClick={() => {
-                                  if (isActive) {
-                                    setSelectedTagsFilter((prev) =>
-                                      prev.filter((t) => t !== tag)
-                                    );
-                                  } else {
-                                    setSelectedTagsFilter((prev) => [
-                                      ...prev,
-                                      tag,
-                                    ]);
-                                  }
-                                }}
-                              >
-                                {tag}
-                              </FilterTag>
-                            );
-                          })}
-                        </div>
-                      )}
-                      {selectedTagsFilter.length > 0 && (
-                        <div
-                          style={{
-                            fontSize: "0.8rem",
-                            color: theme.colors.danger,
-                            cursor: "pointer",
-                            marginTop: "10px",
-                            textAlign: "center",
-                            fontWeight: "bold",
-                          }}
-                          onClick={() => setSelectedTagsFilter([])}
-                        >
-                          Wyczyść filtry
-                        </div>
-                      )}
-                    </FilterDropdown>
+                    <path
+                      fillRule="evenodd"
+                      d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3m-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1z"
+                    />
+                  </svg>
+                  Filtruj
+                  {selectedTagsFilter.length > 0 && (
+                    <ActiveFilterBadge>
+                      {selectedTagsFilter.length}
+                    </ActiveFilterBadge>
                   )}
-                </FilterContainer>
-              )}
+                </ToolbarButton>
 
-              {sets.length > 0 && !isTrashView && (
-                <SortSelectContainer>
+                {/* MENU FILTRÓW */}
+                {isFilterMenuOpen && (
+                  <FilterDropdown onClick={(e) => e.stopPropagation()}>
+                    <Text
+                      bold="true"
+                      text="Filtruj po tagach"
+                      style={{ fontSize: "0.95rem", margin: "0 0 5px 5px" }}
+                    />
+
+                    {allAvailableTags.length === 0 ? (
+                      <Text
+                        text="Brak tagów w Twoich zestawach."
+                        style={{
+                          fontSize: "0.85rem",
+                          color: theme.colors.textMuted,
+                          marginLeft: "5px",
+                        }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: "8px",
+                        }}
+                      >
+                        {allAvailableTags.map((tag) => {
+                          const isActive = selectedTagsFilter.includes(tag);
+                          return (
+                            <FilterTag
+                              key={tag}
+                              $active={isActive}
+                              title={tag}
+                              onClick={() => {
+                                if (isActive) {
+                                  setSelectedTagsFilter((prev) =>
+                                    prev.filter((t) => t !== tag)
+                                  );
+                                } else {
+                                  setSelectedTagsFilter((prev) => [
+                                    ...prev,
+                                    tag,
+                                  ]);
+                                }
+                              }}
+                            >
+                              {tag}
+                            </FilterTag>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {selectedTagsFilter.length > 0 && (
+                      <div
+                        style={{
+                          fontSize: "0.8rem",
+                          color: theme.colors.danger,
+                          cursor: "pointer",
+                          marginTop: "10px",
+                          textAlign: "center",
+                          fontWeight: "bold",
+                        }}
+                        onClick={() => setSelectedTagsFilter([])}
+                      >
+                        Wyczyść filtry
+                      </div>
+                    )}
+                  </FilterDropdown>
+                )}
+              </FilterContainer>
+            )}
+
+            {sets.length > 0 && !isTrashView && (
+              <SortSelectContainer>
                   <SortSelect
                     value={setSortOption}
                     onChange={(e) => setSetSortOption(e.target.value)}
@@ -2554,6 +2636,14 @@ const FlashcardsPage = () => {
                     </svg>
                   </SortIconWrapper>
                 </SortSelectContainer>
+              )}
+              {isTrashView && (
+                <HelpIcon>
+                  ?
+                  <HelpTooltip>
+                    Zestawy w koszu są przechowywane przez 30 dni, po czym ulegają automatycznemu usunięciu.
+                  </HelpTooltip>
+                </HelpIcon>
               )}
             </ToolbarActions>
           </StyledToolbar>
@@ -2812,7 +2902,7 @@ const FlashcardsPage = () => {
         {/* LISTA ZESTAWÓW */}
         {!activeSetId && (
           <ContentContainer>
-            {sets.length === 0 && !errorMessage ? (
+            {isReady && sets.length === 0 && !errorMessage ? (
               <EmptyStateContainer>
                 <svg
                   width="48"
@@ -2885,125 +2975,141 @@ const FlashcardsPage = () => {
                           <StyledItemOptions
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <div style={{ padding: "0 10px" }}>
-                              <DropdownSectionLabel>Nazwa</DropdownSectionLabel>
-                            </div>
-                            <input
-                              autoFocus
-                              defaultValue={set.name}
-                              maxLength={55}
-                              onBlur={(e) => {
-                                const newName = e.target.value;
-                                if (
-                                  newName.trim() &&
-                                  newName.trim() !== set.name
-                                ) {
-                                  handleRenameSetInline(set, newName.trim());
-                                }
-                              }}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  const newName = e.target.value;
-                                  if (
-                                    newName.trim() &&
-                                    newName.trim() !== set.name
-                                  ) {
-                                    handleRenameSetInline(set, newName.trim());
-                                  }
+                            {isTrashView ? (
+                              <StyledItemOption
+                                $narrow={isTrashView}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRestoreSet(set.id);
                                   setActiveMenuId(null);
-                                }
-                                if (e.key === "Escape") {
-                                  setActiveMenuId(null);
-                                }
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                            />
-
-                            <div style={{ padding: "0 12px" }}>
-                              <DropdownSectionLabel>Tagi</DropdownSectionLabel>
-                              <TagsContainer
-                                style={{
-                                  justifyContent: "flex-start",
-                                  margin: "0 0 10px 0",
                                 }}
                               >
-                                {set.tags?.map((tag, idx) => (
-                                  <StyledTag key={idx}>
-                                    {tag}
-                                    <div
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleInlineSetTagRemove(set, tag);
-                                      }}
-                                    >
-                                      x
-                                    </div>
-                                  </StyledTag>
-                                ))}
-
-                                {isAddingItemTag ? (
-                                  <StyledTagInput
-                                    autoFocus
-                                    value={newItemTag}
-                                    onChange={(e) =>
-                                      setNewItemTag(e.target.value)
+                                Przywróć zestaw
+                              </StyledItemOption>
+                            ) : (
+                              <>
+                                <div style={{ padding: "0 10px" }}>
+                                  <DropdownSectionLabel>Nazwa</DropdownSectionLabel>
+                                </div>
+                                <input
+                                  autoFocus
+                                  defaultValue={set.name}
+                                  maxLength={55}
+                                  onBlur={(e) => {
+                                    const newName = e.target.value;
+                                    if (
+                                      newName.trim() &&
+                                      newName.trim() !== set.name
+                                    ) {
+                                      handleRenameSetInline(set, newName.trim());
                                     }
-                                    onKeyDown={(e) => {
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                      const newName = e.target.value;
                                       if (
-                                        e.key === "Enter" &&
-                                        newItemTag.trim()
+                                        newName.trim() &&
+                                        newName.trim() !== set.name
                                       ) {
-                                        handleInlineSetTagAdd(
-                                          set,
-                                          newItemTag.trim()
-                                        );
-                                        setNewItemTag("");
-                                        setIsAddingItemTag(false);
+                                        handleRenameSetInline(set, newName.trim());
                                       }
-                                      if (e.key === "Escape") {
-                                        setIsAddingItemTag(false);
-                                        setNewItemTag("");
-                                      }
-                                    }}
-                                    onBlur={() => {
-                                      setIsAddingItemTag(false);
-                                      setNewItemTag("");
-                                    }}
-                                    onClick={(e) => e.stopPropagation()}
-                                  />
-                                ) : (
-                                  <StyledAddTagButton
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setIsAddingItemTag(true);
+                                      setActiveMenuId(null);
+                                    }
+                                    if (e.key === "Escape") {
+                                      setActiveMenuId(null);
+                                    }
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+
+                                <div style={{ padding: "0 12px" }}>
+                                  <DropdownSectionLabel>Tagi</DropdownSectionLabel>
+                                  <TagsContainer
+                                    style={{
+                                      justifyContent: "flex-start",
+                                      margin: "0 0 10px 0",
                                     }}
                                   >
-                                    + Dodaj
-                                  </StyledAddTagButton>
-                                )}
-                              </TagsContainer>
-                            </div>
+                                    {set.tags?.map((tag, idx) => (
+                                      <StyledTag key={idx}>
+                                        {tag}
+                                        <div
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleInlineSetTagRemove(set, tag);
+                                          }}
+                                        >
+                                          ×
+                                        </div>
+                                      </StyledTag>
+                                    ))}
 
-                            <div
-                              style={{
-                                height: "1px",
-                                background: theme.colors.borderLight,
-                                margin: "5px 0",
-                              }}
-                            ></div>
+                                    {isAddingItemTag ? (
+                                      <StyledTagInput
+                                        autoFocus
+                                        maxLength={55}
+                                        value={newItemTag}
+                                        onChange={(e) =>
+                                          setNewItemTag(e.target.value)
+                                        }
+                                        onKeyDown={(e) => {
+                                          if (
+                                            e.key === "Enter" &&
+                                            newItemTag.trim()
+                                          ) {
+                                            handleInlineSetTagAdd(
+                                              set,
+                                              newItemTag.trim()
+                                            );
+                                            setNewItemTag("");
+                                            setIsAddingItemTag(false);
+                                          }
+                                          if (e.key === "Escape") {
+                                            setIsAddingItemTag(false);
+                                            setNewItemTag("");
+                                          }
+                                        }}
+                                        onBlur={() => {
+                                          setIsAddingItemTag(false);
+                                          setNewItemTag("");
+                                        }}
+                                        onClick={(e) => e.stopPropagation()}
+                                      />
+                                    ) : (
+                                      <StyledAddTagButton
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setIsAddingItemTag(true);
+                                        }}
+                                      >
+                                        + Dodaj
+                                      </StyledAddTagButton>
+                                    )}
+                                  </TagsContainer>
+                                </div>
 
-                            <StyledItemOption
-                              className="danger"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                confirmDeleteSet(set.id);
-                              }}
-                            >
-                              <svg fill="currentColor" viewBox="0 0 16 16">
-                                <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
-                              </svg>
-                              Usuń zestaw
-                            </StyledItemOption>
+                                <div
+                                  style={{
+                                    height: "1px",
+                                    background: theme.colors.borderLight,
+                                    margin: "5px 0",
+                                  }}
+                                ></div>
+
+                                <StyledItemOption
+                                  className="danger"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    confirmDeleteSet(set.id);
+                                  }}
+                                >
+                                  <svg fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
+                                  </svg>
+                                  Usuń zestaw
+                                </StyledItemOption>
+                              </>
+                            )}
                           </StyledItemOptions>
                         )}
                       </StyledItemHeader>
@@ -3018,7 +3124,7 @@ const FlashcardsPage = () => {
         {/* WNETRZE ZESTAWU */}
         {activeSetId && !isAddingMode && !isAddByTagMode && (
           <ContentContainer>
-            {(!currentSet?.cards || currentSet.cards.length === 0) &&
+            {isReady && (!currentSet?.cards || currentSet.cards.length === 0) &&
             !errorMessage ? (
               <EmptyStateContainer>
                 <svg
@@ -3189,6 +3295,7 @@ const FlashcardsPage = () => {
                     </TagChipsScroll>
                     <TagMultiselectTextInput
                       ref={tagSearchInputRef}
+                      maxLength={55}
                       placeholder={
                         selectedSearchTags.length === 0
                           ? "Filtruj po tagach..."

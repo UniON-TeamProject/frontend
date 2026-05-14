@@ -13,6 +13,9 @@ const PageContainer = styled.div`
   position: relative;
   display: flex;
   flex-direction: column;
+
+  opacity: ${({ $ready }) => ($ready ? 1 : 0)};
+  transition: opacity 0.2s ease;
 `;
 
 const StyledUserHeader = styled.div`
@@ -398,6 +401,7 @@ const SocialGroups = () => {
   const navigate = useNavigate();
   const [groups, setGroups] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isReady, setIsReady] = useState(false);
   const [pageError, setPageError] = useState("");
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -416,6 +420,7 @@ const SocialGroups = () => {
   }, []);
 
   const fetchGroups = async () => {
+    setIsReady(false);
     setIsLoading(true);
     setPageError("");
     const res = await getUserSocialGroups();
@@ -466,6 +471,7 @@ const SocialGroups = () => {
       setGroups(enrichedGroups);
     }
     setIsLoading(false);
+    setIsReady(true);
   };
 
   const refreshUnreadCount = async () => {
@@ -531,7 +537,7 @@ const SocialGroups = () => {
 
 return (
     <Layout>
-      <PageContainer>
+      <PageContainer $ready={isReady}>
         
         <StyledUserHeader>
           <StyledName>Społeczności</StyledName>
@@ -577,7 +583,7 @@ return (
 
         {isLoading ? (
           <div style={{ textAlign: 'center', color: '#a0a69b', marginTop: '50px' }}>Ładowanie grup...</div>
-        ) : groups.length === 0 ? (
+        ) : isReady && groups.length === 0 ? (
           <div style={{ textAlign: 'center', color: '#a0a69b', marginTop: '50px' }}>
             Nie należysz jeszcze do żadnej społeczności. Kliknij +, aby utworzyć nową!
           </div>

@@ -887,6 +887,7 @@ const ToolbarActions = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
+  min-height: 40px;
 
   @media (max-width: 768px) {
     gap: 6px;
@@ -947,6 +948,22 @@ const FilterDropdown = styled.div`
   gap: 10px;
   cursor: default;
 
+  box-sizing: border-box;
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: ${({ theme }) => theme.colors.darkGrey};
+    border-radius: 10px;
+  }
+
   @media (max-width: 768px) {
     position: fixed;
     top: ${({ $filterDropdownY }) => $filterDropdownY}px;
@@ -994,6 +1011,64 @@ const ActiveFilterBadge = styled.span`
   justify-content: center;
   font-size: 0.75rem;
   margin-left: 6px;
+`;
+
+const HelpIcon = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background-color: ${({ theme }) => theme.colors.borderLight};
+  color: ${({ theme }) => theme.colors.textLight};
+  font-size: 0.9rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-left: 10px;
+  position: relative;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.darkGrey};
+    color: ${({ theme }) => theme.colors.text};
+    transform: scale(1.1);
+  }
+  &:hover > span {
+    display: block;
+  }
+`;
+
+const HelpTooltip = styled.span`
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  background: ${({ theme }) => theme.colors.veryDarkPrimary};
+  color: ${({ theme }) => theme.colors.white};
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  width: 200px;
+  white-space: normal;
+  line-height: 1.5;
+  z-index: 100;
+  pointer-events: none;
+  text-align: left;
+  transform: scale(0.909); 
+  transform-origin: bottom right;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    right: 8px;
+    border: 5px solid transparent;
+    border-top-color: ${({ theme }) => theme.colors.veryDarkPrimary};
+  }
 `;
 
 const EllipsisIcon = () => (
@@ -1885,7 +1960,7 @@ const Notes = () => {
               </FilterContainer>
             )}
 
-            {(subFolders.length > 0 || notes.length > 0) && (
+            {(subFolders.length > 0 || notes.length > 0) && !isTrashView && (
               <SortSelectContainer>
                 <SortSelect
                   value={sortOption}
@@ -1910,6 +1985,15 @@ const Notes = () => {
                 </SortIconWrapper>
               </SortSelectContainer>
             )}
+
+            {isTrashView && (
+                <HelpIcon>
+                  ?
+                  <HelpTooltip>
+                    Pliki w koszu są przechowywane przez 30 dni, po czym ulegają automatycznemu usunięciu.
+                  </HelpTooltip>
+                </HelpIcon>
+              )}
           </ToolbarActions>
         </StyledToolbar>
         <div

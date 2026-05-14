@@ -32,6 +32,8 @@ const PageContainer = styled.div`
   margin: 0 auto;
   display: flex;
   flex-direction: column;
+  opacity: ${({ $ready }) => ($ready ? 1 : 0)};
+  transition: opacity 0.2s ease;
 `;
 
 const StyledUserHeader = styled.div`
@@ -796,6 +798,7 @@ const SocialGroupDetails = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [group, setGroup] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState("");
 
   // kopiowanie linku
@@ -863,6 +866,7 @@ const SocialGroupDetails = () => {
   }, [id, navigate]);
 
   const fetchGroupDetails = async () => {
+    setIsReady(false);
     setIsLoading(true);
     setError("");
     
@@ -882,6 +886,7 @@ const SocialGroupDetails = () => {
       });
     }
     setIsLoading(false);
+    setIsReady(true);
   };
 
   const fetchGroupMembers = async () => {
@@ -1167,7 +1172,7 @@ const SocialGroupDetails = () => {
   if (isLoading || error || !group) {
     return (
       <Layout>
-        <PageContainer>
+        <PageContainer $ready={true}>
           <div style={{ textAlign: 'center', marginTop: '50px', color: error ? '#e74c3c' : '#a0a69b' }}>
             {isLoading ? "Ładowanie szczegółów grupy..." : (error || "Nie znaleziono grupy.")}
           </div>
@@ -1181,7 +1186,7 @@ const SocialGroupDetails = () => {
   
   return (
     <Layout>
-      <PageContainer>
+      <PageContainer $ready={isReady}>
         
         <StyledUserHeader>
           <BackButton onClick={() => navigate('/social')}>
@@ -1499,7 +1504,7 @@ const SocialGroupDetails = () => {
 
                 </MaterialItem>
               ))
-            ) : (
+            ) : isReady && (
               <div style={{ padding: '20px', textAlign: 'center', color: '#a0a69b' }}>
                 Brak materiałów.
               </div>
