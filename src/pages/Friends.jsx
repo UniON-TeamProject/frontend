@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import styled, { useTheme } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/organisms/Layout';
 import { getFriends, getPendingInvites, addFriend, removeFriend, rejectFriend } from '../api';
@@ -243,10 +243,10 @@ const AddFriendInput = styled.input`
 `;
 
 const ModalOverlay = styled.div`
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.4);
-    z-index: 999;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 999;
 `;
 
 const StyledPopup = styled.div`
@@ -279,6 +279,7 @@ const ModalTitle = styled.h2`
 
 
 const Friends = () => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('friends');
   const [searchQuery, setSearchQuery] = useState('');
@@ -288,6 +289,8 @@ const Friends = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const [deleteFriendModal, setDeleteFriendModal] = useState({ isOpen: false, friendId: null, username: "" });
+
+  const [infoModal, setInfoModal] = useState({ isOpen: false, message: "", isError: false });
 
   useEffect(() => {
     fetchAllData();
@@ -339,8 +342,10 @@ const Friends = () => {
   const handleSendInvite = async (userId) => {
     const res = await addFriend(userId);
     if (!res.errorCode) {
-      alert("Wysłano zaproszenie!");
+      setInfoModal({ isOpen: true, message: "Wysłano zaproszenie!", isError: false });
       setSearchQuery("");
+    } else {
+      setInfoModal({ isOpen: true, message: res.message || "Błąd podczas wysyłania zaproszenia.", isError: true });
     }
   };
 
@@ -495,6 +500,29 @@ const Friends = () => {
                   }}
                 >
                   Usuń znajomego
+                </ActionBtn>
+              </div>
+            </StyledPopup>
+          </>
+        )}
+
+        {/* MODAL INFO O WYSŁANIU ZAPROSZENIA */}
+        {infoModal.isOpen && (
+          <>
+            <ModalOverlay onClick={() => setInfoModal({ isOpen: false, message: "", isError: false })} />
+            <StyledPopup onClick={e => e.stopPropagation()} style={{ textAlign: 'center' }}>
+              <ModalTitle>{infoModal.isError ? "Błąd" : "Sukces"}</ModalTitle>
+              <p style={{ 
+                color: infoModal.isError ? (theme.colors?.danger || '#e74c3c') : (theme.colors?.secondary || '#00b894'), 
+                marginBottom: '30px', 
+                fontSize: '1.05rem', 
+                fontWeight: '600' 
+              }}>
+                {infoModal.message}
+              </p>
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <ActionBtn onClick={() => setInfoModal({ isOpen: false, message: "", isError: false })}>
+                  Zamknij
                 </ActionBtn>
               </div>
             </StyledPopup>

@@ -7,7 +7,7 @@ import { useParams, useLocation } from 'react-router-dom';
 import Typography from '@tiptap/extension-typography'
 import React, { useState, useEffect, useRef } from 'react'
 import { getNoteDetails, editNote, renameNote, addNoteTag, removeNoteTag, getNoteTags, getNoteSuggestedTags, getSocialGroup } from '../api'
-import styled from 'styled-components'
+import styled, { useTheme } from 'styled-components'
 import Image from '@tiptap/extension-image'
 import { Extension } from '@tiptap/core';
 import { Plugin } from '@tiptap/pm/state';
@@ -380,10 +380,62 @@ const StyledFloatingButton = styled.button`
   }
 `
 
+const RoleHelpIconWrapper = styled.div`
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: ${({ theme }) => theme.colors?.borderLight};
+  color: ${({ theme }) => theme.colors?.textLight};
+  font-size: 0.8rem;
+  font-weight: bold;
+  cursor: default;
+  z-index: 12;
+
+  &:hover > div {
+    display: block;
+  }
+`;
+
+const RoleHelpTooltip = styled.div`
+  display: none;
+  position: absolute;
+  right: calc(100% + 12px); // zeby otwieral sie w lewo
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: ${({ theme }) => theme.colors?.veryDarkPrimary};
+  color: ${({ theme }) => theme.colors?.white};
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 8px;
+  width: 280px;
+  z-index: 100;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+  line-height: 1.4;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    transform: translateY(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: transparent transparent ${({ theme }) => theme.colors?.veryDarkPrimary} transparent;
+  }
+`;
+
 const noteNameRegex = /^[a-zA-Z0-9 _\-ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+$/;
 
 const TextEditor = () => {
   const { id } = useParams();
+  const theme = useTheme();
   const newNameTimeout = useRef(null);
   const [errorMessage, setErrorMessage] = useState();
   const [renameNoteError, setRenameNoteError] = useState(false);
@@ -750,7 +802,7 @@ const TextEditor = () => {
         <StyledContainer>
           <StyledHeader>
           {!isReadOnly && (
-              <div style={{ position: 'absolute', top: 25, right: 20, display: 'flex', gap: 8, zIndex: 11 }}>
+              <div style={{ position: 'absolute', top: 25, right: 20, display: 'flex', gap: 8, zIndex: 50 }}>
                 <FlashcardToggleButton style={{ position: 'static' }} onClick={() => setIsSidebarOpen(o => !o)}>
                   <svg fill="currentColor" viewBox="0 0 16 16">
                     <path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2z" />
@@ -758,12 +810,20 @@ const TextEditor = () => {
                   </svg>
                   Kreator fiszek
                 </FlashcardToggleButton>
-                <FlashcardToggleButton style={{ position: 'static' }} onClick={() => setIsAIModalOpen(true)}>
-                  <svg fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M6 12.796V3.204L11.481 8zm.659.753 5.48-4.796a1 1 0 0 0 0-1.506L6.66 2.451C6.011 1.885 5 2.345 5 3.204v9.592a1 1 0 0 0 1.659.753" />
-                  </svg>
-                  Stwórz fiszki AI
-                </FlashcardToggleButton>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <FlashcardToggleButton style={{ position: 'static' }} onClick={() => setIsAIModalOpen(true)}>
+                    <svg fill="currentColor" viewBox="0 0 16 16">
+                      <path d="M6 12.796V3.204L11.481 8zm.659.753 5.48-4.796a1 1 0 0 0 0-1.506L6.66 2.451C6.011 1.885 5 2.345 5 3.204v9.592a1 1 0 0 0 1.659.753" />
+                    </svg>
+                    Stwórz fiszki AI
+                  </FlashcardToggleButton>
+                  <RoleHelpIconWrapper style={{ marginLeft: "8px" }}>
+                    ?
+                    <RoleHelpTooltip>
+                      <b style={{ color: theme.colors.secondary }}>Kreator AI</b> automatycznie wygeneruje propozycje fiszek z treści, która jest obecnie zapisana w notatce.
+                    </RoleHelpTooltip>
+                  </RoleHelpIconWrapper>
+                </div>
               </div>
             )}
 

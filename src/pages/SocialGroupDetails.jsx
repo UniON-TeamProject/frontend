@@ -21,7 +21,8 @@ import {
   getSocialGroupUsers,
   changeSocialGroupRole,
   removeUserFromSocialGroup,
-  leaveSocialGroup
+  leaveSocialGroup,
+  inviteFriendToSocialGroup
 } from '../api';
 
 const PageContainer = styled.div`
@@ -105,7 +106,7 @@ const SettingsBtn = styled.button`
 
 const TopCardsGrid = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1.15fr 0.85fr;
   gap: 25px;
   margin-bottom: 40px;
 
@@ -169,13 +170,17 @@ const InviteText = styled.p`
 `;
 
 const InviteBox = styled.div`
-  display: flex;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px 10px;
   margin-top: auto;
+  align-items: center;
 `;
 
 const InviteInput = styled.input`
+  min-width: 110px;
   flex: 1;
+  height: 44px;
   padding: 10px 15px;
   border-radius: 10px;
   border: 3px solid ${({ theme }) => theme.colors?.lightGrey};
@@ -183,10 +188,12 @@ const InviteInput = styled.input`
   color: ${({ theme }) => theme.colors?.dark};
   font-size: 0.9rem;
   outline: none;
+  box-sizing: border-box;
 `;
 
 const InviteRoleSelect = styled.select`
-  padding: 10px 15px;
+  height: 44px;
+  padding: 0 15px;
   border-radius: 10px;
   border: 3px solid ${({ theme }) => theme.colors?.lightGrey };
   background: #fdfdfc;
@@ -194,25 +201,34 @@ const InviteRoleSelect = styled.select`
   font-size: 0.9rem;
   outline: none;
   cursor: pointer;
+  box-sizing: border-box;
 `;
 
-const CopyBtn = styled.button`
+const ActionBtn = styled.button`
   background-color: ${({ $primary, $success, theme }) => 
     $success ? (theme.colors?.secondary) : 
     $primary ? theme.colors?.text : 'transparent'};
   color: ${({ $primary, $success, theme }) => ($primary || $success) ? '#fff' : theme.colors?.text};
   border: ${({ $primary, $success, theme }) => ($primary || $success) ? 'none' : `1px solid ${theme.colors?.darkGrey}`};
   border-radius: 10px;
-  padding: 0 20px;
+  padding: 0 18px;
+  height: 44px;
+  width: 100%;
   font-weight: 600;
+  font-size: 0.85rem;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 6px;
   transition: all 0.3s ease;
+  box-sizing: border-box;
   
-  &:hover { opacity: 0.8; }
-  &:disabled { opacity: 0.7; cursor: wait; }
+  &:hover:not(:disabled) { opacity: 0.8; }
+  &:disabled { 
+    opacity: 0.7; 
+    cursor: ${({ $isLoading }) => $isLoading ? 'wait' : 'not-allowed'}; 
+  }
 `;
 
 const ManageLink = styled.button`
@@ -833,6 +849,10 @@ const SocialGroupDetails = () => {
   const [confirmLeaveGroupModal, setConfirmLeaveGroupModal] = useState(false);
   const [leaveGroupError, setLeaveGroupError] = useState("");
 
+  const [friendUsername, setFriendUsername] = useState("");
+  const [isInvitingFriend, setIsInvitingFriend] = useState(false);
+  const [inviteFriendMessage, setInviteFriendMessage] = useState({ text: "", isError: false });
+
   useEffect(() => {
     fetchGroupDetails();
     fetchGroupMembers();
@@ -1008,6 +1028,24 @@ const SocialGroupDetails = () => {
         setLeaveGroupError(res.message || "Błąd opuszczania grupy.");
         setIsDeleting(false);
     }
+  };
+
+  const handleInviteFriend = async () => {
+    setIsInvitingFriend(true);
+    setInviteFriendMessage({ text: "", isError: false });
+    
+    const res = await inviteFriendToSocialGroup(group.id, friendUsername.trim(), inviteRole);
+    
+    if (!res.errorCode) {
+      setInviteFriendMessage({ text: "Wysłano zaproszenie!", isError: false });
+      setFriendUsername("");
+    } else {
+      if (res.errorCode === "TOKEN_UNDEFINED") navigate("/", { replace: true });
+      else setInviteFriendMessage({ text: res.message || "Błąd zapraszania.", isError: true });
+    }
+    
+    setIsInvitingFriend(false);
+    setTimeout(() => setInviteFriendMessage({ text: "", isError: false }), 4000);
   };
 
 
@@ -1199,9 +1237,21 @@ const SocialGroupDetails = () => {
             </InviteText>
             {group.userRole === 'ADMIN' ? (
               <>
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '18px', gap: '10px', flexWrap: 'wrap' }}>
                     <span style={{ fontSize: '0.85rem', fontWeight: 600, color: theme.colors?.darkGrey }}>Wybierz rolę zapraszanego:</span>
-                    <RoleHelpIconWrapper>
+                    <InviteRoleSelect 
+                      value={inviteRole} 
+                      onChange={e => {
+                        setInviteRole(e.target.value);
+                        setInviteLink("");
+                      }}
+                      style={{ height: '34px', padding: '0 10px', width: 'auto', border: `2px solid ${theme.colors?.lightGrey}` }}
+                    >
+                      <option value="EDITOR">Edytor</option>
+                      <option value="VIEWER">Obserwator</option>
+                    </InviteRoleSelect>
+                    
+                    <RoleHelpIconWrapper style={{ marginLeft: 0 }}>
                         ?
                         <RoleHelpTooltip>
                             <b style={{ color: theme.colors.secondary }}>Edytor</b> może przeglądać i edytować materiały oraz dodawać nowe.<br/><br/>
@@ -1209,24 +1259,15 @@ const SocialGroupDetails = () => {
                         </RoleHelpTooltip>
                     </RoleHelpIconWrapper>
                 </div>
-                <InviteBox>
-                  <InviteRoleSelect 
-                    value={inviteRole} 
-                    onChange={e => {
-                      setInviteRole(e.target.value);
-                      setInviteLink("");
-                    }}
-                  >
-                    <option value="EDITOR">Rola: Edytor</option>
-                    <option value="VIEWER">Rola: Obserwator</option>
-                  </InviteRoleSelect>
 
+                <InviteBox>
+                  {/* wiersz 1 */}
                   <InviteInput 
                     type="text" 
                     readOnly 
                     value={inviteLink || "Kliknij 'Generuj', aby stworzyć link"} 
                   />
-                  <CopyBtn 
+                  <ActionBtn 
                     onClick={handleGenerateOrCopyLink} 
                     disabled={isGenerating}
                     $isCopied={isCopied}
@@ -1249,8 +1290,40 @@ const SocialGroupDetails = () => {
                         {inviteLink ? "Kopiuj" : "Generuj"}
                       </>
                     )}
-                  </CopyBtn>
+                  </ActionBtn>
+
+                  {/* wiersz 2 */}
+                  <InviteInput 
+                    type="text" 
+                    placeholder="Nazwa znajomego"
+                    value={friendUsername}
+                    onChange={(e) => setFriendUsername(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && friendUsername.trim()) {
+                        handleInviteFriend();
+                      }
+                    }}
+                  />
+                  <ActionBtn 
+                    $success 
+                    $isLoading={isInvitingFriend}
+                    disabled={isInvitingFriend || !friendUsername.trim()}
+                    onClick={handleInviteFriend}
+                  >
+                    {isInvitingFriend ? "..." : "Zaproś"}
+                  </ActionBtn>
                 </InviteBox>
+
+                {inviteFriendMessage.text && (
+                  <div style={{ 
+                    marginTop: '10px', 
+                    fontSize: '0.85rem', 
+                    fontWeight: 'bold', 
+                    color: inviteFriendMessage.isError ? theme.colors.danger : theme.colors.secondary 
+                  }}>
+                    {inviteFriendMessage.text}
+                  </div>
+                )}
               </>
             ) : (
               <div style={{ padding: '10px', background: '#f8f9fa', borderRadius: '10px', fontSize: '0.9rem', color: '#666' }}>

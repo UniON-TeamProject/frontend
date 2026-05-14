@@ -2344,6 +2344,14 @@ const Calendar = () => {
                   setForm((f) => ({ ...f, startTime: v }));
                   setFormErrors((e2) => ({ ...e2, startTime: false }));
                 }}
+                onBlur={(e) => {
+                  // autouzupełnianie
+                  let v = e.target.value;
+                  if (/^\d{1,2}$/.test(v)) {
+                    v = v.padStart(2, "0") + ":00";
+                    setForm((f) => ({ ...f, startTime: v }));
+                  }
+                }}
               />
               <Input
                 $error={formErrors.endTime}
@@ -2361,6 +2369,14 @@ const Calendar = () => {
                   if (v.length > 5) v = v.slice(0, 5);
                   setForm((f) => ({ ...f, endTime: v }));
                   setFormErrors((e2) => ({ ...e2, endTime: false }));
+                }}
+                onBlur={(e) => {
+                  // autouzupełnianie
+                  let v = e.target.value;
+                  if (/^\d{1,2}$/.test(v)) {
+                    v = v.padStart(2, "0") + ":00";
+                    setForm((f) => ({ ...f, endTime: v }));
+                  }
                 }}
               />
             </Row2>

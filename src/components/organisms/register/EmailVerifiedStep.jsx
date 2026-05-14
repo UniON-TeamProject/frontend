@@ -29,9 +29,9 @@ const EmailVerifiedStep = () => {
 
     return (
         <StyledMessage>
-            <Text text="Email został zweryfikowany poprawnie"></Text>
-            <Text text="Za chwilę zostaniesz przekierowany na stronę główną."></Text>
-            <StyledLink to='/'>
+            <Text text="Email został zweryfikowany poprawnie."></Text>
+            <Text text="Za chwilę zostaniesz przekierowany na stronę logowania."></Text>
+            <StyledLink to='/login'>
                 Przejdź teraz
             </StyledLink>
         </StyledMessage>

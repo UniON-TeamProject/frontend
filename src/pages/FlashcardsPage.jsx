@@ -1,4 +1,4 @@
-import styled, { useTheme, keyframes } from "styled-components";
+import styled, { useTheme, keyframes, css } from "styled-components";
 import React, { useState, useEffect, useRef } from "react";
 import SubmitButton from "../components/atoms/SubmitButton";
 import Text from "../components/atoms/Text";
@@ -35,7 +35,7 @@ import TagSelector from "../components/organisms/TagSelector";
 const stripHtml = (html) => {
   if (!html) return "";
   const doc = new DOMParser().parseFromString(html, "text/html");
-  return doc.body.textContent || "";
+  return (doc.body.textContent || "").replace(/\u00a0/g, " ").trim();
 };
 
 const StyledContainer = styled.div`
@@ -1223,6 +1223,34 @@ const CloseButton = styled.button`
   }
 `;
 
+const highlightPulse = keyframes`
+  0% { box-shadow: 0 0 0 0px rgba(46, 204, 113, 0.6); border-color: transparent; }
+  50% { box-shadow: 0 0 0 15px rgba(46, 204, 113, 0); border-color: #2ecc71; }
+  100% { box-shadow: 0 0 0 0px rgba(46, 204, 113, 0); border-color: transparent; }
+`;
+
+const HighlightWrapper = styled.div`
+  position: relative;
+  display: flex;
+  
+  ${({ $isHighlighted }) => $isHighlighted && css`
+    z-index: 100;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      border-radius: 15px; 
+      border: 3px solid #2ecc71; 
+      animation: ${highlightPulse} 2s ease-out 2; 
+      pointer-events: none;
+    }
+  `}
+`;
+
 const StackedCardsIcon = () => (
   <svg
     viewBox="0 0 140 100"
@@ -1307,6 +1335,7 @@ const FlashcardsPage = () => {
   const location = useLocation();
   const { setId } = useParams();
   const theme = useTheme();
+  const [highlightedCardId, setHighlightedCardId] = useState(null);
 
   const socialId = new URLSearchParams(location.search).get("socialId");
 
@@ -1423,6 +1452,11 @@ const FlashcardsPage = () => {
   const [bulkApplyTags, setBulkApplyTags] = useState(false);
 
   const [groupRole, setGroupRole] = useState(null);
+
+  const [cardValidationErrors, setCardValidationErrors] = useState([]);
+  const [isPartialEmptyModalOpen, setIsPartialEmptyModalOpen] = useState(false);
+  const [pendingValidCards, setPendingValidCards] = useState([]);
+  const [pendingIgnoreDuplicates, setPendingIgnoreDuplicates] = useState(false);
 
   const fetchData = async () => {
     setErrorMessage("");
@@ -1669,37 +1703,109 @@ const FlashcardsPage = () => {
   const sortedSets = getSortedSets();
   const sortedCards = getSortedCards();
 
+  useEffect(() => {
+    const targetId = location.state?.highlightCardId;
+    
+    if (targetId && sortedCards.some(c => c.id === targetId)) {
+      setHighlightedCardId(targetId);
+
+      const scrollToElement = () => {
+        const element = document.getElementById(`flashcard-item-${targetId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      };
+
+      const scrollTimer = setTimeout(scrollToElement, 150);
+
+      const clearTimer = setTimeout(() => {
+        setHighlightedCardId(null);
+        navigate(location.pathname, { replace: true, state: {} });
+      }, 4000);
+
+      return () => {
+        clearTimeout(scrollTimer);
+        clearTimeout(clearTimer);
+      };
+    }
+  }, [location.state?.highlightCardId, sortedCards.length, location.pathname]);
+
   // DODAWANIE FISZEK
   const updateNewCard = (index, field, value) => {
     const updated = [...newCards];
     updated[index][field] = value;
     setNewCards(updated);
+
+    if (cardValidationErrors.length > 0) {
+      const newErrors = [...cardValidationErrors];
+      if (newErrors[index]) {
+        newErrors[index][field === 'question' ? 'qError' : 'aError'] = false;
+      }
+      setCardValidationErrors(newErrors);
+    }
   };
 
-  const handleSaveNewCards = async (ignoreDuplicates = false) => {
+  const handleSaveNewCards = async (ignoreDuplicates = false, skipEmptyWarning = false) => {
     setErrorMessage("");
+    setCardValidationErrors([]);
 
+    let errors = new Array(newCards.length).fill({ qError: false, aError: false });
+    let hasAnyErrors = false;
+    let validCards = [];
+
+    for (let i = 0; i < newCards.length; i++) {
+      const card = newCards[i];
+      const isQEmpty = stripHtml(card.question).length === 0;
+      const isAEmpty = stripHtml(card.answer).length === 0;
+
+      if (!isQEmpty && !isAEmpty) {
+        validCards.push(card);
+        errors[i] = { qError: false, aError: false };
+      } else {
+        if (newCards.length === 1 && isQEmpty && isAEmpty) {
+          setErrorMessage("Nie dodano żadnej fiszki (pola nie mogą być puste).");
+          return;
+        }
+        errors[i] = { qError: isQEmpty, aError: isAEmpty };
+        hasAnyErrors = true;
+      }
+    }
+
+    // jeśli wszystko jest puste
+    if (validCards.length === 0) {
+      setCardValidationErrors(errors);
+      setErrorMessage("Brak prawidłowych fiszek. Uzupełnij brakujące pytania i odpowiedzi.");
+      return;
+    }
+
+    // jeśli są jakieś błędy
+    if (hasAnyErrors && !skipEmptyWarning) {
+      setCardValidationErrors(errors);
+      setPendingValidCards(validCards);
+      setPendingIgnoreDuplicates(ignoreDuplicates);
+      setIsPartialEmptyModalOpen(true);
+      return;
+    }
+
+    // jak wszystko jest super albo użytkownik zaakceptował ostrzeżenie
+    await executeSaveCards(validCards, ignoreDuplicates);
+  };
+
+  const executeSaveCards = async (cardsToSave, ignoreDuplicates) => {
     if (!ignoreDuplicates) {
       let duplicates = [];
-
-      for (const newCard of newCards) {
-        const rawStripped = stripHtml(newCard.question).trim();
-        const plainNewQuestion = rawStripped.toLowerCase();
-
-        if (!plainNewQuestion) continue;
-
+      for (const newCard of cardsToSave) {
+        const plainNewQuestion = stripHtml(newCard.question).toLowerCase();
         sets.forEach((set) => {
           if (set.cards && Array.isArray(set.cards)) {
             set.cards.forEach((existingCard) => {
               const plainExistingQuestion = stripHtml(
                 existingCard.contentFirstSide || existingCard.question || ""
-              )
-                .trim()
-                .toLowerCase();
+              ).toLowerCase();
 
               if (plainNewQuestion === plainExistingQuestion) {
                 duplicates.push({
-                  question: rawStripped,
+                  question: stripHtml(newCard.question),
                   setName: set.name,
                 });
               }
@@ -1710,6 +1816,7 @@ const FlashcardsPage = () => {
 
       if (duplicates.length > 0) {
         setDuplicateWarning(duplicates);
+        setPendingValidCards(cardsToSave);
         return;
       }
     }
@@ -1717,20 +1824,13 @@ const FlashcardsPage = () => {
     let addedCount = 0;
     const inheritedTags = currentSet?.tags ? [...currentSet.tags] : [];
 
-    for (const card of newCards) {
-      if (card.question.trim() && card.answer.trim()) {
-        const res = await addCard(
-          card.question,
-          card.answer,
-          parseInt(activeSetId),
-          inheritedTags
-        );
-        if (res.errorCode === "TOKEN_UNDEFINED") {
-          navigate("/", { replace: true });
-          return;
-        }
-        if (!res.errorCode) addedCount++;
+    for (const card of cardsToSave) {
+      const res = await addCard(card.question, card.answer, parseInt(activeSetId), inheritedTags);
+      if (res.errorCode === "TOKEN_UNDEFINED") {
+        navigate("/", { replace: true });
+        return;
       }
+      if (!res.errorCode) addedCount++;
     }
 
     if (addedCount > 0) {
@@ -1741,10 +1841,9 @@ const FlashcardsPage = () => {
         fetchData();
         setIsAddingMode(false);
         setNewCards([{ question: "", answer: "" }]);
+        setCardValidationErrors([]);
         setSuccessMessage("");
       }, 1000);
-    } else {
-      setErrorMessage("Nie dodano żadnej fiszki (puste pola).");
     }
   };
 
@@ -1760,7 +1859,7 @@ const FlashcardsPage = () => {
 
   const handleEditSingleCard = async (e) => {
     e.preventDefault();
-    if (!editQuestion.trim() || !editAnswer.trim()) {
+    if (!stripHtml(editQuestion) || !stripHtml(editAnswer)) {
       setErrorMessage("Pytanie i odpowiedź są wymagane!");
       return;
     }
@@ -2277,7 +2376,7 @@ const FlashcardsPage = () => {
                                 onClick={() => {
                                   setSearchQuery("");
                                   setIsSearchFocused(false);
-                                  navigate(`/learning/set/${c.setId}`);
+                                  navigate(`/learning/set/${c.setId}`, { state: { highlightCardId: c.id } });
                                 }}
                               >
                                 <svg
@@ -2937,20 +3036,25 @@ const FlashcardsPage = () => {
               </EmptyStateContainer>
             ) : (
               sortedCards.map((card) => (
-                <Flashcard
-                  key={card.id}
-                  card={card}
-                  question={card.contentFirstSide || card.question}
-                  answer={card.contentFlipSide || card.answer}
-                  onEdit={() => openEditCardModal(card)}
-                  onDelete={() => confirmDeleteCard(card.id)}
-                  onTagAdd={handleInlineCardTagAdd}
-                  onTagRemove={handleInlineCardTagRemove}
-                  isSelectMode={isSelectMode}
-                  isSelected={selectedCards.some((c) => c.id === card.id)}
-                  onToggleSelect={() => toggleCardSelection(card)}
-                  isReadOnly={isReadOnly}
-                />
+                <HighlightWrapper 
+                  key={card.id} 
+                  id={`flashcard-item-${card.id}`} 
+                  $isHighlighted={highlightedCardId === card.id}
+                >
+                  <Flashcard
+                    card={card}
+                    question={card.contentFirstSide || card.question}
+                    answer={card.contentFlipSide || card.answer}
+                    onEdit={() => openEditCardModal(card)}
+                    onDelete={() => confirmDeleteCard(card.id)}
+                    onTagAdd={handleInlineCardTagAdd}
+                    onTagRemove={handleInlineCardTagRemove}
+                    isSelectMode={isSelectMode}
+                    isSelected={selectedCards.some((c) => c.id === card.id)}
+                    onToggleSelect={() => toggleCardSelection(card)}
+                    isReadOnly={isReadOnly}
+                  />
+                </HighlightWrapper>
               ))
             )}
           </ContentContainer>
@@ -2967,6 +3071,7 @@ const FlashcardsPage = () => {
                     maxLength={1020}
                     value={card.question}
                     placeholder="Wprowadź pytanie lub wpisz /"
+                    hasError={cardValidationErrors[index]?.qError}
                     onChange={(htmlContent) =>
                       updateNewCard(index, "question", htmlContent)
                     }
@@ -2978,6 +3083,7 @@ const FlashcardsPage = () => {
                     maxLength={1020}
                     value={card.answer}
                     placeholder="Wprowadź odpowiedź lub wpisz /"
+                    hasError={cardValidationErrors[index]?.aError}
                     onChange={(htmlContent) =>
                       updateNewCard(index, "answer", htmlContent)
                     }
@@ -3763,7 +3869,10 @@ const FlashcardsPage = () => {
                 <ModalButton
                   type="button"
                   $danger
-                  onClick={() => handleSaveNewCards(true)}
+                  onClick={() => {
+                    setDuplicateWarning(null);
+                    executeSaveCards(pendingValidCards, true);
+                  }}
                 >
                   Zapisz mimo to
                 </ModalButton>
@@ -3809,7 +3918,7 @@ const FlashcardsPage = () => {
               <Text
                 bold="true"
                 as="h2"
-                text={`Kopiowanie ${selectedCards.length} fiszek`}
+                text={`Kopiowanie ${selectedCards.length} ${selectedCards.length === 1 ? "fiszki" : "fiszek"}`}
               />
               {errorMessage && (
                 <Text
@@ -3899,7 +4008,12 @@ const FlashcardsPage = () => {
                 </ModalButton>
                 <ModalButton
                   type="button"
-                  onClick={() => setIsBulkCopyModalOpen(false)}
+                  onClick={() => {
+                    setIsBulkCopyModalOpen(false);
+                    setBulkTargetSetId("");
+                    setBulkNewSetName("");
+                    setErrorMessage("");
+                  }}
                 >
                   Anuluj
                 </ModalButton>
@@ -3916,7 +4030,9 @@ const FlashcardsPage = () => {
               <Text
                 bold="true"
                 as="h2"
-                text={`Dodaj tagi do ${selectedCards.length} fiszek`}
+                text={`Dodaj tagi do ${selectedCards.length} ${
+                  selectedCards.length === 1 ? "fiszki" : "fiszek"
+                }`}
               />
               {errorMessage && (
                 <Text
@@ -4016,7 +4132,7 @@ const FlashcardsPage = () => {
               <Text
                 bold="true"
                 as="h2"
-                text={`Przenieś ${selectedCards.length} fiszek`}
+                text={`Przenoszenie ${selectedCards.length} ${selectedCards.length === 1 ? "fiszki" : "fiszek"}`}
               />
               {errorMessage && (
                 <Text
@@ -4040,7 +4156,10 @@ const FlashcardsPage = () => {
                 value={bulkMoveTargetSetId}
                 onChange={(e) => setBulkMoveTargetSetId(e.target.value)}
               >
-                <option value="">-- Wybierz zestaw --</option>
+                <option value="" disabled>-- Wybierz zestaw --</option>
+                <option value="NEW" style={{ fontWeight: "bold" }}>
+                  + Utwórz nowy zestaw
+                </option>
                 {sets
                   .filter((s) => s.id !== activeSetId)
                   .map((s) => (
@@ -4049,6 +4168,16 @@ const FlashcardsPage = () => {
                     </option>
                   ))}
               </SortSelect>
+
+              {bulkMoveTargetSetId === "NEW" && (
+                <Input
+                  autoFocus
+                  placeholder="Nazwa nowego zestawu"
+                  value={bulkNewSetName}
+                  onChange={(e) => setBulkNewSetName(e.target.value)}
+                  style={{ marginBottom: "20px" }}
+                />
+              )}
 
               <div
                 style={{
@@ -4065,36 +4194,54 @@ const FlashcardsPage = () => {
                       return;
                     }
 
-                    const targetSet = sets.find(
-                      (s) => s.id === parseInt(bulkMoveTargetSetId)
-                    );
-                    if (!targetSet) {
-                      setErrorMessage("Zestaw nie istnieje");
-                      return;
+                    let targetId = bulkMoveTargetSetId;
+
+                    if (targetId === "NEW") {
+                      if (!bulkNewSetName.trim()) {
+                        setErrorMessage("Podaj nazwę nowego zestawu");
+                        return;
+                      }
+                      const res = await addFlashcardSet(bulkNewSetName.trim(), [], socialId);
+                      if (res.errorCode) {
+                        setErrorMessage(res.message);
+                        return;
+                      }
+                      targetId = res.id;
+                    } else {
+                      const targetSet = sets.find(
+                        (s) => s.id === parseInt(targetId)
+                      );
+                      if (!targetSet) {
+                        setErrorMessage("Zestaw nie istnieje");
+                        return;
+                      }
                     }
 
                     const cardRequests = selectedCards.map((card) => ({
                       contentFirstSide: card.contentFirstSide || card.question,
                       contentFlipSide: card.contentFlipSide || card.answer,
-                      setId: parseInt(bulkMoveTargetSetId),
+                      setId: parseInt(targetId),
                       cardTags: card.cardTags || [],
                       isForced: false,
                     }));
 
                     const res = await addListOfCardsToSet(
-                      bulkMoveTargetSetId,
+                      targetId,
                       cardRequests
                     );
 
                     if (res.errorCode) {
                       setErrorMessage(res.message);
                     } else {
+                      await Promise.all(selectedCards.map((c) => deleteCard(c.id)));
+
                       setSuccessMessage("Fiszki przeniesione!");
                       setTimeout(() => setSuccessMessage(""), 2000);
                       setIsBulkMoveModalOpen(false);
                       setIsSelectMode(false);
                       setSelectedCards([]);
                       setBulkMoveTargetSetId("");
+                      setBulkNewSetName("");
                       fetchData();
                     }
                   }}
@@ -4110,6 +4257,7 @@ const FlashcardsPage = () => {
                   onClick={() => {
                     setIsBulkMoveModalOpen(false);
                     setBulkMoveTargetSetId("");
+                    setBulkNewSetName("");
                     setErrorMessage("");
                   }}
                 >
@@ -4378,6 +4526,42 @@ const FlashcardsPage = () => {
                   disabled={isDeletingBulk}
                 >
                   Anuluj
+                </ModalButton>
+              </div>
+            </StyledPopup>
+          </>
+        )}
+
+        {/* MODAL CZĘŚCIOWO PUSTYCH FISZEK */}
+        {isPartialEmptyModalOpen && (
+          <>
+            <ModalOverlay onClick={() => setIsPartialEmptyModalOpen(false)} />
+            <StyledPopup onClick={(e) => e.stopPropagation()} style={{ textAlign: "center" }}>
+              <Text bold="true" as="h2" text="Puste pola!" />
+              <Text
+                text="Niektóre fiszki mają puste pola (pytanie lub odpowiedź). Możesz wrócić i je uzupełnić albo kontynuować – puste fiszki nie zostaną zapisane."
+                style={{
+                  margin: "20px 0 30px 0",
+                  color: theme.colors.textLight,
+                }}
+              />
+
+              <div style={{ display: "flex", justifyContent: "center", gap: "15px" }}>
+                <ModalButton
+                  type="button"
+                  onClick={() => setIsPartialEmptyModalOpen(false)}
+                >
+                  Wróć i uzupełnij
+                </ModalButton>
+                <ModalButton
+                  type="button"
+                  $danger
+                  onClick={() => {
+                    setIsPartialEmptyModalOpen(false);
+                    executeSaveCards(pendingValidCards, pendingIgnoreDuplicates);
+                  }}
+                >
+                  Kontynuuj bez nich
                 </ModalButton>
               </div>
             </StyledPopup>

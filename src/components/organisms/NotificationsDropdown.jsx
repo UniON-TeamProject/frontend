@@ -1,7 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead, clearAllNotifications } from '../../api';
+import { getNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  clearAllNotifications,
+  acceptDirectGroupInvitation,
+  declineDirectGroupInvitation
+} from '../../api';
 
 const DropdownContainer = styled.div`
   position: absolute;
@@ -198,6 +204,26 @@ const StyledCheckbox = styled.input`
   accent-color: ${({ theme }) => theme.colors?.danger };
 `;
 
+const InviteActions = styled.div`
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+`;
+
+const InviteBtn = styled.button`
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  background: ${({ $accept, theme }) => $accept ? theme.colors?.secondary : theme.colors?.danger};
+  color: white;
+  transition: opacity 0.2s;
+  &:hover { opacity: 0.8; }
+  &:disabled { opacity: 0.5; cursor: wait; }
+`;
+
 const NotificationsDropdown = ({ onClose, onRefresh }) => {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
@@ -206,6 +232,8 @@ const NotificationsDropdown = ({ onClose, onRefresh }) => {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [dontAskAgain, setDontAskAgain] = useState(false);
   const dropdownRef = useRef(null);
+
+  const [processingInvites, setProcessingInvites] = useState({});
 
   useEffect(() => {
     fetchNotifications();
@@ -233,19 +261,55 @@ const NotificationsDropdown = ({ onClose, onRefresh }) => {
   };
 
   const handleNotificationClick = async (notif) => {
+    // zaproszenia obsługujemy osobnymi guzikami
+    if (notif.invitationId) return;
+
     if (!notif.isRead) {
       await markNotificationAsRead(notif.id);
-
       setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, isRead: true } : n));
-
       if (onRefresh) onRefresh();
     }
 
-    // przechodzimy do grupy po kliknieciu
     if (notif.socialGroupId) {
       navigate(`/social/${notif.socialGroupId}`);
+      onClose();
     }
-    onClose();
+  };
+
+  const handleAcceptInvite = async (e, notif) => {
+    e.stopPropagation();
+    setProcessingInvites(prev => ({ ...prev, [notif.invitationId]: true }));
+
+    const res = await acceptDirectGroupInvitation(notif.invitationId);
+    
+    if (!res.errorCode) {
+      // odznacza się jako przeczytane
+      await markNotificationAsRead(notif.id);
+      if (onRefresh) onRefresh();
+      
+      // przekierowujemy do grupy
+      navigate(`/social/${notif.socialGroupId}`);
+      onClose();
+    } else {
+      alert(res.message || "Wystąpił błąd podczas akceptacji.");
+    }
+    setProcessingInvites(prev => ({ ...prev, [notif.invitationId]: false }));
+  };
+
+  const handleDeclineInvite = async (e, notif) => {
+    e.stopPropagation();
+    setProcessingInvites(prev => ({ ...prev, [notif.invitationId]: true }));
+
+    const res = await declineDirectGroupInvitation(notif.invitationId);
+    
+    if (!res.errorCode) {
+      // odrzucono - odświeżamy listę żeby powiadomienie zniknęło/oznaczyło się jako przeczytane
+      fetchNotifications();
+      if (onRefresh) onRefresh();
+    } else {
+      alert(res.message || "Wystąpił błąd podczas odrzucania.");
+    }
+    setProcessingInvites(prev => ({ ...prev, [notif.invitationId]: false }));
   };
 
   const handleMarkAllRead = async () => {
@@ -319,12 +383,32 @@ const NotificationsDropdown = ({ onClose, onRefresh }) => {
               <NotificationItem 
                 key={notif.id} 
                 $isRead={notif.isRead} 
+                $isActionable={!!notif.invitationId}
                 onClick={() => handleNotificationClick(notif)}
               >
                 <UnreadDot $visible={!notif.isRead} />
                 <Content>
                   <Message>{notif.message}</Message>
                   <Time>{formatTime(notif.createdAt)}</Time>
+
+                  {/* przyciski akceptacji/odrzucenia tylko jeśli jest zaproszenie i powiadomienie jest nieprzeczytane/aktywne */}
+                  {notif.invitationId && !notif.isRead && (
+                    <InviteActions>
+                      <InviteBtn 
+                        $accept 
+                        disabled={processingInvites[notif.invitationId]}
+                        onClick={(e) => handleAcceptInvite(e, notif)}
+                      >
+                        {processingInvites[notif.invitationId] ? "..." : "Zaakceptuj"}
+                      </InviteBtn>
+                      <InviteBtn 
+                        disabled={processingInvites[notif.invitationId]}
+                        onClick={(e) => handleDeclineInvite(e, notif)}
+                      >
+                        {processingInvites[notif.invitationId] ? "..." : "Odrzuć"}
+                      </InviteBtn>
+                    </InviteActions>
+                  )}
                 </Content>
               </NotificationItem>
             ))

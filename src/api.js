@@ -3483,3 +3483,62 @@ export const leaveSocialGroup = async (socialId) => {
     return { errorCode: "CONNECTION_ERROR", message: "Błąd serwera." };
   }
 };
+
+
+export const inviteFriendToSocialGroup = async (socialId, friendUsername, role) => {
+    const token = getToken();
+    if (!token) return { errorCode: "TOKEN_UNDEFINED" };
+
+    try {
+        const resp = await fetch(`${API_HOST}/inviteFriendToGroup?socialId=${socialId}&friendUsername=${encodeURIComponent(friendUsername)}&role=${role}`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        const authErr = checkUnauthorized(resp);
+        if (authErr) return authErr;
+
+        if (resp.ok) return { errorCode: "" };
+        const data = await resp.json().catch(() => ({}));
+        return { errorCode: data.errorCode || "ERROR", message: data.message || "Błąd wysyłania zaproszenia." };
+    } catch {
+        return { errorCode: "CONNECTION_ERROR", message: "Błąd serwera." };
+    }
+};
+
+export const acceptDirectGroupInvitation = async (invitationId) => {
+  const token = getToken();
+  if (!token) return { errorCode: "TOKEN_UNDEFINED" };
+  try {
+    const resp = await fetch(`${API_HOST}/acceptGroupInvitation/${invitationId}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+
+    if (resp.ok) return { errorCode: "" };
+    const data = await resp.json().catch(() => ({}));
+    return { errorCode: data.errorCode || "ERROR", message: data.message || "Błąd akceptacji." };
+  } catch {
+    return { errorCode: "CONNECTION_ERROR", message: "Błąd serwera." };
+  }
+};
+
+export const declineDirectGroupInvitation = async (invitationId) => {
+  const token = getToken();
+  if (!token) return { errorCode: "TOKEN_UNDEFINED" };
+  try {
+    const resp = await fetch(`${API_HOST}/declineGroupInvitation/${invitationId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+
+    if (resp.ok) return { errorCode: "" };
+    return { errorCode: "ERROR", message: "Błąd odrzucania." };
+  } catch {
+    return { errorCode: "CONNECTION_ERROR", message: "Błąd serwera." };
+  }
+};

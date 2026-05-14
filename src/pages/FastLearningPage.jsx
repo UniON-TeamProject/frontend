@@ -7,6 +7,12 @@ import SubmitButton from "../components/atoms/SubmitButton";
 import Input from "../components/atoms/Input";
 import Text from "../components/atoms/Text";
 
+const stripHtml = (html) => {
+  if (!html) return "";
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  return (doc.body.textContent || "").replace(/\u00a0/g, " ").trim();
+};
+
 const fadeIn = keyframes`
   from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
@@ -78,7 +84,7 @@ const CardWrapper = styled.div`
   height: 100%;
   position: relative;
   transform-style: preserve-3d;
-  transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+  transition: ${(props) => props.$instant ? "none" : "transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1)"};
   cursor: pointer;
   transform: ${(props) => (props.$isFlipped ? "rotateY(180deg)" : "none")};
 `;
@@ -515,13 +521,13 @@ export default function FastLearningPage() {
   const [hoverSide, setHoverSide] = useState(null);
   const backRef = useRef(null);
 
+  const [instantFlip, setInstantFlip] = useState(false);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editQ, setEditQ] = useState("");
   const [editA, setEditA] = useState("");
   const [modalError, setModalError] = useState("");
   const [modalSuccess, setModalSuccess] = useState("");
-  const [editTags, setEditTags] = useState("");
 
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
 
@@ -563,9 +569,12 @@ export default function FastLearningPage() {
       setCards((prevCards) => [...prevCards, { ...currentCard }]);
     }
 
+    setInstantFlip(true);
     setIsFlipped(false);
     setHoverSide(null);
     setCurrentIndex((prev) => prev + 1);
+
+    setTimeout(() => setInstantFlip(false), 50);
   };
 
   const handlePrevious = () => {
@@ -582,39 +591,38 @@ export default function FastLearningPage() {
     }
 
     //cofamy licznik o 1 w dol i ustawiamy fiszkę frontem do góry
+    setInstantFlip(true);
     setCurrentIndex((prev) => prev - 1);
     setIsFlipped(false);
     setHoverSide(null);
+
+    setTimeout(() => setInstantFlip(false), 50);
   };
 
   const openEditModal = (e) => {
     e.stopPropagation();
     const card = cards[currentIndex];
-    setEditQ(card.contentFirstSide);
-    setEditA(card.contentFlipSide);
-    setEditTags(card.tags && card.tags.length > 0 ? card.tags.join(", ") : "");
+    setEditQ(stripHtml(card.contentFirstSide));
+    setEditA(stripHtml(card.contentFlipSide));
     setModalError("");
     setModalSuccess("");
     setIsEditModalOpen(true);
   };
 
   const handleEditSubmit = async () => {
-    if (!editQ.trim() || !editA.trim()) {
+    if (!stripHtml(editQ) || !stripHtml(editA)) {
       setModalError("Pola nie mogą być puste!");
       return;
     }
     const currentCard = cards[currentIndex];
-    const tagsArray = editTags
-      .split(",")
-      .map((t) => t.trim())
-      .filter((t) => t.length > 0);
+    const existingTags = currentCard.cardTags || [];
 
     const res = await editCard(
       currentCard.id,
       editQ,
       editA,
       parseInt(setId),
-      tagsArray
+      existingTags
     );
 
     if (res.errorCode) {
@@ -625,7 +633,7 @@ export default function FastLearningPage() {
         ...currentCard,
         contentFirstSide: editQ,
         contentFlipSide: editA,
-        tags: tagsArray,
+        cardTags: existingTags,
       };
       setCards(newCards);
       setModalSuccess("Zapisano pomyślnie!");
@@ -731,6 +739,7 @@ export default function FastLearningPage() {
         <CardContainer>
           <CardWrapper
             $isFlipped={isFlipped && !isFinished}
+            $instant={instantFlip}
             onClick={() => {
               if (!isFlipped && !isFinished) setIsFlipped(true);
             }}
@@ -874,24 +883,6 @@ export default function FastLearningPage() {
               onChange={(e) => setEditA(e.target.value)}
             />
 
-            <p
-              style={{
-                fontWeight: "600",
-                fontSize: "0.9rem",
-                color: theme.colors.textLight,
-                marginTop: "10px",
-              }}
-            >
-              Tagi tej fiszki (po przecinku):
-            </p>
-            <Input
-              type="text"
-              value={editTags}
-              onChange={(e) => setEditTags(e.target.value)}
-              placeholder="np. kolokwium1, referat"
-              style={{ marginBottom: "30px" }}
-            />
-
             <div style={{ textAlign: "center" }}>
               <SubmitButton
                 text="Zapisz zmiany"
@@ -913,15 +904,15 @@ export default function FastLearningPage() {
               style={{
                 display: "flex",
                 flexWrap: "wrap",
-                justifyContent: "center",
+                justifyContent: "flex-start",
                 gap: "10px",
                 marginBottom: "20px",
               }}
             >
-              {!currentCard?.tags || currentCard.tags.length === 0 ? (
+              {!currentCard?.cardTags || currentCard.cardTags.length === 0 ? (
                 <p style={{ color: theme.colors.textMuted }}>Brak przypisanych tagów.</p>
               ) : (
-                currentCard.tags.map((t, i) => (
+                currentCard.cardTags.map((t, i) => (
                   <span
                     key={i}
                     style={{

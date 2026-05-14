@@ -7,6 +7,12 @@ import SubmitButton from "../components/atoms/SubmitButton";
 import Input from "../components/atoms/Input";
 import Text from "../components/atoms/Text";
 
+const stripHtml = (html) => {
+  if (!html) return "";
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  return (doc.body.textContent || "").replace(/\u00a0/g, " ").trim();
+};
+
 const fadeIn = keyframes` 
   from { 
     opacity: 0; 
@@ -92,7 +98,7 @@ const CardWrapper = styled.div`
   height: 100%;
   position: relative;
   transform-style: preserve-3d;
-  transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+  transition: ${(props) => props.$instant ? "none" : "transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1)"};
   cursor: ${(props) => (props.$isFlipped ? "default" : "pointer")};
   transform: ${(props) => (props.$isFlipped ? "rotateY(180deg)" : "none")};
 `;
@@ -411,11 +417,11 @@ export default function FsrsLearningPage() {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  const [instantFlip, setInstantFlip] = useState(false);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editQ, setEditQ] = useState("");
   const [editA, setEditA] = useState("");
-  const [editTags, setEditTags] = useState("");
   const [modalError, setModalError] = useState("");
   const [modalSuccess, setModalSuccess] = useState("");
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
@@ -452,43 +458,45 @@ export default function FsrsLearningPage() {
     }
   }, [currentIndex, cards]);
 
+
+
   const handleRating = async (ratingValue, e) => {
     e.stopPropagation();
     const currentCard = cards[currentIndex];
     await sendFsrsAnswer(currentCard.id, ratingValue);
+    setInstantFlip(true);
     setIsFlipped(false);
     setCurrentIndex((prev) => prev + 1);
+
+    setTimeout(() => setInstantFlip(false), 50);
   };
 
   const openEditModal = (e) => {
     e.stopPropagation();
     const card = cards[currentIndex];
-    setEditQ(card.contentFirstSide);
-    setEditA(card.contentFlipSide);
-    setEditTags(card.tags && card.tags.length > 0 ? card.tags.join(", ") : "");
+    setEditQ(stripHtml(card.contentFirstSide));
+    setEditA(stripHtml(card.contentFlipSide));
     setModalError("");
     setModalSuccess("");
     setIsEditModalOpen(true);
   };
 
   const handleEditSubmit = async () => {
-    if (!editQ.trim() || !editA.trim()) {
+    if (!stripHtml(editQ) || !stripHtml(editA)) {
       setModalError("Pola nie mogą być puste!");
       return;
     }
     const currentCard = cards[currentIndex];
-    const tagsArray = editTags
-      .split(",")
-      .map((t) => t.trim())
-      .filter((t) => t.length > 0);
+    const existingTags = currentCard.cardTags || [];
 
     const res = await editCard(
       currentCard.id,
       editQ,
       editA,
       parseInt(setId),
-      tagsArray
+      existingTags
     );
+
     if (res.errorCode) {
       setModalError(res.message);
     } else {
@@ -497,7 +505,7 @@ export default function FsrsLearningPage() {
         ...currentCard,
         contentFirstSide: editQ,
         contentFlipSide: editA,
-        tags: tagsArray,
+        cardTags: existingTags,
       };
       setCards(newCards);
       setModalSuccess("Zapisano pomyślnie!");
@@ -573,11 +581,11 @@ export default function FsrsLearningPage() {
 
         <EndScreenOverlay>
           <EndScreenModal>
-            <h2>To wszystko na dziś!</h2>
+            <h2>To wszystko na razie!</h2>
             <p>
               {cards.length === 0
-                ? "Wróć niedługo po nowe powtórki!"
-                : "Wszystko zrobione! Wróć niedługo po nowe powtórki!."}
+                ? "Wróć niedługo po nowe powtórki w trwałym trybie nauki!"
+                : "Wszystko zrobione! Wróć niedługo po nowe powtórki w trwałym trybie nauki!."}
             </p>
             <EndScreenButton
               type="button"
@@ -618,6 +626,7 @@ export default function FsrsLearningPage() {
         <CardContainer>
           <CardWrapper
             $isFlipped={isFlipped}
+            $instant={instantFlip}
             onClick={() => {
               if (!isFlipped) setIsFlipped(true);
             }}
@@ -799,24 +808,6 @@ export default function FsrsLearningPage() {
               onChange={(e) => setEditA(e.target.value)}
             />
 
-            <p
-              style={{
-                fontWeight: "600",
-                fontSize: "0.9rem",
-                color: theme.colors.textLight,
-                marginTop: "10px",
-              }}
-            >
-              Tagi tej fiszki (po przecinku):
-            </p>
-            <Input
-              type="text"
-              value={editTags}
-              onChange={(e) => setEditTags(e.target.value)}
-              placeholder="np. kolokwium1, referat"
-              style={{ marginBottom: "30px" }}
-            />
-
             <div style={{ textAlign: "center" }}>
               <ModalButton type="button" onClick={handleEditSubmit}>
                 Zapisz zmiany
@@ -830,21 +821,21 @@ export default function FsrsLearningPage() {
       {isInfoModalOpen && (
         <>
           <ModalOverlay onClick={() => setIsInfoModalOpen(false)} />
-          <StyledPopup style={{ textAlign: "center" }}>
-            <h2 style={{ marginBottom: "30px" }}>Tagi tej fiszki</h2>
+          <StyledPopup>
+            <h2 style={{ marginBottom: "30px" }}>Tagi przypisane do fiszki</h2>
             <div
               style={{
                 display: "flex",
                 flexWrap: "wrap",
-                justifyContent: "center",
+                justifyContent: "flex-start",
                 gap: "10px",
                 marginBottom: "20px",
               }}
             >
-              {!currentCard.tags || currentCard.tags.length === 0 ? (
+              {!currentCard?.cardTags || currentCard.cardTags.length === 0 ? (
                 <p style={{ color: theme.colors.textMuted }}>Brak przypisanych tagów.</p>
               ) : (
-                currentCard.tags.map((t, i) => (
+                currentCard.cardTags.map((t, i) => (
                   <span
                     key={i}
                     style={{
@@ -864,7 +855,7 @@ export default function FsrsLearningPage() {
             <p
               style={{ fontSize: "0.85rem", color: theme.colors.textMuted, marginTop: "20px" }}
             >
-              Możesz zmienić tagi używając przycisku edycji.
+              Możesz zmienić tagi używając przycisku edycji z pozycji wnętrza zestawu.
             </p>
 
             <div
@@ -880,18 +871,46 @@ export default function FsrsLearningPage() {
               <strong style={{ color: theme.colors.text }}>
                 Kiedy ta fiszka wróci? (Symulacja ocen)
               </strong>
-              <p
-                style={{
-                  marginTop: "10px",
-                  color: theme.colors.textLight,
-                  fontFamily: "monospace",
-                  wordWrap: "break-word",
-                }}
-              >
-                {cardDues === null
-                  ? "Obliczam harmonogram..."
-                  : JSON.stringify(cardDues, null, 2)}
-              </p>
+              
+              {cardDues === null ? (
+                <p style={{ marginTop: "10px", color: theme.colors.textLight }}>
+                  Obliczam harmonogram...
+                </p>
+              ) : typeof cardDues === "string" ? (
+                <p style={{ marginTop: "10px", color: theme.colors.danger }}>
+                  {cardDues}
+                </p>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginTop: "15px" }}>
+                  <div style={{ background: theme.colors.white, padding: "10px", borderRadius: "8px", borderLeft: "4px solid #e74c3c" }}>
+                    <div style={{ fontSize: "0.75rem", color: theme.colors.textLight, fontWeight: "bold", textTransform: "uppercase" }}>Trudne</div>
+                    <div style={{ fontSize: "1rem", color: theme.colors.text, fontWeight: "700", marginTop: "2px" }}>
+                      {formatDueTime(cardDues.again)}
+                    </div>
+                  </div>
+                  
+                  <div style={{ background: theme.colors.white, padding: "10px", borderRadius: "8px", borderLeft: "4px solid #e67e22" }}>
+                    <div style={{ fontSize: "0.75rem", color: theme.colors.textLight, fontWeight: "bold", textTransform: "uppercase" }}>Średnie</div>
+                    <div style={{ fontSize: "1rem", color: theme.colors.text, fontWeight: "700", marginTop: "2px" }}>
+                      {formatDueTime(cardDues.hard)}
+                    </div>
+                  </div>
+                  
+                  <div style={{ background: theme.colors.white, padding: "10px", borderRadius: "8px", borderLeft: "4px solid #f1c40f" }}>
+                    <div style={{ fontSize: "0.75rem", color: theme.colors.textLight, fontWeight: "bold", textTransform: "uppercase" }}>Łatwe</div>
+                    <div style={{ fontSize: "1rem", color: theme.colors.text, fontWeight: "700", marginTop: "2px" }}>
+                      {formatDueTime(cardDues.good)}
+                    </div>
+                  </div>
+                  
+                  <div style={{ background: theme.colors.white, padding: "10px", borderRadius: "8px", borderLeft: "4px solid #2ecc71" }}>
+                    <div style={{ fontSize: "0.75rem", color: theme.colors.textLight, fontWeight: "bold", textTransform: "uppercase" }}>Umiem!</div>
+                    <div style={{ fontSize: "1rem", color: theme.colors.text, fontWeight: "700", marginTop: "2px" }}>
+                      {formatDueTime(cardDues.easy)}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </StyledPopup>
         </>

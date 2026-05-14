@@ -9,6 +9,12 @@ import {
 import Text from "../atoms/Text";
 import FlashcardEditor from "./FlashcardEditor";
 
+const stripHtml = (html) => {
+  if (!html) return "";
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  return (doc.body.textContent || "").replace(/\u00a0/g, " ").trim();
+};
+
 const NEW_SET = "__new__";
 
 const spin = keyframes`
@@ -273,6 +279,9 @@ const CardSide = styled.div`
   display: flex;
   flex-direction: column;
   gap: 6px;
+  .ProseMirror:not(.is-editor-empty) .is-empty::before {
+    display: none !important;
+  }
 `;
 
 const CardLabel = styled.span`
@@ -347,6 +356,8 @@ function AIFlashcardModal({ isOpen, onClose, noteId }) {
   const [errorMessage, setErrorMessage] = useState("");
   const dropdownRef = useRef(null);
 
+  const [cardValidationErrors, setCardValidationErrors] = useState([]);
+
   useEffect(() => {
     if (!isOpen) {
       setPhase("idle");
@@ -393,10 +404,19 @@ function AIFlashcardModal({ isOpen, onClose, noteId }) {
     return () => document.removeEventListener("mousedown", handler);
   }, [dropdownOpen]);
 
-  const updateCard = (index, field, value) =>
+  const updateCard = (index, field, value) => {
     setCards((prev) =>
       prev.map((c, i) => (i === index ? { ...c, [field]: value } : c))
     );
+
+    if (cardValidationErrors.length > 0) {
+      const newErrors = [...cardValidationErrors];
+      if (newErrors[index]) {
+        newErrors[index][field === 'front' ? 'qError' : 'aError'] = false;
+      }
+      setCardValidationErrors(newErrors);
+    }
+  };
 
   const removeCard = (index) =>
     setCards((prev) => prev.filter((_, i) => i !== index));
@@ -412,13 +432,42 @@ function AIFlashcardModal({ isOpen, onClose, noteId }) {
     (selectedSetId !== null && selectedSetId !== NEW_SET) ||
     (selectedSetId === NEW_SET && !!setName.trim() && !setNameConflict);
 
-  const validCards = cards.filter((c) => c.front.trim() && c.back.trim());
+  const validCards = cards.filter(
+    (c) => stripHtml(c.front).length > 0 && stripHtml(c.back).length > 0
+  );
 
   const handleSave = async () => {
-    if (!isReady || validCards.length === 0) return;
+    if (!isReady) return;
+
+    setCardValidationErrors([]);
+    let errors = new Array(cards.length).fill({ qError: false, aError: false });
+    let hasAnyErrors = false;
+
+    for (let i = 0; i < cards.length; i++) {
+      const isQEmpty = stripHtml(cards[i].front).length === 0;
+      const isAEmpty = stripHtml(cards[i].back).length === 0;
+
+      if (isQEmpty || isAEmpty) {
+        errors[i] = { qError: isQEmpty, aError: isAEmpty };
+        hasAnyErrors = true;
+      }
+    }
+
+    if (cards.length === 0) {
+      setErrorMessage("Brak fiszek do zapisania.");
+      return;
+    }
+
+    if (hasAnyErrors) {
+      setCardValidationErrors(errors);
+      setErrorMessage("Niektóre fiszki mają puste pola. Uzupełnij je lub usuń krzyżykiem.");
+      return;
+    }
+
+    setErrorMessage("");
     setPhase("saving");
 
-    let setId = selectedSetId;
+    let targetId = selectedSetId;
     if (selectedSetId === NEW_SET) {
       const result = await addFlashcardSet(setName.trim());
       if (result.errorCode) {
@@ -426,18 +475,18 @@ function AIFlashcardModal({ isOpen, onClose, noteId }) {
         setErrorMessage(result.message);
         return;
       }
-      setId = result.id;
+      targetId = result.id;
     }
 
     const cardRequests = validCards.map((c) => ({
       contentFirstSide: c.front.trim(),
       contentFlipSide: c.back.trim(),
-      setId: 0,
+      setId: 0, 
       cardTags: [],
       isForced: false,
     }));
 
-    const result = await addListOfCardsToSet(setId, cardRequests);
+    const result = await addListOfCardsToSet(targetId, cardRequests);
     if (result.errorCode) {
       setPhase("ready");
       setErrorMessage(result.message);
@@ -519,24 +568,24 @@ function AIFlashcardModal({ isOpen, onClose, noteId }) {
                     $error={setNameConflict}
                   />
                   {setNameConflict && (
-                    <ErrorMsg>Zestaw o tej nazwie już istnieje</ErrorMsg>
+                    <ErrorText>Zestaw o tej nazwie już istnieje</ErrorText>
                   )}
                 </>
               )}
-              {errorMessage && <ErrorMsg>{errorMessage}</ErrorMsg>}
+              {errorMessage && <ErrorText>{errorMessage}</ErrorText>}
             </SetSelectorArea>
 
             <ModalButton
               $primary
               disabled={
-                !isReady || validCards.length === 0 || phase === "saving"
+                !isReady || cards.length === 0 || phase === "saving"
               }
               onClick={handleSave}
             >
               {phase === "saving"
                 ? "Zapisywanie..."
-                : `Zapisz ${validCards.length} ${getCardsWord(
-                    validCards.length
+                : `Zapisz ${cards.length} ${getCardsWord(
+                    cards.length
                   )}`}
             </ModalButton>
           </ActionBar>
@@ -586,7 +635,8 @@ function AIFlashcardModal({ isOpen, onClose, noteId }) {
                     <CardLabel>Przód fiszki:</CardLabel>
                     <FlashcardEditor
                       value={card.front}
-                      placeholder="Wpisz pytanie lub użyj '/'..."
+                      placeholder="Wprowadź pytanie lub wpisz /"
+                      hasError={cardValidationErrors[index]?.qError}
                       onChange={(val) => updateCard(index, "front", val)}
                     />
                   </CardSide>
@@ -594,7 +644,8 @@ function AIFlashcardModal({ isOpen, onClose, noteId }) {
                     <CardLabel>Tył fiszki:</CardLabel>
                     <FlashcardEditor
                       value={card.back}
-                      placeholder="Wpisz odpowiedź lub użyj '/'..."
+                      placeholder="Wprowadź odpowiedź lub wpisz /"
+                      hasError={cardValidationErrors[index]?.aError}
                       onChange={(val) => updateCard(index, "back", val)}
                     />
                   </CardSide>
