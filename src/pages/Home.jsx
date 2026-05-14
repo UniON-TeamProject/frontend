@@ -51,6 +51,10 @@ const StyledContainer = styled.div`
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
+
+    opacity: ${({ $ready }) => ($ready ? 1 : 0)};
+    transition: opacity 0.2s ease;
+
     @media (max-width: 768px) {
         padding: 16px 12px 20px;
     }
@@ -428,6 +432,8 @@ const Home = () => {
 
     const navigate = useNavigate();
 
+    const [isReady, setIsReady] = useState(false);
+
     const [currentDate, setCurrentDate] = useState(new Date());
     const [calendarView, setCalendarView] = useState(() => localStorage.getItem("calendarView") || "week");
     const [events, setEvents] = useState([]);
@@ -524,7 +530,8 @@ const Home = () => {
         const tokenContent = parseJwt(jwt);
         setUsername(tokenContent?.sub);
 
-        const fetchData = async () => {
+        const fetchData = async () => { 
+            setIsReady(false);
             try {
                 const [notesData, foldersData, recentSetsData, groupsData] = await Promise.all([
                     getAllNotes(),
@@ -573,6 +580,8 @@ const Home = () => {
                 setAllGroups(groupsArray);
             } catch (error) {
                 console.error("Błąd pobierania danych:", error);
+            } finally {
+                setIsReady(true);
             }
         };
 
@@ -715,7 +724,7 @@ const Home = () => {
 
     return (
         <Layout>
-            <StyledContainer>
+            <StyledContainer $ready={isReady}>
                 
                 <StyledHeader>
                     <StyledName>Witaj, {username || "użytkowniku"}!</StyledName>
