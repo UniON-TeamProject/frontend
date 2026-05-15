@@ -164,12 +164,13 @@ const DeadlinesBox = styled(CardBox)`
   }
 `;
 const CalendarBox = styled(CardBox)`
-  flex: 2;
-  height: 550px;
+  flex: 2 0 550px;
+  overflow: hidden;
 
   @media (max-width: 1024px) {
     flex: none;
     height: auto;
+    overflow: visible;
   }
 `;
 const SocialBox = styled(CardBox)`
