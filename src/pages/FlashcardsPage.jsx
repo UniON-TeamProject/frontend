@@ -46,8 +46,10 @@ const StyledContainer = styled.div`
   box-sizing: border-box;
   opacity: ${({ $ready }) => ($ready ? 1 : 0)};
   transition: opacity 0.2s ease;
+  min-height: calc(100vh - 70px);
   @media (max-width: 768px) {
     padding: 12px 12px;
+    min-height: calc(100dvh - 70px);
   }
 `;
 
@@ -63,7 +65,7 @@ const StyledUserHeader = styled.div`
     flex-wrap: wrap;
     justify-content: flex-start;
     margin-bottom: 10px;
-    min-height: 40px;
+    min-height: 90px;
     gap: 8px;
   }
 `;
@@ -371,9 +373,8 @@ const StyledItemHeader = styled.span`
 `;
 
 const StyledItemOptions = styled.div`
-  position: absolute;
-  top: 45px;
-  right: 10px;
+  display: flex;
+  flex-direction: column;
   background: ${({ theme }) => theme.colors.white};
   border: 1px solid ${({ theme }) => theme.colors.borderLight};
   border-radius: 12px;
@@ -381,10 +382,41 @@ const StyledItemOptions = styled.div`
   padding: 10px;
   z-index: 20;
   width: ${({ $narrow }) => ($narrow ? "160px" : "260px")};
-  display: flex;
-  flex-direction: column;
   text-align: left;
   cursor: default;
+  max-height: 300px;
+  overflow-y: auto;
+
+  ${({ $centerBelow }) =>
+    $centerBelow
+      ? `
+        position:fixed;
+        top:auto;
+        left:50%;
+        transform:translateX(-50%);
+        margin-top:8px;
+        max-width:calc(100vw - 20px);
+    `
+      : `
+        position:absolute;
+    `}
+  ${({ $flipLeft, $centerBelow }) =>
+    !$centerBelow &&
+    ($flipLeft
+      ? "right:100%; margin-right:10px;"
+      : "left:100%; margin-left:10px;")}
+
+  @media (max-width: 768px) {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    right: auto;
+    bottom: auto;
+    margin: 0;
+    width: calc(100vw - 80px);
+    max-width: 300px;
+  }
 
   max-height: 350px;
   overflow-y: auto;
@@ -415,6 +447,10 @@ const StyledItemOptions = styled.div`
     outline: none;
     transition: border-color 0.2s;
 
+    @media (max-width: 768px) {
+      font-size: 16px;
+    }
+
     &:focus {
       border-color: ${({ theme }) => theme.colors.secondary};
     }
@@ -430,11 +466,13 @@ const StyledToolbar = styled.div`
   padding-bottom: 15px;
   flex-wrap: wrap;
   gap: 15px;
+  min-height: 48px;
 
   @media (max-width: 768px) {
     margin-bottom: 12px;
     padding-bottom: 10px;
     gap: 8px;
+    min-height: 45px;
   }
 `;
 
@@ -448,6 +486,9 @@ const StyledTagInput = styled.input`
   font-weight: 600;
   font-family: inherit;
   background-color: ${({ theme }) => theme.colors.secondary};
+  @media (max-width: 768px) {
+    font-size: 16px;
+  }
   &:focus {
     outline: none;
     box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
@@ -863,8 +904,11 @@ const StyledPopup = styled.div`
   z-index: 1000;
 
   @media (max-width: 768px) {
-    width: 90%;
-    padding: 40px;
+    width: 92%;
+    padding: 24px 20px;
+    min-height: unset;
+    max-height: 90vh;
+    overflow-y: auto;
   }
 `;
 
@@ -1148,6 +1192,15 @@ const FilterDropdown = styled.div`
     background: ${({ theme }) => theme.colors.darkGrey};
     border-radius: 10px;
   }
+  @media (max-width: 768px) {
+    position: fixed;
+    top: ${({ $filterDropdownY }) => $filterDropdownY}px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: calc(100vw - 80px);
+    max-width: 300px;
+  }
 `;
 
 const FilterTag = styled.div`
@@ -1233,7 +1286,7 @@ const HelpTooltip = styled.span`
   z-index: 100;
   pointer-events: none;
   text-align: left;
-  transform: scale(0.909); 
+  transform: scale(0.909);
   transform-origin: bottom right;
 
   &::after {
@@ -1306,23 +1359,25 @@ const highlightPulse = keyframes`
 const HighlightWrapper = styled.div`
   position: relative;
   display: flex;
-  
-  ${({ $isHighlighted }) => $isHighlighted && css`
-    z-index: 100;
-    
-    &::after {
-      content: '';
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      right: 10px;
-      bottom: 10px;
-      border-radius: 15px; 
-      border: 3px solid #2ecc71; 
-      animation: ${highlightPulse} 2s ease-out 2; 
-      pointer-events: none;
-    }
-  `}
+
+  ${({ $isHighlighted }) =>
+    $isHighlighted &&
+    css`
+      z-index: 100;
+
+      &::after {
+        content: "";
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        border-radius: 15px;
+        border: 3px solid #2ecc71;
+        animation: ${highlightPulse} 2s ease-out 2;
+        pointer-events: none;
+      }
+    `}
 `;
 
 const StackedCardsIcon = () => (
@@ -1440,6 +1495,8 @@ const FlashcardsPage = () => {
 
   const [isLearningMenuOpen, setIsLearningMenuOpen] = useState(false);
   const [activeMenuId, setActiveMenuId] = useState(null);
+  const [flipLeft, setFlipLeft] = useState(false);
+  const [centerBelow, setCenterBelow] = useState(false);
 
   const [isAddingMode, setIsAddingMode] = useState(false);
   const [newCards, setNewCards] = useState([{ question: "", answer: "" }]);
@@ -1497,6 +1554,7 @@ const FlashcardsPage = () => {
 
   const [selectedTagsFilter, setSelectedTagsFilter] = useState([]);
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
+  const [filterDropdownY, setFilterDropdownY] = useState(0);
 
   const [duplicateWarning, setDuplicateWarning] = useState(null);
 
@@ -1780,8 +1838,8 @@ const FlashcardsPage = () => {
 
   useEffect(() => {
     const targetId = location.state?.highlightCardId;
-    
-    if (targetId && sortedCards.some(c => c.id === targetId)) {
+
+    if (targetId && sortedCards.some((c) => c.id === targetId)) {
       setHighlightedCardId(targetId);
 
       const scrollToElement = () => {
@@ -1814,17 +1872,23 @@ const FlashcardsPage = () => {
     if (cardValidationErrors.length > 0) {
       const newErrors = [...cardValidationErrors];
       if (newErrors[index]) {
-        newErrors[index][field === 'question' ? 'qError' : 'aError'] = false;
+        newErrors[index][field === "question" ? "qError" : "aError"] = false;
       }
       setCardValidationErrors(newErrors);
     }
   };
 
-  const handleSaveNewCards = async (ignoreDuplicates = false, skipEmptyWarning = false) => {
+  const handleSaveNewCards = async (
+    ignoreDuplicates = false,
+    skipEmptyWarning = false
+  ) => {
     setErrorMessage("");
     setCardValidationErrors([]);
 
-    let errors = new Array(newCards.length).fill({ qError: false, aError: false });
+    let errors = new Array(newCards.length).fill({
+      qError: false,
+      aError: false,
+    });
     let hasAnyErrors = false;
     let validCards = [];
 
@@ -1838,7 +1902,9 @@ const FlashcardsPage = () => {
         errors[i] = { qError: false, aError: false };
       } else {
         if (newCards.length === 1 && isQEmpty && isAEmpty) {
-          setErrorMessage("Nie dodano żadnej fiszki (pola nie mogą być puste).");
+          setErrorMessage(
+            "Nie dodano żadnej fiszki (pola nie mogą być puste)."
+          );
           return;
         }
         errors[i] = { qError: isQEmpty, aError: isAEmpty };
@@ -1849,7 +1915,9 @@ const FlashcardsPage = () => {
     // jeśli wszystko jest puste
     if (validCards.length === 0) {
       setCardValidationErrors(errors);
-      setErrorMessage("Brak prawidłowych fiszek. Uzupełnij brakujące pytania i odpowiedzi.");
+      setErrorMessage(
+        "Brak prawidłowych fiszek. Uzupełnij brakujące pytania i odpowiedzi."
+      );
       return;
     }
 
@@ -1900,7 +1968,12 @@ const FlashcardsPage = () => {
     const inheritedTags = currentSet?.tags ? [...currentSet.tags] : [];
 
     for (const card of cardsToSave) {
-      const res = await addCard(card.question, card.answer, parseInt(activeSetId), inheritedTags);
+      const res = await addCard(
+        card.question,
+        card.answer,
+        parseInt(activeSetId),
+        inheritedTags
+      );
       if (res.errorCode === "TOKEN_UNDEFINED") {
         navigate("/", { replace: true });
         return;
@@ -2451,7 +2524,9 @@ const FlashcardsPage = () => {
                                 onClick={() => {
                                   setSearchQuery("");
                                   setIsSearchFocused(false);
-                                  navigate(`/learning/set/${c.setId}`, { state: { highlightCardId: c.id } });
+                                  navigate(`/learning/set/${c.setId}`, {
+                                    state: { highlightCardId: c.id },
+                                  });
                                 }}
                               >
                                 <svg
@@ -2508,113 +2583,115 @@ const FlashcardsPage = () => {
             </StyledTabsContainer>
 
             <ToolbarActions>
-            {!isTrashView && (
-              <FilterContainer>
-                <ToolbarButton
-                  className="outline"
-                  disabled={sets.length === 0}
-                  title={sets.length === 0 ? "Brak zestawów do filtrowania" : ""}
-                  style={{ opacity: sets.length === 0 ? 0.5 : 1 }}
-                  onClick={(e) => {
-                    if (sets.length === 0) return;
-                    e.stopPropagation();
-                    setIsFilterMenuOpen(!isFilterMenuOpen);
-                  }}
-                >
-                  <svg
-                    width="14"
-                    height="14"
-                    fill="currentColor"
-                    viewBox="0 0 16 16"
+              {!isTrashView && (
+                <FilterContainer>
+                  <ToolbarButton
+                    className="outline"
+                    disabled={sets.length === 0}
+                    title={
+                      sets.length === 0 ? "Brak zestawów do filtrowania" : ""
+                    }
+                    style={{ opacity: sets.length === 0 ? 0.5 : 1 }}
+                    onClick={(e) => {
+                      if (sets.length === 0) return;
+                      e.stopPropagation();
+                      setIsFilterMenuOpen(!isFilterMenuOpen);
+                    }}
                   >
-                    <path
-                      fillRule="evenodd"
-                      d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3m-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1z"
-                    />
-                  </svg>
-                  Filtruj
-                  {selectedTagsFilter.length > 0 && (
-                    <ActiveFilterBadge>
-                      {selectedTagsFilter.length}
-                    </ActiveFilterBadge>
-                  )}
-                </ToolbarButton>
-
-                {/* MENU FILTRÓW */}
-                {isFilterMenuOpen && (
-                  <FilterDropdown onClick={(e) => e.stopPropagation()}>
-                    <Text
-                      bold="true"
-                      text="Filtruj po tagach"
-                      style={{ fontSize: "0.95rem", margin: "0 0 5px 5px" }}
-                    />
-
-                    {allAvailableTags.length === 0 ? (
-                      <Text
-                        text="Brak tagów w Twoich zestawach."
-                        style={{
-                          fontSize: "0.85rem",
-                          color: theme.colors.textMuted,
-                          marginLeft: "5px",
-                        }}
+                    <svg
+                      width="14"
+                      height="14"
+                      fill="currentColor"
+                      viewBox="0 0 16 16"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3m-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1z"
                       />
-                    ) : (
-                      <div
-                        style={{
-                          display: "flex",
-                          flexWrap: "wrap",
-                          gap: "8px",
-                        }}
-                      >
-                        {allAvailableTags.map((tag) => {
-                          const isActive = selectedTagsFilter.includes(tag);
-                          return (
-                            <FilterTag
-                              key={tag}
-                              $active={isActive}
-                              title={tag}
-                              onClick={() => {
-                                if (isActive) {
-                                  setSelectedTagsFilter((prev) =>
-                                    prev.filter((t) => t !== tag)
-                                  );
-                                } else {
-                                  setSelectedTagsFilter((prev) => [
-                                    ...prev,
-                                    tag,
-                                  ]);
-                                }
-                              }}
-                            >
-                              {tag}
-                            </FilterTag>
-                          );
-                        })}
-                      </div>
-                    )}
-
+                    </svg>
+                    Filtruj
                     {selectedTagsFilter.length > 0 && (
-                      <div
-                        style={{
-                          fontSize: "0.8rem",
-                          color: theme.colors.danger,
-                          cursor: "pointer",
-                          marginTop: "10px",
-                          textAlign: "center",
-                          fontWeight: "bold",
-                        }}
-                        onClick={() => setSelectedTagsFilter([])}
-                      >
-                        Wyczyść filtry
-                      </div>
+                      <ActiveFilterBadge>
+                        {selectedTagsFilter.length}
+                      </ActiveFilterBadge>
                     )}
-                  </FilterDropdown>
-                )}
-              </FilterContainer>
-            )}
+                  </ToolbarButton>
 
-            {sets.length > 0 && !isTrashView && (
-              <SortSelectContainer>
+                  {/* MENU FILTRÓW */}
+                  {isFilterMenuOpen && (
+                    <FilterDropdown onClick={(e) => e.stopPropagation()}>
+                      <Text
+                        bold="true"
+                        text="Filtruj po tagach"
+                        style={{ fontSize: "0.95rem", margin: "0 0 5px 5px" }}
+                      />
+
+                      {allAvailableTags.length === 0 ? (
+                        <Text
+                          text="Brak tagów w Twoich zestawach."
+                          style={{
+                            fontSize: "0.85rem",
+                            color: theme.colors.textMuted,
+                            marginLeft: "5px",
+                          }}
+                        />
+                      ) : (
+                        <div
+                          style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: "8px",
+                          }}
+                        >
+                          {allAvailableTags.map((tag) => {
+                            const isActive = selectedTagsFilter.includes(tag);
+                            return (
+                              <FilterTag
+                                key={tag}
+                                $active={isActive}
+                                title={tag}
+                                onClick={() => {
+                                  if (isActive) {
+                                    setSelectedTagsFilter((prev) =>
+                                      prev.filter((t) => t !== tag)
+                                    );
+                                  } else {
+                                    setSelectedTagsFilter((prev) => [
+                                      ...prev,
+                                      tag,
+                                    ]);
+                                  }
+                                }}
+                              >
+                                {tag}
+                              </FilterTag>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {selectedTagsFilter.length > 0 && (
+                        <div
+                          style={{
+                            fontSize: "0.8rem",
+                            color: theme.colors.danger,
+                            cursor: "pointer",
+                            marginTop: "10px",
+                            textAlign: "center",
+                            fontWeight: "bold",
+                          }}
+                          onClick={() => setSelectedTagsFilter([])}
+                        >
+                          Wyczyść filtry
+                        </div>
+                      )}
+                    </FilterDropdown>
+                  )}
+                </FilterContainer>
+              )}
+
+              {sets.length > 0 && !isTrashView && (
+                <SortSelectContainer>
                   <SortSelect
                     value={setSortOption}
                     onChange={(e) => setSetSortOption(e.target.value)}
@@ -2641,7 +2718,8 @@ const FlashcardsPage = () => {
                 <HelpIcon>
                   ?
                   <HelpTooltip>
-                    Zestawy w koszu są przechowywane przez 30 dni, po czym ulegają automatycznemu usunięciu.
+                    Zestawy w koszu są przechowywane przez 30 dni, po czym
+                    ulegają automatycznemu usunięciu.
                   </HelpTooltip>
                 </HelpIcon>
               )}
@@ -2965,6 +3043,12 @@ const FlashcardsPage = () => {
                             setIsAddingItemTag(false);
                             setNewItemTag("");
                           }
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const fitsRight =
+                            rect.right + 10 + 350 <= window.innerWidth;
+                          const fitsLeft = rect.left - 10 - 350 >= 0;
+                          setCenterBelow(!fitsRight && !fitsLeft);
+                          setFlipLeft(!fitsRight && fitsLeft);
                           setActiveMenuId(
                             activeMenuId === set.id ? null : set.id
                           );
@@ -2973,6 +3057,8 @@ const FlashcardsPage = () => {
                         <EllipsisIcon />
                         {activeMenuId === set.id && (
                           <StyledItemOptions
+                            $flipLeft={flipLeft}
+                            $centerBelow={centerBelow}
                             onClick={(e) => e.stopPropagation()}
                           >
                             {isTrashView ? (
@@ -2981,6 +3067,7 @@ const FlashcardsPage = () => {
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleRestoreSet(set.id);
+
                                   setActiveMenuId(null);
                                 }}
                               >
@@ -2989,10 +3076,11 @@ const FlashcardsPage = () => {
                             ) : (
                               <>
                                 <div style={{ padding: "0 10px" }}>
-                                  <DropdownSectionLabel>Nazwa</DropdownSectionLabel>
+                                  <DropdownSectionLabel>
+                                    Nazwa
+                                  </DropdownSectionLabel>
                                 </div>
                                 <input
-                                  autoFocus
                                   defaultValue={set.name}
                                   maxLength={55}
                                   onBlur={(e) => {
@@ -3001,7 +3089,10 @@ const FlashcardsPage = () => {
                                       newName.trim() &&
                                       newName.trim() !== set.name
                                     ) {
-                                      handleRenameSetInline(set, newName.trim());
+                                      handleRenameSetInline(
+                                        set,
+                                        newName.trim()
+                                      );
                                     }
                                   }}
                                   onKeyDown={(e) => {
@@ -3011,7 +3102,10 @@ const FlashcardsPage = () => {
                                         newName.trim() &&
                                         newName.trim() !== set.name
                                       ) {
-                                        handleRenameSetInline(set, newName.trim());
+                                        handleRenameSetInline(
+                                          set,
+                                          newName.trim()
+                                        );
                                       }
                                       setActiveMenuId(null);
                                     }
@@ -3023,7 +3117,9 @@ const FlashcardsPage = () => {
                                 />
 
                                 <div style={{ padding: "0 12px" }}>
-                                  <DropdownSectionLabel>Tagi</DropdownSectionLabel>
+                                  <DropdownSectionLabel>
+                                    Tagi
+                                  </DropdownSectionLabel>
                                   <TagsContainer
                                     style={{
                                       justifyContent: "flex-start",
@@ -3124,7 +3220,8 @@ const FlashcardsPage = () => {
         {/* WNETRZE ZESTAWU */}
         {activeSetId && !isAddingMode && !isAddByTagMode && (
           <ContentContainer>
-            {isReady && (!currentSet?.cards || currentSet.cards.length === 0) &&
+            {isReady &&
+            (!currentSet?.cards || currentSet.cards.length === 0) &&
             !errorMessage ? (
               <EmptyStateContainer>
                 <svg
@@ -3142,9 +3239,9 @@ const FlashcardsPage = () => {
               </EmptyStateContainer>
             ) : (
               sortedCards.map((card) => (
-                <HighlightWrapper 
-                  key={card.id} 
-                  id={`flashcard-item-${card.id}`} 
+                <HighlightWrapper
+                  key={card.id}
+                  id={`flashcard-item-${card.id}`}
                   $isHighlighted={highlightedCardId === card.id}
                 >
                   <Flashcard
@@ -3795,6 +3892,9 @@ const FlashcardsPage = () => {
                       setSetName(e.target.value);
                     }
                   }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSaveNewSet(e);
+                  }}
                 />
               </div>
 
@@ -4025,7 +4125,9 @@ const FlashcardsPage = () => {
               <Text
                 bold="true"
                 as="h2"
-                text={`Kopiowanie ${selectedCards.length} ${selectedCards.length === 1 ? "fiszki" : "fiszek"}`}
+                text={`Kopiowanie ${selectedCards.length} ${
+                  selectedCards.length === 1 ? "fiszki" : "fiszek"
+                }`}
               />
               {errorMessage && (
                 <Text
@@ -4239,7 +4341,9 @@ const FlashcardsPage = () => {
               <Text
                 bold="true"
                 as="h2"
-                text={`Przenoszenie ${selectedCards.length} ${selectedCards.length === 1 ? "fiszki" : "fiszek"}`}
+                text={`Przenoszenie ${selectedCards.length} ${
+                  selectedCards.length === 1 ? "fiszki" : "fiszek"
+                }`}
               />
               {errorMessage && (
                 <Text
@@ -4263,7 +4367,9 @@ const FlashcardsPage = () => {
                 value={bulkMoveTargetSetId}
                 onChange={(e) => setBulkMoveTargetSetId(e.target.value)}
               >
-                <option value="" disabled>-- Wybierz zestaw --</option>
+                <option value="" disabled>
+                  -- Wybierz zestaw --
+                </option>
                 <option value="NEW" style={{ fontWeight: "bold" }}>
                   + Utwórz nowy zestaw
                 </option>
@@ -4308,7 +4414,11 @@ const FlashcardsPage = () => {
                         setErrorMessage("Podaj nazwę nowego zestawu");
                         return;
                       }
-                      const res = await addFlashcardSet(bulkNewSetName.trim(), [], socialId);
+                      const res = await addFlashcardSet(
+                        bulkNewSetName.trim(),
+                        [],
+                        socialId
+                      );
                       if (res.errorCode) {
                         setErrorMessage(res.message);
                         return;
@@ -4340,7 +4450,9 @@ const FlashcardsPage = () => {
                     if (res.errorCode) {
                       setErrorMessage(res.message);
                     } else {
-                      await Promise.all(selectedCards.map((c) => deleteCard(c.id)));
+                      await Promise.all(
+                        selectedCards.map((c) => deleteCard(c.id))
+                      );
 
                       setSuccessMessage("Fiszki przeniesione!");
                       setTimeout(() => setSuccessMessage(""), 2000);
@@ -4643,7 +4755,10 @@ const FlashcardsPage = () => {
         {isPartialEmptyModalOpen && (
           <>
             <ModalOverlay onClick={() => setIsPartialEmptyModalOpen(false)} />
-            <StyledPopup onClick={(e) => e.stopPropagation()} style={{ textAlign: "center" }}>
+            <StyledPopup
+              onClick={(e) => e.stopPropagation()}
+              style={{ textAlign: "center" }}
+            >
               <Text bold="true" as="h2" text="Puste pola!" />
               <Text
                 text="Niektóre fiszki mają puste pola (pytanie lub odpowiedź). Możesz wrócić i je uzupełnić albo kontynuować – puste fiszki nie zostaną zapisane."
@@ -4653,7 +4768,13 @@ const FlashcardsPage = () => {
                 }}
               />
 
-              <div style={{ display: "flex", justifyContent: "center", gap: "15px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: "15px",
+                }}
+              >
                 <ModalButton
                   type="button"
                   onClick={() => setIsPartialEmptyModalOpen(false)}
@@ -4665,7 +4786,10 @@ const FlashcardsPage = () => {
                   $danger
                   onClick={() => {
                     setIsPartialEmptyModalOpen(false);
-                    executeSaveCards(pendingValidCards, pendingIgnoreDuplicates);
+                    executeSaveCards(
+                      pendingValidCards,
+                      pendingIgnoreDuplicates
+                    );
                   }}
                 >
                   Kontynuuj bez nich

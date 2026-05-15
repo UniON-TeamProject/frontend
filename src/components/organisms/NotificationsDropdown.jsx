@@ -1,22 +1,23 @@
-import React, { useState, useEffect, useRef } from 'react';
-import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
-import { getNotifications,
+import React, { useState, useEffect, useRef } from "react";
+import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
+import {
+  getNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
   clearAllNotifications,
   acceptDirectGroupInvitation,
-  declineDirectGroupInvitation
-} from '../../api';
+  declineDirectGroupInvitation,
+} from "../../api";
 
 const DropdownContainer = styled.div`
   position: absolute;
   top: 50px;
   right: 0;
   width: 420px;
-  background: ${({ theme }) => theme.colors?.white };
+  background: ${({ theme }) => theme.colors?.white};
   border-radius: 16px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
   border: 1px solid ${({ theme }) => theme.colors?.lightGrey};
   z-index: 1000;
   display: flex;
@@ -25,17 +26,16 @@ const DropdownContainer = styled.div`
 
   @media (max-width: 450px) {
     width: 300px;
-    right: -50px;
   }
 `;
 
 const Header = styled.div`
   padding: 15px 20px;
-  border-bottom: 1px solid ${({ theme }) => theme.colors?.lightGrey };
+  border-bottom: 1px solid ${({ theme }) => theme.colors?.lightGrey};
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: ${({ theme }) => theme.colors?.lightGrey }30;
+  background: ${({ theme }) => theme.colors?.lightGrey}30;
 `;
 
 const Title = styled.h3`
@@ -53,33 +53,41 @@ const ActionLinks = styled.div`
 const TextBtn = styled.button`
   background: none;
   border: none;
-  color: ${({ theme }) => theme.colors?.secondary };
+  color: ${({ theme }) => theme.colors?.secondary};
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   padding: 0;
-  &:hover { text-decoration: underline; }
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 const NotificationsList = styled.div`
   max-height: 400px;
   overflow-y: auto;
-  
-  &::-webkit-scrollbar { width: 6px; }
-  &::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 4px; }
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #e0e0e0;
+    border-radius: 4px;
+  }
 `;
 
 const NotificationItem = styled.div`
   padding: 15px 20px;
-  border-bottom: 1px solid ${({ theme }) => theme.colors?.lightGrey };
-  background: ${({ $isRead, theme }) => $isRead ? 'transparent' : (theme.colors?.lightGrey ) + '50'};
+  border-bottom: 1px solid ${({ theme }) => theme.colors?.lightGrey};
+  background: ${({ $isRead, theme }) =>
+    $isRead ? "transparent" : theme.colors?.lightGrey + "50"};
   cursor: pointer;
   transition: background 0.2s;
   display: flex;
   gap: 15px;
 
   &:hover {
-    background: ${({ theme }) => theme.colors?.lightGrey };
+    background: ${({ theme }) => theme.colors?.lightGrey};
   }
 `;
 
@@ -87,10 +95,10 @@ const UnreadDot = styled.div`
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: ${({ theme }) => theme.colors?.secondary };
+  background: ${({ theme }) => theme.colors?.secondary};
   flex-shrink: 0;
   margin-top: 5px;
-  display: ${({ $visible }) => $visible ? 'block' : 'none'};
+  display: ${({ $visible }) => ($visible ? "block" : "none")};
 `;
 
 const Content = styled.div`
@@ -119,7 +127,7 @@ const EmptyState = styled.div`
 const ModalOverlay = styled.div`
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0, 0, 0, 0.4);
   z-index: 1099;
 `;
 
@@ -131,14 +139,14 @@ const StyledPopup = styled.div`
   width: 400px;
   padding: 35px 40px;
   border-radius: 25px;
-  background-color: ${({ theme }) => theme.colors?.white };
-  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  background-color: ${({ theme }) => theme.colors?.white};
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   z-index: 1100;
   display: flex;
   flex-direction: column;
   align-items: center;
-  
-  @media(max-width:768px){
+
+  @media (max-width: 768px) {
     width: 90%;
     padding: 30px;
   }
@@ -168,10 +176,11 @@ const ButtonGroup = styled.div`
 `;
 
 const ModalButton = styled.button`
-  background-color: ${({ $danger, theme }) => 
-    $danger ? (theme.colors?.danger ) : 'transparent'};
-  color: ${({ $danger, theme }) => $danger ? '#fff' : theme.colors?.text};
-  border: ${({ $danger, theme }) => $danger ? 'none' : `1px solid ${theme.colors?.darkGrey}`};
+  background-color: ${({ $danger, theme }) =>
+    $danger ? theme.colors?.danger : "transparent"};
+  color: ${({ $danger, theme }) => ($danger ? "#fff" : theme.colors?.text)};
+  border: ${({ $danger, theme }) =>
+    $danger ? "none" : `1px solid ${theme.colors?.darkGrey}`};
   padding: 10px 20px;
   border-radius: 12px;
   font-size: 0.95rem;
@@ -179,7 +188,7 @@ const ModalButton = styled.button`
   cursor: pointer;
   transition: all 0.2s;
   flex: 1;
-  
+
   &:hover {
     opacity: 0.8;
   }
@@ -201,7 +210,7 @@ const StyledCheckbox = styled.input`
   width: 16px;
   height: 16px;
   cursor: pointer;
-  accent-color: ${({ theme }) => theme.colors?.danger };
+  accent-color: ${({ theme }) => theme.colors?.danger};
 `;
 
 const InviteActions = styled.div`
@@ -217,11 +226,17 @@ const InviteBtn = styled.button`
   font-weight: 700;
   cursor: pointer;
   border: none;
-  background: ${({ $accept, theme }) => $accept ? theme.colors?.secondary : theme.colors?.danger};
+  background: ${({ $accept, theme }) =>
+    $accept ? theme.colors?.secondary : theme.colors?.danger};
   color: white;
   transition: opacity 0.2s;
-  &:hover { opacity: 0.8; }
-  &:disabled { opacity: 0.5; cursor: wait; }
+  &:hover {
+    opacity: 0.8;
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: wait;
+  }
 `;
 
 const NotificationsDropdown = ({ onClose, onRefresh }) => {
@@ -239,8 +254,11 @@ const NotificationsDropdown = ({ onClose, onRefresh }) => {
     fetchNotifications();
 
     const handleClickOutside = (event) => {
-      if (event.target.id === 'modal-overlay' || event.target.closest('#confirm-modal')) {
-          return;
+      if (
+        event.target.id === "modal-overlay" ||
+        event.target.closest("#confirm-modal")
+      ) {
+        return;
       }
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         onClose();
@@ -266,7 +284,9 @@ const NotificationsDropdown = ({ onClose, onRefresh }) => {
 
     if (!notif.isRead) {
       await markNotificationAsRead(notif.id);
-      setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, isRead: true } : n));
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notif.id ? { ...n, isRead: true } : n))
+      );
       if (onRefresh) onRefresh();
     }
 
@@ -278,30 +298,30 @@ const NotificationsDropdown = ({ onClose, onRefresh }) => {
 
   const handleAcceptInvite = async (e, notif) => {
     e.stopPropagation();
-    setProcessingInvites(prev => ({ ...prev, [notif.invitationId]: true }));
+    setProcessingInvites((prev) => ({ ...prev, [notif.invitationId]: true }));
 
     const res = await acceptDirectGroupInvitation(notif.invitationId);
-    
+
     if (!res.errorCode) {
       // odznacza się jako przeczytane
       await markNotificationAsRead(notif.id);
       if (onRefresh) onRefresh();
-      
+
       // przekierowujemy do grupy
       navigate(`/social/${notif.socialGroupId}`);
       onClose();
     } else {
       alert(res.message || "Wystąpił błąd podczas akceptacji.");
     }
-    setProcessingInvites(prev => ({ ...prev, [notif.invitationId]: false }));
+    setProcessingInvites((prev) => ({ ...prev, [notif.invitationId]: false }));
   };
 
   const handleDeclineInvite = async (e, notif) => {
     e.stopPropagation();
-    setProcessingInvites(prev => ({ ...prev, [notif.invitationId]: true }));
+    setProcessingInvites((prev) => ({ ...prev, [notif.invitationId]: true }));
 
     const res = await declineDirectGroupInvitation(notif.invitationId);
-    
+
     if (!res.errorCode) {
       // odrzucono - odświeżamy listę żeby powiadomienie zniknęło/oznaczyło się jako przeczytane
       fetchNotifications();
@@ -309,19 +329,20 @@ const NotificationsDropdown = ({ onClose, onRefresh }) => {
     } else {
       alert(res.message || "Wystąpił błąd podczas odrzucania.");
     }
-    setProcessingInvites(prev => ({ ...prev, [notif.invitationId]: false }));
+    setProcessingInvites((prev) => ({ ...prev, [notif.invitationId]: false }));
   };
 
   const handleMarkAllRead = async () => {
     await markAllNotificationsAsRead();
-    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
 
     if (onRefresh) onRefresh();
   };
 
   const handleClearAllClick = async () => {
-    const skipConfirm = localStorage.getItem('skipClearNotificationsConfirm') === 'true';
-    
+    const skipConfirm =
+      localStorage.getItem("skipClearNotificationsConfirm") === "true";
+
     if (skipConfirm) {
       await clearAllNotifications();
       setNotifications([]);
@@ -334,9 +355,9 @@ const NotificationsDropdown = ({ onClose, onRefresh }) => {
 
   const confirmClearAll = async () => {
     if (dontAskAgain) {
-      localStorage.setItem('skipClearNotificationsConfirm', 'true');
+      localStorage.setItem("skipClearNotificationsConfirm", "true");
     }
-    
+
     await clearAllNotifications();
     setNotifications([]);
     setIsConfirmModalOpen(false);
@@ -347,14 +368,14 @@ const NotificationsDropdown = ({ onClose, onRefresh }) => {
   };
 
   const formatTime = (isoString) => {
-    if(!isoString) return "";
+    if (!isoString) return "";
     const date = new Date(isoString);
-    return date.toLocaleString('pl-PL', { 
-        day: '2-digit', 
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit', 
-        minute: '2-digit' 
+    return date.toLocaleString("pl-PL", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -364,25 +385,30 @@ const NotificationsDropdown = ({ onClose, onRefresh }) => {
         <Header>
           <Title>Powiadomienia</Title>
           <ActionLinks>
-            {notifications.some(n => !n.isRead) && (
-               <TextBtn onClick={handleMarkAllRead}>Odczytaj wszystkie</TextBtn>
+            {notifications.some((n) => !n.isRead) && (
+              <TextBtn onClick={handleMarkAllRead}>Odczytaj wszystkie</TextBtn>
             )}
             {notifications.length > 0 && (
-               <TextBtn onClick={handleClearAllClick} style={{color: '#e74c3c'}}>Wyczyść</TextBtn>
+              <TextBtn
+                onClick={handleClearAllClick}
+                style={{ color: "#e74c3c" }}
+              >
+                Wyczyść
+              </TextBtn>
             )}
           </ActionLinks>
         </Header>
-        
+
         <NotificationsList>
           {isLoading ? (
             <EmptyState>Ładowanie...</EmptyState>
           ) : notifications.length === 0 ? (
             <EmptyState>Brak nowych powiadomień.</EmptyState>
           ) : (
-            notifications.map(notif => (
-              <NotificationItem 
-                key={notif.id} 
-                $isRead={notif.isRead} 
+            notifications.map((notif) => (
+              <NotificationItem
+                key={notif.id}
+                $isRead={notif.isRead}
                 $isActionable={!!notif.invitationId}
                 onClick={() => handleNotificationClick(notif)}
               >
@@ -394,18 +420,22 @@ const NotificationsDropdown = ({ onClose, onRefresh }) => {
                   {/* przyciski akceptacji/odrzucenia tylko jeśli jest zaproszenie i powiadomienie jest nieprzeczytane/aktywne */}
                   {notif.invitationId && !notif.isRead && (
                     <InviteActions>
-                      <InviteBtn 
-                        $accept 
+                      <InviteBtn
+                        $accept
                         disabled={processingInvites[notif.invitationId]}
                         onClick={(e) => handleAcceptInvite(e, notif)}
                       >
-                        {processingInvites[notif.invitationId] ? "..." : "Zaakceptuj"}
+                        {processingInvites[notif.invitationId]
+                          ? "..."
+                          : "Zaakceptuj"}
                       </InviteBtn>
-                      <InviteBtn 
+                      <InviteBtn
                         disabled={processingInvites[notif.invitationId]}
                         onClick={(e) => handleDeclineInvite(e, notif)}
                       >
-                        {processingInvites[notif.invitationId] ? "..." : "Odrzuć"}
+                        {processingInvites[notif.invitationId]
+                          ? "..."
+                          : "Odrzuć"}
                       </InviteBtn>
                     </InviteActions>
                   )}
@@ -422,22 +452,21 @@ const NotificationsDropdown = ({ onClose, onRefresh }) => {
           <StyledPopup id="confirm-modal" onClick={(e) => e.stopPropagation()}>
             <ModalTitle>Czy na pewno?</ModalTitle>
             <ModalText>
-              Chcesz trwale usunąć wszystkie swoje powiadomienia? Tej akcji nie można cofnąć.
+              Chcesz trwale usunąć wszystkie swoje powiadomienia? Tej akcji nie
+              można cofnąć.
             </ModalText>
-            
+
             <CheckboxWrapper>
-              <StyledCheckbox 
-                type="checkbox" 
-                checked={dontAskAgain} 
-                onChange={(e) => setDontAskAgain(e.target.checked)} 
+              <StyledCheckbox
+                type="checkbox"
+                checked={dontAskAgain}
+                onChange={(e) => setDontAskAgain(e.target.checked)}
               />
               Nie pytaj ponownie
             </CheckboxWrapper>
 
             <ButtonGroup>
-              <ModalButton onClick={cancelClearAll}>
-                Anuluj
-              </ModalButton>
+              <ModalButton onClick={cancelClearAll}>Anuluj</ModalButton>
               <ModalButton $danger onClick={confirmClearAll}>
                 Tak, wyczyść
               </ModalButton>

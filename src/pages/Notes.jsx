@@ -46,8 +46,10 @@ const StyledContainer = styled.div`
   box-sizing: border-box;
   opacity: ${({ $ready }) => ($ready ? 1 : 0)};
   transition: opacity 0.2s ease;
+  min-height: calc(100vh - 70px);
   @media (max-width: 768px) {
     padding: 12px 12px;
+    min-height: calc(100dvh - 70px);
   }
 `;
 
@@ -243,8 +245,8 @@ const StyledItem = styled.div`
     max-width: 100%;
     padding: 8px 4px;
 
-    h6 {
-      font-size: 0.65rem !important;
+    h4 {
+      font-size: 0.78rem !important;
     }
   }
 `;
@@ -387,10 +389,9 @@ const StyledItemOptions = styled.div`
 
   @media (max-width: 768px) {
     position: fixed;
-    top: ${({ $flipUp, $dropdownY }) => ($flipUp ? "50%" : `${$dropdownY}px`)};
+    top: 50%;
     left: 50%;
-    transform: ${({ $flipUp }) =>
-      $flipUp ? "translate(-50%, -50%)" : "translateX(-50%)"};
+    transform: translate(-50%, -50%);
     right: auto;
     bottom: auto;
     margin: 0;
@@ -599,6 +600,25 @@ const ModalOverlay = styled.div`
   inset: 0;
   background: rgba(0, 0, 0, 0.4);
   z-index: 999;
+`;
+
+const ModalButton = styled.button`
+  background-color: ${({ $danger, theme }) =>
+    $danger ? theme.colors.danger : theme.colors.borderLight};
+  color: ${({ $danger, theme }) =>
+    $danger ? theme.colors.white : theme.colors.text};
+  border: none;
+  padding: 12px 25px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+  }
 `;
 
 const DropdownSectionLabel = styled.div`
@@ -1103,6 +1123,7 @@ const Notes = () => {
   const [isActiveAddOptions, setIsActiveAddOptions] = useState(false);
   const [isActivePathOptions, setIsActivePathOptions] = useState(false);
   const [isConfirmingTrashClear, setIsConfirmingTrashClear] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
   const [trashHasItems, setTrashHasItems] = useState(false);
   const [noteNameErrorMessage, setNoteNameErrorMessage] = useState("");
   const [folderNameErrorMessage, setFolderNameErrorMessage] = useState("");
@@ -1117,8 +1138,6 @@ const Notes = () => {
   const [editingName, setEditingName] = useState("");
   const [flipLeft, setFlipLeft] = useState(false);
   const [centerBelow, setCenterBelow] = useState(false);
-  const [dropdownY, setDropdownY] = useState(0);
-  const [flipUp, setFlipUp] = useState(false);
   const [itemTags, setItemTags] = useState([]);
   const [itemSuggestedTags, setItemSuggestedTags] = useState([]);
   const [isAddingItemTag, setIsAddingItemTag] = useState(false);
@@ -1512,6 +1531,13 @@ const Notes = () => {
     }
   };
 
+  const executeDelete = async () => {
+    if (!itemToDelete) return;
+    if (itemToDelete.type === "note") await handleDeleteNote(itemToDelete.id);
+    else await handleDeleteFolder(itemToDelete.id);
+    setItemToDelete(null);
+  };
+
   const handleRestoreFolder = async (id) => {
     setErrorMessage("");
     const res = await restoreFolder(id);
@@ -1606,20 +1632,6 @@ const Notes = () => {
     fetchForCurrentUrl();
   }, [urlPath]);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const active = document.activeElement;
-      if (
-        active &&
-        (active.tagName === "INPUT" || active.tagName === "TEXTAREA")
-      )
-        return;
-      setActiveFolderOptionsId(null);
-      setActiveNoteOptionsId(null);
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const getVisualSortedItems = (items) => {
     const sorted = [...items];
@@ -2126,6 +2138,8 @@ const Notes = () => {
                           color: theme.colors.textMuted,
                           fontSize: "0.85rem",
                           fontWeight: "500",
+                          margin: 0,
+                          padding: 0,
                         }}
                       />
                     )}
@@ -2145,13 +2159,6 @@ const Notes = () => {
                       const fitsLeft = rect.left - 10 - 350 >= 0;
                       setCenterBelow(!fitsRight && !fitsLeft);
                       setFlipLeft(!fitsRight && fitsLeft);
-                      const estimatedHeight = 320;
-                      const wouldOverflow =
-                        rect.bottom + 4 + estimatedHeight > window.innerHeight;
-                      setFlipUp(wouldOverflow);
-                      setDropdownY(
-                        wouldOverflow ? rect.top - 4 : rect.bottom + 4
-                      );
                       setIsAddingItemTag(false);
                       setNewItemTag("");
                       setActiveFolderOptionsId(
@@ -2165,8 +2172,7 @@ const Notes = () => {
                       $flipLeft={flipLeft}
                       $centerBelow={centerBelow}
                       $narrow={isTrashView}
-                      $dropdownY={dropdownY}
-                      $flipUp={flipUp}
+
                       onClick={(e) => e.stopPropagation()}
                     >
                       {isTrashView ? (
@@ -2300,7 +2306,7 @@ const Notes = () => {
                             className="danger"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleDeleteFolder(folder.id);
+                              setItemToDelete({ id: folder.id, type: "folder", name: folder.name });
                               setActiveFolderOptionsId(null);
                             }}
                           >
@@ -2370,7 +2376,7 @@ const Notes = () => {
                       as="h4"
                       bold="true"
                       text={d.name}
-                      style={{ marginBottom: "10px", fontSize: "1.05rem" }}
+                      style={{ marginBottom: "4px", fontSize: "1.05rem" }}
                     />
                   </div>
 
@@ -2388,13 +2394,6 @@ const Notes = () => {
                       const fitsLeft = rect.left - 10 - 350 >= 0;
                       setCenterBelow(!fitsRight && !fitsLeft);
                       setFlipLeft(!fitsRight && fitsLeft);
-                      const estimatedHeight = 320;
-                      const wouldOverflow =
-                        rect.bottom + 4 + estimatedHeight > window.innerHeight;
-                      setFlipUp(wouldOverflow);
-                      setDropdownY(
-                        wouldOverflow ? rect.top - 4 : rect.bottom + 4
-                      );
                       setIsAddingItemTag(false);
                       setNewItemTag("");
                       setActiveNoteOptionsId(
@@ -2408,8 +2407,7 @@ const Notes = () => {
                       $flipLeft={flipLeft}
                       $centerBelow={centerBelow}
                       $narrow={isTrashView}
-                      $dropdownY={dropdownY}
-                      $flipUp={flipUp}
+
                       onClick={(e) => e.stopPropagation()}
                     >
                       {isTrashView ? (
@@ -2541,7 +2539,7 @@ const Notes = () => {
                             className="danger"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleDeleteNote(d.id);
+                              setItemToDelete({ id: d.id, type: "note", name: d.name });
                               setActiveNoteOptionsId(null);
                             }}
                           >
@@ -2556,9 +2554,15 @@ const Notes = () => {
                   </StyledItemHeader>
                 </StyledItemHeaderWrapper>
                 <Text
-                  as="h6"
                   text={formattedDate}
-                  style={{ marginTop: "auto" }}
+                  style={{
+                    marginTop: "auto",
+                    marginBottom: 0,
+                    color: theme.colors.textMuted,
+                    fontSize: "0.85rem",
+                    fontWeight: "500",
+                    padding: 0,
+                  }}
                 />
               </StyledItem>
             );
@@ -2754,9 +2758,9 @@ const Notes = () => {
                   marginTop: "30px",
                 }}
               >
-                <SubmitButton
-                  text="Wyczyść kosz"
-                  color="danger"
+                <ModalButton
+                  type="button"
+                  $danger
                   onClick={async () => {
                     await handleClearTrash();
                     await handleClearFolderTrash();
@@ -2767,15 +2771,40 @@ const Notes = () => {
                       navigate("/notes/trash", { replace: true });
                     }
                   }}
-                />
-                <SubmitButton
-                  text="Anuluj"
-                  color="dark"
-                  light
-                  onClick={() => {
-                    setIsConfirmingTrashClear(false);
-                  }}
-                />
+                >
+                  Wyczyść kosz
+                </ModalButton>
+                <ModalButton type="button" onClick={() => setIsConfirmingTrashClear(false)}>
+                  Anuluj
+                </ModalButton>
+              </div>
+            </StyledPopup>
+          </>
+        )}
+
+        {itemToDelete && (
+          <>
+            <ModalOverlay onClick={() => setItemToDelete(null)} />
+            <StyledPopup
+              onClick={(e) => e.stopPropagation()}
+              style={{ textAlign: "center" }}
+            >
+              <Text
+                bold="true"
+                as="h2"
+                text={itemToDelete.type === "folder" ? "Usuń folder" : "Usuń dokument"}
+              />
+              <Text
+                text={`Czy na pewno chcesz usunąć "${itemToDelete.name}"?`}
+                style={{ margin: "20px 0 30px 0", color: theme.colors.textLight }}
+              />
+              <div style={{ display: "flex", justifyContent: "center", gap: "15px" }}>
+                <ModalButton type="button" $danger onClick={executeDelete}>
+                  Usuń
+                </ModalButton>
+                <ModalButton type="button" onClick={() => setItemToDelete(null)}>
+                  Anuluj
+                </ModalButton>
               </div>
             </StyledPopup>
           </>
@@ -2838,15 +2867,6 @@ const Notes = () => {
                 }}
               >
                 <SubmitButton
-                  text={isSuccess ? "✔ Przeniesiono!" : "Zatwierdź"}
-                  color={isSuccess ? "secondary" : "dark"}
-                  onClick={handleMove}
-                  style={{
-                    opacity: selectedMovePath === null ? 0.5 : 1,
-                    pointerEvents: selectedMovePath === null ? "none" : "auto",
-                  }}
-                />
-                <SubmitButton
                   text="Anuluj"
                   color="dark"
                   light
@@ -2854,6 +2874,15 @@ const Notes = () => {
                     setIsMoving(false);
                     setMovingItem(null);
                     setMoveErrorMessage("");
+                  }}
+                />
+                <SubmitButton
+                  text={isSuccess ? "✔ Przeniesiono!" : "Zatwierdź"}
+                  color={isSuccess ? "secondary" : "dark"}
+                  onClick={handleMove}
+                  style={{
+                    opacity: selectedMovePath === null ? 0.5 : 1,
+                    pointerEvents: selectedMovePath === null ? "none" : "auto",
                   }}
                 />
               </div>

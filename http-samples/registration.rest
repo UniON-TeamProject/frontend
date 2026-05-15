@@ -1,13 +1,13 @@
 @host = http://localhost:20109
 
 ###
-POST {{host}}/union/checkEmail HTTP/1.1
+POST {{host}}/checkEmail HTTP/1.1
 content-type: application/json
 
 mynka3@wp.pl
 
 ###
-POST {{host}}/union/signUp HTTP/1.1
+POST {{host}}/signUp HTTP/1.1
 content-type: application/json
 
 {
@@ -18,13 +18,13 @@ content-type: application/json
 }
 
 ###
-POST {{host}}/union/checkUsername HTTP/1.1
+POST {{host}}/checkUsername HTTP/1.1
 content-type: application/json
 
 Mynka6
 
 ###
-POST {{host}}/union/verify HTTP/1.1
+POST {{host}}/verify HTTP/1.1
 content-type: application/json
 
 {
@@ -33,7 +33,7 @@ content-type: application/json
 }
 
 ###
-POST {{host}}/union/signup HTTP/1.1
+POST {{host}}/signup HTTP/1.1
 content-type: application/json
 
 {
@@ -42,14 +42,14 @@ content-type: application/json
 }
 
 ###
-POST {{host}}/union/resendVerificationCode HTTP/1.1
+POST {{host}}/resendVerificationCode HTTP/1.1
 content-type: application/json
 
 
 mynka3@wp.pl
 
 ###
-POST {{host}}/union/signIn HTTP/1.1
+POST {{host}}/signIn HTTP/1.1
 content-type: application/json
 
 {
