@@ -1588,6 +1588,12 @@ export async function generateCardsFromNote(noteId) {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },
     });
+    if (resp.status === 402) {
+      return {
+        errorCode: "RATE_LIMIT_EXCEEDED",
+        message: "Przekroczono limit zapytań do AI. Spróbuj ponownie za chwilę.",
+      };
+    }
     const authErr = checkUnauthorized(resp);
     if (authErr) return authErr;
     if (resp.ok) {

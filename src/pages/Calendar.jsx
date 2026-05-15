@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import styled, { keyframes, useTheme } from "styled-components";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Layout from "../components/organisms/Layout";
 import {
   getUsosAuthUrl,
@@ -327,6 +327,9 @@ const Header = styled.div`
   background: ${({ theme }) => theme.colors.pageBg};
   border-bottom: none;
   flex-shrink: 0;
+  @media (max-width: 769px) {
+    padding: 10px 12px;
+  }
 `;
 
 const NavBtn = styled.button`
@@ -440,6 +443,15 @@ const UsosBtn = styled(AddBtn)`
   padding: 9px 15px;
   font-size: 14px;
   font-weight: 600;
+  @media (max-width: 768px) {
+    background: unset;
+    border: none;
+    padding: 0px;
+    > img {
+      width: 25px !important;
+      height: 25px !important;
+    }
+  }
 `;
 
 const UsosLabel = styled.span`
@@ -706,6 +718,17 @@ const SidebarSectionLabel = styled.div`
   letter-spacing: 0.6px;
   color: ${({ theme }) => theme.colors.textLight};
   margin-bottom: 4px;
+`;
+
+const MobileDetailPanel = styled.div`
+  display: none;
+  @media (max-width: 768px) {
+    display: block;
+    width: 100%;
+    border-top: 1px solid ${({ theme }) => theme.colors.darkGrey};
+    background: ${({ theme }) => theme.colors.white};
+    padding-bottom: 16px;
+  }
 `;
 
 // FORM SIDEBAR
@@ -1372,14 +1395,25 @@ function toLocalDateTimeISO(date, hour, min) {
 const Calendar = () => {
   const theme = useTheme();
   const routerNavigate = useNavigate();
+  const location = useLocation();
   const [view, setView] = useState(
     () => localStorage.getItem("calendarView") || "week"
   );
   const [viewOpen, setViewOpen] = useState(false);
   const viewDropRef = useRef(null);
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(() => {
+    const incoming = location.state?.selectedDate;
+    return incoming ? new Date(incoming) : new Date();
+  });
   const [events, setEvents] = useState([]);
   const [sidebar, setSidebar] = useState(null);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 768px)");
+    const handler = (e) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
   const [popup, setPopup] = useState(false);
 
   const [form, setForm] = useState({ ...defaultFormState });
@@ -1431,12 +1465,36 @@ const Calendar = () => {
     }
     const res = await getEventsBetween(startDate, endDate);
     if (res.errorCode === "" && res.events) {
-      setEvents(res.events.map(mapBackendEvent));
+      const mapped = res.events.map(mapBackendEvent);
+      setEvents(mapped);
+      return mapped;
     }
+    return null;
   };
 
+  const sidebarInitialized = useRef(false);
+
   useEffect(() => {
-    refreshEvents();
+    refreshEvents().then((loadedEvents) => {
+      if (sidebarInitialized.current || !loadedEvents) return;
+      sidebarInitialized.current = true;
+      const incoming = location.state?.selectedDate;
+      const target = incoming
+        ? new Date(incoming)
+        : isMobile
+        ? new Date()
+        : null;
+      if (!target) return;
+      const targetEvents = loadedEvents.filter((ev) => {
+        const d = ev.date instanceof Date ? ev.date : new Date(ev.date);
+        return (
+          d.getFullYear() === target.getFullYear() &&
+          d.getMonth() === target.getMonth() &&
+          d.getDate() === target.getDate()
+        );
+      });
+      setSidebar({ date: target, events: targetEvents });
+    });
   }, [currentDate, view]);
 
   const handleDocTagClick = async (tagName) => {
@@ -3156,9 +3214,13 @@ const Calendar = () => {
               setSidebar({ date: day, events: dayEvents })
             }
           />
+
+          {isMobile && sidebar && !popup && (
+            <MobileDetailPanel>{renderSidebar()}</MobileDetailPanel>
+          )}
         </Main>
 
-        <DetailSidebar $open={!!sidebar && !popup}>
+        <DetailSidebar $open={!isMobile && !!sidebar && !popup}>
           {renderSidebar()}
         </DetailSidebar>
 

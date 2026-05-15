@@ -371,6 +371,11 @@ const CellDate = styled.div`
   margin-bottom: ${({ $compact }) => ($compact ? 4 : 10)}px;
   flex-shrink: 0;
   display: flex;
+
+  @media (max-width: 768px) {
+    font-size: 10px;
+    margin-bottom: 2px;
+  }
   align-items: center;
   gap: 5px;
   @media (max-width: 768px) {
@@ -531,6 +536,11 @@ const WeekContainer = styled.div`
   display: flex;
   flex-direction: column;
   overflow: hidden;
+
+  @media (max-width: 768px) {
+    overflow: auto;
+    max-height: 52vh;
+  }
 `;
 
 const WeekHeader = styled.div`
@@ -539,6 +549,23 @@ const WeekHeader = styled.div`
   background: ${({ theme }) => theme.colors.pageBg};
   border-bottom: 1px solid ${({ theme }) => theme.colors.darkGrey};
   flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    min-width: 420px;
+    grid-template-columns: 36px repeat(7, 1fr);
+    position: sticky;
+    top: 0;
+    z-index: 4;
+  }
+`;
+
+const WeekHeaderSpacer = styled.div`
+  @media (max-width: 768px) {
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    background: ${({ theme }) => theme.colors.pageBg};
+  }
 `;
 
 const WeekHeaderCell = styled.div`
@@ -550,6 +577,9 @@ const WeekHeaderCell = styled.div`
   &:hover {
     background: ${({ theme }) => theme.colors.primary}40;
   }
+  @media (max-width: 768px) {
+    padding: 6px 4px;
+  }
 `;
 
 const WeekDayName = styled.div`
@@ -559,6 +589,10 @@ const WeekDayName = styled.div`
   text-transform: uppercase;
   color: ${({ $today, theme }) =>
     $today ? theme.colors.secondary : theme.colors.textLight};
+  @media (max-width: 768px) {
+    font-size: 9px;
+    letter-spacing: 0;
+  }
 `;
 
 const WeekDayNum = styled.div`
@@ -572,6 +606,11 @@ const WeekDayNum = styled.div`
   align-items: center;
   justify-content: center;
   margin: 2px auto 0;
+  @media (max-width: 768px) {
+    font-size: 13px;
+    width: 22px;
+    height: 22px;
+  }
   background: ${({ $today, theme }) =>
     $today ? theme.colors.secondary : "transparent"};
   color: ${({ $today, $selected, theme }) =>
@@ -590,6 +629,12 @@ const WeekBody = styled.div`
   display: grid;
   grid-template-columns: 52px repeat(7, 1fr);
   position: relative;
+
+  @media (max-width: 768px) {
+    min-width: 420px;
+    grid-template-columns: 36px repeat(7, 1fr);
+    overflow-y: visible;
+  }
   &::-webkit-scrollbar {
     width: 4px;
   }
@@ -616,6 +661,10 @@ const TimeSlot = styled.div`
   justify-content: flex-end;
   padding: 2px 8px 0 0;
   border-top: 1px solid ${({ theme }) => theme.colors.borderMuted};
+  @media (max-width: 768px) {
+    height: 40px;
+    padding: 2px 4px 0 0;
+  }
 `;
 
 const TimeLabel = styled.span`
@@ -642,6 +691,9 @@ const DayCol = styled.div`
 const HourLine = styled.div`
   height: 60px;
   border-top: 1px solid ${({ theme }) => theme.colors.borderMuted};
+  @media (max-width: 768px) {
+    height: 40px;
+  }
 `;
 
 const NowLine = styled.div`
@@ -683,6 +735,11 @@ const EventBlock = styled.div`
   flex-direction: column;
   justify-content: space-between;
   pointer-events: none;
+  @media (max-width: 768px) {
+    padding: 2px 3px;
+    border-left-width: 2px;
+    border-radius: 4px;
+  }
 `;
 
 const EventTitle = styled.div`
@@ -690,9 +747,22 @@ const EventTitle = styled.div`
   font-weight: 600;
   color: ${({ $dark }) => $dark};
   line-height: 1.3;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: ${({ $lines }) => $lines || 3};
   overflow: hidden;
-  text-overflow: ellipsis;
+  @media (max-width: 768px) {
+    font-size: 10px;
+    white-space: normal;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: ${({ $lines }) => $lines || 1};
+    overflow: hidden;
+    margin-bottom: 5px;
+  }
 `;
 
 const EventTags = styled.div`
@@ -704,6 +774,9 @@ const EventTags = styled.div`
 
 const EventTagIcon = styled.span`
   font-size: 18px;
+  @media (max-width: 768px) {
+    font-size: 11px;
+  }
 `;
 
 const AllDayArea = styled.div`
@@ -860,10 +933,12 @@ const CalendarGrid = ({
         });
     };
 
+    const slotHeight = isMobile ? 40 : 60;
+
     return (
       <WeekContainer>
         <WeekHeader>
-          <div />
+          <WeekHeaderSpacer />
           {days.map((day, i) => {
             const isToday = isSameDay(day, nowDate);
             const isSelected = selectedDate && isSameDay(selectedDate, day);
@@ -933,7 +1008,7 @@ const CalendarGrid = ({
                 {hours.map((h) => (
                   <HourLine key={h} />
                 ))}
-                {isToday && isCurrentWeek && <NowLine $top={nowPos} />}
+                {isToday && isCurrentWeek && <NowLine $top={nowPos * slotHeight / 60} />}
                 {dayEvs.map((ev) => {
                   const topMins = ev.startHour * 60 + ev.startMin;
                   const endMins = ev.endHour * 60 + ev.endMin;
@@ -955,8 +1030,8 @@ const CalendarGrid = ({
                   const rawHeight = Math.max(24, clampedEnd - clampedStart);
 
                   const maxTop = (widgetEnd - widgetStart) - rawHeight;
-                  const top = Math.min(clampedStart - widgetStart, maxTop);
-                  const height = rawHeight;
+                  const top = Math.min(clampedStart - widgetStart, maxTop) * slotHeight / 60;
+                  const height = rawHeight * slotHeight / 60;
 
                   if (clampedEnd <= widgetStart || clampedStart >= widgetEnd)
                     return null;
@@ -980,7 +1055,7 @@ const CalendarGrid = ({
                       $bg={style.bg}
                       $borderColor={style.dark}
                     >
-                      <EventTitle $dark={style.dark}>{ev.title}</EventTitle>
+                      <EventTitle $dark={style.dark} $lines={isMobile ? Math.max(1, Math.floor((height - 4) / 13)) : undefined}>{ev.title}</EventTitle>
                       {height > 30 && (
                         <EventTags>
                           {ev.tags.map((t) => (
