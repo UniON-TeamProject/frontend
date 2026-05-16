@@ -1100,7 +1100,7 @@ const SocialGroupDetails = () => {
     // tworzenie pustego
     if (materialMode === 'CREATE') {
       if (activeTab === 'notes') {
-        res = await addNote(newMaterialName.trim(), "/", group.id);
+        res = await addNote(newMaterialName.trim(), "/", [], group.id);
       } else {
         res = await addFlashcardSet(newMaterialName.trim(), [], group.id);
       }
