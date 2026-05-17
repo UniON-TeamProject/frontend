@@ -12,7 +12,7 @@ const CardWrapper = styled.div`
   @media (max-width: 768px) {
     width: 100%;
     height: auto;
-    min-height: 120px;
+    min-height: 200px;
     margin: 0 auto;
   }
 `;
@@ -25,12 +25,6 @@ const CardInner = styled.div`
   transition: transform 0.6s ease;
   transform: ${(props) => (props.$isFlipped ? "rotateY(180deg)" : "none")};
   cursor: pointer;
-
-  @media (max-width: 768px) {
-    transform-style: flat;
-    transform: none;
-    transition: none;
-  }
 `;
 
 const CardFace = styled.div`
@@ -45,22 +39,10 @@ const CardFace = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-
-  @media (max-width: 768px) {
-    position: relative;
-    height: auto;
-    min-height: 120px;
-    backface-visibility: visible;
-    display: ${({ $hiddenOnMobile }) => ($hiddenOnMobile ? "none" : "flex")};
-  }
 `;
 
 const CardBack = styled(CardFace)`
   transform: rotateY(180deg);
-
-  @media (max-width: 768px) {
-    transform: none;
-  }
 `;
 
 const CardContent = styled.div`
@@ -348,35 +330,35 @@ export default function Flashcard({
 
   return (
     <CardWrapper $menuOpen={isMenuOpen}>
+      {/* KÓŁKO ZAZNACZANIA */}
+      {isSelectMode && (
+        <SelectCircle
+          $isSelected={isSelected}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleSelect();
+          }}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </SelectCircle>
+      )}
+
       <CardInner
         $isFlipped={isFlipped}
         onClick={() =>
           isSelectMode ? onToggleSelect() : setIsFlipped(!isFlipped)
         }
       >
-        {/* KÓŁKO ZAZNACZANIA */}
-        {isSelectMode && (
-          <SelectCircle
-            $isSelected={isSelected}
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleSelect();
-            }}
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-          </SelectCircle>
-        )}
-
-        <CardFace $hiddenOnMobile={isFlipped}>
+        <CardFace>
           <CardContent>
             <div
               className="inner-content"
@@ -384,7 +366,7 @@ export default function Flashcard({
             />
           </CardContent>
         </CardFace>
-        <CardBack $hiddenOnMobile={!isFlipped}>
+        <CardBack>
           <CardContent>
             <div
               className="inner-content"

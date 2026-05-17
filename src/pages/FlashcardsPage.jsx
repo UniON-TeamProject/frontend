@@ -263,7 +263,7 @@ const ContentContainer = styled.div`
   justify-content: center;
 
   @media (max-width: 768px) {
-    grid-template-columns: 1fr;
+    grid-template-columns: ${({ $setsView }) => $setsView ? "repeat(auto-fill, minmax(140px, 1fr))" : "1fr"};
     gap: 10px;
     padding: 10px 0 100px 0;
   }
@@ -293,7 +293,7 @@ const StartLearningButton = styled.button`
 
   @media (max-width: 768px) {
     padding: 8px 10px;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
   }
   > svg {
     @media (max-width: 768px) {
@@ -430,6 +430,18 @@ const StyledItemOptions = styled.div`
 
   max-height: 350px;
   overflow-y: auto;
+
+  @media (max-width: 768px) {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    right: auto;
+    bottom: auto;
+    margin: 0;
+    width: calc(100vw - 80px);
+    max-width: 300px;
+  }
 
   &::-webkit-scrollbar {
     width: 5px;
@@ -1019,7 +1031,7 @@ const ActionBanner = styled.div`
 
   @media (max-width: 768px) {
     padding: 8px 10px;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
 
     .hide-mobile {
       display: none;
@@ -3086,7 +3098,7 @@ const FlashcardsPage = () => {
 
         {/* LISTA ZESTAWÓW */}
         {!activeSetId && (
-          <ContentContainer>
+          <ContentContainer $setsView>
             {isReady && sets.length === 0 && !errorMessage ? (
               <EmptyStateContainer>
                 <svg
