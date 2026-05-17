@@ -774,6 +774,10 @@ const CardsFormContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: 40px;
+
+  @media (max-width: 768px) {
+    gap: 30px;
+  }
   align-items: center;
   width: 100%;
   max-width: 1000px;
@@ -3752,7 +3756,7 @@ const FlashcardsPage = () => {
             {!isLoadingCards &&
               foundCards.length > 0 &&
               foundCards.map((card) => (
-                <CardInputRow
+                <div
                   key={card.id}
                   onClick={() => {
                     const newSet = new Set(selectedCardsForAdding);
@@ -3773,7 +3777,11 @@ const FlashcardsPage = () => {
                       ? `${theme.colors.secondary}15`
                       : "white",
                     transition: "all 0.15s",
-                    alignItems: "center",
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "flex-start",
+                    gap: "16px",
+                    width: "100%",
                   }}
                 >
                   <div
@@ -3793,7 +3801,7 @@ const FlashcardsPage = () => {
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      order: -1,
+                      marginTop: "6px",
                     }}
                   >
                     {selectedCardsForAdding.has(card.id) && (
@@ -3809,53 +3817,52 @@ const FlashcardsPage = () => {
                       </svg>
                     )}
                   </div>
-                  <CardInputSide>
-                    <SideLabel>Przód</SideLabel>
-                    <div
-                      style={{ fontSize: "0.95rem" }}
-                      dangerouslySetInnerHTML={{
-                        __html: card.contentFirstSide,
-                      }}
-                    />
-                  </CardInputSide>
-                  <CardInputSide>
-                    <SideLabel>Tył</SideLabel>
-                    <div
-                      style={{ fontSize: "0.95rem" }}
-                      dangerouslySetInnerHTML={{ __html: card.contentFlipSide }}
-                    />
-                  </CardInputSide>
-                  {card.cardTags && card.cardTags.length > 0 && (
-                    <div
-                      style={{
-                        display: "flex",
-                        flexWrap: "wrap",
-                        gap: "6px",
-                        alignItems: "flex-start",
-                        minWidth: "150px",
-                        paddingLeft: "16px",
-                        borderLeft: `1px solid ${theme.colors.borderLight}`,
-                      }}
-                    >
-                      {card.cardTags.map((tag, idx) => (
-                        <div
-                          key={idx}
-                          style={{
-                            padding: "4px 10px",
-                            backgroundColor: theme.colors.secondary,
-                            color: theme.colors.white,
-                            borderRadius: "6px",
-                            fontSize: "0.8rem",
-                            fontWeight: "500",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {tag}
-                        </div>
-                      ))}
+                  <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px", minWidth: 0 }}>
+                    <div>
+                      <SideLabel>Przód</SideLabel>
+                      <div
+                        style={{ fontSize: "0.95rem" }}
+                        dangerouslySetInnerHTML={{
+                          __html: card.contentFirstSide,
+                        }}
+                      />
                     </div>
-                  )}
-                </CardInputRow>
+                    <div>
+                      <SideLabel>Tył</SideLabel>
+                      <div
+                        style={{ fontSize: "0.95rem" }}
+                        dangerouslySetInnerHTML={{ __html: card.contentFlipSide }}
+                      />
+                    </div>
+                    {card.cardTags && card.cardTags.length > 0 && (
+                      <div
+                        style={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: "6px",
+                          alignItems: "flex-start",
+                        }}
+                      >
+                        {card.cardTags.map((tag, idx) => (
+                          <div
+                            key={idx}
+                            style={{
+                              padding: "4px 10px",
+                              backgroundColor: theme.colors.secondary,
+                              color: theme.colors.white,
+                              borderRadius: "6px",
+                              fontSize: "0.8rem",
+                              fontWeight: "500",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {tag}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
               ))}
           </CardsFormContainer>
         )}
