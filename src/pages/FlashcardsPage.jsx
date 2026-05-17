@@ -4573,10 +4573,6 @@ const FlashcardsPage = () => {
                     if (res.errorCode) {
                       setErrorMessage(res.message);
                     } else {
-                      await Promise.all(
-                        selectedCards.map((c) => deleteCard(c.id))
-                      );
-
                       setSuccessMessage("Fiszki przeniesione!");
                       setTimeout(() => setSuccessMessage(""), 2000);
                       setIsBulkMoveModalOpen(false);
