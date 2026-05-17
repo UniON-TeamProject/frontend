@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import Layout from "../components/organisms/Layout";
 import {
   getProfile,
@@ -400,12 +400,13 @@ const ThemeFeedback = styled.p`
     $error ? theme.colors.danger : theme.colors.success};
 `;
 
-
 const UniSelect = styled.select`
   width: 100%;
   padding: 10px 14px;
   border-radius: 10px;
-  border: 1px solid ${({ $highlight, theme }) => $highlight ? theme.colors.danger : theme.colors.primary};
+  border: 1px solid
+    ${({ $highlight, theme }) =>
+      $highlight ? theme.colors.danger : theme.colors.primary};
   background-color: ${({ theme }) => theme.colors.white};
   color: ${({ theme }) => theme.colors.veryDarkPrimary};
   font-size: 0.95rem;
@@ -427,6 +428,65 @@ const UniSelect = styled.select`
   }
 `;
 
+const arrowBounce = keyframes`
+  0%   { transform: translateX(0); }
+  40%  { transform: translateX(6px); }
+  65%  { transform: translateX(-1px); }
+  100% { transform: translateX(0); }
+`;
+
+const UsosBanner = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  margin-top: 14px;
+  padding: 14px 18px;
+  background-color: ${({ theme }) => theme.colors.darkPageBg};
+  border: 1.5px solid ${({ theme }) => theme.colors.primary};
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover:not(:disabled) > *:last-child {
+    animation: ${arrowBounce} 0.5s ease;
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
+
+const UsosBannerIcon = styled.div`
+  font-size: 1.6rem;
+  flex-shrink: 0;
+  line-height: 1;
+`;
+
+const UsosBannerText = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+const UsosBannerTitle = styled.div`
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.veryDarkPrimary};
+`;
+
+const UsosBannerSub = styled.div`
+  font-size: 0.78rem;
+  color: ${({ theme }) => theme.colors.takiSmiesznyZielony};
+  margin-top: 2px;
+`;
+
+const UsosBannerArrow = styled.div`
+  font-size: 1.2rem;
+  color: ${({ theme }) => theme.colors.veryDarkPrimary};
+  flex-shrink: 0;
+  opacity: 0.5;
+`;
+
 const getInitials = (name) => {
   if (!name) return "?";
   const parts = name.trim().split(/\s+/);
@@ -444,7 +504,9 @@ const Profile = () => {
   const [email, setEmail] = useState("");
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(locationState?.tab ?? "account");
-  const [highlightUniversity, setHighlightUniversity] = useState(locationState?.highlightUniversity ?? false);
+  const [highlightUniversity, setHighlightUniversity] = useState(
+    locationState?.highlightUniversity ?? false
+  );
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
@@ -510,7 +572,8 @@ const Profile = () => {
         setEmail(profileRes.email || "");
         if (profileRes.themeColor)
           dispatch(setThemeColor(profileRes.themeColor));
-        if (profileRes.universityName) setSelectedUniversity(profileRes.universityName);
+        if (profileRes.universityName)
+          setSelectedUniversity(profileRes.universityName);
       }
       if (!uniRes.errorCode) setUniversities(uniRes.universities);
       setLoading(false);
@@ -695,18 +758,14 @@ const Profile = () => {
     setThemeFeedback({ message: res.message, error: false });
   };
 
-  const handleUniversitySubmit = async (e) => {
-    e.preventDefault();
-    if (!selectedUniversity) {
-      setUniversityFeedback({
-        message: "Wybierz uczelnię z listy.",
-        error: true,
-      });
-      return;
-    }
+  const handleUniversityChange = async (e) => {
+    const value = e.target.value;
+    setSelectedUniversity(value);
+    setHighlightUniversity(false);
+    if (!value) return;
     setUniversityFeedback({ message: "", error: false });
     setUniversitySaving(true);
-    const res = await setUniversity(selectedUniversity);
+    const res = await setUniversity(value);
     setUniversitySaving(false);
     if (res.errorCode) {
       setUniversityFeedback({
@@ -716,6 +775,10 @@ const Profile = () => {
       return;
     }
     setUniversityFeedback({ message: res.message, error: false });
+  };
+
+  const handleUsosImport = () => {
+    navigate("/calendar", { state: { openUsosImport: true } });
   };
 
   return (
@@ -811,32 +874,48 @@ const Profile = () => {
             <SectionTitle>Uczelnia</SectionTitle>
             {highlightUniversity && (
               <FeedbackText $error>
-                Aby korzystać z integracji USOS, najpierw wybierz swoją uczelnię.
+                Aby korzystać z integracji USOS, najpierw wybierz swoją
+                uczelnię.
               </FeedbackText>
             )}
-            <form onSubmit={handleUniversitySubmit}>
-              <UniSelect
-                value={selectedUniversity}
-                onChange={(e) => { setSelectedUniversity(e.target.value); setHighlightUniversity(false); }}
-                disabled={universitySaving || universities.length === 0}
-                $highlight={highlightUniversity}
-              >
-                <option value="">Wybierz uczelnię..</option>
-                {universities.map((uni) => (
-                  <option key={uni.id} value={uni.name}>
-                    {uni.name}
-                  </option>
-                ))}
-              </UniSelect>
-              {universityFeedback.message && (
-                <FeedbackText $error={universityFeedback.error}>
-                  {universityFeedback.message}
-                </FeedbackText>
-              )}
-              <ActionButton type="submit" disabled={universitySaving}>
-                {universitySaving ? "Zapisywanie..." : "Zapisz uczelnię"}
-              </ActionButton>
-            </form>
+            <UniSelect
+              value={selectedUniversity}
+              onChange={handleUniversityChange}
+              disabled={universitySaving || universities.length === 0}
+              $highlight={highlightUniversity}
+            >
+              <option value="">Wybierz uczelnię..</option>
+              {universities.map((uni) => (
+                <option key={uni.id} value={uni.name}>
+                  {uni.name}
+                </option>
+              ))}
+            </UniSelect>
+            {universityFeedback.message && (
+              <FeedbackText $error={universityFeedback.error}>
+                {universityFeedback.message}
+              </FeedbackText>
+            )}
+            <UsosBanner
+              type="button"
+              onClick={handleUsosImport}
+              disabled={!selectedUniversity}
+            >
+              <UsosBannerIcon>
+                <img
+                  src="/icons/usos2.png"
+                  alt="USOS"
+                  style={{ width: 28, height: 28, borderRadius: 6 }}
+                />
+              </UsosBannerIcon>
+              <UsosBannerText>
+                <UsosBannerTitle>Importuj plan z USOS</UsosBannerTitle>
+                <UsosBannerSub>
+                  Pobierz zajęcia z uczelni do kalendarza
+                </UsosBannerSub>
+              </UsosBannerText>
+              <UsosBannerArrow>›</UsosBannerArrow>
+            </UsosBanner>
           </CardBox>
         )}
 
@@ -1008,6 +1087,19 @@ const Profile = () => {
                 Usuń konto
               </DangerButton>
             </DangerCard>
+
+            <CardBox>
+              <SectionTitle>Kontakt z zespołem</SectionTitle>
+              <p style={{ margin: "0", fontSize: "0.95rem", lineHeight: "1.6" }}>
+                Zauważyłeś błąd lub masz sugestię? Napisz do nas na:{" "}
+                <a
+                  href="mailto:unionteamproject@gmail.com"
+                  style={{ color: "inherit", fontWeight: 600 }}
+                >
+                  unionteamproject@gmail.com
+                </a>
+              </p>
+            </CardBox>
           </>
         )}
 

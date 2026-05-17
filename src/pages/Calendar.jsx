@@ -436,29 +436,46 @@ const AddBtn = styled.button`
   }
 `;
 
-const UsosBtn = styled(AddBtn)`
-  background: ${({ theme }) => theme.colors.white};
-  color: ${({ theme }) => theme.colors.text};
-  border: 1px solid ${({ theme }) => theme.colors.borderMuted};
-  padding: 9px 15px;
-  font-size: 14px;
-  font-weight: 600;
+const UsosBtn = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: ${({ theme }) => theme.colors.darkPageBg};
+  border: 1.5px solid ${({ theme }) => theme.colors.primary};
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+
   @media (max-width: 768px) {
-    background: unset;
-    border: none;
-    padding: 0px;
-    > img {
-      width: 25px !important;
-      height: 25px !important;
-    }
+    padding: 6px 10px;
+    gap: 6px;
   }
 `;
 
-const UsosLabel = styled.span`
+const UsosBtnTexts = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
   @media (max-width: 768px) {
     display: none;
   }
 `;
+
+const UsosBtnTitle = styled.div`
+  font-size: 13px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.veryDarkPrimary};
+  line-height: 1;
+`;
+
+const UsosBtnSub = styled.div`
+  font-size: 10px;
+  color: ${({ theme }) => theme.colors.takiSmiesznyZielony};
+  line-height: 1;
+`;
+
 
 // SIDEBAR
 const DetailSidebar = styled.div`
@@ -1422,7 +1439,9 @@ const Calendar = () => {
   const [scopeAction, setScopeAction] = useState(null); // { type: "edit"|"delete", event, occurrenceDate }
   const [pendingSave, setPendingSave] = useState(null); // { startISO, endISO } - saved form data waiting for scope choice
   const [confirmDelete, setConfirmDelete] = useState(null); // { event, occurrenceDate, scope? }
-  const [confirmUsosImport, setConfirmUsosImport] = useState(false);
+  const [confirmUsosImport, setConfirmUsosImport] = useState(
+    () => location.state?.openUsosImport === true
+  );
   const [addingRegularTag, setAddingRegularTag] = useState(null); // eventId for which we're adding a tag
   const [newRegularTag, setNewRegularTag] = useState("");
   const [filterTags, setFilterTags] = useState([]);
@@ -3117,9 +3136,12 @@ const Calendar = () => {
               <img
                 src="/icons/usos2.png"
                 alt="USOS"
-                style={{ width: 20, height: 20, borderRadius: 4 }}
+                style={{ width: 22, height: 22, borderRadius: 5 }}
               />
-              <UsosLabel>Importuj z USOS</UsosLabel>
+              <UsosBtnTexts>
+                <UsosBtnTitle>Importuj z USOS</UsosBtnTitle>
+                <UsosBtnSub>Pobierz zajęcia do kalendarza</UsosBtnSub>
+              </UsosBtnTexts>
             </UsosBtn>
             <div
               style={{
