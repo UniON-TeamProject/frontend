@@ -479,8 +479,14 @@ const DeadlineBell = styled.div`
     )}%, rgb(234, 179, 8))`};
   pointer-events: none;
   @media (max-width: 768px) {
-    top: 3px;
-    right: 4px;
+    top: 5px;
+    right: 2px;
+  }
+  > svg {
+    @media (max-width: 768px) {
+      width: 11px !important;
+      height: 11px !important;
+    }
   }
 `;
 

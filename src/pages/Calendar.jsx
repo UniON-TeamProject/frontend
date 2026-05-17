@@ -478,7 +478,6 @@ const UsosBtnSub = styled.div`
   line-height: 1;
 `;
 
-
 // SIDEBAR
 const DetailSidebar = styled.div`
   width: ${({ $open }) => ($open ? "350px" : "0")};
@@ -525,11 +524,11 @@ const SidebarInner = styled.div`
 `;
 
 const SidebarStickyTop = styled.div`
+  margin-bottom: 16px;
   @media (max-width: 768px) {
     position: sticky;
     top: 0;
     z-index: 2;
-    background: ${({ theme }) => theme.colors.white};
     padding: 16px 16px 10px;
     margin-bottom: 8px;
     border-bottom: 1px solid ${({ theme }) => theme.colors.borderMuted};
@@ -539,17 +538,6 @@ const SidebarStickyTop = styled.div`
   }
 `;
 
-const SidebarHeader = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-`;
-
-const SidebarTitle = styled.div`
-  font-size: 13px;
-  font-weight: 600;
-  color: ${({ theme }) => theme.colors.text};
-`;
 
 const CloseBtn = styled.button`
   width: 24px;
@@ -565,6 +553,9 @@ const CloseBtn = styled.button`
   border-radius: 4px;
   &:hover {
     background: ${({ theme }) => theme.colors.primary};
+  }
+  @media (max-width: 768px) {
+    display: none;
   }
 `;
 
@@ -744,8 +735,6 @@ const MobileDetailPanel = styled.div`
   @media (max-width: 768px) {
     display: block;
     width: 100%;
-    border-top: 1px solid ${({ theme }) => theme.colors.darkGrey};
-    background: ${({ theme }) => theme.colors.white};
     padding-bottom: 16px;
   }
 `;
@@ -1099,18 +1088,23 @@ const DeleteBtn = styled.button`
 `;
 
 const SidebarEditBtn = styled.button`
-  padding: 4px 10px;
-  border-radius: 6px;
-  border: 1px solid ${({ theme }) => theme.colors.darkGrey};
+  padding: 4px;
+  border-radius: 4px;
+  border: none;
   background: transparent;
   color: ${({ theme }) => theme.colors.textMuted};
-  font-size: 11px;
-  font-family: inherit;
   cursor: pointer;
-  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+  transition: opacity 0.15s, color 0.15s, background 0.15s;
+  flex-shrink: 0;
+  margin-left: 6px;
   &:hover {
-    background: ${({ theme }) => theme.colors.primary};
+    opacity: 1;
     color: ${({ theme }) => theme.colors.text};
+    background: ${({ theme }) => theme.colors.text}18;
   }
 `;
 
@@ -1921,13 +1915,12 @@ const Calendar = () => {
     return (
       <SidebarInner>
         <SidebarStickyTop>
-          <SidebarHeader>
-            <SidebarTitle>Szczegóły</SidebarTitle>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <SidebarDateLabel>
+              {date.getDate()} {MONTHS_PL[date.getMonth()]}
+            </SidebarDateLabel>
             <CloseBtn onClick={() => setSidebar(null)}>×</CloseBtn>
-          </SidebarHeader>
-          <SidebarDateLabel>
-            {date.getDate()} {MONTHS_PL[date.getMonth()]}
-          </SidebarDateLabel>
+          </div>
           <div
             style={{
               fontSize: 11,
@@ -1954,7 +1947,14 @@ const Calendar = () => {
                   {ev.title}
                 </SidebarEventName>
                 <SidebarEditBtn onClick={() => openEditPopup(ev, date)}>
-                  Edytuj
+                  <svg
+                    fill="currentColor"
+                    width="13"
+                    height="13"
+                    viewBox="0 0 16 16"
+                  >
+                    <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325" />
+                  </svg>
                 </SidebarEditBtn>
               </SidebarCardHeader>
               <SidebarEventMeta $dark={style.dark}>
