@@ -127,6 +127,15 @@ const SeeAnswerHint = styled.div`
 const CardBack = styled(CardFace)`
   transform: rotateY(180deg);
   background: ${({ theme }) => theme.colors.white};
+  overflow-y: auto;
+  touch-action: pan-y;
+  justify-content: flex-start;
+
+  .content {
+    -webkit-line-clamp: unset;
+    overflow: visible;
+    display: block;
+  }
 
   &::after {
     content: "";

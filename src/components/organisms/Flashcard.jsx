@@ -7,6 +7,14 @@ const CardWrapper = styled.div`
   height: 350px;
   position: relative;
   margin: 10px;
+  z-index: ${({ $menuOpen }) => ($menuOpen ? 10 : 0)};
+
+  @media (max-width: 768px) {
+    width: 100%;
+    height: auto;
+    min-height: 120px;
+    margin: 0 auto;
+  }
 `;
 
 const CardInner = styled.div`
@@ -17,6 +25,12 @@ const CardInner = styled.div`
   transition: transform 0.6s ease;
   transform: ${(props) => (props.$isFlipped ? "rotateY(180deg)" : "none")};
   cursor: pointer;
+
+  @media (max-width: 768px) {
+    transform-style: flat;
+    transform: none;
+    transition: none;
+  }
 `;
 
 const CardFace = styled.div`
@@ -31,10 +45,22 @@ const CardFace = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+
+  @media (max-width: 768px) {
+    position: relative;
+    height: auto;
+    min-height: 120px;
+    backface-visibility: visible;
+    display: ${({ $hiddenOnMobile }) => ($hiddenOnMobile ? "none" : "flex")};
+  }
 `;
 
 const CardBack = styled(CardFace)`
   transform: rotateY(180deg);
+
+  @media (max-width: 768px) {
+    transform: none;
+  }
 `;
 
 const CardContent = styled.div`
@@ -321,7 +347,7 @@ export default function Flashcard({
   }, [isMenuOpen]);
 
   return (
-    <CardWrapper>
+    <CardWrapper $menuOpen={isMenuOpen}>
       <CardInner
         $isFlipped={isFlipped}
         onClick={() =>
@@ -350,7 +376,7 @@ export default function Flashcard({
           </SelectCircle>
         )}
 
-        <CardFace>
+        <CardFace $hiddenOnMobile={isFlipped}>
           <CardContent>
             <div
               className="inner-content"
@@ -358,7 +384,7 @@ export default function Flashcard({
             />
           </CardContent>
         </CardFace>
-        <CardBack>
+        <CardBack $hiddenOnMobile={!isFlipped}>
           <CardContent>
             <div
               className="inner-content"
