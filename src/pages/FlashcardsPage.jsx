@@ -218,6 +218,18 @@ const StyledName = styled.h2`
   }
 `;
 
+const SetNameHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    margin-bottom: 14px;
+  }
+`;
+
 const BackButton = styled.div`
   cursor: pointer;
   display: flex;
@@ -251,7 +263,7 @@ const ContentContainer = styled.div`
   justify-content: center;
 
   @media (max-width: 768px) {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: 1fr;
     gap: 10px;
     padding: 10px 0 100px 0;
   }
@@ -274,9 +286,19 @@ const StartLearningButton = styled.button`
     opacity: 0.8;
   }
 
+  @media (max-width: 1200px) {
+    padding: 8px 15px;
+    font-size: 0.9rem;
+  }
+
   @media (max-width: 768px) {
-    padding: 8px 16px;
+    padding: 8px 10px;
     font-size: 0.8rem;
+  }
+  > svg {
+    @media (max-width: 768px) {
+      margin-left: 4px !important;
+    }
   }
 `;
 
@@ -405,18 +427,6 @@ const StyledItemOptions = styled.div`
     ($flipLeft
       ? "right:100%; margin-right:10px;"
       : "left:100%; margin-left:10px;")}
-
-  @media (max-width: 768px) {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    right: auto;
-    bottom: auto;
-    margin: 0;
-    width: calc(100vw - 80px);
-    max-width: 300px;
-  }
 
   max-height: 350px;
   overflow-y: auto;
@@ -763,6 +773,11 @@ const CardInputRow = styled.div`
   gap: 30px;
   width: 100%;
   justify-content: center;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 16px;
+  }
 `;
 
 const CardInputSide = styled.div`
@@ -956,6 +971,29 @@ const SetHeaderControls = styled.div`
   align-items: center;
   margin-bottom: 30px;
   gap: 20px;
+
+  @media (max-width: 1125px) {
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+
+    & > div:first-child {
+      order: 2;
+      justify-content: center;
+      width: 100%;
+    }
+    & > div:last-child {
+      order: 1;
+    }
+  }
+
+  @media (max-width: 768px) {
+    & > div:last-child {
+      margin-left: 0;
+      justify-content: center;
+      width: 100%;
+    }
+  }
 `;
 
 const ActionBanner = styled.div`
@@ -972,6 +1010,20 @@ const ActionBanner = styled.div`
   &:hover {
     background-color: ${({ theme }) => theme.colors.darkGrey};
     color: ${({ theme }) => theme.colors.white};
+  }
+
+  @media (max-width: 1200px) {
+    padding: 8px 15px;
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 768px) {
+    padding: 8px 10px;
+    font-size: 0.8rem;
+
+    .hide-mobile {
+      display: none;
+    }
   }
 `;
 
@@ -1078,6 +1130,12 @@ const ModalButton = styled.button`
     opacity: 0.9;
     transform: translateY(-2px);
   }
+
+  @media (max-width: 768px) {
+    padding: 7px 10px;
+    font-size: 0.8rem;
+    border-radius: 8px;
+  }
 `;
 
 const SelectionBar = styled.div`
@@ -1087,18 +1145,55 @@ const SelectionBar = styled.div`
   transform: translateX(-50%);
   background-color: ${({ theme }) => theme.colors.white};
   color: ${({ theme }) => theme.colors.takiSmiesznyZielony};
-  padding: 15px 30px;
+  padding: 14px 24px;
   border-radius: 20px;
   display: flex;
-  align-items: center;
-  gap: 20px;
+  flex-direction: column;
+  gap: 0;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   z-index: 1000;
+  min-width: 350px;
+
+  @media (max-width: 768px) {
+    bottom: 80px;
+    padding: 10px 14px;
+    border-radius: 14px;
+    width: calc(100vw - 32px);
+  }
+`;
+
+const SelectionBarTop = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+`;
+
+const SelectionBarActions = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid ${({ theme }) => theme.colors.borderLight};
+  flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    gap: 6px;
+    white-space: nowrap;
+    flex-wrap: nowrap;
+  }
 `;
 
 const SelectionBarCount = styled.span`
   font-weight: 600;
-  font-size: 1.1rem;
+  font-size: 1rem;
+  color: ${({ theme }) => theme.colors.text};
+
+  @media (max-width: 768px) {
+    font-size: 0.85rem;
+  }
 `;
 
 const ModalButtonPrimary = styled(ModalButton)`
@@ -1110,6 +1205,10 @@ const ModalButtonGhost = styled(ModalButton)`
   background: transparent;
   color: ${({ theme }) => theme.colors.darkGrey};
   padding: 12px 10px;
+
+  @media (max-width: 768px) {
+    padding: 7px 6px;
+  }
 `;
 
 const ToolbarActions = styled.div`
@@ -1824,10 +1923,15 @@ const FlashcardsPage = () => {
     } else if (cardSortOption === "newest") {
       sorted.sort((a, b) => b.id - a.id);
     } else if (cardSortOption === "alphabetical") {
+      const stripHtml = (html) =>
+        html
+          .replace(/<[^>]*>/g, "")
+          .trim()
+          .toLowerCase();
       sorted.sort((a, b) => {
-        const textA = (a.contentFirstSide || a.question || "").toLowerCase();
-        const textB = (b.contentFirstSide || b.question || "").toLowerCase();
-        return textA.localeCompare(textB);
+        const textA = stripHtml(a.contentFirstSide || a.question || "");
+        const textB = stripHtml(b.contentFirstSide || b.question || "");
+        return textA.localeCompare(textB, "pl");
       });
     }
     return sorted;
@@ -2730,15 +2834,7 @@ const FlashcardsPage = () => {
         {/* NAGŁÓWEK WIDOKU ZESTAWU */}
         {activeSetId && (
           <>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "20px",
-                marginBottom: "30px",
-                flexWrap: "wrap",
-              }}
-            >
+            <SetNameHeader>
               <StyledName style={{ fontSize: "2rem", margin: 0 }}>
                 {currentSet?.name}
               </StyledName>
@@ -2752,73 +2848,153 @@ const FlashcardsPage = () => {
                     ))}
                   </TagsContainer>
                 )}
-            </div>
+            </SetNameHeader>
 
             {!isAddingMode && !isAddByTagMode && !isTrashView && (
               <SetHeaderControls>
-                <ActionBanner
-                  onClick={() => navigate(`/learning/fast/${currentSet?.id}`)}
-                >
-                  Wznów ostatnią sesję (szybka nauka)
-                </ActionBanner>
-
-                <div
-                  style={{
-                    position: "relative",
-                    display: "flex",
-                    alignItems: "center",
-                  }}
-                >
-                  <StartLearningButton
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsLearningMenuOpen(!isLearningMenuOpen);
+                {isSelectMode && sortedCards.length > 0 && (
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "16px",
+                      alignItems: "center",
                     }}
                   >
-                    Rozpocznij naukę
-                    <svg
-                      style={{ marginLeft: "8px" }}
-                      width="12"
-                      height="12"
-                      fill="currentColor"
-                      viewBox="0 0 16 16"
-                    >
-                      <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
-                    </svg>
-                  </StartLearningButton>
-
-                  <HelpIcon
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsLearningInfoModalOpen(true);
-                    }}
-                    title="Jak działają tryby nauki?"
-                  >
-                    ?
-                  </HelpIcon>
-
-                  {isLearningMenuOpen && (
-                    <StyledItemOptions
+                    <button
+                      onClick={() => setSelectedCards(sortedCards)}
                       style={{
-                        top: "calc(100% + 5px)",
-                        left: "auto",
-                        right: "0",
-                        transform: "none",
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        color: theme.colors.secondary,
+                        fontSize: "0.9rem",
+                        fontWeight: "600",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        padding: "4px 8px",
+                        borderRadius: "4px",
+                        transition: "all 0.2s",
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.backgroundColor = `${theme.colors.secondary}15`)
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.backgroundColor = "transparent")
+                      }
+                    >
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 16 16"
+                        fill="currentColor"
+                      >
+                        <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z" />
+                        <path d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425z" />
+                      </svg>
+                      Zaznacz wszystko
+                    </button>
+                    <button
+                      onClick={() => setSelectedCards([])}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        color: theme.colors.textLight,
+                        fontSize: "0.9rem",
+                        fontWeight: "600",
+                        padding: "4px 8px",
+                        borderRadius: "4px",
+                        transition: "all 0.2s",
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.color = theme.colors.text)
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.color = theme.colors.textLight)
+                      }
+                    >
+                      Wyczyść
+                    </button>
+                  </div>
+                )}
+
+                {!isSelectMode && (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "20px",
+                      flexWrap: "nowrap",
+                    }}
+                  >
+                    <ActionBanner
+                      onClick={() =>
+                        navigate(`/learning/fast/${currentSet?.id}`)
+                      }
+                    >
+                      Wznów ostatnią sesję
+                      <span className="hide-mobile"> (szybka nauka)</span>
+                    </ActionBanner>
+
+                    <div
+                      style={{
+                        position: "relative",
+                        display: "flex",
+                        alignItems: "center",
                       }}
                     >
-                      <StyledItemOption
-                        onClick={() => handleModeSelection("fast")}
+                      <StartLearningButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsLearningMenuOpen(!isLearningMenuOpen);
+                        }}
                       >
-                        Szybka nauka
-                      </StyledItemOption>
-                      <StyledItemOption
-                        onClick={() => handleModeSelection("fsrs")}
+                        Rozpocznij naukę
+                        <svg
+                          style={{ marginLeft: "8px" }}
+                          width="12"
+                          height="12"
+                          fill="currentColor"
+                          viewBox="0 0 16 16"
+                        >
+                          <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
+                        </svg>
+                      </StartLearningButton>
+
+                      <HelpIcon
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsLearningInfoModalOpen(true);
+                        }}
+                        title="Jak działają tryby nauki?"
                       >
-                        Trwała nauka
-                      </StyledItemOption>
-                    </StyledItemOptions>
-                  )}
-                </div>
+                        ?
+                      </HelpIcon>
+
+                      {isLearningMenuOpen && (
+                        <StyledItemOptions
+                          style={{
+                            top: "calc(100% + 5px)",
+                            left: "auto",
+                            right: "0",
+                          }}
+                        >
+                          <StyledItemOption
+                            onClick={() => handleModeSelection("fast")}
+                          >
+                            Szybka nauka
+                          </StyledItemOption>
+                          <StyledItemOption
+                            onClick={() => handleModeSelection("fsrs")}
+                          >
+                            Trwała nauka
+                          </StyledItemOption>
+                        </StyledItemOptions>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 <div
                   style={{
@@ -2871,75 +3047,6 @@ const FlashcardsPage = () => {
                         {isSelectMode ? "Zamknij wybór" : "Zaznacz fiszki"}
                       </ToolbarButton>
                     )}
-
-                  {/* PRZYCISKI "ZAZNACZ WSZYSTKO" ORAZ "WYCZYŚĆ" */}
-                  {isSelectMode && sortedCards.length > 0 && (
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: "16px",
-                        alignItems: "center",
-                      }}
-                    >
-                      <button
-                        onClick={() => setSelectedCards(sortedCards)}
-                        style={{
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          color: theme.colors.secondary,
-                          fontSize: "0.9rem",
-                          fontWeight: "600",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "6px",
-                          padding: "4px 8px",
-                          borderRadius: "4px",
-                          transition: "all 0.2s",
-                        }}
-                        onMouseEnter={(e) =>
-                          (e.currentTarget.style.backgroundColor = `${theme.colors.secondary}15`)
-                        }
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.backgroundColor =
-                            "transparent")
-                        }
-                      >
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 16 16"
-                          fill="currentColor"
-                        >
-                          <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z" />
-                          <path d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425z" />
-                        </svg>
-                        Zaznacz wszystko
-                      </button>
-                      <button
-                        onClick={() => setSelectedCards([])}
-                        style={{
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          color: theme.colors.textLight,
-                          fontSize: "0.9rem",
-                          fontWeight: "600",
-                          padding: "4px 8px",
-                          borderRadius: "4px",
-                          transition: "all 0.2s",
-                        }}
-                        onMouseEnter={(e) =>
-                          (e.currentTarget.style.color = theme.colors.text)
-                        }
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.color = theme.colors.textLight)
-                        }
-                      >
-                        Wyczyść
-                      </button>
-                    </div>
-                  )}
 
                   {currentSet?.cards && currentSet.cards.length > 0 && (
                     <SortSelectContainer>
@@ -4091,29 +4198,33 @@ const FlashcardsPage = () => {
         {/* PŁYWAJĄCY PASEK ZAZNACZENIA */}
         {isSelectMode && selectedCards.length > 0 && (
           <SelectionBar>
-            <SelectionBarCount>
-              Zaznaczono: {selectedCards.length}
-            </SelectionBarCount>
-            <ModalButton onClick={() => setIsBulkTagsModalOpen(true)}>
-              Dodaj tagi
-            </ModalButton>
-            <ModalButtonPrimary onClick={() => setIsBulkMoveModalOpen(true)}>
-              Przenieś do..
-            </ModalButtonPrimary>
-            <ModalButtonPrimary onClick={() => setIsBulkCopyModalOpen(true)}>
-              Kopiuj do..
-            </ModalButtonPrimary>
-            <ModalButton $danger onClick={handleBulkDeleteClick}>
-              Usuń
-            </ModalButton>
-            <ModalButtonGhost
-              onClick={() => {
-                setIsSelectMode(false);
-                setSelectedCards([]);
-              }}
-            >
-              Anuluj
-            </ModalButtonGhost>
+            <SelectionBarTop>
+              <SelectionBarCount>
+                Zaznaczono: {selectedCards.length}
+              </SelectionBarCount>
+              <ModalButtonGhost
+                onClick={() => {
+                  setIsSelectMode(false);
+                  setSelectedCards([]);
+                }}
+              >
+                Anuluj
+              </ModalButtonGhost>
+            </SelectionBarTop>
+            <SelectionBarActions>
+              <ModalButton onClick={() => setIsBulkTagsModalOpen(true)}>
+                Dodaj tagi
+              </ModalButton>
+              <ModalButtonPrimary onClick={() => setIsBulkMoveModalOpen(true)}>
+                Przenieś do..
+              </ModalButtonPrimary>
+              <ModalButtonPrimary onClick={() => setIsBulkCopyModalOpen(true)}>
+                Kopiuj do..
+              </ModalButtonPrimary>
+              <ModalButton $danger onClick={handleBulkDeleteClick}>
+                Usuń
+              </ModalButton>
+            </SelectionBarActions>
           </SelectionBar>
         )}
 
@@ -4583,7 +4694,7 @@ const FlashcardsPage = () => {
             <ModalOverlay onClick={() => setIsLearningInfoModalOpen(false)} />
             <StyledPopup
               onClick={(e) => e.stopPropagation()}
-              style={{ textAlign: "center", width: "650px" }}
+              style={{ textAlign: "center", maxWidth: "650px" }}
             >
               <Text
                 bold="true"

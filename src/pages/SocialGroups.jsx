@@ -264,16 +264,29 @@ const FloatingActionButton = styled.button`
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
   z-index: 100;
-  
+
   &:hover {
     transform: scale(1.05);
     box-shadow: 0 6px 25px rgba(0,0,0,0.15);
   }
-  
+
+  @media (max-width: 768px) {
+    bottom: 80px;
+    right: 16px;
+    width: 54px;
+    height: 54px;
+    border-radius: 16px;
+  }
+
   svg {
     width: 32px;
     height: 32px;
     color: ${({ theme }) => theme.colors?.secondary};
+
+    @media (max-width: 768px) {
+      width: 24px;
+      height: 24px;
+    }
   }
 `;
 
@@ -682,9 +695,8 @@ return (
         )}
 
         <FloatingActionButton onClick={handleOpenAddModal} title="Utwórz nową grupę">
-          <svg viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
+          <svg fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4" />
           </svg>
         </FloatingActionButton>
 

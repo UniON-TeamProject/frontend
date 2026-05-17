@@ -66,20 +66,25 @@ const VerificationStep = ({ email, setStep, setSuccessPopupActive, setSuccessPop
             <Text text={`Na adres ${email} został wysłany kod weryfikacyjny`} />
             {errorMessage && <Text color="danger" text={errorMessage} />}
             <Text text="Wpisz kod weryfikacyjny:" />
-            <VerificationInput
-                autoFocus
-                validChars="0-9"
-                inputProps={{ inputMode: "numeric" }}
-                classNames={{
-                    container: "container",
-                    character: verificationCodeError ? "character error" : "character",
-                    characterSelected: "character--selected",
-                }}
-                onChange={(e) => {
-                    setVerificationCode(e);
-                    setVerificationCodeError(false);
-                }}
-            />
+            <div onKeyDown={(e) => {
+                if (e.key === "Enter" && verificationCode.length === 6)
+                    handleVerifyVerificationCode();
+            }}>
+                <VerificationInput
+                    autoFocus
+                    validChars="0-9"
+                    inputProps={{ inputMode: "numeric" }}
+                    classNames={{
+                        container: "container",
+                        character: verificationCodeError ? "character error" : "character",
+                        characterSelected: "character--selected",
+                    }}
+                    onChange={(e) => {
+                        setVerificationCode(e);
+                        setVerificationCodeError(false);
+                    }}
+                />
+            </div>
             <SubmitButton text="Kontynuuj" color="dark" onClick={() => {
                 if (verificationCode.length == 6)
                     handleVerifyVerificationCode();

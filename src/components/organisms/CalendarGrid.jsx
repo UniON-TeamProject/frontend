@@ -11,7 +11,7 @@ const TAG_CONFIG = {
   Korepetycje: { label: "Korepetycje", icon: "👨‍🏫" },
   Praca: { label: "Praca", icon: "💼" },
   Piwo: { label: "Piwo", icon: "🍺" },
-  USOS: { label: "USOS", icon: "🎓" },
+  USOS: { label: "USOS", icon: <img src="/icons/usos2.png" alt="USOS" style={{ width: "1em", height: "1em", verticalAlign: "middle", display: "inline", borderRadius: "3px" }} /> },
   deadline: { label: "Deadline", icon: "⏰" },
 };
 
@@ -74,6 +74,12 @@ function getMonthDays(year, month) {
     if (days.length > 42) break;
   }
   return days;
+}
+
+const HIGH_PRIORITY_TAGS = ["Egzamin", "Kolos"];
+
+function getTagPriority(ev) {
+  return (ev.tags || ev.eventTags || []).some((t) => HIGH_PRIORITY_TAGS.includes(t)) ? 0 : 1;
 }
 
 function resolveEventConflicts(events) {
@@ -259,6 +265,9 @@ function getEventsForDay(events, day) {
     .filter((ev) => eventOccursOnDay(ev, day))
     .sort((a, b) => {
       if (a.allDay !== b.allDay) return a.allDay ? -1 : 1;
+      const aPrio = getTagPriority(a);
+      const bPrio = getTagPriority(b);
+      if (aPrio !== bPrio) return aPrio - bPrio;
       const aMin = (a.startHour || 0) * 60 + (a.startMin || 0);
       const bMin = (b.startHour || 0) * 60 + (b.startMin || 0);
       return aMin - bMin;
@@ -770,6 +779,8 @@ const EventTags = styled.div`
   gap: 3px;
   align-self: flex-end;
   margin-top: auto;
+  overflow: hidden;
+  flex-wrap: nowrap;
 `;
 
 const EventTagIcon = styled.span`
@@ -1058,7 +1069,7 @@ const CalendarGrid = ({
                       <EventTitle $dark={style.dark} $lines={isMobile ? Math.max(1, Math.floor((height - 4) / 13)) : undefined}>{ev.title}</EventTitle>
                       {height > 30 && (
                         <EventTags>
-                          {ev.tags.map((t) => (
+                          {ev.tags.slice(0, Math.max(1, Math.floor((height - 20) / (isMobile ? 14 : 21)))).map((t) => (
                             <EventTagIcon key={t}>
                               {TAG_CONFIG[t]?.icon}
                             </EventTagIcon>
@@ -1377,7 +1388,9 @@ function mapBackendEvent(ev) {
     endHour: end.getHours(),
     endMin: end.getMinutes(),
     tags: ev.eventTags
-      ? [...ev.eventTags].filter((t) => TAG_CONFIG[t] && t !== "deadline")
+      ? [...ev.eventTags]
+          .filter((t) => TAG_CONFIG[t] && t !== "deadline")
+          .sort((a, b) => getTagPriority({ tags: [a] }) - getTagPriority({ tags: [b] }))
       : [],
     customTags: ev.eventTags
       ? [...ev.eventTags].filter((t) => !TAG_CONFIG[t] && t !== "deadline")

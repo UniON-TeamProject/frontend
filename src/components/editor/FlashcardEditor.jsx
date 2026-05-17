@@ -28,7 +28,7 @@ const EditorWrapper = styled.div`
   .ProseMirror {
     min-height: 50px;
     outline: none;
-    font-size: 0.9rem;
+    font-size: 16px;
     line-height: 1.4;
     color: ${({ theme }) => theme.colors.text};
   }
