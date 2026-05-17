@@ -451,6 +451,8 @@ const UsosBtn = styled.button`
   @media (max-width: 768px) {
     padding: 6px 10px;
     gap: 6px;
+    border: none;
+    background: transparent;
   }
 `;
 

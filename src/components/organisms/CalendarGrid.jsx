@@ -11,22 +11,92 @@ const TAG_CONFIG = {
   Korepetycje: { label: "Korepetycje", icon: "👨‍🏫" },
   Praca: { label: "Praca", icon: "💼" },
   Piwo: { label: "Piwo", icon: "🍺" },
-  USOS: { label: "USOS", icon: <img src="/icons/usos2.png" alt="USOS" style={{ width: "1em", height: "1em", verticalAlign: "middle", display: "inline", borderRadius: "3px" }} /> },
+  USOS: {
+    label: "USOS",
+    icon: (
+      <img
+        src="/icons/usos2.png"
+        alt="USOS"
+        style={{
+          width: "1em",
+          height: "1em",
+          verticalAlign: "middle",
+          display: "inline",
+          borderRadius: "3px",
+        }}
+      />
+    ),
+  },
   deadline: { label: "Deadline", icon: "⏰" },
 };
 
 const EVENT_COLORS = [
-  { id: "blue", bg: "rgb(232, 244, 253)", dark: "rgb(24, 95, 165)" },
-  { id: "green", bg: "rgb(234, 243, 222)", dark: "rgb(59, 109, 17)" },
-  { id: "purple", bg: "rgb(238, 237, 254)", dark: "rgb(60, 52, 137)" },
-  { id: "amber", bg: "rgb(250, 238, 218)", dark: "rgb(186, 117, 23)" },
-  { id: "red", bg: "rgb(252, 235, 235)", dark: "rgb(226, 75, 74)" },
-  { id: "teal", bg: "rgb(225, 245, 244)", dark: "rgb(17, 105, 100)" },
-  { id: "orange", bg: "rgb(255, 243, 224)", dark: "rgb(180, 95, 6)" },
-  { id: "pink", bg: "rgb(252, 231, 243)", dark: "rgb(162, 28, 100)" },
-  { id: "lime", bg: "rgb(240, 249, 220)", dark: "rgb(77, 124, 15)" },
-  { id: "slate", bg: "rgb(237, 241, 245)", dark: "rgb(55, 75, 90)" },
-  { id: "rose", bg: "rgb(255, 236, 236)", dark: "rgb(180, 40, 40)" },
+  {
+    id: "blue",
+    bg: "rgb(232, 244, 253)",
+    mid: "rgb(128, 170, 209)",
+    dark: "rgb(24, 95, 165)",
+  },
+  {
+    id: "green",
+    bg: "rgb(234, 243, 222)",
+    mid: "rgb(147, 176, 120)",
+    dark: "rgb(59, 109, 17)",
+  },
+  {
+    id: "purple",
+    bg: "rgb(238, 237, 254)",
+    mid: "rgb(149, 145, 196)",
+    dark: "rgb(60, 52, 137)",
+  },
+  {
+    id: "amber",
+    bg: "rgb(250, 238, 218)",
+    mid: "rgb(218, 178, 121)",
+    dark: "rgb(186, 117, 23)",
+  },
+  {
+    id: "red",
+    bg: "rgb(252, 235, 235)",
+    mid: "rgb(239, 155, 155)",
+    dark: "rgb(226, 75, 74)",
+  },
+  {
+    id: "teal",
+    bg: "rgb(225, 245, 244)",
+    mid: "rgb(121, 175, 172)",
+    dark: "rgb(17, 105, 100)",
+  },
+  {
+    id: "orange",
+    bg: "rgb(255, 243, 224)",
+    mid: "rgb(218, 169, 115)",
+    dark: "rgb(180, 95, 6)",
+  },
+  {
+    id: "pink",
+    bg: "rgb(252, 231, 243)",
+    mid: "rgb(207, 130, 172)",
+    dark: "rgb(162, 28, 100)",
+  },
+  {
+    id: "lime",
+    bg: "rgb(240, 249, 220)",
+    mid: "rgb(159, 187, 118)",
+    dark: "rgb(77, 124, 15)",
+  },
+  {
+    id: "slate",
+    bg: "rgb(237, 241, 245)",
+    mid: "rgb(146, 158, 168)",
+    dark: "rgb(55, 75, 90)",
+  },
+  {
+    id: "rose",
+    bg: "rgb(255, 236, 236)",
+    mid: "rgb(218, 138, 138)",
+    dark: "rgb(180, 40, 40)",
+  },
 ];
 
 const DAYS_PL = ["Nd", "Pon", "Wt", "Śr", "Czw", "Pt", "Sob"];
@@ -79,7 +149,11 @@ function getMonthDays(year, month) {
 const HIGH_PRIORITY_TAGS = ["Egzamin", "Kolos"];
 
 function getTagPriority(ev) {
-  return (ev.tags || ev.eventTags || []).some((t) => HIGH_PRIORITY_TAGS.includes(t)) ? 0 : 1;
+  return (ev.tags || ev.eventTags || []).some((t) =>
+    HIGH_PRIORITY_TAGS.includes(t)
+  )
+    ? 0
+    : 1;
 }
 
 function resolveEventConflicts(events) {
@@ -302,10 +376,12 @@ function getDeadlineUrgency(events, day) {
 }
 
 function getEventStyle(ev, theme) {
-  if (ev.isDeadline)
-    return { bg: theme.colors.dangerLight, dark: theme.colors.danger };
   const color = getColorById(ev.colorId);
-  return { bg: color.bg, dark: color.dark };
+  return {
+    bg: color.bg,
+    mid: color.mid,
+    dark: ev.isDeadline ? theme.colors.danger : color.dark,
+  };
 }
 
 const fadeIn = keyframes`from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}`;
@@ -393,15 +469,19 @@ const CellDate = styled.div`
   }
 `;
 
-const DeadlineDot = styled.div`
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: ${({ $urgency, theme }) =>
+const DeadlineBell = styled.div`
+  position: absolute;
+  top: 10px;
+  right: 7px;
+  color: ${({ $urgency, theme }) =>
     `color-mix(in srgb, ${theme.colors.danger} ${Math.round(
-      25 + $urgency * 75
-    )}%, transparent)`};
-  flex-shrink: 0;
+      $urgency * 100
+    )}%, rgb(234, 179, 8))`};
+  pointer-events: none;
+  @media (max-width: 768px) {
+    top: 3px;
+    right: 4px;
+  }
 `;
 
 const CellEvents = styled.div`
@@ -412,7 +492,12 @@ const CellEvents = styled.div`
   min-height: 0;
   overflow: hidden;
   @media (max-width: 768px) {
-    gap: 2px;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 3px;
+    flex: unset;
+    align-self: flex-start;
   }
 `;
 
@@ -428,10 +513,16 @@ const CellEventBar = styled.div`
   flex-shrink: 0;
   pointer-events: none;
   @media (max-width: 768px) {
-    min-height: 6px;
-    height: 6px;
+    height: 7px;
+    min-height: 7px;
+    width: 7px;
+    min-width: 7px;
+    max-width: 7px;
     padding: 0;
-    margin-left: 4px;
+    margin-left: 0;
+    border-radius: 50%;
+    border-left: none;
+    background: ${({ $mid }) => $mid};
   }
 `;
 
@@ -1019,7 +1110,9 @@ const CalendarGrid = ({
                 {hours.map((h) => (
                   <HourLine key={h} />
                 ))}
-                {isToday && isCurrentWeek && <NowLine $top={nowPos * slotHeight / 60} />}
+                {isToday && isCurrentWeek && (
+                  <NowLine $top={(nowPos * slotHeight) / 60} />
+                )}
                 {dayEvs.map((ev) => {
                   const topMins = ev.startHour * 60 + ev.startMin;
                   const endMins = ev.endHour * 60 + ev.endMin;
@@ -1040,9 +1133,12 @@ const CalendarGrid = ({
 
                   const rawHeight = Math.max(24, clampedEnd - clampedStart);
 
-                  const maxTop = (widgetEnd - widgetStart) - rawHeight;
-                  const top = Math.min(clampedStart - widgetStart, maxTop) * slotHeight / 60;
-                  const height = rawHeight * slotHeight / 60;
+                  const maxTop = widgetEnd - widgetStart - rawHeight;
+                  const top =
+                    (Math.min(clampedStart - widgetStart, maxTop) *
+                      slotHeight) /
+                    60;
+                  const height = (rawHeight * slotHeight) / 60;
 
                   if (clampedEnd <= widgetStart || clampedStart >= widgetEnd)
                     return null;
@@ -1066,14 +1162,31 @@ const CalendarGrid = ({
                       $bg={style.bg}
                       $borderColor={style.dark}
                     >
-                      <EventTitle $dark={style.dark} $lines={isMobile ? Math.max(1, Math.floor((height - 4) / 13)) : undefined}>{ev.title}</EventTitle>
+                      <EventTitle
+                        $dark={style.dark}
+                        $lines={
+                          isMobile
+                            ? Math.max(1, Math.floor((height - 4) / 13))
+                            : undefined
+                        }
+                      >
+                        {ev.title}
+                      </EventTitle>
                       {height > 30 && (
                         <EventTags>
-                          {ev.tags.slice(0, Math.max(1, Math.floor((height - 20) / (isMobile ? 14 : 21)))).map((t) => (
-                            <EventTagIcon key={t}>
-                              {TAG_CONFIG[t]?.icon}
-                            </EventTagIcon>
-                          ))}
+                          {ev.tags
+                            .slice(
+                              0,
+                              Math.max(
+                                1,
+                                Math.floor((height - 20) / (isMobile ? 14 : 21))
+                              )
+                            )
+                            .map((t) => (
+                              <EventTagIcon key={t}>
+                                {TAG_CONFIG[t]?.icon}
+                              </EventTagIcon>
+                            ))}
                         </EventTags>
                       )}
                     </EventBlock>
@@ -1282,9 +1395,26 @@ const CalendarGrid = ({
                   >
                     <CellDate $today={isToday} $compact={compact}>
                       {day.getDate()}
-                      {urgency > 0 && <DeadlineDot $urgency={urgency} />}
                     </CellDate>
-                    {spanPadding > 0 && (
+                    {urgency > 0 && (
+                      <DeadlineBell $urgency={urgency}>
+                        <svg
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={urgency >= 0.79 ? 3 : 2}
+                          viewBox="0 0 24 24"
+                          width="15"
+                          height="15"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                          />
+                        </svg>
+                      </DeadlineBell>
+                    )}
+                    {!isMobile && spanPadding > 0 && (
                       <div
                         style={{
                           minHeight: 0,
@@ -1295,12 +1425,12 @@ const CalendarGrid = ({
                     )}
                     <CellEvents
                       style={
-                        hiddenCount > 0
+                        !isMobile && hiddenCount > 0
                           ? { marginBottom: 5 }
                           : undefined
                       }
                     >
-                      {visible.map((ev) => {
+                      {(isMobile ? dayEvs : visible).map((ev) => {
                         const style = getEventStyle(ev, theme);
                         const icons = (ev.tags || [])
                           .map((t) => TAG_CONFIG[t]?.icon)
@@ -1309,12 +1439,25 @@ const CalendarGrid = ({
                           <CellEventBar
                             key={ev.id}
                             $bg={style.bg}
+                            $mid={style.mid}
                             $dark={style.dark}
                             style={{
-                              minHeight: mobileDash ? "6px" : "28px",
-                              height: mobileDash ? "6px" : "auto",
+                              minHeight: isMobile
+                                ? undefined
+                                : mobileDash
+                                ? "6px"
+                                : "28px",
+                              height: isMobile
+                                ? undefined
+                                : mobileDash
+                                ? "6px"
+                                : "auto",
                               padding: mobileDash ? 0 : "1px 4px",
-                              marginBottom: mobileDash ? "2px" : 0,
+                              marginBottom: isMobile
+                                ? 0
+                                : mobileDash
+                                ? "2px"
+                                : 0,
                             }}
                           >
                             {!mobileDash && (
@@ -1339,7 +1482,7 @@ const CalendarGrid = ({
                           </CellEventBar>
                         );
                       })}
-                      {hiddenCount > 0 && (
+                      {!isMobile && hiddenCount > 0 && (
                         <HiddenCount $mobile={mobileDash}>
                           {mobileDash
                             ? `+${hiddenCount}`
@@ -1390,7 +1533,10 @@ function mapBackendEvent(ev) {
     tags: ev.eventTags
       ? [...ev.eventTags]
           .filter((t) => TAG_CONFIG[t] && t !== "deadline")
-          .sort((a, b) => getTagPriority({ tags: [a] }) - getTagPriority({ tags: [b] }))
+          .sort(
+            (a, b) =>
+              getTagPriority({ tags: [a] }) - getTagPriority({ tags: [b] })
+          )
       : [],
     customTags: ev.eventTags
       ? [...ev.eventTags].filter((t) => !TAG_CONFIG[t] && t !== "deadline")
