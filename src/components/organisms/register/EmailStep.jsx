@@ -124,7 +124,7 @@ const EmailStep = ({
           if (validateEmail()) handleVerifyEmail();
         }}
       />
-      <StyledLine>
+      {/* <StyledLine>
         <span>lub</span>
       </StyledLine>
       <StyledRedirectButton
@@ -138,7 +138,7 @@ const EmailStep = ({
         path="/"
         imgPath="./icons/apple.png"
         color="light"
-      />
+      /> */}
     </>
   );
 };

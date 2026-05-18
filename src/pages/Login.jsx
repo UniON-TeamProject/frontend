@@ -28,7 +28,7 @@ const StyledBox = styled.div`
   width: 600px;
   border-radius: 5px;
   background-color: ${({ theme }) => theme.colors.white};
-  padding: 30px 80px;
+  padding: 30px 80px 54px;
   margin-bottom: 15px;
   cursor: default;
   @media (max-width: 768px) {
@@ -214,7 +214,7 @@ const Login = () => {
               handleSubmit();
             }}
           />
-          <StyledLine>
+          {/* <StyledLine>
             <span>lub</span>
           </StyledLine>
           <StyledRedirectButton
@@ -228,7 +228,7 @@ const Login = () => {
             path="/"
             imgPath="./icons/apple.png"
             color="light"
-          />
+          /> */}
         </StyledBox>
         <StyledRegisterButton>
           <p>Nie masz konta?</p>
