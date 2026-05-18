@@ -38,6 +38,7 @@ import AIFlashcardModal from "../components/editor/AIFlashcardModal.jsx";
 import TagSelector from "../components/organisms/TagSelector";
 
 const noteNameRegex = /^[a-zA-Z0-9 _\-ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+$/;
+const stripEmoji = (str) => str.replace(/\p{Extended_Pictographic}/gu, "");
 
 const StyledContainer = styled.div`
   width: 100%;
@@ -2191,7 +2192,7 @@ const Notes = () => {
                           <input
                             value={editingName}
                             maxLength={55}
-                            onChange={(e) => setEditingName(e.target.value)}
+                            onChange={(e) => setEditingName(stripEmoji(e.target.value))}
                             onKeyDown={(e) => {
                               if (
                                 e.key === "Enter" &&
@@ -2426,7 +2427,7 @@ const Notes = () => {
                           <input
                             value={editingName}
                             maxLength={55}
-                            onChange={(e) => setEditingName(e.target.value)}
+                            onChange={(e) => setEditingName(stripEmoji(e.target.value))}
                             onKeyDown={(e) => {
                               if (
                                 e.key === "Enter" &&
@@ -2596,7 +2597,7 @@ const Notes = () => {
                   maxLength={55}
                   mode={noteNameErrorMessage ? "error" : "normal"}
                   onChange={(e) => {
-                    setNoteName(e.target.value);
+                    setNoteName(stripEmoji(e.target.value));
                     setNoteNameErrorMessage("");
                   }}
                   onKeyDown={(e) => {
@@ -2690,7 +2691,7 @@ const Notes = () => {
                   maxLength={55}
                   mode={folderNameErrorMessage ? "error" : "normal"}
                   onChange={(e) => {
-                    setFolderName(e.target.value);
+                    setFolderName(stripEmoji(e.target.value));
                     setFolderNameErrorMessage("");
                   }}
                   onKeyDown={(e) => {

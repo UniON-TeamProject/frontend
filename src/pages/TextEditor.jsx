@@ -558,6 +558,7 @@ const RoleHelpTooltip = styled.div`
 `;
 
 const noteNameRegex = /^[a-zA-Z0-9 _\-ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+$/;
+const stripEmoji = (str) => str.replace(/\p{Extended_Pictographic}/gu, "");
 
 const TextEditor = () => {
   const { id } = useParams();
@@ -1216,7 +1217,7 @@ const TextEditor = () => {
                 onChange={(e) => {
                   setRenameNoteError(false);
                   setRenameNoteErrorMessage("");
-                  setNewName(e.target.value);
+                  setNewName(stripEmoji(e.target.value));
                 }}
               />
             )}
