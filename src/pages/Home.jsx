@@ -285,6 +285,16 @@ const ItemMeta = styled.div`
   flex-shrink: 0;
 `;
 
+const DeadlineIcon = styled.span`
+  ${({ $extra }) =>
+    $extra &&
+    `
+    @media (max-width: 768px) {
+      display: none;
+    }
+  `}
+`;
+
 const ProgressBar = styled.div`
   width: 60px;
   height: 8px;
@@ -1427,7 +1437,11 @@ const Home = () => {
                     return (
                       <ListItem
                         key={deadline.id}
-                        onClick={() => navigate("/calendar")}
+                        onClick={() =>
+                          navigate("/calendar", {
+                            state: { selectedDate: deadline.date },
+                          })
+                        }
                         style={{
                           borderLeft: `4px solid ${
                             theme.colors?.danger || "#ef4444"
@@ -1452,26 +1466,24 @@ const Home = () => {
                                 )}`}
                           </ItemSub>
                         </ItemInfo>
-                        <ItemMeta>
-                          <div
-                            style={{
-                              display: "flex",
-                              gap: "4px",
-                              fontSize: "0.95rem",
-                              alignItems: "center",
-                            }}
-                          >
-                            {icons.length > 0 ? (
-                              icons.map((icon, idx) => (
-                                <span key={idx} title="Kategoria">
+                        {icons.length > 0 && (
+                          <ItemMeta>
+                            <div
+                              style={{
+                                display: "flex",
+                                gap: "4px",
+                                fontSize: "0.95rem",
+                                alignItems: "center",
+                              }}
+                            >
+                              {icons.slice(0, 3).map((icon, idx) => (
+                                <DeadlineIcon key={idx} title="Kategoria" $extra={idx >= 1}>
                                   {icon}
-                                </span>
-                              ))
-                            ) : (
-                              <span title="Termin">⏰</span>
-                            )}
-                          </div>
-                        </ItemMeta>
+                                </DeadlineIcon>
+                              ))}
+                            </div>
+                          </ItemMeta>
+                        )}
                       </ListItem>
                     );
                   })}
