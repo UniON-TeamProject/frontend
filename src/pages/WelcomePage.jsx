@@ -35,7 +35,7 @@ const StyledBox = styled.div`
 const StyledTitle = styled.h2`
   width: 100%;
   padding: 0;
-  margin: 20px 0 5px 0;
+  margin: 5px 0;
   font-size: 2rem;
   text-align: center;
 `;

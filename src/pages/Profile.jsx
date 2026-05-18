@@ -10,6 +10,7 @@ import {
   confirmEmailChange,
   changePassword,
   changeTheme,
+  changeAvatar,
   deleteAccount,
   getUniversities,
   setUniversity,
@@ -111,7 +112,7 @@ const AvatarButton = styled.button`
   width: 110px;
   height: 110px;
   border-radius: 50%;
-  background-color: ${({ theme }) => theme.colors.darkPageBg};
+  background-color: ${({ theme }) => theme.colors.pageBg};
   color: ${({ theme }) => theme.colors.veryDarkPrimary};
   display: flex;
   align-items: center;
@@ -265,6 +266,38 @@ const ModalClose = styled.button`
     background-color: ${({ theme }) => theme.colors.veryDarkPrimary};
   }
 `;
+
+const AvatarGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 16px 0 20px;
+`;
+
+const AvatarOption = styled.button`
+  aspect-ratio: 1;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid
+    ${({ $active, theme }) =>
+      $active ? theme.colors.veryDarkPrimary : "transparent"};
+  box-shadow: ${({ $active }) =>
+    $active ? "0 0 0 2px rgba(0,0,0,0.15)" : "0 1px 4px rgba(0,0,0,0.1)"};
+  cursor: pointer;
+  padding: 0;
+  background: ${({ theme }) => theme.colors.pageBg};
+  transition: transform 0.15s, box-shadow 0.15s;
+  &:hover {
+    transform: scale(1.07);
+  }
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+`;
+
 
 const DangerCard = styled(CardBox)`
   border: 1px solid rgba(239, 68, 68, 0.35);
@@ -502,6 +535,7 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
+  const [avatarId, setAvatarId] = useState(0);
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(locationState?.tab ?? "account");
   const [highlightUniversity, setHighlightUniversity] = useState(
@@ -570,6 +604,7 @@ const Profile = () => {
       if (!profileRes.errorCode) {
         setUsername(profileRes.username || "");
         setEmail(profileRes.email || "");
+        if (profileRes.avatarId) setAvatarId(profileRes.avatarId);
         if (profileRes.themeColor)
           dispatch(setThemeColor(profileRes.themeColor));
         if (profileRes.universityName)
@@ -777,6 +812,12 @@ const Profile = () => {
     setUniversityFeedback({ message: res.message, error: false });
   };
 
+  const handleAvatarSelect = async (id) => {
+    if (id === avatarId) return;
+    const res = await changeAvatar(id);
+    if (!res.errorCode) setAvatarId(id);
+  };
+
   const handleUsosImport = () => {
     navigate("/calendar", { state: { openUsosImport: true } });
   };
@@ -802,14 +843,17 @@ const Profile = () => {
               onClick={() => setAvatarModalOpen(true)}
               title="Zmień awatar"
             >
-              {getInitials(username)}
+              {!loading && avatarId > 0 && (
+                <img
+                  src={`/icons/avatar${avatarId}.png`}
+                  alt=""
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              )}
+              {(!loading && avatarId === 0) && getInitials(username)}
             </AvatarButton>
             <IdentityText>
-              <IdentityName>
-                {loading && !username
-                  ? "Ładowanie..."
-                  : username || "Użytkownik"}
-              </IdentityName>
+              <IdentityName>{username || "Użytkownik"}</IdentityName>
               <IdentityEmail>{email}</IdentityEmail>
             </IdentityText>
           </ProfileHeader>
@@ -903,7 +947,7 @@ const Profile = () => {
             >
               <UsosBannerIcon>
                 <img
-                  src="/icons/usos2.png"
+                  src="/icons/usos.png"
                   alt="USOS"
                   style={{ width: 28, height: 28, borderRadius: 6 }}
                 />
@@ -1090,7 +1134,9 @@ const Profile = () => {
 
             <CardBox>
               <SectionTitle>Kontakt z zespołem</SectionTitle>
-              <p style={{ margin: "0", fontSize: "0.95rem", lineHeight: "1.6" }}>
+              <p
+                style={{ margin: "0", fontSize: "0.95rem", lineHeight: "1.6" }}
+              >
                 Zauważyłeś błąd lub masz sugestię? Napisz do nas na:{" "}
                 <a
                   href="mailto:unionteamproject@gmail.com"
@@ -1117,7 +1163,18 @@ const Profile = () => {
           <ModalBackdrop onClick={() => setAvatarModalOpen(false)}>
             <ModalBox onClick={(e) => e.stopPropagation()}>
               <ModalTitle>Zmiana awatara</ModalTitle>
-              <ModalText>Wkrótce dostępne.</ModalText>
+              <AvatarGrid>
+                {[1, 2, 3, 4].map((id) => (
+                  <AvatarOption
+                    key={id}
+                    $active={avatarId === id}
+                    onClick={() => handleAvatarSelect(id)}
+                    title={`Awatar ${id}`}
+                  >
+                    <img src={`/icons/avatar${id}.png`} alt={`Awatar ${id}`} />
+                  </AvatarOption>
+                ))}
+              </AvatarGrid>
               <ModalClose onClick={() => setAvatarModalOpen(false)}>
                 Zamknij
               </ModalClose>

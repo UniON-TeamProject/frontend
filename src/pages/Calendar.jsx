@@ -538,7 +538,6 @@ const SidebarStickyTop = styled.div`
   }
 `;
 
-
 const CloseBtn = styled.button`
   width: 24px;
   height: 24px;
@@ -1915,7 +1914,13 @@ const Calendar = () => {
     return (
       <SidebarInner>
         <SidebarStickyTop>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
             <SidebarDateLabel>
               {date.getDate()} {MONTHS_PL[date.getMonth()]}
             </SidebarDateLabel>
@@ -3136,7 +3141,7 @@ const Calendar = () => {
           <Header>
             <UsosBtn onClick={handleUsosImport}>
               <img
-                src="/icons/usos2.png"
+                src="/icons/usos.png"
                 alt="USOS"
                 style={{ width: 22, height: 22, borderRadius: 5 }}
               />

@@ -15,7 +15,7 @@ const TAG_CONFIG = {
     label: "USOS",
     icon: (
       <img
-        src="/icons/usos2.png"
+        src="/icons/usos.png"
         alt="USOS"
         style={{
           width: "1em",
