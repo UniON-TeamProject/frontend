@@ -51,6 +51,10 @@ const TopBar = styled.div`
   max-width: 1560px;
   display: flex;
   margin-top: 20px;
+  @media (max-width: 768px) {
+    padding: 0 16px;
+    box-sizing: border-box;
+  }
 `;
 
 const ExitButton = styled.button`
@@ -83,6 +87,10 @@ const AppContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  @media (max-width: 768px) {
+    padding: 0 16px;
+    box-sizing: border-box;
+  }
 `;
 
 const CardContainer = styled.div`
@@ -91,6 +99,10 @@ const CardContainer = styled.div`
   height: 700px;
   position: relative;
   margin-bottom: 20px;
+  @media (max-width: 768px) {
+    width: 100%;
+    height: 400px;
+  }
 `;
 
 const CardWrapper = styled.div`
@@ -98,7 +110,8 @@ const CardWrapper = styled.div`
   height: 100%;
   position: relative;
   transform-style: preserve-3d;
-  transition: ${(props) => props.$instant ? "none" : "transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1)"};
+  transition: ${(props) =>
+    props.$instant ? "none" : "transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1)"};
   cursor: ${(props) => (props.$isFlipped ? "default" : "pointer")};
   transform: ${(props) => (props.$isFlipped ? "rotateY(180deg)" : "none")};
 `;
@@ -123,10 +136,11 @@ const CardFace = styled.div`
     color: ${({ theme }) => theme.colors.text};
     overflow-wrap: break-word;
     word-break: break-word;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 15;
-    overflow: hidden;
+    overflow-y: auto;
+    max-height: calc(100% - 60px);
+    @media (max-width: 768px) {
+      font-size: 1.2rem;
+    }
   }
 `;
 
@@ -141,14 +155,15 @@ const SeeAnswerHint = styled.div`
 const CardBack = styled(CardFace)`
   transform: rotateY(180deg);
   background: ${({ theme }) => theme.colors.white};
-  overflow-y: auto;
   touch-action: pan-y;
   justify-content: flex-start;
 
   .content {
     -webkit-line-clamp: unset;
-    overflow: visible;
+    overflow-y: auto;
     display: block;
+    max-height: calc(100% - 110px);
+    margin: auto 0;
   }
 `;
 
@@ -246,6 +261,12 @@ const RatingScaleContainer = styled.div`
     z-index: 0;
     border-radius: 2px;
   }
+
+  @media (max-width: 768px) {
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+  }
 `;
 
 const RatingNode = styled.div`
@@ -294,12 +315,17 @@ const StyledPopup = styled.div`
   left: 50%;
   transform: translate(-50%, -50%);
   width: 600px;
+  max-width: 92vw;
   padding: 40px;
   border-radius: 16px;
   background: ${({ theme }) => theme.colors.white};
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   z-index: 1000;
   text-align: left;
+  box-sizing: border-box;
+  @media (max-width: 768px) {
+    padding: 24px 20px;
+  }
 `;
 
 const StyledTextArea = styled.textarea`
@@ -373,8 +399,10 @@ const EndScreenButton = styled.button`
 `;
 
 const ModalButton = styled.button`
-  background-color: ${({ $danger, theme }) => ($danger ? theme.colors.danger : theme.colors.borderLight)};
-  color: ${({ $danger, theme }) => ($danger ? theme.colors.white : theme.colors.text)};
+  background-color: ${({ $danger, theme }) =>
+    $danger ? theme.colors.danger : theme.colors.borderLight};
+  color: ${({ $danger, theme }) =>
+    $danger ? theme.colors.white : theme.colors.text};
   border: none;
   padding: 12px 25px;
   border-radius: 10px;
@@ -465,8 +493,6 @@ export default function FsrsLearningPage() {
       fetchDues();
     }
   }, [currentIndex, cards]);
-
-
 
   const handleRating = async (ratingValue, e) => {
     e.stopPropagation();
@@ -669,7 +695,6 @@ export default function FsrsLearningPage() {
 
               <div
                 className="content"
-                style={{ marginBottom: "60px" }}
                 dangerouslySetInnerHTML={{
                   __html: currentCard.contentFlipSide,
                 }}
@@ -795,10 +820,20 @@ export default function FsrsLearningPage() {
           <ModalOverlay onClick={() => setIsEditModalOpen(false)} />
           <StyledPopup style={{ textAlign: "left" }}>
             <h2 style={{ marginBottom: "20px" }}>Edytuj fiszkę</h2>
-            {modalError && <p style={{ color: theme.colors.danger }}>{modalError}</p>}
-            {modalSuccess && <p style={{ color: theme.colors.success }}>{modalSuccess}</p>}
+            {modalError && (
+              <p style={{ color: theme.colors.danger }}>{modalError}</p>
+            )}
+            {modalSuccess && (
+              <p style={{ color: theme.colors.success }}>{modalSuccess}</p>
+            )}
 
-            <p style={{ fontWeight: "600", fontSize: "0.9rem", color: theme.colors.textLight }}>
+            <p
+              style={{
+                fontWeight: "600",
+                fontSize: "0.9rem",
+                color: theme.colors.textLight,
+              }}
+            >
               Przód:
             </p>
             <StyledTextArea
@@ -807,7 +842,13 @@ export default function FsrsLearningPage() {
               onChange={(e) => setEditQ(e.target.value)}
             />
 
-            <p style={{ fontWeight: "600", fontSize: "0.9rem", color: theme.colors.textLight }}>
+            <p
+              style={{
+                fontWeight: "600",
+                fontSize: "0.9rem",
+                color: theme.colors.textLight,
+              }}
+            >
               Tył:
             </p>
             <StyledTextArea
@@ -841,7 +882,9 @@ export default function FsrsLearningPage() {
               }}
             >
               {!currentCard?.cardTags || currentCard.cardTags.length === 0 ? (
-                <p style={{ color: theme.colors.textMuted }}>Brak przypisanych tagów.</p>
+                <p style={{ color: theme.colors.textMuted }}>
+                  Brak przypisanych tagów.
+                </p>
               ) : (
                 currentCard.cardTags.map((t, i) => (
                   <span
@@ -861,9 +904,14 @@ export default function FsrsLearningPage() {
               )}
             </div>
             <p
-              style={{ fontSize: "0.85rem", color: theme.colors.textMuted, marginTop: "20px" }}
+              style={{
+                fontSize: "0.85rem",
+                color: theme.colors.textMuted,
+                marginTop: "20px",
+              }}
             >
-              Możesz zmienić tagi używając przycisku edycji z pozycji wnętrza zestawu.
+              Możesz zmienić tagi używając przycisku edycji z pozycji wnętrza
+              zestawu.
             </p>
 
             <div
@@ -879,7 +927,7 @@ export default function FsrsLearningPage() {
               <strong style={{ color: theme.colors.text }}>
                 Kiedy ta fiszka wróci? (Symulacja ocen)
               </strong>
-              
+
               {cardDues === null ? (
                 <p style={{ marginTop: "10px", color: theme.colors.textLight }}>
                   Obliczam harmonogram...
@@ -889,31 +937,130 @@ export default function FsrsLearningPage() {
                   {cardDues}
                 </p>
               ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginTop: "15px" }}>
-                  <div style={{ background: theme.colors.white, padding: "10px", borderRadius: "8px", borderLeft: "4px solid #e74c3c" }}>
-                    <div style={{ fontSize: "0.75rem", color: theme.colors.textLight, fontWeight: "bold", textTransform: "uppercase" }}>Trudne</div>
-                    <div style={{ fontSize: "1rem", color: theme.colors.text, fontWeight: "700", marginTop: "2px" }}>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "10px",
+                    marginTop: "15px",
+                  }}
+                >
+                  <div
+                    style={{
+                      background: theme.colors.white,
+                      padding: "10px",
+                      borderRadius: "8px",
+                      borderLeft: "4px solid #e74c3c",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: "0.75rem",
+                        color: theme.colors.textLight,
+                        fontWeight: "bold",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Trudne
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "1rem",
+                        color: theme.colors.text,
+                        fontWeight: "700",
+                        marginTop: "2px",
+                      }}
+                    >
                       {formatDueTime(cardDues.again)}
                     </div>
                   </div>
-                  
-                  <div style={{ background: theme.colors.white, padding: "10px", borderRadius: "8px", borderLeft: "4px solid #e67e22" }}>
-                    <div style={{ fontSize: "0.75rem", color: theme.colors.textLight, fontWeight: "bold", textTransform: "uppercase" }}>Średnie</div>
-                    <div style={{ fontSize: "1rem", color: theme.colors.text, fontWeight: "700", marginTop: "2px" }}>
+
+                  <div
+                    style={{
+                      background: theme.colors.white,
+                      padding: "10px",
+                      borderRadius: "8px",
+                      borderLeft: "4px solid #e67e22",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: "0.75rem",
+                        color: theme.colors.textLight,
+                        fontWeight: "bold",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Średnie
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "1rem",
+                        color: theme.colors.text,
+                        fontWeight: "700",
+                        marginTop: "2px",
+                      }}
+                    >
                       {formatDueTime(cardDues.hard)}
                     </div>
                   </div>
-                  
-                  <div style={{ background: theme.colors.white, padding: "10px", borderRadius: "8px", borderLeft: "4px solid #f1c40f" }}>
-                    <div style={{ fontSize: "0.75rem", color: theme.colors.textLight, fontWeight: "bold", textTransform: "uppercase" }}>Łatwe</div>
-                    <div style={{ fontSize: "1rem", color: theme.colors.text, fontWeight: "700", marginTop: "2px" }}>
+
+                  <div
+                    style={{
+                      background: theme.colors.white,
+                      padding: "10px",
+                      borderRadius: "8px",
+                      borderLeft: "4px solid #f1c40f",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: "0.75rem",
+                        color: theme.colors.textLight,
+                        fontWeight: "bold",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Łatwe
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "1rem",
+                        color: theme.colors.text,
+                        fontWeight: "700",
+                        marginTop: "2px",
+                      }}
+                    >
                       {formatDueTime(cardDues.good)}
                     </div>
                   </div>
-                  
-                  <div style={{ background: theme.colors.white, padding: "10px", borderRadius: "8px", borderLeft: "4px solid #2ecc71" }}>
-                    <div style={{ fontSize: "0.75rem", color: theme.colors.textLight, fontWeight: "bold", textTransform: "uppercase" }}>Umiem!</div>
-                    <div style={{ fontSize: "1rem", color: theme.colors.text, fontWeight: "700", marginTop: "2px" }}>
+
+                  <div
+                    style={{
+                      background: theme.colors.white,
+                      padding: "10px",
+                      borderRadius: "8px",
+                      borderLeft: "4px solid #2ecc71",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: "0.75rem",
+                        color: theme.colors.textLight,
+                        fontWeight: "bold",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Umiem!
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "1rem",
+                        color: theme.colors.text,
+                        fontWeight: "700",
+                        marginTop: "2px",
+                      }}
+                    >
                       {formatDueTime(cardDues.easy)}
                     </div>
                   </div>

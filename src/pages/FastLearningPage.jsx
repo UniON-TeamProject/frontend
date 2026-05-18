@@ -121,10 +121,11 @@ const CardFace = styled.div`
     color: ${({ theme }) => theme.colors.text};
     word-wrap: break-word;
     word-break: break-word;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 15;
-    overflow: hidden;
+    overflow-y: auto;
+    max-height: calc(100% - 60px);
+    @media (max-width: 768px) {
+      font-size: 1.2rem;
+    }
   }
 `;
 
@@ -139,14 +140,13 @@ const SeeAnswerHint = styled.div`
 const CardBack = styled(CardFace)`
   transform: rotateY(180deg);
   background: ${({ theme }) => theme.colors.white};
-  overflow-y: auto;
   touch-action: pan-y;
-  justify-content: flex-start;
 
   .content {
     -webkit-line-clamp: unset;
-    overflow: visible;
+    overflow-y: auto;
     display: block;
+    max-height: calc(100% - 60px);
   }
 
   &::after {
