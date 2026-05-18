@@ -262,16 +262,14 @@ const SpinnerSvg = styled.svg`
 `;
 
 const CardEntry = styled.div`
-  border: 1px solid ${({ theme }) => theme.colors.darkGrey};
-  border-radius: 12px;
-  padding: 15px;
+  padding: 15px 0;
   background: ${({ theme }) => theme.colors.white};
 `;
 
 const CardRow = styled.div`
   display: flex;
   gap: 15px;
-  align-items: flex-start;
+  align-items: stretch;
 `;
 
 const CardSide = styled.div`
@@ -297,8 +295,10 @@ const CardTextarea = styled.textarea`
   border-radius: 8px;
   padding: 10px 12px;
   font-size: 0.9rem;
-  resize: vertical;
-  min-height: 70px;
+  resize: none;
+  flex: 1;
+  min-height: 90px;
+  overflow-y: auto;
   font-family: inherit;
   color: ${({ theme }) => theme.colors.text};
   background: ${({ theme }) => theme.colors.lightGrey};

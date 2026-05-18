@@ -1,6 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
-import styled, { keyframes } from 'styled-components';
-import { addCard, addFlashcardSet, getAllFlashcardSets, editCard, deleteCard } from '../../api';
+import React, { useState, useEffect, useRef } from "react";
+import styled, { keyframes } from "styled-components";
+import {
+  addCard,
+  addFlashcardSet,
+  getAllFlashcardSets,
+  editCard,
+  deleteCard,
+} from "../../api";
 
 const spin = keyframes`
   from { transform: rotate(0deg); }
@@ -16,7 +22,7 @@ const SidebarContainer = styled.div`
   background: ${({ theme }) => theme.colors.white};
   box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
   z-index: 200;
-  transform: translateX(${({ $open }) => ($open ? '0' : '100%')});
+  transform: translateX(${({ $open }) => ($open ? "0" : "100%")});
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
@@ -56,7 +62,10 @@ const CloseBtn = styled.button`
     background: ${({ theme }) => theme.colors.lightGrey};
     color: ${({ theme }) => theme.colors.text};
   }
-  svg { width: 18px; height: 18px; }
+  svg {
+    width: 18px;
+    height: 18px;
+  }
 `;
 
 const SidebarPlaceholder = styled.p`
@@ -91,7 +100,12 @@ const SetSelect = styled.button`
     border-color: ${({ theme }) => theme.colors.secondary};
     background: ${({ theme }) => theme.colors.white};
   }
-  svg { width: 12px; height: 12px; flex-shrink: 0; color: ${({ theme }) => theme.colors.textLight}; }
+  svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    color: ${({ theme }) => theme.colors.textLight};
+  }
 `;
 
 const SetDropdownMenu = styled.div`
@@ -107,7 +121,7 @@ const SetDropdownMenu = styled.div`
   flex-direction: column;
   max-height: 180px;
   overflow-y: auto;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.13);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.13);
   z-index: 30;
   color: ${({ theme }) => theme.colors.text};
 `;
@@ -119,16 +133,22 @@ const SetDropdownItem = styled.button`
   padding: 7px 10px;
   text-align: left;
   font-size: 0.85rem;
-  font-weight: ${({ $new }) => $new ? '700' : '500'};
-  color: ${({ $new, theme }) => $new ? theme.colors.secondary : theme.colors.text};
-  background: ${({ $active, theme }) => $active ? theme.colors.primary : theme.colors.white};
+  font-weight: ${({ $new }) => ($new ? "700" : "500")};
+  color: ${({ $new, theme }) =>
+    $new ? theme.colors.secondary : theme.colors.text};
+  background: ${({ $active, theme }) =>
+    $active ? theme.colors.primary : theme.colors.white};
   width: 100%;
-  &:hover { background: ${({ theme }) => theme.colors.primary}; }
+  &:hover {
+    background: ${({ theme }) => theme.colors.primary};
+  }
 `;
 
 const SetNameInput = styled.input`
   width: 100%;
-  border: 1px solid ${({ $error, theme }) => $error ? theme.colors.danger : theme.colors.darkGrey};
+  border: 1px solid
+    ${({ $error, theme }) =>
+      $error ? theme.colors.danger : theme.colors.darkGrey};
   border-radius: 8px;
   padding: 8px 10px;
   font-size: 0.85rem;
@@ -139,7 +159,8 @@ const SetNameInput = styled.input`
   margin-bottom: 4px;
   &:focus {
     outline: none;
-    border-color: ${({ $error, theme }) => $error ? theme.colors.danger : theme.colors.secondary};
+    border-color: ${({ $error, theme }) =>
+      $error ? theme.colors.danger : theme.colors.secondary};
     background: ${({ theme }) => theme.colors.white};
   }
 `;
@@ -224,8 +245,13 @@ const RemoveCardBtn = styled.button`
   align-items: center;
   border-radius: 4px;
   flex-shrink: 0;
-  &:hover { color: ${({ theme }) => theme.colors.danger}; }
-  svg { width: 14px; height: 14px; }
+  &:hover {
+    color: ${({ theme }) => theme.colors.danger};
+  }
+  svg {
+    width: 14px;
+    height: 14px;
+  }
 `;
 
 const FlashcardInput = styled.textarea`
@@ -243,6 +269,9 @@ const FlashcardInput = styled.textarea`
     outline: none;
     border-color: ${({ theme }) => theme.colors.secondary};
     background: ${({ theme }) => theme.colors.white};
+  }
+  @media (max-width: 768px) {
+    font-size: 16px;
   }
 `;
 
@@ -299,14 +328,15 @@ const TagsRow = styled.div`
 const Tag = styled.div`
   padding: 2px 10px;
   margin: 3px;
-  background-color: ${({ $inactive, theme }) => $inactive ? theme.colors.darkGrey : theme.colors.secondary};
+  background-color: ${({ $inactive, theme }) =>
+    $inactive ? theme.colors.darkGrey : theme.colors.secondary};
   border-radius: 10px;
   color: ${({ theme }) => theme.colors.white};
   font-weight: 500;
   font-size: 0.8rem;
   display: flex;
   flex-flow: row nowrap;
-  cursor: ${({ $inactive }) => $inactive ? 'pointer' : 'default'};
+  cursor: ${({ $inactive }) => ($inactive ? "pointer" : "default")};
   > div {
     cursor: pointer;
     font-weight: 700;
@@ -337,13 +367,26 @@ const TagInput = styled.input`
 `;
 
 const AddTagBtn = styled.div`
-  padding: 2px 10px;
+  padding: 4px 12px;
   margin: 0 3px;
-  background-color: ${({ theme }) => theme.colors.darkGrey};
-  border-radius: 7px;
-  color: ${({ theme }) => theme.colors.text};
-  font-weight: 500;
+  background-color: transparent;
+  border: 1px dashed ${({ theme }) => theme.colors.darkGrey};
+  border-radius: 8px;
+  color: ${({ theme }) => theme.colors.textLight};
+  font-weight: 600;
+  font-size: 0.8rem;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  transition: all 0.2s;
+  @media(hover: hover) {
+    &:hover {
+      background-color: ${({ theme }) => theme.colors.lightGrey};
+      color: ${({ theme }) => theme.colors.text};
+      border-color: ${({ theme }) => theme.colors.text};
+    }
+  }
 `;
 
 const TagsSection = styled.div`
@@ -362,34 +405,54 @@ const GlobalStatus = styled.div`
   padding: 10px 20px 16px 20px;
   flex-shrink: 0;
   font-size: 0.82rem;
-  color: ${({ $error, theme }) => $error ? theme.colors.danger : theme.colors.success};
+  color: ${({ $error, theme }) =>
+    $error ? theme.colors.danger : theme.colors.success};
   text-align: center;
 `;
 
 function SaveStatusIcon({ status }) {
-  if (status === 'saving') {
+  if (status === "saving") {
     return (
       <SpinnerSvg fill="none" viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="40 20" />
+        <circle
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          strokeWidth="3"
+          strokeDasharray="40 20"
+        />
       </SpinnerSvg>
     );
   }
-  if (status === 'saved') {
+  if (status === "saved") {
     return (
       <CheckSvg fill="none" viewBox="0 0 16 16">
-        <path stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M2.5 8.5l3.5 3.5 7-7" />
+        <path
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M2.5 8.5l3.5 3.5 7-7"
+        />
       </CheckSvg>
     );
   }
   return null;
 }
 
-const NEW_SET = '__new__';
+const NEW_SET = "__new__";
 const DEBOUNCE_MS = 1000;
 
-function FlashcardCreatorSidebar({ isOpen, onClose, flashcards, setFlashcards, suggestedTags = [] }) {
-  const [setName, setSetName] = useState('');
-  const [debouncedSetName, setDebouncedSetName] = useState('');
+function FlashcardCreatorSidebar({
+  isOpen,
+  onClose,
+  flashcards,
+  setFlashcards,
+  suggestedTags = [],
+}) {
+  const [setName, setSetName] = useState("");
+  const [debouncedSetName, setDebouncedSetName] = useState("");
   const [sets, setSets] = useState([]);
   const [selectedSetId, setSelectedSetId] = useState(NEW_SET);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -397,10 +460,10 @@ function FlashcardCreatorSidebar({ isOpen, onClose, flashcards, setFlashcards, s
   const [globalStatus, setGlobalStatus] = useState(null);
   const [globalTags, setGlobalTags] = useState([]);
   const [isAddingGlobalTag, setIsAddingGlobalTag] = useState(false);
-  const [newGlobalTag, setNewGlobalTag] = useState('');
+  const [newGlobalTag, setNewGlobalTag] = useState("");
   const [cardTags, setCardTags] = useState([]);
   const [addingCardTagIndex, setAddingCardTagIndex] = useState(null);
-  const [newCardTag, setNewCardTag] = useState('');
+  const [newCardTag, setNewCardTag] = useState("");
 
   const flashcardsRef = useRef(flashcards);
   const cardMetaRef = useRef(cardMeta);
@@ -412,8 +475,12 @@ function FlashcardCreatorSidebar({ isOpen, onClose, flashcards, setFlashcards, s
   const globalTagsRef = useRef(globalTags);
   const cardTagsRef = useRef(cardTags);
 
-  useEffect(() => { flashcardsRef.current = flashcards; }, [flashcards]);
-  useEffect(() => { cardMetaRef.current = cardMeta; }, [cardMeta]);
+  useEffect(() => {
+    flashcardsRef.current = flashcards;
+  }, [flashcards]);
+  useEffect(() => {
+    cardMetaRef.current = cardMeta;
+  }, [cardMeta]);
   useEffect(() => {
     globalTagsRef.current = globalTags;
     // Re-save all existing cards when global tags change
@@ -424,7 +491,9 @@ function FlashcardCreatorSidebar({ isOpen, onClose, flashcards, setFlashcards, s
       }
     });
   }, [globalTags]);
-  useEffect(() => { cardTagsRef.current = cardTags; }, [cardTags]);
+  useEffect(() => {
+    cardTagsRef.current = cardTags;
+  }, [cardTags]);
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSetName(setName), 600);
     return () => clearTimeout(t);
@@ -443,18 +512,22 @@ function FlashcardCreatorSidebar({ isOpen, onClose, flashcards, setFlashcards, s
 
   // Sync cardMeta and cardTags length with flashcards
   useEffect(() => {
-    setCardMeta(prev => {
+    setCardMeta((prev) => {
       if (prev.length === flashcards.length) return prev;
       if (flashcards.length > prev.length) {
-        const extra = Array(flashcards.length - prev.length).fill(null).map(() => ({ id: null, status: 'idle', error: null }));
+        const extra = Array(flashcards.length - prev.length)
+          .fill(null)
+          .map(() => ({ id: null, status: "idle", error: null }));
         return [...prev, ...extra];
       }
       return prev.slice(0, flashcards.length);
     });
-    setCardTags(prev => {
+    setCardTags((prev) => {
       if (prev.length === flashcards.length) return prev;
       if (flashcards.length > prev.length) {
-        const extra = Array(flashcards.length - prev.length).fill(() => []).map(() => []);
+        const extra = Array(flashcards.length - prev.length)
+          .fill(() => [])
+          .map(() => []);
         return [...prev, ...extra];
       }
       return prev.slice(0, flashcards.length);
@@ -473,14 +546,17 @@ function FlashcardCreatorSidebar({ isOpen, onClose, flashcards, setFlashcards, s
   // Load sets on open
   useEffect(() => {
     if (!isOpen) return;
-    getAllFlashcardSets().then(result => {
+    getAllFlashcardSets().then((result) => {
       if (!result.errorCode) setSets(result.sets || []);
     });
   }, [isOpen]);
 
   // When switching to a different existing set — clear flashcards and reset
   const handleSelectSet = (id) => {
-    if (id === selectedSetId) { setDropdownOpen(false); return; }
+    if (id === selectedSetId) {
+      setDropdownOpen(false);
+      return;
+    }
     Object.values(saveTimeouts.current).forEach(clearTimeout);
     saveTimeouts.current = {};
     setFlashcards([]);
@@ -488,7 +564,7 @@ function FlashcardCreatorSidebar({ isOpen, onClose, flashcards, setFlashcards, s
     setCardTags([]);
     setGlobalTags([]);
     setIsAddingGlobalTag(false);
-    setNewGlobalTag('');
+    setNewGlobalTag("");
     resolvedSetIdRef.current = null;
     setGlobalStatus(null);
     setSelectedSetId(id);
@@ -503,8 +579,8 @@ function FlashcardCreatorSidebar({ isOpen, onClose, flashcards, setFlashcards, s
       if (dropdownRef.current && !dropdownRef.current.contains(e.target))
         setDropdownOpen(false);
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, [dropdownOpen]);
 
   const isSetReady = () =>
@@ -518,17 +594,25 @@ function FlashcardCreatorSidebar({ isOpen, onClose, flashcards, setFlashcards, s
     if (!name) return null;
     const result = await addFlashcardSet(name);
     if (result.errorCode) {
-      setGlobalStatus({ error: true, message: `Błąd tworzenia zestawu: ${result.message}` });
+      setGlobalStatus({
+        error: true,
+        message: `Błąd tworzenia zestawu: ${result.message}`,
+      });
       return null;
     }
     resolvedSetIdRef.current = result.id;
-    getAllFlashcardSets().then(r => { if (!r.errorCode) setSets(r.sets || []); });
+    getAllFlashcardSets().then((r) => {
+      if (!r.errorCode) setSets(r.sets || []);
+    });
     return result.id;
   };
 
   const scheduleAutoSave = (index) => {
     if (saveTimeouts.current[index]) clearTimeout(saveTimeouts.current[index]);
-    saveTimeouts.current[index] = setTimeout(() => autoSave(index), DEBOUNCE_MS);
+    saveTimeouts.current[index] = setTimeout(
+      () => autoSave(index),
+      DEBOUNCE_MS
+    );
   };
 
   const autoSave = async (index) => {
@@ -538,41 +622,89 @@ function FlashcardCreatorSidebar({ isOpen, onClose, flashcards, setFlashcards, s
 
     const setId = await getOrCreateSetId();
     if (!setId) {
-      setCardMeta(prev => prev.map((m, i) => i === index ? { ...m, status: 'idle' } : m));
+      setCardMeta((prev) =>
+        prev.map((m, i) => (i === index ? { ...m, status: "idle" } : m))
+      );
       return;
     }
 
-    setCardMeta(prev => prev.map((m, i) => i === index ? { ...m, status: 'saving', error: null } : m));
+    setCardMeta((prev) =>
+      prev.map((m, i) =>
+        i === index ? { ...m, status: "saving", error: null } : m
+      )
+    );
 
-    const mergedTags = [...new Set([...globalTagsRef.current, ...(cardTagsRef.current[index] || [])])];
+    const mergedTags = [
+      ...new Set([
+        ...globalTagsRef.current,
+        ...(cardTagsRef.current[index] || []),
+      ]),
+    ];
     const meta = cardMetaRef.current[index];
     let result;
     if (meta?.id) {
-      result = await editCard(meta.id, card.front.trim(), card.back.trim(), setId, mergedTags);
+      result = await editCard(
+        meta.id,
+        card.front.trim(),
+        card.back.trim(),
+        setId,
+        mergedTags
+      );
     } else {
-      result = await addCard(card.front.trim(), card.back.trim(), setId, mergedTags);
+      result = await addCard(
+        card.front.trim(),
+        card.back.trim(),
+        setId,
+        mergedTags
+      );
     }
 
-    if (result.errorCode === 'INVALID_DATA') {
-      setCardMeta(prev => prev.map((m, i) => i === index ? { ...m, status: 'error', error: 'Ta fiszka już istnieje w zestawie' } : m));
+    if (result.errorCode === "INVALID_DATA") {
+      setCardMeta((prev) =>
+        prev.map((m, i) =>
+          i === index
+            ? {
+                ...m,
+                status: "error",
+                error: "Ta fiszka już istnieje w zestawie",
+              }
+            : m
+        )
+      );
     } else if (result.errorCode) {
-      setCardMeta(prev => prev.map((m, i) => i === index ? { ...m, status: 'error', error: result.message || 'Błąd zapisu' } : m));
+      setCardMeta((prev) =>
+        prev.map((m, i) =>
+          i === index
+            ? { ...m, status: "error", error: result.message || "Błąd zapisu" }
+            : m
+        )
+      );
     } else {
       const newId = result.id ?? cardMetaRef.current[index]?.id;
-      setCardMeta(prev => prev.map((m, i) => i === index ? { ...m, id: newId, status: 'saved', error: null } : m));
+      setCardMeta((prev) =>
+        prev.map((m, i) =>
+          i === index ? { ...m, id: newId, status: "saved", error: null } : m
+        )
+      );
       setGlobalStatus(null);
     }
   };
 
   const addEmptyCard = () => {
-    setFlashcards(prev => [...prev, { front: '', back: '' }]);
-    setCardMeta(prev => [...prev, { id: null, status: 'idle', error: null }]);
-    setCardTags(prev => [...prev, []]);
+    setFlashcards((prev) => [...prev, { front: "", back: "" }]);
+    setCardMeta((prev) => [...prev, { id: null, status: "idle", error: null }]);
+    setCardTags((prev) => [...prev, []]);
   };
 
   const updateCard = (index, field, value) => {
-    setFlashcards(prev => prev.map((card, i) => i === index ? { ...card, [field]: value } : card));
-    setCardMeta(prev => prev.map((m, i) => i === index ? { ...m, status: 'idle', error: null } : m));
+    setFlashcards((prev) =>
+      prev.map((card, i) => (i === index ? { ...card, [field]: value } : card))
+    );
+    setCardMeta((prev) =>
+      prev.map((m, i) =>
+        i === index ? { ...m, status: "idle", error: null } : m
+      )
+    );
     scheduleAutoSave(index);
   };
 
@@ -580,18 +712,25 @@ function FlashcardCreatorSidebar({ isOpen, onClose, flashcards, setFlashcards, s
     const meta = cardMeta[index];
     if (saveTimeouts.current[index]) clearTimeout(saveTimeouts.current[index]);
     if (meta?.id) await deleteCard(meta.id);
-    setFlashcards(prev => prev.filter((_, i) => i !== index));
-    setCardMeta(prev => prev.filter((_, i) => i !== index));
-    setCardTags(prev => prev.filter((_, i) => i !== index));
+    setFlashcards((prev) => prev.filter((_, i) => i !== index));
+    setCardMeta((prev) => prev.filter((_, i) => i !== index));
+    setCardTags((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const setNameConflict = selectedSetId === NEW_SET && !resolvedSetIdRef.current && !!debouncedSetName.trim() &&
-    sets.some(s => s.name.toLowerCase() === debouncedSetName.trim().toLowerCase());
-  const setReady = (selectedSetId !== NEW_SET || !!setName.trim()) && !setNameConflict;
+  const setNameConflict =
+    selectedSetId === NEW_SET &&
+    !resolvedSetIdRef.current &&
+    !!debouncedSetName.trim() &&
+    sets.some(
+      (s) => s.name.toLowerCase() === debouncedSetName.trim().toLowerCase()
+    );
+  const setReady =
+    (selectedSetId !== NEW_SET || !!setName.trim()) && !setNameConflict;
 
-  const selectedLabel = selectedSetId === NEW_SET
-    ? '+ Nowy zestaw'
-    : (sets.find(s => s.id === selectedSetId)?.name || 'Wybierz zestaw');
+  const selectedLabel =
+    selectedSetId === NEW_SET
+      ? "+ Nowy zestaw"
+      : sets.find((s) => s.id === selectedSetId)?.name || "Wybierz zestaw";
 
   return (
     <SidebarContainer $open={isOpen}>
@@ -609,7 +748,7 @@ function FlashcardCreatorSidebar({ isOpen, onClose, flashcards, setFlashcards, s
         </SidebarPlaceholder>
 
         <SetSelectWrapper ref={dropdownRef}>
-          <SetSelect onClick={() => setDropdownOpen(o => !o)}>
+          <SetSelect onClick={() => setDropdownOpen((o) => !o)}>
             {selectedLabel}
             <svg fill="currentColor" viewBox="0 0 16 16">
               <path d="M3.204 5h9.592L8 10.481zm-.753.659 4.796 5.48a1 1 0 0 0 1.506 0l4.796-5.48c.566-.647.106-1.659-.753-1.659H3.204a1 1 0 0 0-.753 1.659" />
@@ -624,7 +763,7 @@ function FlashcardCreatorSidebar({ isOpen, onClose, flashcards, setFlashcards, s
               >
                 + Nowy zestaw
               </SetDropdownItem>
-              {sets.map(s => (
+              {sets.map((s) => (
                 <SetDropdownItem
                   key={s.id}
                   $active={selectedSetId === s.id}
@@ -642,11 +781,13 @@ function FlashcardCreatorSidebar({ isOpen, onClose, flashcards, setFlashcards, s
             <SetNameInput
               placeholder="Nazwa nowego zestawu"
               value={setName}
-              onChange={e => setSetName(e.target.value)}
+              onChange={(e) => setSetName(e.target.value)}
               $error={setNameConflict}
             />
             {setNameConflict && (
-              <CardErrorMessage style={{ marginTop: '-8px', marginBottom: '8px' }}>
+              <CardErrorMessage
+                style={{ marginTop: "-8px", marginBottom: "8px" }}
+              >
                 Zestaw o tej nazwie już istnieje
               </CardErrorMessage>
             )}
@@ -656,42 +797,63 @@ function FlashcardCreatorSidebar({ isOpen, onClose, flashcards, setFlashcards, s
         <Divider />
 
         {setReady && (
-          <TagsSection style={{ padding: '10px 20px 0 20px' }}>
-            <TagsSectionLabel>Tagi wspólne (dla wszystkich fiszek)</TagsSectionLabel>
-            <TagsRow style={{ marginTop: '6px' }}>
+          <TagsSection>
+            <TagsSectionLabel>
+              Tagi wspólne (dla wszystkich fiszek)
+            </TagsSectionLabel>
+            <TagsRow style={{ marginTop: "6px" }}>
               {globalTags.map((tag, i) => (
                 <Tag key={`g-${i}`}>
                   {tag}
-                  <div onClick={() => setGlobalTags(prev => prev.filter((_, idx) => idx !== i))}>x</div>
+                  <div
+                    onClick={() =>
+                      setGlobalTags((prev) =>
+                        prev.filter((_, idx) => idx !== i)
+                      )
+                    }
+                  >
+                    x
+                  </div>
                 </Tag>
               ))}
-              {suggestedTags.filter(t => !globalTags.includes(t)).map((tag, i) => (
-                <Tag $inactive key={`s-${i}`} onClick={() => setGlobalTags(prev => [...prev, tag])}>
-                  {tag}
-                </Tag>
-              ))}
+              {suggestedTags
+                .filter((t) => !globalTags.includes(t))
+                .map((tag, i) => (
+                  <Tag
+                    $inactive
+                    key={`s-${i}`}
+                    onClick={() => setGlobalTags((prev) => [...prev, tag])}
+                  >
+                    {tag}
+                  </Tag>
+                ))}
               {isAddingGlobalTag ? (
                 <TagInput
                   autoFocus
                   value={newGlobalTag}
-                  onChange={e => setNewGlobalTag(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' && newGlobalTag.trim()) {
+                  onChange={(e) => setNewGlobalTag(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && newGlobalTag.trim()) {
                       if (!globalTags.includes(newGlobalTag.trim())) {
-                        setGlobalTags(prev => [...prev, newGlobalTag.trim()]);
+                        setGlobalTags((prev) => [...prev, newGlobalTag.trim()]);
                       }
-                      setNewGlobalTag('');
+                      setNewGlobalTag("");
                       setIsAddingGlobalTag(false);
                     }
-                    if (e.key === 'Escape') {
-                      setNewGlobalTag('');
+                    if (e.key === "Escape") {
+                      setNewGlobalTag("");
                       setIsAddingGlobalTag(false);
                     }
                   }}
-                  onBlur={() => { setNewGlobalTag(''); setIsAddingGlobalTag(false); }}
+                  onBlur={() => {
+                    setNewGlobalTag("");
+                    setIsAddingGlobalTag(false);
+                  }}
                 />
               ) : (
-                <AddTagBtn onClick={() => setIsAddingGlobalTag(true)}>+</AddTagBtn>
+                <AddTagBtn onClick={() => setIsAddingGlobalTag(true)}>
+                  + Dodaj
+                </AddTagBtn>
               )}
             </TagsRow>
           </TagsSection>
@@ -700,11 +862,18 @@ function FlashcardCreatorSidebar({ isOpen, onClose, flashcards, setFlashcards, s
 
       {!setReady ? (
         <NoSetHint>
-          <svg fill="currentColor" viewBox="0 0 16 16" width="32" height="32" style={{ opacity: 0.35 }}>
+          <svg
+            fill="currentColor"
+            viewBox="0 0 16 16"
+            width="32"
+            height="32"
+            style={{ opacity: 0.35 }}
+          >
             <path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2z" />
             <path d="M3 5.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M3 8a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 8m0 2.5a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5" />
           </svg>
-          Wybierz istniejący zestaw lub podaj nazwę nowego, żeby zacząć dodawać fiszki.
+          Wybierz istniejący zestaw lub podaj nazwę nowego, żeby zacząć dodawać
+          fiszki.
         </NoSetHint>
       ) : (
         <ScrollArea>
@@ -713,7 +882,10 @@ function FlashcardCreatorSidebar({ isOpen, onClose, flashcards, setFlashcards, s
               <EntryHeader>
                 <FlashcardLabel>Przód fiszki</FlashcardLabel>
                 <SaveStatusIcon status={cardMeta[index]?.status} />
-                <RemoveCardBtn onClick={() => removeCard(index)} aria-label="Usuń fiszkę">
+                <RemoveCardBtn
+                  onClick={() => removeCard(index)}
+                  aria-label="Usuń fiszkę"
+                >
                   <svg fill="currentColor" viewBox="0 0 16 16">
                     <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708" />
                   </svg>
@@ -722,16 +894,22 @@ function FlashcardCreatorSidebar({ isOpen, onClose, flashcards, setFlashcards, s
               <FlashcardInput
                 value={card.front}
                 placeholder="Przód fiszki"
-                onChange={e => updateCard(index, 'front', e.target.value)}
-                onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; }}
+                onChange={(e) => updateCard(index, "front", e.target.value)}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = "copy";
+                }}
               />
               <FieldSeparator />
               <FlashcardLabel>Tył fiszki</FlashcardLabel>
               <FlashcardInput
                 value={card.back}
                 placeholder="Tył fiszki"
-                onChange={e => updateCard(index, 'back', e.target.value)}
-                onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; }}
+                onChange={(e) => updateCard(index, "back", e.target.value)}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = "copy";
+                }}
               />
               <FieldSeparator />
               <TagsSectionLabel>Tagi fiszki</TagsSectionLabel>
@@ -739,48 +917,82 @@ function FlashcardCreatorSidebar({ isOpen, onClose, flashcards, setFlashcards, s
                 {(cardTags[index] || []).map((tag, ti) => (
                   <Tag key={ti}>
                     {tag}
-                    <div onClick={() => {
-                      setCardTags(prev => prev.map((tags, i) => i === index ? tags.filter((_, idx) => idx !== ti) : tags));
-                      scheduleAutoSave(index);
-                    }}>x</div>
+                    <div
+                      onClick={() => {
+                        setCardTags((prev) =>
+                          prev.map((tags, i) =>
+                            i === index
+                              ? tags.filter((_, idx) => idx !== ti)
+                              : tags
+                          )
+                        );
+                        scheduleAutoSave(index);
+                      }}
+                    >
+                      x
+                    </div>
                   </Tag>
                 ))}
                 {addingCardTagIndex === index ? (
                   <TagInput
                     autoFocus
                     value={newCardTag}
-                    onChange={e => setNewCardTag(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' && newCardTag.trim()) {
+                    onChange={(e) => setNewCardTag(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && newCardTag.trim()) {
                         const tag = newCardTag.trim();
-                        setCardTags(prev => prev.map((tags, i) => i === index ? (tags.includes(tag) ? tags : [...tags, tag]) : tags));
-                        setNewCardTag('');
+                        setCardTags((prev) =>
+                          prev.map((tags, i) =>
+                            i === index
+                              ? tags.includes(tag)
+                                ? tags
+                                : [...tags, tag]
+                              : tags
+                          )
+                        );
+                        setNewCardTag("");
                         setAddingCardTagIndex(null);
                         scheduleAutoSave(index);
                       }
-                      if (e.key === 'Escape') {
-                        setNewCardTag('');
+                      if (e.key === "Escape") {
+                        setNewCardTag("");
                         setAddingCardTagIndex(null);
                       }
                     }}
-                    onBlur={() => { setNewCardTag(''); setAddingCardTagIndex(null); }}
+                    onBlur={() => {
+                      setNewCardTag("");
+                      setAddingCardTagIndex(null);
+                    }}
                   />
                 ) : (
-                  <AddTagBtn onClick={() => { setAddingCardTagIndex(index); setNewCardTag(''); }}>+</AddTagBtn>
+                  <AddTagBtn
+                    onClick={() => {
+                      setAddingCardTagIndex(index);
+                      setNewCardTag("");
+                    }}
+                  >
+                    + Dodaj
+                  </AddTagBtn>
                 )}
               </TagsRow>
-              {cardMeta[index]?.error && <CardErrorMessage>{cardMeta[index].error}</CardErrorMessage>}
+              {cardMeta[index]?.error && (
+                <CardErrorMessage>{cardMeta[index].error}</CardErrorMessage>
+              )}
             </FlashcardEntry>
           ))}
 
           <AddButtonRow>
-            <AddCardButton onClick={addEmptyCard} aria-label="Dodaj fiszkę">+</AddCardButton>
+            <AddCardButton onClick={addEmptyCard} aria-label="Dodaj fiszkę">
+              +
+            </AddCardButton>
           </AddButtonRow>
         </ScrollArea>
       )}
 
       {globalStatus && (
-        <GlobalStatus $error={globalStatus.error}>{globalStatus.message}</GlobalStatus>
+        <GlobalStatus $error={globalStatus.error}>
+          {globalStatus.message}
+        </GlobalStatus>
       )}
     </SidebarContainer>
   );

@@ -16,7 +16,8 @@ const EditorWrapper = styled.div`
         : theme.colors.darkGrey};
   border-radius: 8px;
   padding: 10px 12px;
-  min-height: 70px;
+  height: 100px;
+  overflow-y: auto;
   background: ${({ theme }) => theme.colors.white};
   cursor: text;
   transition: border-color 0.2s;
@@ -26,7 +27,7 @@ const EditorWrapper = styled.div`
   }
 
   .ProseMirror {
-    min-height: 50px;
+    min-height: 100%;
     outline: none;
     font-size: 16px;
     line-height: 1.4;

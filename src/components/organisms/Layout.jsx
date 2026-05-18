@@ -164,7 +164,7 @@ const BottomBar = styled.nav`
     display: flex;
     align-items: center;
     justify-content: space-around;
-    z-index: 10;
+    z-index: 1000;
     border-top: 1px solid rgba(0, 0, 0, 0.06);
   }
 `;

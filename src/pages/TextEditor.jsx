@@ -119,14 +119,26 @@ const StyledTag = styled.div`
 `;
 
 const StyledAddTagButton = styled.div`
-  padding: 0px 8px;
+  padding: 4px 12px;
   margin: 0 3px;
-  border-radius: 10px;
-  border: 1px dashed ${({ theme }) => theme.colors.secondary};
-  color: ${({ theme }) => theme.colors.text};
-  font-weight: 500;
+  background-color: transparent;
+  border: 1px dashed ${({ theme }) => theme.colors.darkGrey};
+  border-radius: 8px;
+  color: ${({ theme }) => theme.colors.textLight};
+  font-weight: 600;
+  font-size: 0.8rem;
   cursor: pointer;
-  color: ${({ theme }) => theme.colors.secondary};
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  transition: all 0.2s;
+  @media(hover: hover) {
+    &:hover {
+      background-color: ${({ theme }) => theme.colors.lightGrey};
+      color: ${({ theme }) => theme.colors.text};
+      border-color: ${({ theme }) => theme.colors.text};
+    }
+  }
 `;
 
 const StyledTagInput = styled.input`
@@ -1144,7 +1156,7 @@ const TextEditor = () => {
                 )}
                 {!isAddingTag && (
                   <StyledAddTagButton onClick={() => setIsAddingTag(true)}>
-                    +
+                    + Dodaj
                   </StyledAddTagButton>
                 )}
               </TagsContainer>
