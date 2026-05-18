@@ -263,7 +263,8 @@ const ContentContainer = styled.div`
   justify-content: center;
 
   @media (max-width: 768px) {
-    grid-template-columns: ${({ $setsView }) => $setsView ? "repeat(auto-fill, minmax(140px, 1fr))" : "1fr"};
+    grid-template-columns: ${({ $setsView }) =>
+      $setsView ? "repeat(auto-fill, minmax(140px, 1fr))" : "1fr"};
     gap: 10px;
     padding: 10px 0 100px 0;
   }
@@ -430,18 +431,6 @@ const StyledItemOptions = styled.div`
 
   max-height: 350px;
   overflow-y: auto;
-
-  @media (max-width: 768px) {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    right: auto;
-    bottom: auto;
-    margin: 0;
-    width: calc(100vw - 80px);
-    max-width: 300px;
-  }
 
   &::-webkit-scrollbar {
     width: 5px;
@@ -3817,7 +3806,15 @@ const FlashcardsPage = () => {
                       </svg>
                     )}
                   </div>
-                  <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px", minWidth: 0 }}>
+                  <div
+                    style={{
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "4px",
+                      minWidth: 0,
+                    }}
+                  >
                     <div>
                       <SideLabel>Przód</SideLabel>
                       <div
@@ -3831,7 +3828,9 @@ const FlashcardsPage = () => {
                       <SideLabel>Tył</SideLabel>
                       <div
                         style={{ fontSize: "0.95rem" }}
-                        dangerouslySetInnerHTML={{ __html: card.contentFlipSide }}
+                        dangerouslySetInnerHTML={{
+                          __html: card.contentFlipSide,
+                        }}
                       />
                     </div>
                     {card.cardTags && card.cardTags.length > 0 && (

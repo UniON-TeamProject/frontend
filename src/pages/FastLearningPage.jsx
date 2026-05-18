@@ -38,6 +38,10 @@ const TopBar = styled.div`
   max-width: 1560px;
   display: flex;
   margin-top: 20px;
+  @media (max-width: 768px) {
+    padding: 0 16px;
+    box-sizing: border-box;
+  }
 `;
 
 const ExitButton = styled.button`
@@ -69,6 +73,10 @@ const AppContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  @media (max-width: 768px) {
+    padding: 0 16px;
+    box-sizing: border-box;
+  }
 `;
 
 const CardContainer = styled.div`
@@ -77,6 +85,10 @@ const CardContainer = styled.div`
   height: 700px;
   position: relative;
   margin-bottom: 20px;
+  @media (max-width: 768px) {
+    width: 100%;
+    height: 400px;
+  }
 `;
 
 const CardWrapper = styled.div`
@@ -293,6 +305,10 @@ const HintsContainer = styled.div`
   .good {
     color: #569965;
   }
+  @media (max-width: 768px) {
+    width: 100%;
+    font-size: 0.8rem;
+  }
 `;
 
 const IconButton = styled.button`
@@ -356,12 +372,17 @@ const StyledPopup = styled.div`
   left: 50%;
   transform: translate(-50%, -50%);
   width: 600px;
+  max-width: 92vw;
   padding: 40px;
   border-radius: 16px;
   background: ${({ theme }) => theme.colors.white};
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   z-index: 1000;
   text-align: left;
+  box-sizing: border-box;
+  @media (max-width: 768px) {
+    padding: 24px 20px;
+  }
 `;
 const StyledTextArea = styled.textarea`
   width: 100%;

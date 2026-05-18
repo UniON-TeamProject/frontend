@@ -49,7 +49,7 @@ const StyledHeader = styled.div`
   top: 0;
   z-index: 10;
   background-color: ${({ theme }) => theme.colors.lightGrey};
-  box-shadow: 0 1px 8px ${({ theme }) => theme.colors.primary};
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
   @media (max-width: 768px) {
     position: relative;
   }
@@ -132,7 +132,7 @@ const StyledAddTagButton = styled.div`
   align-items: center;
   white-space: nowrap;
   transition: all 0.2s;
-  @media(hover: hover) {
+  @media (hover: hover) {
     &:hover {
       background-color: ${({ theme }) => theme.colors.lightGrey};
       color: ${({ theme }) => theme.colors.text};
@@ -349,14 +349,14 @@ const RenameErrorWrapper = styled.div`
   align-self: flex-start;
   margin-left: auto;
   margin-right: auto;
-  @media(max-width: 768px) {
+  @media (max-width: 768px) {
     width: 100%;
     padding: 0 10px;
     box-sizing: border-box;
     margin-left: 0;
     margin-right: 0;
   }
-`
+`;
 
 const TagsDivider = styled.div`
   width: 65%;
@@ -483,6 +483,10 @@ const FlashcardBubbleButton = styled.button`
   &:hover {
     background-color: ${({ theme }) => theme.colors.lightGrey};
   }
+  @media (max-width: 768px) {
+    font-size: 0.75rem;
+    padding: 4px 7px;
+  }
 `;
 
 const StyledFloatingButton = styled.button`
@@ -494,10 +498,14 @@ const StyledFloatingButton = styled.button`
   padding: 5px 10px;
   cursor: pointer;
   box-sizing: content-box;
-  @media(hover: hover) {
+  @media (hover: hover) {
     &:hover {
       background-color: ${({ theme }) => theme.colors.lightGrey};
     }
+  }
+  @media (max-width: 768px) {
+    font-size: 0.75rem;
+    padding: 4px 7px;
   }
 `;
 
@@ -961,7 +969,7 @@ const TextEditor = () => {
       />
     </>
   ) : (
-    <Layout>
+    <Layout hideBottomBar>
       <StyledContainer>
         <StyledHeader>
           {!isReadOnly && (
@@ -1077,7 +1085,11 @@ const TextEditor = () => {
           <CollapsingSection ref={collapsingSectionRef} $collapsed={isScrolled}>
             {renameNoteError && (
               <RenameErrorWrapper>
-                <Text color="danger" text={renameNoteErrorMessage} style={{ textAlign: 'left' }} />
+                <Text
+                  color="danger"
+                  text={renameNoteErrorMessage}
+                  style={{ textAlign: "left" }}
+                />
               </RenameErrorWrapper>
             )}
             {isReadOnly ? (
