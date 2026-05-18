@@ -6,6 +6,7 @@ import { Placeholder } from "@tiptap/extensions";
 import { useParams, useLocation } from "react-router-dom";
 import Typography from "@tiptap/extension-typography";
 import React, { useState, useEffect, useRef } from "react";
+import html2pdf from "html2pdf.js";
 import {
   getNoteDetails,
   editNote,
@@ -839,6 +840,110 @@ const TextEditor = () => {
     }
   };
 
+  const prepareHtmlForPdf = (html) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+
+    const processList = (list, depth = 0) => {
+      const isOrdered = list.tagName === "OL";
+      const items = Array.from(list.children).filter((c) => c.tagName === "LI");
+      const wrapper = document.createElement("div");
+      wrapper.style.paddingLeft = depth === 0 ? "0" : "1.2rem";
+      wrapper.style.margin = "0.3rem 0";
+
+      items.forEach((li, index) => {
+        const row = document.createElement("div");
+        row.style.display = "flex";
+        row.style.alignItems = "baseline";
+        row.style.margin = "0.15rem 0";
+
+        const marker = document.createElement("span");
+        marker.style.minWidth = "1.4rem";
+        marker.style.flexShrink = "0";
+        marker.textContent = isOrdered ? `${index + 1}.` : "•";
+
+        const content = document.createElement("span");
+        content.style.flex = "1";
+
+        Array.from(li.childNodes).forEach((child) => {
+          if (child.tagName === "UL" || child.tagName === "OL") {
+            row.appendChild(processList(child, depth + 1));
+          } else {
+            content.appendChild(child.cloneNode(true));
+          }
+        });
+
+        row.appendChild(marker);
+        row.appendChild(content);
+
+        const nestedLists = Array.from(li.querySelectorAll(":scope > ul, :scope > ol"));
+        nestedLists.forEach((nested) => row.appendChild(processList(nested, depth + 1)));
+
+        wrapper.appendChild(row);
+      });
+
+      return wrapper;
+    };
+
+    doc.querySelectorAll("ul, ol").forEach((list) => {
+      if (!list.closest("li")) {
+        list.replaceWith(processList(list));
+      }
+    });
+
+    doc.querySelectorAll("img").forEach((img) => {
+      const wrapper = document.createElement("div");
+      wrapper.style.pageBreakInside = "avoid";
+      wrapper.style.breakInside = "avoid";
+      wrapper.style.display = "block";
+      wrapper.style.margin = "1rem 0";
+      img.parentNode.insertBefore(wrapper, img);
+      wrapper.appendChild(img);
+    });
+
+    return doc.body.innerHTML;
+  };
+
+  const exportToPdf = () => {
+    if (!editor) return;
+    const html = prepareHtmlForPdf(editor.getHTML());
+    const content = `
+      <div style="font-family: sans-serif; padding: 20px;">
+        <style>
+          ul, ol { list-style: none; padding: 0; margin: 0; }
+          pre {
+            background-color: #1e1e1e;
+            color: #ffffff;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            margin: 1.5rem 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 0.8rem;
+          }
+          pre code {
+            background: none;
+            color: #ffffff;
+            padding: 0;
+            font-size: 0.8rem;
+          }
+        </style>
+        ${html}
+      </div>
+    `;
+    html2pdf()
+      .set({
+        margin: [10, 15],
+        filename: `${newName || "notatka"}.pdf`,
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        pagebreak: { mode: ["avoid-all", "css"] },
+      })
+      .from(content)
+      .save();
+  };
+
   useEffect(() => {
     fetchNoteDetails();
     const handler = (e) => {
@@ -953,6 +1058,16 @@ const TextEditor = () => {
               <DesktopButtonsWrapper>
                 <FlashcardToggleButton
                   style={{ position: "static" }}
+                  onClick={exportToPdf}
+                >
+                  <svg fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2M9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5z" />
+                    <path d="M4.603 14.087a.8.8 0 0 1-.438-.42c-.195-.388-.13-.776.08-1.102.198-.307.526-.568.897-.787a7.7 7.7 0 0 1 1.482-.645 20 20 0 0 0 1.062-2.227 7.3 7.3 0 0 1-.43-1.295c-.086-.4-.119-.796-.046-1.136.075-.354.274-.672.65-.823.192-.077.4-.12.602-.077a.7.7 0 0 1 .477.365c.088.164.12.356.127.538.007.188-.012.396-.047.614-.084.51-.27 1.134-.52 1.794a10.954 10.954 0 0 0 .98 1.686 5.753 5.753 0 0 1 1.334.05c.364.066.734.195.96.465.12.144.193.32.2.518.007.192-.047.382-.138.563a1.04 1.04 0 0 1-.354.416.856.856 0 0 1-.51.138c-.331-.014-.654-.196-.933-.417a5.712 5.712 0 0 1-.911-.95 11.651 11.651 0 0 0-1.997.406 11.307 11.307 0 0 1-1.02 1.51c-.292.35-.609.656-.927.787a.793.793 0 0 1-.58.029zm1.379-1.901q-.25.115-.459.238c-.328.194-.541.383-.647.547-.094.145-.096.25-.04.361q.016.032.026.044l.035-.012c.137-.056.355-.235.635-.572a8.18 8.18 0 0 0 .45-.606zm1.64-1.33a12.71 12.71 0 0 1 1.01-.193 11.744 11.744 0 0 1-.51-.858 20.801 20.801 0 0 1-.5 1.05zm2.446.45q.226.245.435.41c.24.19.407.253.498.256a.107.107 0 0 0 .07-.015.307.307 0 0 0 .094-.125.436.436 0 0 0 .059-.2.095.095 0 0 0-.026-.063c-.052-.062-.2-.152-.518-.209a3.876 3.876 0 0 0-.612-.053zM8.078 7.8a6.7 6.7 0 0 0 .2-.828q.046-.282.038-.465a.613.613 0 0 0-.032-.198.517.517 0 0 0-.145.04c-.087.035-.158.106-.196.283-.04.192-.03.469.046.822q.036.167.09.346z" />
+                  </svg>
+                  Eksportuj PDF
+                </FlashcardToggleButton>
+                <FlashcardToggleButton
+                  style={{ position: "static" }}
                   onClick={() => setIsSidebarOpen((o) => !o)}
                 >
                   <svg fill="currentColor" viewBox="0 0 16 16">
@@ -1000,6 +1115,18 @@ const TextEditor = () => {
                   </svg>
                 </MobileMenuButton>
                 <MobileDropdown $open={isMobileMenuOpen}>
+                  <MobileDropdownItem
+                    onClick={() => {
+                      exportToPdf();
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    <svg fill="currentColor" viewBox="0 0 16 16">
+                      <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2M9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5z" />
+                      <path d="M4.603 14.087a.8.8 0 0 1-.438-.42c-.195-.388-.13-.776.08-1.102.198-.307.526-.568.897-.787a7.7 7.7 0 0 1 1.482-.645 20 20 0 0 0 1.062-2.227 7.3 7.3 0 0 1-.43-1.295c-.086-.4-.119-.796-.046-1.136.075-.354.274-.672.65-.823.192-.077.4-.12.602-.077a.7.7 0 0 1 .477.365c.088.164.12.356.127.538.007.188-.012.396-.047.614-.084.51-.27 1.134-.52 1.794a10.954 10.954 0 0 0 .98 1.686 5.753 5.753 0 0 1 1.334.05c.364.066.734.195.96.465.12.144.193.32.2.518.007.192-.047.382-.138.563a1.04 1.04 0 0 1-.354.416.856.856 0 0 1-.51.138c-.331-.014-.654-.196-.933-.417a5.712 5.712 0 0 1-.911-.95 11.651 11.651 0 0 0-1.997.406 11.307 11.307 0 0 1-1.02 1.51c-.292.35-.609.656-.927.787a.793.793 0 0 1-.58.029zm1.379-1.901q-.25.115-.459.238c-.328.194-.541.383-.647.547-.094.145-.096.25-.04.361q.016.032.026.044l.035-.012c.137-.056.355-.235.635-.572a8.18 8.18 0 0 0 .45-.606zm1.64-1.33a12.71 12.71 0 0 1 1.01-.193 11.744 11.744 0 0 1-.51-.858 20.801 20.801 0 0 1-.5 1.05zm2.446.45q.226.245.435.41c.24.19.407.253.498.256a.107.107 0 0 0 .07-.015.307.307 0 0 0 .094-.125.436.436 0 0 0 .059-.2.095.095 0 0 0-.026-.063c-.052-.062-.2-.152-.518-.209a3.876 3.876 0 0 0-.612-.053zM8.078 7.8a6.7 6.7 0 0 0 .2-.828q.046-.282.038-.465a.613.613 0 0 0-.032-.198.517.517 0 0 0-.145.04c-.087.035-.158.106-.196.283-.04.192-.03.469.046.822q.036.167.09.346z" />
+                    </svg>
+                    Eksportuj PDF
+                  </MobileDropdownItem>
                   <MobileDropdownItem
                     onClick={() => {
                       setIsSidebarOpen((o) => !o);
