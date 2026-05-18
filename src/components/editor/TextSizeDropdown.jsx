@@ -18,8 +18,10 @@ const StyledDropdownTrigger = styled.button`
   gap: 2px;
   cursor: pointer;
   color: ${({ theme }) => theme.colors.text};
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.primary};
+  @media(hover: hover) {
+    &:hover {
+      background-color: ${({ theme }) => theme.colors.primary};
+    }
   }
   > svg:not(.arrow) {
     width: 20px;
@@ -46,7 +48,7 @@ const StyledDropdownMenu = styled.div`
   max-height: 200px;
   min-width: 160px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-  z-index: 20;
+  z-index: 100;
   color: ${({ theme }) => theme.colors.text};
 `;
 
@@ -61,10 +63,13 @@ const StyledDropdownItem = styled.button`
   width: 100%;
   display: flex;
   align-items: center;
+  color: ${({ theme }) => theme.colors.text};
   background-color: ${({ $active, theme }) =>
     $active ? theme.colors.primary : theme.colors.white};
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.primary};
+  @media(hover: hover) {
+    &:hover {
+      background-color: ${({ theme }) => theme.colors.primary};
+    }
   }
   > svg {
     width: 18px;

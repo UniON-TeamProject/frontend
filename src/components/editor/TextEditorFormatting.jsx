@@ -15,21 +15,28 @@ const StyledContainer = styled.div`
   gap:5px;
   background-color:${({ theme }) => theme.colors.lightGrey};
   @media(max-width:768px){
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
     width: 100%;
-    height: auto;
-    margin: 0;
-    padding: 8px 10px;
+    margin: 10px 0 0 0;
+    padding: 0 10px 8px 10px;
     flex-wrap: nowrap;
+    height: auto;
+    align-items: center;
+  }
+`
+
+const ScrollableButtons = styled.div`
+  display: contents;
+  @media(max-width:768px){
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    gap: 5px;
     overflow-x: auto;
-    background-color: ${({ theme }) => theme.colors.white};
-    border-top: 1px solid ${({ theme }) => theme.colors.darkGrey};
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
-    z-index: 50;
     -webkit-overflow-scrolling: touch;
+    flex: 1;
+    & > * {
+      flex-shrink: 0;
+    }
   }
 `
 
@@ -47,8 +54,10 @@ const StyledButton = styled.button`
   border-radius:7px;
   background-color: ${({ $active, theme }) => $active ? theme.colors.primary : 'unset'};
   cursor:pointer;
-  &:hover{
-    background-color: ${({ $disabled, theme }) => $disabled ? 'unset' : theme.colors.primary};
+  @media(hover: hover){
+    &:hover{
+      background-color: ${({ $disabled, theme }) => $disabled ? 'unset' : theme.colors.primary};
+    }
   }
   >svg{
     width:20px;
@@ -58,6 +67,9 @@ const StyledButton = styled.button`
   }
   &.image{
     margin-right:15px;
+    @media(max-width:768px){
+      margin-right: 4px;
+    }
     display:flex;
     flex-flow: row nowrap;
     background-color:${({ theme }) => theme.colors.primary};
@@ -73,7 +85,10 @@ const StyledButton = styled.button`
       background-color:${({ theme }) => theme.colors.primary};
     }
     >p{
-      padding-left:6px ;
+      padding-left:6px;
+      @media(max-width:768px){
+        display:none;
+      }
     }
   }
 `
@@ -117,6 +132,7 @@ function TextEditorFormatting({ editor }) {
       <Separator />
       <TextSizeDropdown editor={editor} />
       <Separator />
+      <ScrollableButtons>
       <StyledButton
         onClick={() => editor.chain().focus().toggleBold().run()}
         $disabled={!editorState.canBold}
@@ -198,6 +214,7 @@ function TextEditorFormatting({ editor }) {
           <path d="M2.5 3a.5.5 0 0 0 0 1h11a.5.5 0 0 0 0-1zm5 3a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1zm0 3a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1zm-5 3a.5.5 0 0 0 0 1h11a.5.5 0 0 0 0-1zm.79-5.373q.168-.117.444-.275L3.524 6q-.183.111-.452.287-.27.176-.51.428a2.4 2.4 0 0 0-.398.562Q2 7.587 2 7.969q0 .54.217.873.217.328.72.328.322 0 .504-.211a.7.7 0 0 0 .188-.463q0-.345-.211-.521-.205-.182-.568-.182h-.282q.036-.305.123-.498a1.4 1.4 0 0 1 .252-.37 2 2 0 0 1 .346-.298zm2.167 0q.17-.117.445-.275L5.692 6q-.183.111-.452.287-.27.176-.51.428a2.4 2.4 0 0 0-.398.562q-.165.31-.164.692 0 .54.217.873.217.328.72.328.322 0 .504-.211a.7.7 0 0 0 .188-.463q0-.345-.211-.521-.205-.182-.568-.182h-.282a1.8 1.8 0 0 1 .118-.492q.087-.194.257-.375a2 2 0 0 1 .346-.3z" />
         </svg>
       </StyledButton>
+      </ScrollableButtons>
     </StyledContainer>
   )
 }
