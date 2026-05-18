@@ -13,6 +13,12 @@ const spin = keyframes`
   to { transform: rotate(360deg); }
 `;
 
+const fadeOut = keyframes`
+  0% { opacity: 1; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+`;
+
 const SidebarContainer = styled.div`
   position: fixed;
   top: 0;
@@ -228,11 +234,11 @@ const SpinnerSvg = styled.svg`
   flex-shrink: 0;
 `;
 
-const CheckSvg = styled.svg`
-  width: 14px;
-  height: 14px;
+const SavedText = styled.span`
+  font-size: 12px;
   color: ${({ theme }) => theme.colors.success};
   flex-shrink: 0;
+  animation: ${fadeOut} 2s ease forwards;
 `;
 
 const RemoveCardBtn = styled.button`
@@ -380,7 +386,7 @@ const AddTagBtn = styled.div`
   align-items: center;
   white-space: nowrap;
   transition: all 0.2s;
-  @media(hover: hover) {
+  @media (hover: hover) {
     &:hover {
       background-color: ${({ theme }) => theme.colors.lightGrey};
       color: ${({ theme }) => theme.colors.text};
@@ -426,17 +432,7 @@ function SaveStatusIcon({ status }) {
     );
   }
   if (status === "saved") {
-    return (
-      <CheckSvg fill="none" viewBox="0 0 16 16">
-        <path
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M2.5 8.5l3.5 3.5 7-7"
-        />
-      </CheckSvg>
-    );
+    return <SavedText>Zapisano..</SavedText>;
   }
   return null;
 }
@@ -534,13 +530,21 @@ function FlashcardCreatorSidebar({
     });
   }, [flashcards.length]);
 
+  const prevFlashcardsRef = useRef([]);
   // Trigger auto-save when flashcards change from outside (e.g. "Zapisz jako przód/tył")
   useEffect(() => {
+    const prev = prevFlashcardsRef.current;
     flashcards.forEach((card, index) => {
-      if (card.front.trim() || card.back.trim()) {
+      const prevCard = prev[index];
+      const changed =
+        !prevCard ||
+        prevCard.front !== card.front ||
+        prevCard.back !== card.back;
+      if (changed && (card.front.trim() || card.back.trim())) {
         scheduleAutoSave(index);
       }
     });
+    prevFlashcardsRef.current = flashcards;
   }, [flashcards]);
 
   // Load sets on open
@@ -687,6 +691,13 @@ function FlashcardCreatorSidebar({
         )
       );
       setGlobalStatus(null);
+      setTimeout(() => {
+        setCardMeta((prev) =>
+          prev.map((m, i) =>
+            i === index && m.status === "saved" ? { ...m, status: "idle" } : m
+          )
+        );
+      }, 2000);
     }
   };
 
