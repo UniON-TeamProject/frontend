@@ -28,7 +28,9 @@ import Friends from './pages/Friends';
 import JoinGroup from './pages/JoinGroup';
 
 const ProtectedRoute = ({ children }) => {
-  return getToken() ? children : <Navigate to="/" replace />;
+  if (getToken()) return children;
+  sessionStorage.setItem("logout_reason", "session_expired");
+  return <Navigate to="/" replace />;
 };
 
 function App() {

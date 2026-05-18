@@ -4,6 +4,7 @@ import { getToken, removeToken, saveToken } from "./token";
 function checkUnauthorized(resp) {
   if (resp.status === 401 || resp.status === 403) {
     removeToken();
+    sessionStorage.setItem("logout_reason", "session_expired");
     return {
       errorCode: "TOKEN_UNDEFINED",
       message: "Sesja wygasła, zaloguj się ponownie",
@@ -1591,7 +1592,8 @@ export async function generateCardsFromNote(noteId) {
     if (resp.status === 402) {
       return {
         errorCode: "RATE_LIMIT_EXCEEDED",
-        message: "Przekroczono limit zapytań do AI. Spróbuj ponownie za chwilę.",
+        message:
+          "Przekroczono limit zapytań do AI. Spróbuj ponownie za chwilę.",
       };
     }
     const authErr = checkUnauthorized(resp);
@@ -2430,6 +2432,8 @@ export async function getFlashcardSetStats(setId) {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },
     });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return { stats: 0, ...authErr };
     if (resp.ok) {
       const data = await resp.json();
       return { stats: data, errorCode: "" };
@@ -2859,6 +2863,8 @@ export async function getUniversities() {
         "Content-Type": "application/json",
       },
     });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return { universities: [], ...authErr };
     if (resp.ok) {
       const data = await resp.json();
       return { universities: data, errorCode: "", message: "" };
@@ -2955,6 +2961,7 @@ export async function getCardsByTags(tags) {
 
 export const getUserSocialGroups = async () => {
   const token = getToken();
+  if (!token) return { errorCode: "TOKEN_UNDEFINED" };
   try {
     const response = await fetch(`${API_HOST}/social`, {
       method: "GET",
@@ -2962,6 +2969,8 @@ export const getUserSocialGroups = async () => {
         Authorization: `Bearer ${token}`,
       },
     });
+    const authErr = checkUnauthorized(response);
+    if (authErr) return authErr;
     const data = await response.json();
     return response.ok
       ? data
@@ -2973,6 +2982,7 @@ export const getUserSocialGroups = async () => {
 
 export const createSocialGroup = async (name, description) => {
   const token = getToken();
+  if (!token) return { errorCode: "TOKEN_UNDEFINED" };
   try {
     const response = await fetch(`${API_HOST}/createSocial`, {
       method: "POST",
@@ -2982,6 +2992,8 @@ export const createSocialGroup = async (name, description) => {
       },
       body: JSON.stringify({ name, description }),
     });
+    const authErr = checkUnauthorized(response);
+    if (authErr) return authErr;
     const data = await response.json();
     return response.ok
       ? data
@@ -2993,6 +3005,7 @@ export const createSocialGroup = async (name, description) => {
 
 export const getSocialGroup = async (id) => {
   const token = getToken();
+  if (!token) return { errorCode: "TOKEN_UNDEFINED" };
   try {
     const response = await fetch(`${API_HOST}/social/${id}`, {
       method: "GET",
@@ -3000,6 +3013,8 @@ export const getSocialGroup = async (id) => {
         Authorization: `Bearer ${token}`,
       },
     });
+    const authErr = checkUnauthorized(response);
+    if (authErr) return authErr;
     const data = await response.json();
     return response.ok
       ? data
@@ -3011,6 +3026,7 @@ export const getSocialGroup = async (id) => {
 
 export const editSocialGroup = async (id, name, description) => {
   const token = getToken();
+  if (!token) return { errorCode: "TOKEN_UNDEFINED" };
   try {
     const response = await fetch(`${API_HOST}/social/${id}`, {
       method: "PUT",
@@ -3020,6 +3036,8 @@ export const editSocialGroup = async (id, name, description) => {
       },
       body: JSON.stringify({ name, description }),
     });
+    const authErr = checkUnauthorized(response);
+    if (authErr) return authErr;
     const data = await response.json();
     return response.ok
       ? data
@@ -3031,6 +3049,7 @@ export const editSocialGroup = async (id, name, description) => {
 
 export const deleteSocialGroup = async (id) => {
   const token = getToken();
+  if (!token) return { errorCode: "TOKEN_UNDEFINED" };
   try {
     const response = await fetch(`${API_HOST}/social/${id}`, {
       method: "DELETE",
@@ -3038,6 +3057,8 @@ export const deleteSocialGroup = async (id) => {
         Authorization: `Bearer ${token}`,
       },
     });
+    const authErr = checkUnauthorized(response);
+    if (authErr) return authErr;
     if (response.ok) {
       const data = await response.json().catch(() => true);
       return { success: data, errorCode: "" };
@@ -3055,11 +3076,14 @@ export const deleteSocialGroup = async (id) => {
 
 export const getFriends = async () => {
   const token = getToken();
+  if (!token) return { errorCode: "TOKEN_UNDEFINED" };
   try {
     const response = await fetch(`${API_HOST}/getFriends`, {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },
     });
+    const authErr = checkUnauthorized(response);
+    if (authErr) return authErr;
     const data = await response.json();
     return response.ok
       ? data
@@ -3071,11 +3095,14 @@ export const getFriends = async () => {
 
 export const getPendingInvites = async () => {
   const token = getToken();
+  if (!token) return { errorCode: "TOKEN_UNDEFINED" };
   try {
     const response = await fetch(`${API_HOST}/getPendingInvites`, {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },
     });
+    const authErr = checkUnauthorized(response);
+    if (authErr) return authErr;
     const data = await response.json();
     return response.ok
       ? data
@@ -3087,6 +3114,7 @@ export const getPendingInvites = async () => {
 
 export const addFriend = async (receiverUsername) => {
   const token = getToken();
+  if (!token) return { errorCode: "TOKEN_UNDEFINED" };
   try {
     const payloadStr = String(receiverUsername).trim();
 
@@ -3098,6 +3126,8 @@ export const addFriend = async (receiverUsername) => {
       },
       body: JSON.stringify({ receiverUsername: payloadStr }),
     });
+    const authErr = checkUnauthorized(response);
+    if (authErr) return authErr;
     const data = await response.json();
     return response.ok
       ? data
@@ -3109,11 +3139,14 @@ export const addFriend = async (receiverUsername) => {
 
 export const removeFriend = async (friendId) => {
   const token = getToken();
+  if (!token) return { errorCode: "TOKEN_UNDEFINED" };
   try {
     const response = await fetch(`${API_HOST}/removeFriend/${friendId}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
+    const authErr = checkUnauthorized(response);
+    if (authErr) return authErr;
     return response.ok
       ? { success: true }
       : { errorCode: "ERROR", message: "Błąd usuwania" };
@@ -3124,11 +3157,14 @@ export const removeFriend = async (friendId) => {
 
 export const rejectFriend = async (senderId) => {
   const token = getToken();
+  if (!token) return { errorCode: "TOKEN_UNDEFINED" };
   try {
     const response = await fetch(`${API_HOST}/rejectFriend/${senderId}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
+    const authErr = checkUnauthorized(response);
+    if (authErr) return authErr;
     return response.ok
       ? { success: true }
       : { errorCode: "ERROR", message: "Nie udało się odrzucić" };
@@ -3369,6 +3405,8 @@ export const getSocialGroupUsers = async (id) => {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },
     });
+    const authErr = checkUnauthorized(response);
+    if (authErr) return authErr;
     const data = await response.json();
     return response.ok
       ? data
@@ -3490,42 +3528,59 @@ export const leaveSocialGroup = async (socialId) => {
   }
 };
 
+export const inviteFriendToSocialGroup = async (
+  socialId,
+  friendUsername,
+  role
+) => {
+  const token = getToken();
+  if (!token) return { errorCode: "TOKEN_UNDEFINED" };
 
-export const inviteFriendToSocialGroup = async (socialId, friendUsername, role) => {
-    const token = getToken();
-    if (!token) return { errorCode: "TOKEN_UNDEFINED" };
+  try {
+    const resp = await fetch(
+      `${API_HOST}/inviteFriendToGroup?socialId=${socialId}&friendUsername=${encodeURIComponent(
+        friendUsername
+      )}&role=${role}`,
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
 
-    try {
-        const resp = await fetch(`${API_HOST}/inviteFriendToGroup?socialId=${socialId}&friendUsername=${encodeURIComponent(friendUsername)}&role=${role}`, {
-            method: "POST",
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        
-        const authErr = checkUnauthorized(resp);
-        if (authErr) return authErr;
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
 
-        if (resp.ok) return { errorCode: "" };
-        const data = await resp.json().catch(() => ({}));
-        return { errorCode: data.errorCode || "ERROR", message: data.message || "Błąd wysyłania zaproszenia." };
-    } catch {
-        return { errorCode: "CONNECTION_ERROR", message: "Błąd serwera." };
-    }
+    if (resp.ok) return { errorCode: "" };
+    const data = await resp.json().catch(() => ({}));
+    return {
+      errorCode: data.errorCode || "ERROR",
+      message: data.message || "Błąd wysyłania zaproszenia.",
+    };
+  } catch {
+    return { errorCode: "CONNECTION_ERROR", message: "Błąd serwera." };
+  }
 };
 
 export const acceptDirectGroupInvitation = async (invitationId) => {
   const token = getToken();
   if (!token) return { errorCode: "TOKEN_UNDEFINED" };
   try {
-    const resp = await fetch(`${API_HOST}/acceptGroupInvitation/${invitationId}`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    const resp = await fetch(
+      `${API_HOST}/acceptGroupInvitation/${invitationId}`,
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
     const authErr = checkUnauthorized(resp);
     if (authErr) return authErr;
 
     if (resp.ok) return { errorCode: "" };
     const data = await resp.json().catch(() => ({}));
-    return { errorCode: data.errorCode || "ERROR", message: data.message || "Błąd akceptacji." };
+    return {
+      errorCode: data.errorCode || "ERROR",
+      message: data.message || "Błąd akceptacji.",
+    };
   } catch {
     return { errorCode: "CONNECTION_ERROR", message: "Błąd serwera." };
   }
@@ -3535,10 +3590,13 @@ export const declineDirectGroupInvitation = async (invitationId) => {
   const token = getToken();
   if (!token) return { errorCode: "TOKEN_UNDEFINED" };
   try {
-    const resp = await fetch(`${API_HOST}/declineGroupInvitation/${invitationId}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    const resp = await fetch(
+      `${API_HOST}/declineGroupInvitation/${invitationId}`,
+      {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
     const authErr = checkUnauthorized(resp);
     if (authErr) return authErr;
 

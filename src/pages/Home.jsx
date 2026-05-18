@@ -719,6 +719,16 @@ const Home = () => {
             getUserSocialGroups(),
           ]);
 
+        if (
+          [notesData, foldersData, recentSetsData, groupsData].some(
+            (d) => d?.errorCode === "TOKEN_UNDEFINED"
+          )
+        ) {
+          removeToken();
+          navigate("/", { replace: true });
+          return;
+        }
+
         const notesArray = Array.isArray(notesData)
           ? notesData
           : notesData.notes || [];

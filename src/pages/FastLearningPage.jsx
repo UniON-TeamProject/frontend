@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styled, { keyframes, useTheme } from "styled-components";
 import { getFastLearningCards, sendFastLearningAnswer, editCard } from "../api";
-import { getToken } from "../token";
+import { getToken, removeToken } from "../token";
 import SubmitButton from "../components/atoms/SubmitButton";
 import Input from "../components/atoms/Input";
 import Text from "../components/atoms/Text";
@@ -528,6 +528,11 @@ export default function FastLearningPage() {
     }
     const fetchCards = async () => {
       const data = await getFastLearningCards(setId);
+      if (data?.errorCode === "TOKEN_UNDEFINED") {
+        removeToken();
+        navigate("/", { replace: true });
+        return;
+      }
       if (data) {
         setCards(shuffleArray(data));
       }
@@ -549,7 +554,12 @@ export default function FastLearningPage() {
     if (e) e.stopPropagation();
     const currentCard = cards[currentIndex];
 
-    await sendFastLearningAnswer(currentCard.id, isCorrect ? 1 : 0);
+    const answerResult = await sendFastLearningAnswer(currentCard.id, isCorrect ? 1 : 0);
+    if (answerResult?.errorCode === "TOKEN_UNDEFINED") {
+      removeToken();
+      navigate("/", { replace: true });
+      return;
+    }
 
     //zapisujemy w historii nasz wybor
     setHistory((prev) => [...prev, isCorrect]);

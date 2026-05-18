@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styled, { keyframes, useTheme } from "styled-components";
 import { getFsrsCards, sendFsrsAnswer, editCard, getCardDues } from "../api";
-import { getToken } from "../token";
+import { getToken, removeToken } from "../token";
 import SubmitButton from "../components/atoms/SubmitButton";
 import Input from "../components/atoms/Input";
 import Text from "../components/atoms/Text";
@@ -473,6 +473,11 @@ export default function FsrsLearningPage() {
     }
     const fetchCards = async () => {
       const data = await getFsrsCards(setId);
+      if (data?.errorCode === "TOKEN_UNDEFINED") {
+        removeToken();
+        navigate("/", { replace: true });
+        return;
+      }
       if (data) {
         setCards(data);
       }
@@ -486,6 +491,11 @@ export default function FsrsLearningPage() {
       const fetchDues = async () => {
         setCardDues(null);
         const res = await getCardDues(cards[currentIndex].id);
+        if (res?.errorCode === "TOKEN_UNDEFINED") {
+          removeToken();
+          navigate("/", { replace: true });
+          return;
+        }
         if (!res.errorCode) {
           setCardDues(res.data);
         }
@@ -497,7 +507,12 @@ export default function FsrsLearningPage() {
   const handleRating = async (ratingValue, e) => {
     e.stopPropagation();
     const currentCard = cards[currentIndex];
-    await sendFsrsAnswer(currentCard.id, ratingValue);
+    const answerResult = await sendFsrsAnswer(currentCard.id, ratingValue);
+    if (answerResult?.errorCode === "TOKEN_UNDEFINED") {
+      removeToken();
+      navigate("/", { replace: true });
+      return;
+    }
     setInstantFlip(true);
     setIsFlipped(false);
     setCurrentIndex((prev) => prev + 1);

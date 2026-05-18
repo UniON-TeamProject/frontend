@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import SubmitButton from "../components/atoms/SubmitButton";
 import Logo from "../components/atoms/Logo";
 import Text from "../components/atoms/Text";
@@ -48,7 +48,31 @@ const MobileButtonWrapper = styled.div`
   }
 `;
 
+const StyledInfoBanner = styled.div`
+  background-color: ${({ theme }) => theme.colors.primary}22;
+  border: 1px solid ${({ theme }) => theme.colors.primary};
+  border-radius: 5px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  color: ${({ theme }) => theme.colors.text};
+`;
+
+const LOGOUT_MESSAGES = {
+  session_expired: "Twoja sesja wygasła. Zaloguj się ponownie.",
+};
+
 const WelcomePage = () => {
+  const [infoBanner, setInfoBanner] = useState("");
+
+  useEffect(() => {
+    const reason = sessionStorage.getItem("logout_reason");
+    if (reason) {
+      sessionStorage.removeItem("logout_reason");
+      setInfoBanner(LOGOUT_MESSAGES[reason] ?? "Zostałeś wylogowany.");
+    }
+  }, []);
+
   return (
     <StyledContainer>
       <StyledBox>
@@ -59,6 +83,7 @@ const WelcomePage = () => {
           style={{ padding: "20px 0" }}
           text="Notuj, ucz się, powtarzaj"
         />
+        {infoBanner && <StyledInfoBanner>{infoBanner}</StyledInfoBanner>}
         <MobileButtonWrapper>
           <SubmitButton text="Logowanie" path="/login" light />
           <SubmitButton text="Stwórz konto" path="/register" light />
