@@ -488,46 +488,6 @@ const CheckboxContainer = styled.label`
   }
 `;
 
-const PreviousButton = styled.button`
-  position: fixed;
-  left: 40px;
-  top: 46%;
-  transform: translateY(-50%);
-  background: transparent;
-  border: 2px solid ${({ theme }) => theme.colors.borderLight};
-  border-radius: 16px;
-  padding: 15px 25px;
-  font-size: 1rem;
-  font-weight: 650;
-  color: ${({ theme }) => theme.colors.textLight};
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  transition: all 0.2s;
-  z-index: 100;
-
-  &:hover {
-    transform: translateY(-50%) scale(1.05);
-    color: ${({ theme }) => theme.colors.text};
-    border-color: ${({ theme }) => theme.colors.darkGrey};
-    background: rgba(0, 0, 0, 0.02);
-  }
-
-  svg {
-    width: 22px;
-    height: 22px;
-  }
-
-  @media (max-width: 1200px) {
-    position: static;
-    transform: none;
-    margin-bottom: 20px;
-    &:hover {
-      transform: scale(1.02);
-    }
-  }
-`;
 
 const shuffleArray = (array) => {
   const shuffled = [...array];
@@ -742,25 +702,7 @@ export default function FastLearningPage() {
       </TopBar>
 
       <AppContainer>
-        {/* PRZYCISK COFANIA */}
-        {currentIndex > 0 && (
-          <PreviousButton onClick={handlePrevious}>
-            <svg
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              strokeWidth="2.5"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-            Poprzednia fiszka
-          </PreviousButton>
-        )}
-        {/* PODPOWIEDZI NAD FISZKĄ */}
+{/* PODPOWIEDZI NAD FISZKĄ */}
         <HintsContainer $visible={isFlipped && !isFinished}>
           <span className="bad">Nie umiem &larr; Kliknij w lewo</span>
           <span className="good">Kliknij w prawo &rarr; Umiem</span>
@@ -834,6 +776,25 @@ export default function FastLearningPage() {
 
         {/* MENU DOLNE */}
         <PillMenu>
+          {currentIndex > 0 && (
+            <>
+              <PillButton onClick={handlePrevious} title="Poprzednia fiszka">
+                <svg
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  strokeWidth="2.5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </PillButton>
+              <PillDivider />
+            </>
+          )}
           <PillButton onClick={openEditModal} title="Edytuj fiszkę">
             <svg
               fill="none"
