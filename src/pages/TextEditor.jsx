@@ -41,18 +41,23 @@ const StyledContainer = styled.div`
 `;
 
 const StyledHeader = styled.div`
-  position: sticky;
   width: 100%;
   display: flex;
   flex-flow: column;
   align-items: center;
+  background-color: ${({ theme }) => theme.colors.lightGrey};
+`;
+
+const StickyToolbar = styled.div`
+  position: sticky;
   top: 0;
+  width: 100%;
   z-index: 10;
   background-color: ${({ theme }) => theme.colors.lightGrey};
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
-  @media (max-width: 768px) {
-    position: relative;
-  }
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 const StyledTitleInput = styled.input`
@@ -295,8 +300,7 @@ const TopControlsWrapper = styled.div`
   width: 65%;
   display: flex;
   align-items: center;
-  padding-top: ${({ $collapsed }) => ($collapsed ? "15px" : "35px")};
-  transition: padding 0.35s ease;
+  padding-top: 35px;
   z-index: 11;
 
   @media (max-width: 768px) {
@@ -332,15 +336,6 @@ const CollapsingSection = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  overflow: hidden;
-  max-height: ${({ $collapsed }) => ($collapsed ? "0" : "300px")};
-  opacity: ${({ $collapsed }) => ($collapsed ? "0" : "1")};
-  transition: max-height 0.35s ease, opacity 0.25s ease;
-  @media (max-width: 768px) {
-    max-height: 300px;
-    opacity: 1;
-    overflow: visible;
-  }
 `;
 
 const RenameErrorWrapper = styled.div`
@@ -582,8 +577,7 @@ const TextEditor = () => {
   const saveTimeout = useRef(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [flashcards, setFlashcards] = useState([]);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const collapsingSectionRef = useRef(null);
+
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const mobileMenuRef = useRef(null);
@@ -857,27 +851,8 @@ const TextEditor = () => {
     };
     document.addEventListener("keydown", handler);
 
-    const handleScroll = () => {
-      const y = window.scrollY;
-      setIsScrolled((prev) => {
-        if (prev && y <= 10) return false;
-        if (!prev && y > 10) {
-          const collapseHeight =
-            collapsingSectionRef.current?.scrollHeight || 0;
-          const maxScrollAfterCollapse =
-            document.documentElement.scrollHeight -
-            collapseHeight -
-            window.innerHeight;
-          return maxScrollAfterCollapse > 10;
-        }
-        return prev;
-      });
-    };
-    window.addEventListener("scroll", handleScroll);
-
     return () => {
       document.removeEventListener("keydown", handler);
-      window.removeEventListener("scroll", handleScroll);
     };
   }, [id, socialId]);
 
@@ -1053,7 +1028,7 @@ const TextEditor = () => {
             </>
           )}
 
-          <TopControlsWrapper $collapsed={isScrolled}>
+          <TopControlsWrapper>
             <ReturnButton onClick={() => history.back()}>
               <svg
                 width="20"
@@ -1082,7 +1057,7 @@ const TextEditor = () => {
             onClose={() => setIsAIModalOpen(false)}
             noteId={id}
           />
-          <CollapsingSection ref={collapsingSectionRef} $collapsed={isScrolled}>
+          <CollapsingSection>
             {renameNoteError && (
               <RenameErrorWrapper>
                 <Text
@@ -1175,8 +1150,8 @@ const TextEditor = () => {
             )}
             <TagsDivider />
           </CollapsingSection>
-          {!isReadOnly && <TextEditorFormatting editor={editor} />}
         </StyledHeader>
+        {!isReadOnly && <StickyToolbar><TextEditorFormatting editor={editor} /></StickyToolbar>}
         {errorMessage && <Text color="danger" text={errorMessage} />}
         <ContentContainer
           onClick={(e) => {
