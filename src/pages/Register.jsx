@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import EmailStep from "../components/organisms/register/EmailStep";
 import AccountDataStep from "../components/organisms/register/AccountDataStep";
 import VerificationStep from "../components/organisms/register/VerificationStep";
@@ -121,6 +121,7 @@ const StyledPopup = styled.div`
 
 const Register = () => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const location = useLocation();
 
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
@@ -151,6 +152,9 @@ const Register = () => {
         <StyledBox>
           <Logo size="small" />
           <StyledTitleImage src="/icons/UniON.PNG" alt="UniON" />
+          {step == 1 && location.state && (
+            <Text color="danger" text="Twoje konto nie jest jeszcze zweryfikowane. Wpisz swój adres e-mail, aby zweryfikować konto." />
+          )}
           {step == 1 && (
             <EmailStep
               email={email}

@@ -145,7 +145,9 @@ const Login = () => {
     setErrorMessage("");
     setSubmitting(true);
     const result = await loginRequest(login, password);
-    if (result.errorCode) {
+    if (result.errorCode === "EMAIL_NOT_VERIFIED") {
+      navigate("/register", { state: true });
+    } else if (result.errorCode) {
       setErrorMessage(result.message);
       setSubmitting(false);
     } else {

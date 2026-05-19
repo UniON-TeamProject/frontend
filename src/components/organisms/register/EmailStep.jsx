@@ -78,13 +78,14 @@ const EmailStep = ({
     setErrorMessage("");
     setSubmitting(true);
     const result = await emailVerificationRequest(email);
+    setSubmitting(false);
     if (result.errorCode && result.errorCode != "EMAIL_AVAILABLE") {
+      if (result.errorCode == "EMAIL_NOT_VERIFIED") {
+        setStep(3);
+        return;
+      }
       setErrorMessage(result.message);
-      setSubmitting(false);
-      if (
-        result.errorCode == "EMAIL_TAKEN" ||
-        result.errorCode == "EMAIL_NOT_VERIFIED"
-      ) {
+      if (result.errorCode == "EMAIL_TAKEN") {
         setEmailError(true);
         return;
       }

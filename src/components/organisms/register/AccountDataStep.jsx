@@ -205,11 +205,8 @@ const AccountDataStep = ({
       setErrorMessage(result.message);
       if (result.errorCode == "USERNAME_TAKEN") setUsernameError(true);
       else if (result.errorCode == "USERNAME_AVAILABLE") setUsernameValid(true);
-      else if (
-        result.errorCode == "EMAIL_TAKEN" ||
-        result.errorCode == "EMAIL_NOT_VERIFIED"
-      )
-        setEmailError(true);
+      else if (result.errorCode == "EMAIL_NOT_VERIFIED") setStep(3);
+      else if (result.errorCode == "EMAIL_TAKEN") setEmailError(true);
     } else setStep(3);
   };
 

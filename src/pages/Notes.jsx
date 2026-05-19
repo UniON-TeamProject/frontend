@@ -1437,11 +1437,19 @@ const Notes = () => {
   const handleOpenFolder = (folder) => {
     if (activeFolderOptionsId !== null || activeNoteOptionsId !== null) return;
     setSearchQuery("");
-    const encodedName = encodeURIComponent(folder.name);
-    const newUrl = urlPath
-      ? `/notes/${urlPath}/${encodedName}`
-      : `/notes/${encodedName}`;
-    navigate(newUrl);
+    if (isTrashView) {
+      const segments =
+        folder.path === "/"
+          ? [folder.name]
+          : [...folder.path.split("/").filter(Boolean), folder.name];
+      navigate(`/notes/trash/${segments.map(encodeURIComponent).join("/")}`);
+    } else {
+      const encodedName = encodeURIComponent(folder.name);
+      const newUrl = urlPath
+        ? `/notes/${urlPath}/${encodedName}`
+        : `/notes/${encodedName}`;
+      navigate(newUrl);
+    }
   };
 
   const handleBreadcrumbClick = (index) => {

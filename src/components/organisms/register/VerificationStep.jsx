@@ -63,7 +63,7 @@ const VerificationStep = ({ email, setStep, setSuccessPopupActive, setSuccessPop
 
     return (
         <>
-            <Text text={`Na adres ${email} został wysłany kod weryfikacyjny`} />
+            <Text color="success" text={`Na adres ${email} został wysłany kod weryfikacyjny`} />
             {errorMessage && <Text color="danger" text={errorMessage} />}
             <Text text="Wpisz kod weryfikacyjny:" />
             <div onKeyDown={(e) => {
