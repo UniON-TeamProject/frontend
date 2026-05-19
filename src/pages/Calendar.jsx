@@ -2989,11 +2989,8 @@ const Calendar = () => {
                         const tag = available.find((t) => t.key === ft);
                         return {
                           key: ft,
-                          label: tag
-                            ? tag.icon
-                              ? `${tag.icon} ${tag.label}`
-                              : tag.label
-                            : ft,
+                          icon: tag?.icon || null,
+                          label: tag ? tag.label : ft,
                           type: "tag",
                         };
                       }),
@@ -3011,7 +3008,7 @@ const Calendar = () => {
                       <ChipsScroll>
                         {[...allSelected].reverse().map((s) => (
                           <SelectedChip key={s.key}>
-                            {s.label}
+                            {s.icon && <>{s.icon}{" "}</>}{s.label}
                             <SelectedChipRemove
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -3083,14 +3080,9 @@ const Calendar = () => {
                         <DropdownMobileSearch>
                           {filterTags.map((ft) => {
                             const tag = available.find((t) => t.key === ft);
-                            const label = tag
-                              ? tag.icon
-                                ? `${tag.icon} ${tag.label}`
-                                : tag.label
-                              : ft;
                             return (
                               <SelectedChip key={ft}>
-                                {label}
+                                {tag?.icon && <>{tag.icon}{" "}</>}{tag ? tag.label : ft}
                                 <SelectedChipRemove
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -3161,7 +3153,7 @@ const Calendar = () => {
                                 >
                                   {filterTags.includes(t.key) && "✓"}
                                 </DropdownCheck>
-                                {t.icon ? `${t.icon} ` : ""}
+                                {t.icon && <>{t.icon}{" "}</>}
                                 {t.label}
                               </DropdownItem>
                             ))}

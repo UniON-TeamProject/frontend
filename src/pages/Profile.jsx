@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import styled, { keyframes } from "styled-components";
 import Layout from "../components/organisms/Layout";
+import LegalModal from "../components/organisms/LegalModal";
 import {
   getProfile,
   changeUsername,
@@ -241,6 +242,7 @@ const ModalBox = styled.div`
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
 `;
 
+
 const ModalTitle = styled.h3`
   color: ${({ theme }) => theme.colors.veryDarkPrimary};
   margin: 0 0 10px 0;
@@ -297,7 +299,6 @@ const AvatarOption = styled.button`
     display: block;
   }
 `;
-
 
 const DangerCard = styled(CardBox)`
   border: 1px solid rgba(239, 68, 68, 0.35);
@@ -850,7 +851,7 @@ const Profile = () => {
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
               )}
-              {(!loading && avatarId === 0) && getInitials(username)}
+              {!loading && avatarId === 0 && getInitials(username)}
             </AvatarButton>
             <IdentityText>
               <IdentityName>{username || "Użytkownik"}</IdentityName>
@@ -1183,27 +1184,11 @@ const Profile = () => {
         )}
 
         {termsOpen && (
-          <ModalBackdrop onClick={() => setTermsOpen(false)}>
-            <ModalBox onClick={(e) => e.stopPropagation()}>
-              <ModalTitle>Regulamin</ModalTitle>
-              <ModalText>Tu wpiszemy regulamin</ModalText>
-              <ModalClose onClick={() => setTermsOpen(false)}>
-                Zamknij
-              </ModalClose>
-            </ModalBox>
-          </ModalBackdrop>
+          <LegalModal type="terms" onClose={() => setTermsOpen(false)} />
         )}
 
         {privacyOpen && (
-          <ModalBackdrop onClick={() => setPrivacyOpen(false)}>
-            <ModalBox onClick={(e) => e.stopPropagation()}>
-              <ModalTitle>Polityka prywatności</ModalTitle>
-              <ModalText>Tu wpiszemy politykę prywatności</ModalText>
-              <ModalClose onClick={() => setPrivacyOpen(false)}>
-                Zamknij
-              </ModalClose>
-            </ModalBox>
-          </ModalBackdrop>
+          <LegalModal type="privacy" onClose={() => setPrivacyOpen(false)} />
         )}
 
         {deleteModalOpen && (

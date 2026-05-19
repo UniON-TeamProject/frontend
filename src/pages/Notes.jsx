@@ -1160,7 +1160,6 @@ const Notes = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const [isSuccess, setIsSuccess] = useState(false);
-
   const [folderCounts, setFolderCounts] = useState({});
 
   //czytamy z localstorage ostatni wybor i zapamietujemy
@@ -1419,7 +1418,7 @@ const Notes = () => {
     }
 
     const folders = res.subFolders || [];
-    if (folders.length > 0) {
+    if (!isTrashView && folders.length > 0) {
       const counts = {};
       await Promise.all(
         folders.map(async (folder) => {
@@ -1695,6 +1694,7 @@ const Notes = () => {
           setIsFilterMenuOpen(false);
         }}
       >
+
         <StyledHeader>
           {pathSegments.length === 0 ? (
             <StyledName>Notatki</StyledName>

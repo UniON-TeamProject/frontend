@@ -942,6 +942,7 @@ const CalendarGrid = ({
     return (now.getHours() - startHour) * 60 + now.getMinutes();
   });
   const weekBodyRef = useRef(null);
+  const weekContainerRef = useRef(null);
   const monthGridRef = useRef(null);
   const [monthGridHeight, setMonthGridHeight] = useState(0);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
@@ -963,10 +964,23 @@ const CalendarGrid = ({
   }, [startHour]);
 
   useEffect(() => {
-    if (weekBodyRef.current) {
-      weekBodyRef.current.scrollTop = 8 * 60;
-    }
-  }, [view, currentDate]);
+    const id = setTimeout(() => {
+      if (isMobile) {
+        const container = weekContainerRef.current;
+        const body = weekBodyRef.current;
+        if (!container || !body) return;
+        const allDayArea = body.previousElementSibling;
+        const allDayHeight =
+          allDayArea && allDayArea !== container.firstElementChild
+            ? allDayArea.offsetHeight
+            : 0;
+        container.scrollTop = allDayHeight + 8 * 40;
+      } else {
+        if (weekBodyRef.current) weekBodyRef.current.scrollTop = 8 * 60;
+      }
+    }, 0);
+    return () => clearTimeout(id);
+  }, [view, currentDate, isMobile]);
 
   useEffect(() => {
     const el = monthGridRef.current;
@@ -1044,7 +1058,7 @@ const CalendarGrid = ({
     const slotHeight = isMobile ? 40 : 60;
 
     return (
-      <WeekContainer>
+      <WeekContainer ref={weekContainerRef}>
         <WeekHeader>
           <WeekHeaderSpacer />
           {days.map((day, i) => {

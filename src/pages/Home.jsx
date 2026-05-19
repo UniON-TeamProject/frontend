@@ -57,6 +57,7 @@ const StyledContainer = styled.div`
 
   @media (max-width: 768px) {
     padding: 16px 12px 20px;
+    gap: 15px;
   }
 `;
 
@@ -111,6 +112,9 @@ const DashboardLayout = styled.div`
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
   }
+  @media (max-width: 768px) {
+    display: contents;
+  }
 `;
 
 const LeftColumn = styled.div`
@@ -120,6 +124,9 @@ const LeftColumn = styled.div`
   height: 100%;
   justify-content: space-between;
   min-width: 0;
+  @media (max-width: 768px) {
+    display: contents;
+  }
 `;
 
 const RightColumn = styled.div`
@@ -128,6 +135,9 @@ const RightColumn = styled.div`
   gap: 15px;
   height: 100%;
   min-width: 0;
+  @media (max-width: 768px) {
+    display: contents;
+  }
 `;
 
 const CardBox = styled.div`
@@ -148,12 +158,14 @@ const FiszkiBox = styled(CardBox)`
   min-height: 250px;
   @media (max-width: 768px) {
     min-height: unset;
+    order: 3;
   }
 `;
 const NotatkiBox = styled(CardBox)`
   min-height: 250px;
   @media (max-width: 768px) {
     min-height: unset;
+    order: 4;
   }
 `;
 const DeadlinesBox = styled(CardBox)`
@@ -161,6 +173,7 @@ const DeadlinesBox = styled(CardBox)`
   min-height: 250px;
   @media (max-width: 768px) {
     min-height: unset;
+    order: 2;
   }
 `;
 const CalendarBox = styled(CardBox)`
@@ -172,12 +185,16 @@ const CalendarBox = styled(CardBox)`
     height: auto;
     overflow: visible;
   }
+  @media (max-width: 768px) {
+    order: 1;
+  }
 `;
 const SocialBox = styled(CardBox)`
   flex: 1;
   min-height: 250px;
   @media (max-width: 768px) {
     min-height: unset;
+    order: 5;
   }
 `;
 
@@ -191,8 +208,7 @@ const BottomRow = styled.div`
     grid-template-columns: 1fr;
   }
   @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    gap: 15px;
+    display: contents;
   }
 `;
 

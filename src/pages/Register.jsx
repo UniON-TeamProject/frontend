@@ -7,6 +7,7 @@ import VerificationStep from "../components/organisms/register/VerificationStep"
 import EmailVerifiedStep from "../components/organisms/register/EmailVerifiedStep";
 import Logo from "../components/atoms/Logo";
 import Text from "../components/atoms/Text";
+import LegalModal from "../components/organisms/LegalModal";
 
 const StyledContainer = styled.div`
   width: 100%;
@@ -85,20 +86,22 @@ const SuccessPopup = styled.div`
 `;
 
 const StyledPopup = styled.div`
-  position: absolute;
+  position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 1000px;
-  min-height: 80vh;
+  width: min(1000px, 90vw);
+  max-height: 85vh;
+  overflow-y: auto;
   padding: 60px;
   border-radius: 5px;
   background-color: ${({ theme }) => theme.colors.white};
   text-align: center;
+  z-index: 1000;
   .closeButton {
-    position: absolute;
-    top: 40px;
-    right: 40px;
+    position: sticky;
+    top: 0;
+    float: right;
     width: 30px;
     height: 30px;
     border-radius: 100%;
@@ -111,7 +114,7 @@ const StyledPopup = styled.div`
     }
   }
   @media (max-width: 768px) {
-    width: 90%;
+    padding: 40px 24px;
     border: 1px solid black;
   }
 `;
@@ -194,32 +197,10 @@ const Register = () => {
         </StyledLoginButton>
       </StyledContent>
       {termsOfServiceOpen && (
-        <StyledPopup onClick={(e) => e.stopPropagation()}>
-          <div
-            className="closeButton"
-            onClick={() => setTermsOfServiceOpen(false)}
-          >
-            <svg fill="currentColor" viewBox="0 0 16 16">
-              <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708" />
-            </svg>
-          </div>
-          <Text bold="true" as="h2" text="Regulamin" />
-          <p>Tu wpiszemy regulamin</p>
-        </StyledPopup>
+        <LegalModal type="terms" onClose={() => setTermsOfServiceOpen(false)} />
       )}
       {privacyStatementOpen && (
-        <StyledPopup onClick={(e) => e.stopPropagation()}>
-          <div
-            className="closeButton"
-            onClick={() => setPrivacyStatementOpen(false)}
-          >
-            <svg fill="currentColor" viewBox="0 0 16 16">
-              <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708" />
-            </svg>
-          </div>
-          <Text bold="true" as="h2" text="Polityka prywatności" />
-          <p>Tu wpiszemy politykę prywatności</p>
-        </StyledPopup>
+        <LegalModal type="privacy" onClose={() => setPrivacyStatementOpen(false)} />
       )}
     </StyledContainer>
   );

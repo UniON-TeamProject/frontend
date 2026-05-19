@@ -41,6 +41,14 @@ const StyledBox = styled.div`
   }
 `;
 
+const StyledTitleImage = styled.img`
+  height: 40px;
+  width: auto;
+  margin: 10px auto;
+  display: block;
+  object-fit: contain;
+`;
+
 const StyledTitle = styled.h2`
   width: 100%;
   padding: 0;
@@ -174,7 +182,7 @@ const ForgotPassword = () => {
       <StyledContent>
         <StyledBox>
           <Logo size="big" />
-          <Text as="h2" bold="true" text="UniON" />
+          <StyledTitleImage src="/icons/UniON.PNG" alt="UniON" />
           {step == 1 && (
             <>
               <StyledTitle>Zresetuj hasło</StyledTitle>

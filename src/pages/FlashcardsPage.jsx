@@ -122,6 +122,7 @@ const StyledSearchInput = styled.div`
     padding: 10px 14px;
     gap: 6px;
     width: 100%;
+    border-radius: 12px;
 
     > input {
       font-size: 16px;
@@ -773,6 +774,32 @@ const CardsFormContainer = styled.div`
   margin: 0 auto 100px auto;
 `;
 
+const AddByTagRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+  }
+`;
+
+const AddByTagActions = styled.div`
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: 16px;
+  @media (max-width: 768px) {
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
+    font-size: 0.75rem;
+    button {
+      font-size: 0.75rem;
+    }
+  }
+`;
+
 const CardInputRow = styled.div`
   display: flex;
   gap: 30px;
@@ -797,6 +824,27 @@ const SideLabel = styled.label`
   color: ${({ theme }) => theme.colors.textMuted};
   margin-bottom: 10px;
   text-transform: uppercase;
+`;
+
+const TagsDivider = styled.hr`
+  display: none;
+  border: none;
+  border-top: 1px solid ${({ theme }) => theme.colors.borderLight};
+  margin: 4px 0 8px;
+  @media (max-width: 768px) {
+    display: block;
+  }
+`;
+
+const CardSideContent = styled.div`
+  font-size: 0.95rem;
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+    p {
+      font-size: 0.8rem;
+      margin: 0;
+    }
+  }
 `;
 
 const StyledCardTextarea = styled.textarea`
@@ -1009,12 +1057,15 @@ const ActionBanner = styled.div`
   padding: 12px 25px;
   font-size: 0.95rem;
   font-weight: 600;
-  color: ${({ theme, $disabled }) => $disabled ? theme.colors.darkGrey : theme.colors.text};
-  cursor: ${({ $disabled }) => $disabled ? "not-allowed" : "pointer"};
-  opacity: ${({ $disabled }) => $disabled ? 0.6 : 1};
+  color: ${({ theme, $disabled }) =>
+    $disabled ? theme.colors.darkGrey : theme.colors.text};
+  cursor: ${({ $disabled }) => ($disabled ? "not-allowed" : "pointer")};
+  opacity: ${({ $disabled }) => ($disabled ? 0.6 : 1)};
   transition: background-color 0.2s, opacity 0.2s;
 
-  ${({ $disabled, theme }) => !$disabled && `
+  ${({ $disabled, theme }) =>
+    !$disabled &&
+    `
     &:hover {
       background-color: ${theme.colors.darkGrey};
       color: ${theme.colors.white};
@@ -1168,6 +1219,7 @@ const SelectionBar = styled.div`
     padding: 10px 14px;
     border-radius: 14px;
     width: calc(100vw - 32px);
+    min-width: unset;
   }
 `;
 
@@ -1505,7 +1557,7 @@ const NoteLinkButton = styled.button`
   &:hover {
     background-color: ${({ theme }) => theme.colors.lightGrey};
   }
-  
+
   svg {
     width: 14px;
     height: 14px;
@@ -1749,17 +1801,17 @@ const FlashcardsPage = () => {
     if (setId && !isTrashView) {
       const parsedId = parseInt(setId);
       let targetSet = safeSets.find((s) => s.id === parsedId);
-      
+
       const sId = new URLSearchParams(location.search).get("socialId");
 
       const singleRes = await getFlashcardSet(parsedId, sId);
       if (!singleRes.errorCode && singleRes.id) {
-          if (targetSet) {
-             Object.assign(targetSet, singleRes);
-          } else {
-             safeSets = [...safeSets, singleRes];
-             targetSet = singleRes;
-          }
+        if (targetSet) {
+          Object.assign(targetSet, singleRes);
+        } else {
+          safeSets = [...safeSets, singleRes];
+          targetSet = singleRes;
+        }
       }
 
       if (!targetSet) {
@@ -2017,7 +2069,7 @@ const FlashcardsPage = () => {
   useEffect(() => {
     const checkLearningSession = async () => {
       if (activeSetId && !isTrashView) {
-        setHasLearningSession(null); 
+        setHasLearningSession(null);
         const res = await getFlashcardSetStats(activeSetId);
         if (!res.errorCode && res.stats > 0) {
           setHasLearningSession(true);
@@ -2761,6 +2813,8 @@ const FlashcardsPage = () => {
                     onClick={(e) => {
                       if (sets.length === 0) return;
                       e.stopPropagation();
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      setFilterDropdownY(rect.bottom + 8);
                       setIsFilterMenuOpen(!isFilterMenuOpen);
                     }}
                   >
@@ -2785,7 +2839,7 @@ const FlashcardsPage = () => {
 
                   {/* MENU FILTRÓW */}
                   {isFilterMenuOpen && (
-                    <FilterDropdown onClick={(e) => e.stopPropagation()}>
+                    <FilterDropdown $filterDropdownY={filterDropdownY} onClick={(e) => e.stopPropagation()}>
                       <Text
                         bold="true"
                         text="Filtruj po tagach"
@@ -2900,7 +2954,7 @@ const FlashcardsPage = () => {
               <StyledName style={{ fontSize: "2rem", margin: 0 }}>
                 {currentSet?.name}
               </StyledName>
-              
+
               {currentSet?.tags &&
                 currentSet.tags.length > 0 &&
                 !isAddingMode &&
@@ -2912,15 +2966,21 @@ const FlashcardsPage = () => {
                   </TagsContainer>
                 )}
 
-              {(currentSet?.noteId !== undefined && currentSet?.noteId > 0) && (
-                <NoteLinkButton 
+              {currentSet?.noteId !== undefined && currentSet?.noteId > 0 && (
+                <NoteLinkButton
                   style={{ marginLeft: "auto" }}
-                  onClick={() => navigate(`/note/${currentSet.noteId}${socialId ? `?socialId=${socialId}` : ''}`)}
+                  onClick={() =>
+                    navigate(
+                      `/note/${currentSet.noteId}${
+                        socialId ? `?socialId=${socialId}` : ""
+                      }`
+                    )
+                  }
                   title="Przejdź do notatki źródłowej"
                 >
                   <svg fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M5 10.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5"/>
-                    <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2"/>
+                    <path d="M5 10.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5" />
+                    <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2" />
                     <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z" />
                   </svg>
                   Otwórz notatkę
@@ -3010,7 +3070,7 @@ const FlashcardsPage = () => {
                       $disabled={hasLearningSession === false}
                       onClick={() => {
                         if (hasLearningSession !== false) {
-                           navigate(`/learning/fast/${currentSet?.id}`);
+                          navigate(`/learning/fast/${currentSet?.id}`);
                         }
                       }}
                     >
@@ -3515,9 +3575,7 @@ const FlashcardsPage = () => {
         {activeSetId && isAddByTagMode && (
           <CardsFormContainer>
             <CardInputRow style={{ flexDirection: "column", gap: "16px" }}>
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "12px" }}
-              >
+              <AddByTagRow>
                 <TagSearchContainer ref={tagSearchRef} style={{ flex: 1 }}>
                   <TagMultiselectInput
                     $open={showTagDropdown}
@@ -3738,15 +3796,7 @@ const FlashcardsPage = () => {
                     })()}
                 </TagSearchContainer>
                 {!isLoadingCards && foundCards.length > 0 && (
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "8px",
-                      alignItems: "center",
-                      flexShrink: 0,
-                      marginLeft: "16px",
-                    }}
-                  >
+                  <AddByTagActions>
                     <span
                       style={{
                         fontSize: "0.85rem",
@@ -3768,7 +3818,6 @@ const FlashcardsPage = () => {
                         color: theme.colors.white,
                         border: "none",
                         borderRadius: "6px",
-                        fontSize: "0.85rem",
                         fontWeight: "600",
                         cursor: "pointer",
                         whiteSpace: "nowrap",
@@ -3784,7 +3833,6 @@ const FlashcardsPage = () => {
                         color: theme.colors.text,
                         border: `1px solid ${theme.colors.borderLight}`,
                         borderRadius: "6px",
-                        fontSize: "0.85rem",
                         fontWeight: "500",
                         cursor: "pointer",
                         whiteSpace: "nowrap",
@@ -3792,9 +3840,9 @@ const FlashcardsPage = () => {
                     >
                       Wyczyść
                     </button>
-                  </div>
+                  </AddByTagActions>
                 )}
-              </div>
+              </AddByTagRow>
 
               {isLoadingCards && (
                 <div style={{ textAlign: "center", padding: "20px" }}>
@@ -3893,8 +3941,7 @@ const FlashcardsPage = () => {
                   >
                     <div>
                       <SideLabel>Przód</SideLabel>
-                      <div
-                        style={{ fontSize: "0.95rem" }}
+                      <CardSideContent
                         dangerouslySetInnerHTML={{
                           __html: card.contentFirstSide,
                         }}
@@ -3902,14 +3949,15 @@ const FlashcardsPage = () => {
                     </div>
                     <div>
                       <SideLabel>Tył</SideLabel>
-                      <div
-                        style={{ fontSize: "0.95rem" }}
+                      <CardSideContent
                         dangerouslySetInnerHTML={{
                           __html: card.contentFlipSide,
                         }}
                       />
                     </div>
                     {card.cardTags && card.cardTags.length > 0 && (
+                      <div>
+                      <TagsDivider />
                       <div
                         style={{
                           display: "flex",
@@ -3934,6 +3982,7 @@ const FlashcardsPage = () => {
                             {tag}
                           </div>
                         ))}
+                      </div>
                       </div>
                     )}
                   </div>
