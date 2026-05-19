@@ -29,8 +29,8 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
       },
       manifest: {
-        name: "Union",
-        short_name: "Union",
+        name: "UniON",
+        short_name: "UniON",
         icons: manifestIcons,
       },
     }),
