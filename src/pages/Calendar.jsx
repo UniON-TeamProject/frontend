@@ -653,54 +653,70 @@ const DocTagChip = styled.button`
   }
 `;
 
-const DocTagPopupOverlay = styled.div`
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.3);
-  z-index: 100;
+const TagDropdown = styled.div`
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 4px;
+  border: 1px solid ${({ theme }) => theme.colors.primary};
+`;
+
+const TagDropdownHeader = styled.button`
+  width: 100%;
   display: flex;
   align-items: center;
-  justify-content: center;
-  animation: ${fadeInOverlay} 0.2s ease;
-`;
-
-const DocTagPopupBox = styled.div`
-  background: ${({ theme }) => theme.colors.pageBg};
-  border-radius: 12px;
-  padding: 20px;
-  min-width: 340px;
-  max-width: 480px;
-  max-height: 70vh;
-  overflow-y: auto;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-  animation: ${scaleIn} 0.2s ease;
-`;
-
-const DocTagPopupTitle = styled.h3`
-  font-size: 16px;
-  font-weight: 700;
-  color: ${({ theme }) => theme.colors.text};
-  margin: 0 0 16px;
-`;
-
-const DocTagPopupSection = styled.div`
-  margin-bottom: 12px;
-`;
-
-const DocTagPopupSectionLabel = styled.div`
+  justify-content: space-between;
+  padding: 5px 8px;
+  background: ${({ $open, theme }) =>
+    $open ? theme.colors.primary : theme.colors.lightPrimary};
+  color: ${({ theme }) => theme.colors.secondary};
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
   font-size: 11px;
+  font-weight: 600;
+  transition: background 0.15s;
+  &:hover {
+    background: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
+const TagDropdownChevron = styled.span`
+  font-size: 10px;
+  transition: transform 0.2s;
+  transform: ${({ $open }) => ($open ? "rotate(180deg)" : "rotate(0deg)")};
+  display: inline-block;
+`;
+
+const TagDropdownSlider = styled.div`
+  display: grid;
+  grid-template-rows: ${({ $open }) => ($open ? "1fr" : "0fr")};
+  transition: grid-template-rows 0.25s ease;
+`;
+
+const TagDropdownContent = styled.div`
+  background: ${({ theme }) => theme.colors.pageBg};
+  overflow: hidden;
+  padding: ${({ $open }) => ($open ? "8px 10px" : "0 10px")};
+  transition: padding 0.25s ease;
+`;
+
+const TagDropdownSubLabel = styled.div`
+  font-size: 9px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: ${({ theme }) => theme.colors.textMuted};
-  margin-bottom: 6px;
+  margin: 6px 0 3px;
+  &:first-child {
+    margin-top: 0;
+  }
 `;
 
-const DocTagPopupItem = styled.a`
+const TagDropdownItem = styled.a`
   display: block;
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 13px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-size: 12px;
   font-weight: 500;
   color: ${({ theme }) => theme.colors.text};
   text-decoration: none;
@@ -710,10 +726,10 @@ const DocTagPopupItem = styled.a`
   }
 `;
 
-const DocTagPopupEmpty = styled.div`
-  font-size: 13px;
+const TagDropdownEmpty = styled.div`
+  font-size: 11px;
   color: ${({ theme }) => theme.colors.textLight};
-  padding: 8px 0;
+  padding: 2px 6px 4px;
 `;
 
 const SidebarSection = styled.div`
@@ -1445,8 +1461,7 @@ const Calendar = () => {
   const [searchText, setSearchText] = useState("");
   const searchRef = useRef(null);
   const searchInputRef = useRef(null);
-  const [docTagPopup, setDocTagPopup] = useState(null); // { tag, notes, sets }
-  const [docTagLoading, setDocTagLoading] = useState(false);
+  const [tagDropdownData, setExpandedTagData] = useState({}); // { [key]: { loading, notes, sets } }
   const [tagScopePopup, setTagScopePopup] = useState(null); // { allTags, saveRegularTags, recurrenceRule, startISO, endISO, parsedDate, parsedEndDate, sh, sm, eh, em }
 
   const refreshEvents = async () => {
@@ -1511,13 +1526,21 @@ const Calendar = () => {
     });
   }, [currentDate, view]);
 
-  const handleDocTagClick = async (tagName) => {
-    setDocTagLoading(true);
+  const handleTagDropdownToggle = async (key, tagName) => {
+    if (tagDropdownData[key]) {
+      setExpandedTagData((prev) => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+      return;
+    }
+    setExpandedTagData((prev) => ({ ...prev, [key]: { loading: true, notes: [], sets: [] } }));
     const res = await getContentByTag(tagName);
-    const notes = res.notes || [];
-    const sets = res.cardSets || [];
-    setDocTagPopup({ tag: tagName, notes, sets });
-    setDocTagLoading(false);
+    setExpandedTagData((prev) => ({
+      ...prev,
+      [key]: { loading: false, notes: res.notes || [], sets: res.cardSets || [] },
+    }));
   };
 
   const handleUsosImport = () => {
@@ -2042,14 +2065,66 @@ const Calendar = () => {
 
               {(ev.regularTags || []).length > 0 && (
                 <SidebarSection>
-                  <SidebarSectionLabel>Tagi</SidebarSectionLabel>
-                  <SidebarTagRow>
-                    {(ev.regularTags || []).map((t) => (
-                      <DocTagChip key={t} onClick={() => handleDocTagClick(t)}>
-                        {t}
-                      </DocTagChip>
-                    ))}
-                  </SidebarTagRow>
+                  <SidebarSectionLabel>Materiały do nauki</SidebarSectionLabel>
+                  {(ev.regularTags || []).map((t) => {
+                    const key = `${ev.id}_${t}`;
+                    const data = tagDropdownData[key];
+                    const isOpen = !!data;
+                    return (
+                      <TagDropdown key={t}>
+                        <TagDropdownHeader
+                          $open={isOpen}
+                          onClick={() => handleTagDropdownToggle(key, t)}
+                        >
+                          <span>{t}</span>
+                          <TagDropdownChevron $open={isOpen}>▾</TagDropdownChevron>
+                        </TagDropdownHeader>
+                        <TagDropdownSlider $open={isOpen}>
+                          <TagDropdownContent $open={isOpen}>
+                            {!data ? null : data.loading ? (
+                              <TagDropdownEmpty>Ładowanie…</TagDropdownEmpty>
+                            ) : (
+                              <>
+                                {data.notes.length > 0 && (
+                                  <>
+                                    <TagDropdownSubLabel>Dokumenty</TagDropdownSubLabel>
+                                    {data.notes.map((n) => (
+                                      <TagDropdownItem
+                                        key={n.id}
+                                        href={`/note/${n.id}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                      >
+                                        {n.name}
+                                      </TagDropdownItem>
+                                    ))}
+                                  </>
+                                )}
+                                {data.sets.length > 0 && (
+                                  <>
+                                    <TagDropdownSubLabel>Zestawy fiszek</TagDropdownSubLabel>
+                                    {data.sets.map((s) => (
+                                      <TagDropdownItem
+                                        key={s.id}
+                                        href={`/learning/set/${s.id}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                      >
+                                        {s.name || s.title}
+                                      </TagDropdownItem>
+                                    ))}
+                                  </>
+                                )}
+                                {data.notes.length === 0 && data.sets.length === 0 && (
+                                  <TagDropdownEmpty>Brak powiązanych materiałów</TagDropdownEmpty>
+                                )}
+                              </>
+                            )}
+                          </TagDropdownContent>
+                        </TagDropdownSlider>
+                      </TagDropdown>
+                    );
+                  })}
                 </SidebarSection>
               )}
             </SidebarEventCard>
@@ -3413,55 +3488,6 @@ const Calendar = () => {
               </CancelBtn>
             </ScopeBox>
           </ScopeOverlay>
-        )}
-        {docTagPopup && (
-          <DocTagPopupOverlay onClick={() => setDocTagPopup(null)}>
-            <DocTagPopupBox onClick={(e) => e.stopPropagation()}>
-              <DocTagPopupTitle>„{docTagPopup.tag}"</DocTagPopupTitle>
-
-              <DocTagPopupSection>
-                <DocTagPopupSectionLabel>Dokumenty</DocTagPopupSectionLabel>
-                {docTagPopup.notes.length > 0 ? (
-                  docTagPopup.notes.map((n) => (
-                    <DocTagPopupItem
-                      key={n.id}
-                      href={`/note/${n.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {n.name}
-                    </DocTagPopupItem>
-                  ))
-                ) : (
-                  <DocTagPopupEmpty>
-                    Brak pasujących dokumentów
-                  </DocTagPopupEmpty>
-                )}
-              </DocTagPopupSection>
-
-              <DocTagPopupSection>
-                <DocTagPopupSectionLabel>
-                  Zestawy fiszek
-                </DocTagPopupSectionLabel>
-                {docTagPopup.sets.length > 0 ? (
-                  docTagPopup.sets.map((s) => (
-                    <DocTagPopupItem
-                      key={s.id}
-                      href={`/learning/set/${s.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {s.name || s.title}
-                    </DocTagPopupItem>
-                  ))
-                ) : (
-                  <DocTagPopupEmpty>
-                    Brak pasujących zestawów fiszek
-                  </DocTagPopupEmpty>
-                )}
-              </DocTagPopupSection>
-            </DocTagPopupBox>
-          </DocTagPopupOverlay>
         )}
       </Wrapper>
     </Layout>
