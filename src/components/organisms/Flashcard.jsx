@@ -8,6 +8,7 @@ const CardWrapper = styled.div`
   position: relative;
   margin: 10px;
   z-index: ${({ $menuOpen }) => ($menuOpen ? 10 : 0)};
+  touch-action: pan-y pinch-zoom;
 
   @media (max-width: 768px) {
     width: 100%;
@@ -25,6 +26,7 @@ const CardInner = styled.div`
   transition: transform 0.6s ease;
   transform: ${(props) => (props.$isFlipped ? "rotateY(180deg)" : "none")};
   cursor: pointer;
+  -webkit-transform-style: preserve-3d;
 `;
 
 const CardFace = styled.div`
@@ -54,6 +56,8 @@ const CardContent = styled.div`
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
 
   .inner-content {
     margin: auto 0;

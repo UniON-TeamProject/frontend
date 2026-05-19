@@ -41,6 +41,14 @@ const StyledBox = styled.div`
   }
 `;
 
+const StyledTitleImage = styled.img`
+  height: 40px;
+  width: auto;
+  margin: 10px auto;
+  display: block;
+  object-fit: contain;
+`;
+
 const StyledLoginButton = styled.div`
   font-size: 0.9rem;
   display: flex;
@@ -139,7 +147,7 @@ const Register = () => {
       <StyledContent>
         <StyledBox>
           <Logo size="small" />
-          <Text as="h2" bold="true" text="UniON" />
+          <StyledTitleImage src="/icons/UniON.PNG" alt="UniON" />
           {step == 1 && (
             <EmailStep
               email={email}

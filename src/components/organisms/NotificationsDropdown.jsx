@@ -279,8 +279,8 @@ const NotificationsDropdown = ({ onClose, onRefresh }) => {
   };
 
   const handleNotificationClick = async (notif) => {
-    // zaproszenia obsługujemy osobnymi guzikami
-    if (notif.invitationId) return;
+    // zaproszenia do grup obsługujemy osobnymi guzikami
+    if (notif.invitationId && notif.socialGroupId) return;
 
     if (!notif.isRead) {
       await markNotificationAsRead(notif.id);
@@ -293,8 +293,16 @@ const NotificationsDropdown = ({ onClose, onRefresh }) => {
     if (notif.socialGroupId) {
       navigate(`/social/${notif.socialGroupId}`);
       onClose();
+    } else if (
+      // nie mam innego pomyslu po czym to szukac
+      notif.message.toLowerCase().includes("znajom")
+    ) {
+      navigate("/social/friends");
+      onClose();
     }
   };
+
+  const [resolvedInvites, setResolvedInvites] = useState(new Set());
 
   const handleAcceptInvite = async (e, notif) => {
     e.stopPropagation();
@@ -303,17 +311,18 @@ const NotificationsDropdown = ({ onClose, onRefresh }) => {
     const res = await acceptDirectGroupInvitation(notif.invitationId);
 
     if (!res.errorCode) {
-      // odznacza się jako przeczytane
+      // oznaczamy zaproszenie lokalnie jako obsluzone
+      setResolvedInvites((prev) => new Set(prev).add(notif.invitationId));
+      
       await markNotificationAsRead(notif.id);
       if (onRefresh) onRefresh();
 
-      // przekierowujemy do grupy
       navigate(`/social/${notif.socialGroupId}`);
       onClose();
     } else {
       alert(res.message || "Wystąpił błąd podczas akceptacji.");
+      setProcessingInvites((prev) => ({ ...prev, [notif.invitationId]: false }));
     }
-    setProcessingInvites((prev) => ({ ...prev, [notif.invitationId]: false }));
   };
 
   const handleDeclineInvite = async (e, notif) => {
@@ -323,13 +332,15 @@ const NotificationsDropdown = ({ onClose, onRefresh }) => {
     const res = await declineDirectGroupInvitation(notif.invitationId);
 
     if (!res.errorCode) {
-      // odrzucono - odświeżamy listę żeby powiadomienie zniknęło/oznaczyło się jako przeczytane
+      // oznaczamy zaproszenie lokalnie jako obsluzone
+      setResolvedInvites((prev) => new Set(prev).add(notif.invitationId));
+      
       fetchNotifications();
       if (onRefresh) onRefresh();
     } else {
       alert(res.message || "Wystąpił błąd podczas odrzucania.");
+      setProcessingInvites((prev) => ({ ...prev, [notif.invitationId]: false }));
     }
-    setProcessingInvites((prev) => ({ ...prev, [notif.invitationId]: false }));
   };
 
   const handleMarkAllRead = async () => {
@@ -418,25 +429,30 @@ const NotificationsDropdown = ({ onClose, onRefresh }) => {
                   <Time>{formatTime(notif.createdAt)}</Time>
 
                   {/* przyciski akceptacji/odrzucenia tylko jeśli jest zaproszenie i powiadomienie jest nieprzeczytane/aktywne */}
-                  {notif.invitationId && !notif.isRead && (
+                  {notif.invitationId && notif.socialGroupId && !notif.isRead && (
                     <InviteActions>
                       <InviteBtn
                         $accept
-                        disabled={processingInvites[notif.invitationId]}
+                        disabled={
+                          processingInvites[notif.invitationId] || 
+                          notif.isUsed || 
+                          resolvedInvites.has(notif.invitationId)
+                        }
                         onClick={(e) => handleAcceptInvite(e, notif)}
                       >
                         {processingInvites[notif.invitationId]
                           ? "..."
-                          : "Zaakceptuj"}
+                          : notif.isUsed || resolvedInvites.has(notif.invitationId) ? "Zaproszenie zużyte" : "Zaakceptuj"}
                       </InviteBtn>
-                      <InviteBtn
-                        disabled={processingInvites[notif.invitationId]}
-                        onClick={(e) => handleDeclineInvite(e, notif)}
-                      >
-                        {processingInvites[notif.invitationId]
-                          ? "..."
-                          : "Odrzuć"}
-                      </InviteBtn>
+                      
+                      {!(notif.isUsed || resolvedInvites.has(notif.invitationId)) && (
+                        <InviteBtn
+                          disabled={processingInvites[notif.invitationId]}
+                          onClick={(e) => handleDeclineInvite(e, notif)}
+                        >
+                          {processingInvites[notif.invitationId] ? "..." : "Odrzuć"}
+                        </InviteBtn>
+                      )}
                     </InviteActions>
                   )}
                 </Content>

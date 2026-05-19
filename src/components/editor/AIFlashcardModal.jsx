@@ -469,7 +469,7 @@ function AIFlashcardModal({ isOpen, onClose, noteId }) {
 
     let targetId = selectedSetId;
     if (selectedSetId === NEW_SET) {
-      const result = await addFlashcardSet(setName.trim());
+      const result = await addFlashcardSet(setName.trim(), [], null, noteId);
       if (result.errorCode) {
         setPhase("ready");
         setErrorMessage(result.message);

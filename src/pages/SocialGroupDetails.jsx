@@ -34,6 +34,11 @@ const PageContainer = styled.div`
   flex-direction: column;
   opacity: ${({ $ready }) => ($ready ? 1 : 0)};
   transition: opacity 0.2s ease;
+
+  @media (max-width: 768px) {
+    padding: 12px 12px 100px;
+    min-height: calc(100dvh - 70px);
+  }
 `;
 
 const StyledUserHeader = styled.div`
@@ -43,6 +48,11 @@ const StyledUserHeader = styled.div`
   align-items: center;
   margin-bottom: 20px;
   min-height: 60px;
+
+  @media (max-width: 768px) {
+    margin-bottom: 10px;
+    min-height: auto; 
+  }
 `;
 
 const BackButton = styled.div`
@@ -62,6 +72,14 @@ const BackButton = styled.div`
   > svg {
     margin-right: 8px;
   }
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+    
+    > svg {
+      margin-right: 4px;
+    }
+  }
 `;
 
 const HeaderRow = styled.div`
@@ -69,10 +87,17 @@ const HeaderRow = styled.div`
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 30px;
+
+  @media (max-width: 768px) {
+    gap: 15px;
+    margin-bottom: 20px;
+  }
 `;
 
 const TitleArea = styled.div`
   max-width: 800px;
+  flex: 1;
+  min-width: 0;
 `;
 
 const PageTitle = styled.h1`
@@ -81,6 +106,14 @@ const PageTitle = styled.h1`
   font-weight: 800;
   margin: 0 0 10px 0;
   line-height: 1.2;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  @media (max-width: 768px) {
+    font-size: 1.7rem;
+  }
 `;
 
 const PageSubtitle = styled.p`
@@ -88,6 +121,12 @@ const PageSubtitle = styled.p`
   font-size: 1rem;
   margin: 0;
   line-height: 1.5;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
 `;
 
 const SettingsBtn = styled.button`
@@ -111,9 +150,11 @@ const TopCardsGrid = styled.div`
   grid-template-columns: 1.15fr 0.85fr;
   gap: 25px;
   margin-bottom: 40px;
+  box-sizing: border-box;
 
   @media (max-width: 900px) {
     grid-template-columns: 1fr;
+    margin-bottom: 25px;
   }
 `;
 
@@ -125,6 +166,10 @@ const Card = styled.div`
   padding: 25px;
   display: flex;
   flex-direction: column;
+
+  @media (max-width: 768px) {
+    padding: 15px;
+  }
 `;
 
 const CardHeader = styled.div`
@@ -177,10 +222,15 @@ const InviteBox = styled.div`
   gap: 12px 10px;
   margin-top: auto;
   align-items: center;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr; 
+  }
 `;
 
 const InviteInput = styled.input`
   min-width: 110px;
+  width: 100%;
   flex: 1;
   height: 44px;
   padding: 10px 15px;
@@ -191,6 +241,11 @@ const InviteInput = styled.input`
   font-size: 0.9rem;
   outline: none;
   box-sizing: border-box;
+  text-overflow: ellipsis;
+
+  @media (max-width: 768px) {
+    font-size: 16px;
+  }
 `;
 
 const InviteRoleSelect = styled.select`
@@ -248,12 +303,17 @@ const MembersGrid = styled.div`
   grid-template-columns: 1fr 1fr;
   gap: 15px;
   margin-top: 10px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const MemberItem = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
+  min-width: 0;
 `;
 
 const Avatar = styled.div`
@@ -267,17 +327,24 @@ const Avatar = styled.div`
   font-size: 0.9rem;
   font-weight: 700;
   color: ${({ theme }) => theme.colors?.text};
+  overflow: hidden;
 `;
 
 const MemberInfo = styled.div`
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-width: 0;
 `;
 
 const MemberName = styled.span`
   font-size: 0.9rem;
   color: ${({ theme, $isMe }) => $isMe ? theme.colors?.secondary : theme.colors?.text};
   font-weight: 600;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 const MemberRole = styled.span`
@@ -295,6 +362,10 @@ const MaterialsSection = styled.div`
   border: 1px solid ${({ theme }) => theme.colors?.lightGrey};
   padding: 25px 60px;
   flex: 1;
+
+  @media (max-width: 768px) {
+    padding: 15px; 
+  }
 `;
 
 const StyledToolbar = styled.div`
@@ -343,6 +414,11 @@ const ActionRow = styled.div`
   align-items: center;
   margin-bottom: 25px;
   gap: 15px;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
 `;
 
 const StyledSearchInput = styled.div`
@@ -380,6 +456,12 @@ const StyledSearchInput = styled.div`
     color: #a0a0a0;
     flex-shrink: 0;
   }
+
+  @media (max-width: 768px) {
+    > input {
+      font-size: 16px;
+    }
+  }
 `;
 
 const AddMaterialBtn = styled.button`
@@ -396,6 +478,11 @@ const AddMaterialBtn = styled.button`
   gap: 8px;
   transition: opacity 0.2s;
   &:hover { opacity: 0.8; }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: center;
+  }
 `;
 
 const MaterialList = styled.div`
@@ -419,6 +506,12 @@ const MaterialItem = styled.div`
 
   &:hover {
     background: ${({ theme }) => theme.colors?.lightGrey };
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    padding: 15px 15px 15px 0;
+    gap: 12px; 
   }
 `;
 
@@ -444,12 +537,17 @@ const MaterialInfo = styled.div`
   flex-direction: column;
   gap: 5px;
   flex: 1;
+  min-width: 0;
 `;
 
 const MaterialTitle = styled.div`
   font-size: 1.1rem;
   font-weight: 700;
   color: ${({ theme }) => theme.colors?.text};
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 const MaterialMeta = styled.div`
@@ -457,6 +555,10 @@ const MaterialMeta = styled.div`
   color: ${({ theme }) => theme.colors?.darkGrey};
   display: flex;
   align-items: center;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 const OptionsMenuButton = styled.button`
@@ -546,8 +648,8 @@ const StyledPopup = styled.div`
   &::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 4px; }
   
   @media(max-width:768px){
-    width: 90%;
-    padding: 30px;
+    width: 92%;
+    padding: 24px 20px;
   }
 `;
 
@@ -587,6 +689,10 @@ const ModalInput = styled.input`
   &:focus {
     border-color: ${({ theme }) => theme.colors?.secondary};
   }
+
+  @media (max-width: 768px) {
+    font-size: 16px;
+  }
 `;
 
 const ModalTextarea = styled.textarea`
@@ -606,6 +712,10 @@ const ModalTextarea = styled.textarea`
   
   &:focus {
     border-color: ${({ theme }) => theme.colors?.secondary};
+  }
+
+  @media (max-width: 768px) {
+    font-size: 16px;
   }
 `;
 
@@ -700,12 +810,24 @@ const ManageMemberItem = styled.div`
   background: ${({ theme }) => theme.colors?.lightGrey}50;
   border-radius: 12px;
   border: 1px solid transparent;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+  }
 `;
 
 const MemberActions = styled.div`
   display: flex;
   align-items: center;
   gap: 15px;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: space-between; 
+  }
 `;
 
 const TrashButton = styled.button`
@@ -756,7 +878,7 @@ const RoleHelpTooltip = styled.div`
   bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
-  background-color: ${({ theme }) => theme.colors?.veryDarkPrimary};
+  background-color: ${({ theme }) => theme.colors?.takiSmiesznyZielonyAleJasny};
   color: ${({ theme }) => theme.colors?.white};
   font-size: 0.8rem;
   font-weight: 500;
@@ -778,6 +900,21 @@ const RoleHelpTooltip = styled.div`
     border-style: solid;
     border-color: ${({ theme }) => theme.colors?.veryDarkPrimary} transparent transparent transparent;
   }
+
+  @media (max-width: 768px) {
+    bottom: auto;
+    top: calc(100% + 8px);
+    left: -30px;
+    transform: none;
+    width: 250px;
+
+    &::after {
+      top: auto;
+      bottom: 100%;
+      left: 35px;
+      transform: none;
+      border-color: transparent transparent ${({ theme }) => theme.colors?.veryDarkPrimary} transparent;
+    }
 `;
 
 const StackedCardsIcon = () => (
@@ -1244,25 +1381,27 @@ const SocialGroupDetails = () => {
               <>
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '18px', gap: '10px', flexWrap: 'wrap' }}>
                     <span style={{ fontSize: '0.85rem', fontWeight: 600, color: theme.colors?.darkGrey }}>Wybierz rolę zapraszanego:</span>
-                    <InviteRoleSelect 
-                      value={inviteRole} 
-                      onChange={e => {
-                        setInviteRole(e.target.value);
-                        setInviteLink("");
-                      }}
-                      style={{ height: '34px', padding: '0 10px', width: 'auto', border: `2px solid ${theme.colors?.lightGrey}` }}
-                    >
-                      <option value="EDITOR">Edytor</option>
-                      <option value="VIEWER">Obserwator</option>
-                    </InviteRoleSelect>
-                    
-                    <RoleHelpIconWrapper style={{ marginLeft: 0 }}>
-                        ?
-                        <RoleHelpTooltip>
-                            <b style={{ color: theme.colors.secondary }}>Edytor</b> może przeglądać i edytować materiały oraz dodawać nowe.<br/><br/>
-                            <b style={{ color: theme.colors.secondary }}>Obserwator</b> może wyłącznie przeglądać materiały w grupie.
-                        </RoleHelpTooltip>
-                    </RoleHelpIconWrapper>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <InviteRoleSelect 
+                          value={inviteRole} 
+                          onChange={e => {
+                            setInviteRole(e.target.value);
+                            setInviteLink("");
+                          }}
+                          style={{ height: '34px', padding: '0 10px', width: 'auto', border: `2px solid ${theme.colors?.lightGrey}` }}
+                        >
+                          <option value="EDITOR">Edytor</option>
+                          <option value="VIEWER">Obserwator</option>
+                        </InviteRoleSelect>
+                        
+                        <RoleHelpIconWrapper style={{ marginLeft: 0 }}>
+                            ?
+                            <RoleHelpTooltip>
+                                <b style={{ color: theme.colors.secondary }}>Edytor</b> może przeglądać i edytować materiały oraz dodawać nowe.<br/><br/>
+                                <b style={{ color: theme.colors.secondary }}>Obserwator</b> może wyłącznie przeglądać materiały w grupie.
+                            </RoleHelpTooltip>
+                        </RoleHelpIconWrapper>
+                    </div>
                 </div>
 
                 <InviteBox>
@@ -1350,7 +1489,13 @@ const SocialGroupDetails = () => {
                 <>
                   {groupMembers.slice(0, 3).map((member) => (
                     <MemberItem key={member.id} style={{justifyContent: 'flex-start', gap: '15px', padding: '10px 5px'}}>
-                      <Avatar>{member.username.charAt(0).toUpperCase()}</Avatar>
+                      <Avatar>
+                        {member.avatarId && member.avatarId > 0 ? (
+                          <img src={`/icons/avatar${member.avatarId}.png`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          member.username.charAt(0).toUpperCase()
+                        )}
+                      </Avatar>
                       <MemberInfo>
                         <MemberName style={{ fontSize: '1rem' }} $isMe={member.username === currentUser}>
                           {member.username} {member.username === currentUser && "(JA)"}
@@ -1362,7 +1507,13 @@ const SocialGroupDetails = () => {
                   
                   {groupMembers.length === 4 && (
                     <MemberItem key={groupMembers[3].id} style={{justifyContent: 'flex-start', gap: '15px', padding: '10px 5px'}}>
-                      <Avatar>{groupMembers[3].username.charAt(0).toUpperCase()}</Avatar>
+                      <Avatar>
+                        {groupMembers[3].avatarId && groupMembers[3].avatarId > 0 ? (
+                          <img src={`/icons/avatar${groupMembers[3].avatarId}.png`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          groupMembers[3].username.charAt(0).toUpperCase()
+                        )}
+                      </Avatar>
                       <MemberInfo>
                         <MemberName style={{ fontSize: '1rem' }} $isMe={groupMembers[3].username === currentUser}>
                           {groupMembers[3].username} {groupMembers[3].username === currentUser && "(JA)"}
@@ -1754,15 +1905,21 @@ const SocialGroupDetails = () => {
         {isManageMembersModalOpen && (
           <>
             <ModalOverlay onClick={() => setIsManageMembersModalOpen(false)} />
-            <StyledPopup onClick={e => e.stopPropagation()} style={{ width: '600px' }}>
+            <StyledPopup onClick={e => e.stopPropagation()} style={{ width: '92%', maxWidth: '600px' }}>
               <ModalTitle>Zarządzaj członkami</ModalTitle>
               
               <ManageMembersList>
                 {groupMembers.map((member) => (
                   <ManageMemberItem key={member.id}>
                     
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <Avatar>{member.username.charAt(0).toUpperCase()}</Avatar>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
+                      <Avatar>
+                        {member.avatarId && member.avatarId > 0 ? (
+                          <img src={`/icons/avatar${member.avatarId}.png`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          member.username.charAt(0).toUpperCase()
+                        )}
+                      </Avatar>
                       <MemberInfo>
                         <MemberName $isMe={member.username === currentUser}>
                           {member.username} {member.username === currentUser && "(JA)"}

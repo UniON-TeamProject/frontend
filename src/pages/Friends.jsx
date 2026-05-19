@@ -12,6 +12,11 @@ const PageContainer = styled.div`
   margin: 0 auto;
   display: flex;
   flex-direction: column;
+
+  @media (max-width: 768px) {
+    padding: 12px 12px 100px; 
+    min-height: calc(100dvh - 70px);
+  }
 `;
 
 const StyledUserHeader = styled.div`
@@ -21,6 +26,11 @@ const StyledUserHeader = styled.div`
   align-items: center;
   margin-bottom: 20px;
   min-height: 60px;
+
+  @media (max-width: 768px) {
+    margin-bottom: 10px;
+    min-height: auto;
+  }
 `;
 
 const BackButton = styled.div`
@@ -40,6 +50,14 @@ const BackButton = styled.div`
   > svg {
     margin-right: 8px;
   }
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+    
+    > svg {
+      margin-right: 4px;
+    }
+  }
 `;
 
 const ContentGrid = styled.div`
@@ -53,14 +71,18 @@ const ContentGrid = styled.div`
 `;
 
 const SectionCard = styled.div`
-  background: ${({ theme }) => theme.colors?.white || '#ffffff'};
+  background: ${({ theme }) => theme.colors?.white};
   border-radius: 20px;
   box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.03);
-  border: 1px solid ${({ theme }) => theme.colors?.lightGrey || '#e9ece1'};
+  border: 1px solid ${({ theme }) => theme.colors?.lightGrey };
   padding: 25px;
   display: flex;
   flex-direction: column;
   height: fit-content;
+
+  @media (max-width: 768px) {
+    padding: 15px;
+  }
 `;
 
 const SectionTitle = styled.h2`
@@ -74,8 +96,8 @@ const SectionTitle = styled.h2`
 `;
 
 const Badge = styled.span`
-  background: ${({ theme }) => theme.colors?.secondary || '#00b894'};
-  color: ${({ theme }) => theme.colors?.white || '#fff'};
+  background: ${({ theme }) => theme.colors?.secondary};
+  color: ${({ theme }) => theme.colors?.white};
   padding: 4px 10px;
   border-radius: 12px;
   font-size: 0.8rem;
@@ -86,8 +108,12 @@ const StyledTabsContainer = styled.div`
   display: flex;
   align-items: center;
   gap: 25px;
-  border-bottom: 2px solid ${({ theme }) => theme.colors?.lightGrey || '#f0f2eb'};
+  border-bottom: 2px solid ${({ theme }) => theme.colors?.lightGrey};
   margin-bottom: 25px;
+
+  @media (max-width: 768px) {
+    gap: 15px;
+  }
 `;
 
 const StyledTab = styled.div`
@@ -105,6 +131,10 @@ const StyledTab = styled.div`
 
   &:hover {
     color: ${({ theme }) => theme.colors?.text};
+  }
+
+  @media (max-width: 768px) {
+    padding: 10px 0;
   }
 `;
 
@@ -142,6 +172,12 @@ const StyledSearchInput = styled.div`
   > svg {
     color: #a0a0a0;
     flex-shrink: 0;
+  }
+
+  @media (max-width: 768px) {
+    > input {
+      font-size: 16px;
+    }
   }
 `;
 
@@ -188,6 +224,7 @@ const Avatar = styled.div`
   font-size: 0.9rem;
   font-weight: 700;
   color: ${({ theme }) => theme.colors?.text};
+  overflow: hidden;
 `;
 
 const UserName = styled.span`
@@ -224,6 +261,8 @@ const AddFriendBox = styled.div`
   display: flex;
   gap: 10px;
   width: 100%;
+
+  
 `;
 
 const AddFriendInput = styled.input`
@@ -239,6 +278,10 @@ const AddFriendInput = styled.input`
 
   &:focus {
     border-color: ${({ theme }) => theme.colors?.secondary};
+  }
+
+  @media (max-width: 768px) {
+    font-size: 16px;
   }
 `;
 
@@ -360,7 +403,17 @@ const Friends = () => {
         return filteredFriends.map(friend => (
           <UserItem key={friend.id}>
             <UserInfo>
-              <Avatar>{friend.username ? friend.username.charAt(0).toUpperCase() : '?'}</Avatar>
+              <Avatar>
+                {friend.avatarId > 0 ? (
+                  <img 
+                    src={`/icons/avatar${friend.avatarId}.png`} 
+                    alt="avatar" 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  />
+                ) : (
+                  friend.username ? friend.username.charAt(0).toUpperCase() : '?'
+                )}
+              </Avatar>
               <UserName>{friend.username}</UserName>
             </UserInfo>
             <ActionBtn $variant="danger" onClick={() => setDeleteFriendModal({ isOpen: true, friendId: friend.friendId, username: friend.username })}>Usuń</ActionBtn>
@@ -397,7 +450,17 @@ const Friends = () => {
       return pendingInvites.map(invite => (
         <UserItem key={invite.id} style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '15px' }}>
           <UserInfo>
-            <Avatar>{invite.username ? invite.username.charAt(0).toUpperCase() : '?'}</Avatar>
+            <Avatar>
+              {invite.avatarId > 0 ? (
+                <img 
+                  src={`/icons/avatar${invite.avatarId}.png`} 
+                  alt="avatar" 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                />
+              ) : (
+                invite.username ? invite.username.charAt(0).toUpperCase() : '?'
+              )}
+            </Avatar>
             <UserName>{invite.username}</UserName>
           </UserInfo>
           <div style={{ display: 'flex', gap: '10px', width: '100%' }}>

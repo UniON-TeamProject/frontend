@@ -596,7 +596,8 @@ function FlashcardCreatorSidebar({
     if (resolvedSetIdRef.current) return resolvedSetIdRef.current;
     const name = setNameRef.current.trim();
     if (!name) return null;
-    const result = await addFlashcardSet(name);
+    const currentNoteId = window.location.pathname.split('/').pop();
+    const result = await addFlashcardSet(name, [], null, currentNoteId);
     if (result.errorCode) {
       setGlobalStatus({
         error: true,

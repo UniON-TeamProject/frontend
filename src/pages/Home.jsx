@@ -521,7 +521,7 @@ const HelpTooltip = styled.div`
   bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
-  background-color: ${({ theme }) => theme.colors?.veryDarkPrimary};
+  background-color: ${({ theme }) => theme.colors?.takiSmiesznyZielonyAleJasny};
   color: ${({ theme }) => theme.colors?.white};
   font-size: 0.8rem;
   font-weight: 500;

@@ -38,6 +38,14 @@ const StyledBox = styled.div`
   }
 `;
 
+const StyledTitleImage = styled.img`
+  height: 40px;
+  width: auto;
+  margin: 10px auto;
+  display: block;
+  object-fit: contain;
+`;
+
 const StyledRegisterButton = styled.div`
   font-size: 0.9rem;
   display: flex;
@@ -151,7 +159,7 @@ const Login = () => {
       <StyledContent>
         <StyledBox>
           <Logo size="small" />
-          <Text bold="true" as="h2" text="UniON" />
+          <StyledTitleImage src="/icons/UniON.PNG" alt="UniON" />
           <Text
             as="h3"
             bold="true"

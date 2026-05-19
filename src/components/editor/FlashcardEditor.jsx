@@ -32,6 +32,9 @@ const EditorWrapper = styled.div`
     font-size: 16px;
     line-height: 1.4;
     color: ${({ theme }) => theme.colors.text};
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
 
   .is-empty::before {

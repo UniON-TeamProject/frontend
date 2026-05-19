@@ -789,6 +789,7 @@ const CardInputSide = styled.div`
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-width: 0;
 `;
 
 const SideLabel = styled.label`
@@ -1008,14 +1009,17 @@ const ActionBanner = styled.div`
   padding: 12px 25px;
   font-size: 0.95rem;
   font-weight: 600;
-  color: ${({ theme }) => theme.colors.text};
-  cursor: pointer;
-  transition: background-color 0.2s;
+  color: ${({ theme, $disabled }) => $disabled ? theme.colors.darkGrey : theme.colors.text};
+  cursor: ${({ $disabled }) => $disabled ? "not-allowed" : "pointer"};
+  opacity: ${({ $disabled }) => $disabled ? 0.6 : 1};
+  transition: background-color 0.2s, opacity 0.2s;
 
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.darkGrey};
-    color: ${({ theme }) => theme.colors.white};
-  }
+  ${({ $disabled, theme }) => !$disabled && `
+    &:hover {
+      background-color: ${theme.colors.darkGrey};
+      color: ${theme.colors.white};
+    }
+  `}
 
   @media (max-width: 1200px) {
     padding: 8px 15px;
@@ -1376,7 +1380,7 @@ const HelpTooltip = styled.span`
   position: absolute;
   bottom: calc(100% + 8px);
   right: 0;
-  background: ${({ theme }) => theme.colors.veryDarkPrimary};
+  background: ${({ theme }) => theme.colors.takiSmiesznyZielonyAleJasny};
   color: ${({ theme }) => theme.colors.white};
   font-size: 11px;
   font-weight: 500;
@@ -1482,6 +1486,30 @@ const HighlightWrapper = styled.div`
         pointer-events: none;
       }
     `}
+`;
+
+const NoteLinkButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background-color: transparent;
+  border: 1px dashed ${({ theme }) => theme.colors.darkGrey};
+  border-radius: 8px;
+  color: ${({ theme }) => theme.colors.text};
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.lightGrey};
+  }
+  
+  svg {
+    width: 14px;
+    height: 14px;
+  }
 `;
 
 const StackedCardsIcon = () => (
@@ -1694,6 +1722,8 @@ const FlashcardsPage = () => {
   const [pendingValidCards, setPendingValidCards] = useState([]);
   const [pendingIgnoreDuplicates, setPendingIgnoreDuplicates] = useState(false);
 
+  const [hasLearningSession, setHasLearningSession] = useState(null);
+
   const fetchData = async () => {
     setIsReady(false);
     setErrorMessage("");
@@ -1719,9 +1749,20 @@ const FlashcardsPage = () => {
     if (setId && !isTrashView) {
       const parsedId = parseInt(setId);
       let targetSet = safeSets.find((s) => s.id === parsedId);
+      
+      const sId = new URLSearchParams(location.search).get("socialId");
+
+      const singleRes = await getFlashcardSet(parsedId, sId);
+      if (!singleRes.errorCode && singleRes.id) {
+          if (targetSet) {
+             Object.assign(targetSet, singleRes);
+          } else {
+             safeSets = [...safeSets, singleRes];
+             targetSet = singleRes;
+          }
+      }
 
       if (!targetSet) {
-        const sId = new URLSearchParams(location.search).get("socialId");
         if (sId) {
           const singleRes = await getFlashcardSet(parsedId, sId);
 
@@ -1971,6 +2012,22 @@ const FlashcardsPage = () => {
       };
     }
   }, [location.state?.highlightCardId, sortedCards.length, location.pathname]);
+
+  //sprawdzanie czy zestaw ma aktywną sesję nauki
+  useEffect(() => {
+    const checkLearningSession = async () => {
+      if (activeSetId && !isTrashView) {
+        setHasLearningSession(null); 
+        const res = await getFlashcardSetStats(activeSetId);
+        if (!res.errorCode && res.stats > 0) {
+          setHasLearningSession(true);
+        } else {
+          setHasLearningSession(false);
+        }
+      }
+    };
+    checkLearningSession();
+  }, [activeSetId, isTrashView]);
 
   // DODAWANIE FISZEK
   const updateNewCard = (index, field, value) => {
@@ -2843,16 +2900,32 @@ const FlashcardsPage = () => {
               <StyledName style={{ fontSize: "2rem", margin: 0 }}>
                 {currentSet?.name}
               </StyledName>
+              
               {currentSet?.tags &&
                 currentSet.tags.length > 0 &&
                 !isAddingMode &&
                 !isAddByTagMode && (
-                  <TagsContainer style={{ width: "auto", marginTop: 0 }}>
+                  <TagsContainer style={{ width: "auto", margin: 0 }}>
                     {currentSet.tags.map((tag, i) => (
                       <StyledTag key={i}>{tag}</StyledTag>
                     ))}
                   </TagsContainer>
                 )}
+
+              {(currentSet?.noteId !== undefined && currentSet?.noteId > 0) && (
+                <NoteLinkButton 
+                  style={{ marginLeft: "auto" }}
+                  onClick={() => navigate(`/note/${currentSet.noteId}${socialId ? `?socialId=${socialId}` : ''}`)}
+                  title="Przejdź do notatki źródłowej"
+                >
+                  <svg fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M5 10.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5"/>
+                    <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2"/>
+                    <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z" />
+                  </svg>
+                  Otwórz notatkę
+                </NoteLinkButton>
+              )}
             </SetNameHeader>
 
             {!isAddingMode && !isAddByTagMode && !isTrashView && (
@@ -2934,9 +3007,12 @@ const FlashcardsPage = () => {
                     }}
                   >
                     <ActionBanner
-                      onClick={() =>
-                        navigate(`/learning/fast/${currentSet?.id}`)
-                      }
+                      $disabled={hasLearningSession === false}
+                      onClick={() => {
+                        if (hasLearningSession !== false) {
+                           navigate(`/learning/fast/${currentSet?.id}`);
+                        }
+                      }}
                     >
                       Wznów ostatnią sesję
                       <span className="hide-mobile"> (szybka nauka)</span>

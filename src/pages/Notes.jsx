@@ -1065,7 +1065,7 @@ const HelpTooltip = styled.span`
   position: absolute;
   bottom: calc(100% + 8px);
   right: 0;
-  background: ${({ theme }) => theme.colors.veryDarkPrimary};
+  background: ${({ theme }) => theme.colors.takiSmiesznyZielonyAleJasny};
   color: ${({ theme }) => theme.colors.white};
   font-size: 11px;
   font-weight: 500;

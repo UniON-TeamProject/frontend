@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useEditorState } from '@tiptap/react';
-import styled from 'styled-components';
+import styled, { useTheme } from "styled-components";
 import TextSizeDropdown from './TextSizeDropdown.jsx'
+import Text from '../atoms/Text';
+import Input from '../atoms/Input';
+import SubmitButton from '../atoms/SubmitButton';
 
 const StyledContainer = styled.div`
   margin:20px auto;
@@ -93,7 +96,134 @@ const StyledButton = styled.button`
   }
 `
 
+const ImageActionWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  margin-right: 15px;
+  
+  @media(max-width: 768px){
+    margin-right: 4px;
+  }
+
+  .image {
+    margin-right: 5px !important; 
+  }
+`;
+
+const HelpIconWrapper = styled.div`
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: ${({ theme }) => theme.colors?.borderLight};
+  color: ${({ theme }) => theme.colors?.textLight};
+  font-size: 0.8rem;
+  font-weight: bold;
+  cursor: default;
+  z-index: 12;
+
+  &:hover > div {
+    display: block;
+  }
+`;
+
+const HelpTooltip = styled.div`
+  display: none;
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: ${({ theme }) => theme.colors?.takiSmiesznyZielonyAleJasny};
+  color: ${({ theme }) => theme.colors?.white};
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-align: center;
+  padding: 12px 14px;
+  border-radius: 8px;
+  width: 260px;
+  z-index: 100;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+  line-height: 1.4;
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: transparent transparent ${({ theme }) => theme.colors?.text} transparent;
+  }
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 999;
+`;
+
+const StyledPopup = styled.div`
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 500px;
+  min-height: 200px;
+  padding: 40px;
+  border-radius: 25px;
+  background-color: ${({ theme }) => theme.colors?.white};
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+
+  @media (max-width: 768px) {
+    width: 90%;
+    padding: 30px 20px;
+  }
+`;
+
+const ModalButtonGhost = styled.button`
+  background: transparent;
+  color: ${({ theme }) => theme.colors.darkGrey};
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover {
+    color: ${({ theme }) => theme.colors.text};
+  }
+`;
+
 function TextEditorFormatting({ editor }) {
+  const theme = useTheme();
+
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [imageUrl, setImageUrl] = useState("");
+  const inputRef = useRef(null);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const handleAddImage = () => {
+    if (imageUrl.trim()) {
+      editor.chain().focus().setImage({ src: imageUrl.trim() }).run();
+      setIsSuccess(true);
+      setTimeout(() => {
+        setIsSuccess(false);
+        setIsImageModalOpen(false);
+        setImageUrl("");
+      }, 1500);
+    }
+  };
+
   const editorState = useEditorState({
     editor,
     selector: ctx => ({
@@ -118,19 +248,25 @@ function TextEditorFormatting({ editor }) {
 
   return (
     <StyledContainer>
-      <StyledButton className="image" onClick={() => {
-        const url = window.prompt('URL')
-        if (url)
-          editor.chain().focus().setImage({ src: url }).run();
-      }}>
-        <svg fill="currentColor" viewBox="0 0 16 16">
-          <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0" />
-          <path d="M1.5 2A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2zm13 1a.5.5 0 0 1 .5.5v6l-3.775-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12v.54L1 12.5v-9a.5.5 0 0 1 .5-.5z" />
-        </svg>
-        <p>Dodaj zdjęcie</p>
-      </StyledButton>
-      <Separator />
-      <TextSizeDropdown editor={editor} />
+      <ImageActionWrapper>
+        <StyledButton className="image" onClick={() => {
+          setIsImageModalOpen(true);
+          setTimeout(() => inputRef.current?.focus(), 100);
+        }}>
+          <svg fill="currentColor" viewBox="0 0 16 16">
+            <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0" />
+            <path d="M1.5 2A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2zm13 1a.5.5 0 0 1 .5.5v6l-3.775-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12v.54L1 12.5v-9a.5.5 0 0 1 .5-.5z" />
+          </svg>
+          <p>Dodaj zdjęcie</p>
+        </StyledButton>
+
+        <HelpIconWrapper>
+          ?
+          <HelpTooltip>
+            Zdjęcia możesz dodać poprzez <b style={{ color: theme.colors.secondary }}>URL</b> lub <b style={{ color: theme.colors.secondary }}>przeciągając plik</b> bezpośrednio w tekst.
+          </HelpTooltip>
+        </HelpIconWrapper>
+      </ImageActionWrapper>
       <Separator />
       <ScrollableButtons>
       <StyledButton
@@ -215,6 +351,58 @@ function TextEditorFormatting({ editor }) {
         </svg>
       </StyledButton>
       </ScrollableButtons>
+
+      {isImageModalOpen && (
+        <>
+          <ModalOverlay onClick={() => {
+            if (isSuccess) return;
+            setIsImageModalOpen(false);
+            setImageUrl("");
+          }} />
+          <StyledPopup onClick={e => e.stopPropagation()}>
+            <Text bold="true" as="h2" text="Wstaw obraz z URL" style={{ textAlign: 'center', marginBottom: '20px' }} />
+            
+            <Input
+              ref={inputRef}
+              type="text"
+              placeholder="Wklej tutaj link (np. https://example.com/image.png)"
+              value={imageUrl}
+              disabled={isSuccess}
+              onChange={(e) => setImageUrl(e.target.value)}
+              onKeyDown={(e) => {
+                if (isSuccess) return;
+                if (e.key === 'Enter') {
+                   e.preventDefault();
+                   handleAddImage();
+                }
+                if (e.key === 'Escape') {
+                   setIsImageModalOpen(false);
+                   setImageUrl("");
+                }
+              }}
+            />
+
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginTop: '30px' }}>
+              <ModalButtonGhost 
+                 disabled={isSuccess}
+                 onClick={() => {
+                    setIsImageModalOpen(false);
+                    setImageUrl("");
+                 }}>
+                Anuluj
+              </ModalButtonGhost>
+              
+              <SubmitButton 
+                text={isSuccess ? "✔ Dodano!" : "Dodaj obraz"}
+                color={isSuccess ? "secondary" : "dark"}
+                disabled={isSuccess} 
+                onClick={handleAddImage}
+              />
+            </div>
+          </StyledPopup>
+        </>
+      )}
+
     </StyledContainer>
   )
 }

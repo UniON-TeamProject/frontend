@@ -16,6 +16,11 @@ const PageContainer = styled.div`
 
   opacity: ${({ $ready }) => ($ready ? 1 : 0)};
   transition: opacity 0.2s ease;
+
+  @media (max-width: 768px) {
+    padding: 12px 12px;
+    min-height: calc(100dvh - 70px);
+  }
 `;
 
 const StyledUserHeader = styled.div`
@@ -27,6 +32,12 @@ const StyledUserHeader = styled.div`
   min-height: 60px;
   border-bottom: 1px solid #d1d5db;
   padding-bottom: 15px;
+
+  @media (max-width: 768px) {
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    min-height: auto; 
+  }
 `;
 
 const StyledName = styled.h2`
@@ -35,7 +46,7 @@ const StyledName = styled.h2`
   margin: 0;
   cursor: default;
   @media(max-width:768px){
-    font-size: 2rem;
+    font-size: 1.5rem;
   }
 `;
 
@@ -80,6 +91,12 @@ const GroupCard = styled.div`
   &:hover {
     box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.08);
   }
+
+  @media (max-width: 768px) {
+    width: 100%; 
+    padding: 0; 
+    border-radius: 16px;
+  }
 `;
 
 const GroupHeader = styled.div`
@@ -95,6 +112,11 @@ const GroupHeader = styled.div`
     color: ${({ theme }) => theme.colors?.text};
     flex-shrink: 0;
   }
+
+  @media (max-width: 768px) {
+    padding: 15px;
+    flex-wrap: wrap;
+  }
 `;
 
 const GroupTitleWrapper = styled.div`
@@ -102,6 +124,7 @@ const GroupTitleWrapper = styled.div`
   flex-direction: column;
   gap: 4px;
   flex: 1;
+  min-width: 0;
 `;
 
 const GroupName = styled.h2`
@@ -109,6 +132,14 @@ const GroupName = styled.h2`
   font-size: 1.4rem;
   font-weight: 800;
   margin: 0;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  @media (max-width: 768px) {
+    font-size: 1.3rem;
+  }
 `;
 
 const GroupDesc = styled.span`
@@ -118,6 +149,11 @@ const GroupDesc = styled.span`
   -webkit-line-clamp: 2; 
   -webkit-box-orient: vertical;
   overflow: hidden;
+  word-break: break-word;
+
+  @media (max-width: 768px) {
+    font-size: 0.7rem;
+  }
 `;
 
 const GroupRoleBadge = styled.span`
@@ -224,6 +260,7 @@ const Avatar = styled.div`
   font-weight: 700;
   font-size: 0.85rem;
   color: ${({ theme }) => theme.colors?.text};
+  overflow: hidden;
 `;
 
 const MemberName = styled.span`
@@ -354,6 +391,10 @@ const ModalInput = styled.input`
   &:focus {
     border-color: ${({ theme }) => theme.colors?.secondary};
   }
+
+  @media (max-width: 768px) {
+    font-size: 16px;
+  }
 `;
 
 const ModalTextarea = styled.textarea`
@@ -373,6 +414,10 @@ const ModalTextarea = styled.textarea`
   
   &:focus {
     border-color: ${({ theme }) => theme.colors?.secondary};
+  }
+
+  @media (max-width: 768px) {
+    font-size: 16px;
   }
 `;
 
@@ -468,7 +513,8 @@ const SocialGroups = () => {
           const members = Array.isArray(usersRes) ? usersRes.map(u => ({
             id: u.id,
             name: u.username,
-            initials: u.username ? u.username.charAt(0).toUpperCase() : '?'
+            initials: u.username ? u.username.charAt(0).toUpperCase() : '?',
+            avatarId: u.avatarId
           })) : [];
 
           return {
@@ -664,14 +710,26 @@ return (
                         <>
                           {group.members.slice(0, 5).map((member) => (
                             <MemberItem key={member.id}>
-                              <Avatar $bg={member.bg}>{member.initials}</Avatar>
+                              <Avatar $bg={member.bg}>
+                                {member.avatarId && member.avatarId > 0 ? (
+                                  <img src={`/icons/avatar${member.avatarId}.png`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                ) : (
+                                  member.initials
+                                )}
+                              </Avatar>
                               <MemberName>{member.name}</MemberName>
                             </MemberItem>
                           ))}
 
                           {group.members.length === 6 && (
                             <MemberItem key={group.members[5].id}>
-                              <Avatar $bg={group.members[5].bg}>{group.members[5].initials}</Avatar>
+                              <Avatar $bg={group.members[5].bg}>
+                                {group.members[5].avatarId && group.members[5].avatarId > 0 ? (
+                                  <img src={`/icons/avatar${group.members[5].avatarId}.png`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                ) : (
+                                  group.members[5].initials
+                                )}
+                              </Avatar>
                               <MemberName>{group.members[5].name}</MemberName>
                             </MemberItem>
                           )}

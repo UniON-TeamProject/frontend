@@ -505,7 +505,7 @@ const StyledFloatingButton = styled.button`
   }
 `;
 
-const RoleHelpIconWrapper = styled.div`
+const HelpIconWrapper = styled.div`
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -526,13 +526,13 @@ const RoleHelpIconWrapper = styled.div`
   }
 `;
 
-const RoleHelpTooltip = styled.div`
+const HelpTooltip = styled.div`
   display: none;
   position: absolute;
   right: calc(100% + 12px); // zeby otwieral sie w lewo
   top: 50%;
   transform: translateY(-50%);
-  background-color: ${({ theme }) => theme.colors?.veryDarkPrimary};
+  background-color: ${({ theme }) => theme.colors?.takiSmiesznyZielonyAleJasny};
   color: ${({ theme }) => theme.colors?.white};
   font-size: 0.8rem;
   font-weight: 500;
@@ -1087,16 +1087,16 @@ const TextEditor = () => {
                     </svg>
                     Stwórz fiszki AI
                   </FlashcardToggleButton>
-                  <RoleHelpIconWrapper style={{ marginLeft: "8px" }}>
+                  <HelpIconWrapper style={{ marginLeft: "8px" }}>
                     ?
-                    <RoleHelpTooltip>
+                    <HelpTooltip>
                       <b style={{ color: theme.colors.secondary }}>
-                        Kreator AI
+                        Stwórz fiszki AI
                       </b>{" "}
-                      automatycznie wygeneruje propozycje fiszek z treści, która
+                      - kreator AI automatycznie wygeneruje propozycje fiszek z treści, która
                       jest obecnie zapisana w notatce.
-                    </RoleHelpTooltip>
-                  </RoleHelpIconWrapper>
+                    </HelpTooltip>
+                  </HelpIconWrapper>
                 </div>
               </DesktopButtonsWrapper>
 

@@ -1048,7 +1048,7 @@ export async function removeFolderTag(id, name) {
   }
 }
 
-export async function addFlashcardSet(name, tags = [], socialId = null) {
+export async function addFlashcardSet(name, tags = [], socialId = null, noteId = null) {
   const token = getToken();
   if (!token)
     return {
@@ -1058,9 +1058,20 @@ export async function addFlashcardSet(name, tags = [], socialId = null) {
     };
 
   try {
-    const url = socialId
-      ? `${API_HOST}/addCardSet?socialId=${socialId}`
-      : `${API_HOST}/addCardSet`;
+    let url = `${API_HOST}/addCardSet`;
+    const params = [];
+    if (socialId) params.push(`socialId=${socialId}`);
+    if (noteId) params.push(`noteId=${noteId}`);
+    
+    if (params.length > 0) {
+      url += `?${params.join('&')}`;
+    }
+
+    const bodyPayload = {
+      name: name,
+      tags: tags,
+      cards: [],
+    };
 
     const resp = await fetch(url, {
       method: "POST",
@@ -1068,11 +1079,7 @@ export async function addFlashcardSet(name, tags = [], socialId = null) {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        name: name,
-        tags: tags,
-        cards: [],
-      }),
+      body: JSON.stringify(bodyPayload),
     });
 
     const authErr = checkUnauthorized(resp);
