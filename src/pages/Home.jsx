@@ -1313,7 +1313,7 @@ const Home = () => {
                     navigate("/calendar", { state: { selectedDate: day } })
                   }
                   startHour={8}
-                  endHour={22}
+                  endHour={21}
                   dashboardMode={true}
                 />
               </div>

@@ -644,8 +644,8 @@ const WeekContainer = styled.div`
   overflow: hidden;
 
   @media (max-width: 768px) {
-    overflow-x: auto;
-    overflow-y: visible;
+    overflow: auto;
+    max-height: ${({ $dashboardMode }) => ($dashboardMode ? "none" : "52vh")};
   }
 `;
 
@@ -659,10 +659,20 @@ const WeekHeader = styled.div`
   @media (max-width: 768px) {
     min-width: 420px;
     grid-template-columns: 36px repeat(7, 1fr);
+    position: sticky;
+    top: 0;
+    z-index: 6;
   }
 `;
 
-const WeekHeaderSpacer = styled.div``;
+const WeekHeaderSpacer = styled.div`
+  @media (max-width: 768px) {
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    background: ${({ theme }) => theme.colors.pageBg};
+  }
+`;
 
 const WeekHeaderCell = styled.div`
   padding: 10px 8px;
@@ -955,13 +965,23 @@ const CalendarGrid = ({
 
   useEffect(() => {
     const id = setTimeout(() => {
-      if (!isMobile) {
+      if (isMobile && !dashboardMode) {
+        const container = weekContainerRef.current;
+        const body = weekBodyRef.current;
+        if (!container || !body) return;
+        const allDayArea = body.previousElementSibling;
+        const allDayHeight =
+          allDayArea && allDayArea !== container.firstElementChild
+            ? allDayArea.offsetHeight
+            : 0;
+        container.scrollTop = allDayHeight + Math.max(0, 8 - startHour) * 40;
+      } else if (!isMobile) {
         if (weekBodyRef.current)
           weekBodyRef.current.scrollTop = Math.max(0, 8 - startHour) * 60;
       }
     }, 0);
     return () => clearTimeout(id);
-  }, [view, currentDate, isMobile, startHour]);
+  }, [view, currentDate, isMobile, startHour, dashboardMode]);
 
   useEffect(() => {
     const el = monthGridRef.current;
@@ -1039,7 +1059,7 @@ const CalendarGrid = ({
     const slotHeight = isMobile ? 40 : 60;
 
     return (
-      <WeekContainer ref={weekContainerRef}>
+      <WeekContainer ref={weekContainerRef} $dashboardMode={dashboardMode}>
         <WeekHeader>
           <WeekHeaderSpacer />
           {days.map((day, i) => {
