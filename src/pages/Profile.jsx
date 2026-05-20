@@ -237,11 +237,10 @@ const ModalBox = styled.div`
   border-radius: 16px;
   padding: 28px;
   width: 90%;
-  max-width: 380px;
+  max-width: 560px;
   text-align: center;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
 `;
-
 
 const ModalTitle = styled.h3`
   color: ${({ theme }) => theme.colors.veryDarkPrimary};
@@ -271,9 +270,13 @@ const ModalClose = styled.button`
 
 const AvatarGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 12px;
   margin: 16px 0 20px;
+
+  @media (max-width: 480px) {
+    gap: 8px;
+  }
 `;
 
 const AvatarOption = styled.button`
@@ -1165,7 +1168,7 @@ const Profile = () => {
             <ModalBox onClick={(e) => e.stopPropagation()}>
               <ModalTitle>Zmiana awatara</ModalTitle>
               <AvatarGrid>
-                {[1, 2, 3, 4].map((id) => (
+                {[1, 2, 3, 4, 5].map((id) => (
                   <AvatarOption
                     key={id}
                     $active={avatarId === id}
