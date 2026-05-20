@@ -1622,6 +1622,40 @@ export async function generateCardsFromNote(noteId) {
   }
 }
 
+export async function moveListOfCards(cardSetId, cardIds) {
+  const token = getToken();
+  if (!token) return { errorCode: "TOKEN_UNDEFINED", message: "Brak tokena" };
+  try {
+    const resp = await fetch(
+      `${API_HOST}/moveListOfCardsToTheCardSet/${cardSetId}`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(cardIds),
+      }
+    );
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+    if (resp.ok) {
+      const saved = await resp.json();
+      return { cards: saved, errorCode: "", message: "" };
+    }
+    const data = await resp.json().catch(() => ({}));
+    return {
+      errorCode: data.errorCode || "ERROR",
+      message: data.message || "Błąd przenoszenia fiszek",
+    };
+  } catch {
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Nie udało się połączyć z serwerem.",
+    };
+  }
+}
+
 export async function addListOfCardsToSet(cardSetId, cards) {
   const token = getToken();
   if (!token) return { errorCode: "TOKEN_UNDEFINED", message: "Brak tokena" };

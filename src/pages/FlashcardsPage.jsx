@@ -19,6 +19,7 @@ import {
   addFlashcardTag,
   removeFlashcardTag,
   addListOfCardsToSet,
+  moveListOfCards,
   getFlashcardSetStats,
   getFlashcardSet,
   getAllUsersCards,
@@ -4688,17 +4689,11 @@ const FlashcardsPage = () => {
                       }
                     }
 
-                    const cardRequests = selectedCards.map((card) => ({
-                      contentFirstSide: card.contentFirstSide || card.question,
-                      contentFlipSide: card.contentFlipSide || card.answer,
-                      setId: parseInt(targetId),
-                      cardTags: card.cardTags || [],
-                      isForced: false,
-                    }));
+                    const cardIds = selectedCards.map((card) => card.id);
 
-                    const res = await addListOfCardsToSet(
+                    const res = await moveListOfCards(
                       targetId,
-                      cardRequests
+                      cardIds
                     );
 
                     if (res.errorCode) {
