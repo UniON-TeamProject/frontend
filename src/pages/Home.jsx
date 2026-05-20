@@ -158,14 +158,14 @@ const FiszkiBox = styled(CardBox)`
   min-height: 250px;
   @media (max-width: 768px) {
     min-height: unset;
-    order: 3;
+    order: 1;
   }
 `;
 const NotatkiBox = styled(CardBox)`
   min-height: 250px;
   @media (max-width: 768px) {
     min-height: unset;
-    order: 4;
+    order: 2;
   }
 `;
 const DeadlinesBox = styled(CardBox)`
@@ -173,7 +173,7 @@ const DeadlinesBox = styled(CardBox)`
   min-height: 250px;
   @media (max-width: 768px) {
     min-height: unset;
-    order: 2;
+    order: 5;
   }
 `;
 const CalendarBox = styled(CardBox)`
@@ -186,7 +186,7 @@ const CalendarBox = styled(CardBox)`
     overflow: visible;
   }
   @media (max-width: 768px) {
-    order: 1;
+    order: 4;
   }
 `;
 const SocialBox = styled(CardBox)`
@@ -194,7 +194,7 @@ const SocialBox = styled(CardBox)`
   min-height: 250px;
   @media (max-width: 768px) {
     min-height: unset;
-    order: 5;
+    order: 3;
   }
 `;
 

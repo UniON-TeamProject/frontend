@@ -644,8 +644,8 @@ const WeekContainer = styled.div`
   overflow: hidden;
 
   @media (max-width: 768px) {
-    overflow: auto;
-    max-height: 52vh;
+    overflow-x: auto;
+    overflow-y: visible;
   }
 `;
 
@@ -659,20 +659,10 @@ const WeekHeader = styled.div`
   @media (max-width: 768px) {
     min-width: 420px;
     grid-template-columns: 36px repeat(7, 1fr);
-    position: sticky;
-    top: 0;
-    z-index: 4;
   }
 `;
 
-const WeekHeaderSpacer = styled.div`
-  @media (max-width: 768px) {
-    position: sticky;
-    left: 0;
-    z-index: 3;
-    background: ${({ theme }) => theme.colors.pageBg};
-  }
-`;
+const WeekHeaderSpacer = styled.div``;
 
 const WeekHeaderCell = styled.div`
   padding: 10px 8px;
@@ -757,7 +747,7 @@ const TimeCol = styled.div`
   position: sticky;
   left: 0;
   background: ${({ theme }) => theme.colors.white};
-  z-index: 2;
+  z-index: 4;
 `;
 
 const TimeSlot = styled.div`
@@ -965,22 +955,13 @@ const CalendarGrid = ({
 
   useEffect(() => {
     const id = setTimeout(() => {
-      if (isMobile) {
-        const container = weekContainerRef.current;
-        const body = weekBodyRef.current;
-        if (!container || !body) return;
-        const allDayArea = body.previousElementSibling;
-        const allDayHeight =
-          allDayArea && allDayArea !== container.firstElementChild
-            ? allDayArea.offsetHeight
-            : 0;
-        container.scrollTop = allDayHeight + 8 * 40;
-      } else {
-        if (weekBodyRef.current) weekBodyRef.current.scrollTop = 8 * 60;
+      if (!isMobile) {
+        if (weekBodyRef.current)
+          weekBodyRef.current.scrollTop = Math.max(0, 8 - startHour) * 60;
       }
     }, 0);
     return () => clearTimeout(id);
-  }, [view, currentDate, isMobile]);
+  }, [view, currentDate, isMobile, startHour]);
 
   useEffect(() => {
     const el = monthGridRef.current;

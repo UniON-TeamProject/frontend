@@ -3309,6 +3309,8 @@ const Calendar = () => {
             onDayClick={(day, dayEvents) =>
               setSidebar({ date: day, events: dayEvents })
             }
+            startHour={isMobile && view === "week" ? 8 : 0}
+            endHour={isMobile && view === "week" ? 20 : 24}
           />
 
           {isMobile && sidebar && !popup && (
