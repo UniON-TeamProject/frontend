@@ -1,9 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
-import Layout from '../components/organisms/Layout';
-import { getUserSocialGroups, createSocialGroup, getNotifications, getSocialGroup, getSocialGroupUsers } from '../api';
-import NotificationsDropdown from '../components/organisms/NotificationsDropdown';
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
+import Layout from "../components/organisms/Layout";
+import {
+  getUserSocialGroups,
+  createSocialGroup,
+  getNotifications,
+  getSocialGroup,
+  getSocialGroupUsers,
+} from "../api";
+import NotificationsDropdown from "../components/organisms/NotificationsDropdown";
 
 const PageContainer = styled.div`
   width: 100%;
@@ -36,16 +42,16 @@ const StyledUserHeader = styled.div`
   @media (max-width: 768px) {
     margin-bottom: 10px;
     padding-bottom: 5px;
-    min-height: auto; 
+    min-height: auto;
   }
 `;
 
 const StyledName = styled.h2`
-  color: ${({ theme }) => theme.colors?.text};
+  color: ${({ theme }) => theme.colors.text};
   font-size: 2.5rem;
   margin: 0;
   cursor: default;
-  @media(max-width:768px){
+  @media (max-width: 768px) {
     font-size: 1.5rem;
   }
 `;
@@ -53,16 +59,16 @@ const StyledName = styled.h2`
 const HeaderIcons = styled.div`
   display: flex;
   gap: 20px;
-  color: ${({ theme }) => theme.colors?.darkGrey};
-  
+  color: ${({ theme }) => theme.colors.darkGrey};
+
   svg {
     width: 28px;
     height: 28px;
     cursor: pointer;
     transition: transform 0.2s, color 0.2s;
-    &:hover { 
-      transform: scale(1.1); 
-      color: ${({ theme }) => theme.colors?.text}; 
+    &:hover {
+      transform: scale(1.1);
+      color: ${({ theme }) => theme.colors.text};
     }
   }
 `;
@@ -76,10 +82,10 @@ const GroupsList = styled.div`
 `;
 
 const GroupCard = styled.div`
-  background-color: ${({ theme }) => theme.colors?.white };
+  background-color: ${({ theme }) => theme.colors.white};
   border-radius: 20px;
   box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.04);
-  border: 1px solid ${({ theme }) => theme.colors?.lightGrey };
+  border: 1px solid ${({ theme }) => theme.colors.lightGrey};
   display: flex;
   padding: 20px 30px;
   width: 80%;
@@ -93,8 +99,8 @@ const GroupCard = styled.div`
   }
 
   @media (max-width: 768px) {
-    width: 100%; 
-    padding: 0; 
+    width: 100%;
+    padding: 0;
     border-radius: 16px;
   }
 `;
@@ -104,12 +110,12 @@ const GroupHeader = styled.div`
   align-items: center;
   gap: 15px;
   padding: 20px 25px;
-  border-bottom: 2px solid ${({ theme }) => theme.colors?.lightGrey };
+  border-bottom: 2px solid ${({ theme }) => theme.colors.lightGrey};
 
   svg {
     width: 32px;
     height: 32px;
-    color: ${({ theme }) => theme.colors?.text};
+    color: ${({ theme }) => theme.colors.text};
     flex-shrink: 0;
   }
 
@@ -128,7 +134,7 @@ const GroupTitleWrapper = styled.div`
 `;
 
 const GroupName = styled.h2`
-  color: ${({ theme }) => theme.colors?.text};
+  color: ${({ theme }) => theme.colors.text};
   font-size: 1.4rem;
   font-weight: 800;
   margin: 0;
@@ -144,9 +150,9 @@ const GroupName = styled.h2`
 
 const GroupDesc = styled.span`
   font-size: 0.85rem;
-  color: ${({ theme }) => theme.colors?.darkGrey};
+  color: ${({ theme }) => theme.colors.darkGrey};
   display: -webkit-box;
-  -webkit-line-clamp: 2; 
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   word-break: break-word;
@@ -158,8 +164,8 @@ const GroupDesc = styled.span`
 
 const GroupRoleBadge = styled.span`
   margin-left: auto;
-  background-color: ${({ theme }) => theme.colors?.secondary};
-  color: ${({ theme }) => theme.colors?.white || '#122818'};
+  background-color: ${({ theme }) => theme.colors.secondary};
+  color: ${({ theme }) => theme.colors.white || "#122818"};
   padding: 4px 12px;
   border-radius: 12px;
   font-size: 0.75rem;
@@ -180,13 +186,13 @@ const CardBody = styled.div`
 
 const LeftSection = styled.div`
   padding: 20px 25px;
-  border-right: 1px solid ${({ theme }) => theme.colors?.lightGrey };
+  border-right: 1px solid ${({ theme }) => theme.colors.lightGrey};
   display: flex;
   flex-direction: column;
 
   @media (max-width: 768px) {
     border-right: none;
-    border-bottom: 1px solid ${({ theme }) => theme.colors?.lightGrey};
+    border-bottom: 1px solid ${({ theme }) => theme.colors.lightGrey};
   }
 `;
 
@@ -198,7 +204,7 @@ const RightSection = styled.div`
 
 const SectionTitle = styled.h3`
   font-size: 1.1rem;
-  color: ${({ theme }) => theme.colors?.text};
+  color: ${({ theme }) => theme.colors.text};
   font-weight: 800;
   margin-top: 0;
   margin-bottom: 15px;
@@ -216,14 +222,14 @@ const ContentItem = styled.div`
   align-items: center;
   gap: 10px;
   font-size: 0.95rem;
-  color: ${({ theme }) => theme.colors?.text};
+  color: ${({ theme }) => theme.colors.text};
   font-weight: 600;
   min-width: 0;
 
   svg {
     width: 20px;
     height: 20px;
-    color: ${({ theme }) => theme.colors?.secondary};
+    color: ${({ theme }) => theme.colors.secondary};
     flex-shrink: 0;
   }
 `;
@@ -252,20 +258,20 @@ const Avatar = styled.div`
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background-color: ${({ $bg, theme }) => $bg || theme.colors?.lightGrey};
+  background-color: ${({ $bg, theme }) => $bg || theme.colors.lightGrey};
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(0,0,0,0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
   font-weight: 700;
   font-size: 0.85rem;
-  color: ${({ theme }) => theme.colors?.text};
+  color: ${({ theme }) => theme.colors.text};
   overflow: hidden;
 `;
 
 const MemberName = styled.span`
   font-size: 0.95rem;
-  color: ${({ theme }) => theme.colors?.text};
+  color: ${({ theme }) => theme.colors.text};
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
@@ -275,14 +281,16 @@ const MemberName = styled.span`
 
 const MoreButton = styled.div`
   text-align: right;
-  margin-top: auto; 
-  color: ${({ theme }) => theme.colors?.darkGrey};
+  margin-top: auto;
+  color: ${({ theme }) => theme.colors.darkGrey};
   font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
   padding-top: 15px;
   transition: color 0.2s;
-  &:hover { color: ${({ theme }) => theme.colors?.text}; }
+  &:hover {
+    color: ${({ theme }) => theme.colors.text};
+  }
 `;
 
 const FloatingActionButton = styled.button`
@@ -291,10 +299,10 @@ const FloatingActionButton = styled.button`
   right: 40px;
   width: 70px;
   height: 70px;
-  background-color: ${({ theme }) => theme.colors?.white};
+  background-color: ${({ theme }) => theme.colors.white};
   border: none;
   border-radius: 20px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -304,7 +312,7 @@ const FloatingActionButton = styled.button`
 
   &:hover {
     transform: scale(1.05);
-    box-shadow: 0 6px 25px rgba(0,0,0,0.15);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
   }
 
   @media (max-width: 768px) {
@@ -318,7 +326,7 @@ const FloatingActionButton = styled.button`
   svg {
     width: 32px;
     height: 32px;
-    color: ${({ theme }) => theme.colors?.secondary};
+    color: ${({ theme }) => theme.colors.secondary};
 
     @media (max-width: 768px) {
       width: 24px;
@@ -330,7 +338,7 @@ const FloatingActionButton = styled.button`
 const ModalOverlay = styled.div`
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0, 0, 0, 0.4);
   z-index: 999;
 `;
 
@@ -342,22 +350,21 @@ const StyledPopup = styled.div`
   width: 500px;
   padding: 40px 50px;
   border-radius: 25px;
-  background-color: ${({ theme }) => theme.colors?.white };
-  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  background-color: ${({ theme }) => theme.colors.white};
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  
-  @media(max-width:768px){
+
+  @media (max-width: 768px) {
     width: 90%;
     padding: 30px;
   }
 `;
 
-
 const ModalTitle = styled.h2`
   text-align: center;
-  color: ${({ theme }) => theme.colors?.text};
+  color: ${({ theme }) => theme.colors.text};
   margin-top: 0;
   margin-bottom: 25px;
   font-weight: 800;
@@ -372,7 +379,7 @@ const InputLabel = styled.label`
   display: block;
   font-size: 0.9rem;
   font-weight: 700;
-  color: ${({ theme }) => theme.colors?.text};
+  color: ${({ theme }) => theme.colors.text};
   margin-bottom: 8px;
 `;
 
@@ -380,16 +387,18 @@ const ModalInput = styled.input`
   width: 100%;
   padding: 12px 15px;
   border-radius: 12px;
-  border: 1px solid ${({ $error, theme }) => $error ? (theme.colors?.danger ) : (theme.colors?.lightGrey)};
-  background: ${({ theme }) => theme.colors?.white };
+  border: 1px solid
+    ${({ $error, theme }) =>
+      $error ? theme.colors.danger : theme.colors.lightGrey};
+  background: ${({ theme }) => theme.colors.white};
   font-size: 1rem;
-  color: ${({ theme }) => theme.colors?.text};
+  color: ${({ theme }) => theme.colors.text};
   outline: none;
   box-sizing: border-box;
   transition: border-color 0.2s;
-  
+
   &:focus {
-    border-color: ${({ theme }) => theme.colors?.secondary};
+    border-color: ${({ theme }) => theme.colors.secondary};
   }
 
   @media (max-width: 768px) {
@@ -401,19 +410,21 @@ const ModalTextarea = styled.textarea`
   width: 100%;
   padding: 12px 15px;
   border-radius: 12px;
-  border: 1px solid ${({ $error, theme }) => $error ? theme.colors?.danger : theme.colors?.lightGrey};
-  background: ${({ theme }) => theme.colors?.white };
+  border: 1px solid
+    ${({ $error, theme }) =>
+      $error ? theme.colors.danger : theme.colors.lightGrey};
+  background: ${({ theme }) => theme.colors.white};
   font-size: 1rem;
-  color: ${({ theme }) => theme.colors?.text};
+  color: ${({ theme }) => theme.colors.text};
   outline: none;
   box-sizing: border-box;
   resize: vertical;
   min-height: 100px;
   font-family: inherit;
   transition: border-color 0.2s;
-  
+
   &:focus {
-    border-color: ${({ theme }) => theme.colors?.secondary};
+    border-color: ${({ theme }) => theme.colors.secondary};
   }
 
   @media (max-width: 768px) {
@@ -422,7 +433,7 @@ const ModalTextarea = styled.textarea`
 `;
 
 const ErrorText = styled.span`
-  color: ${({ theme }) => theme.colors?.danger};
+  color: ${({ theme }) => theme.colors.danger};
   font-size: 0.85rem;
   font-weight: 600;
   margin-top: 5px;
@@ -437,11 +448,16 @@ const ButtonGroup = styled.div`
 `;
 
 const ModalButton = styled.button`
-  background-color: ${({ $primary, $success, theme }) => 
-    $success ? (theme.colors?.secondary) : 
-    $primary ? theme.colors?.text : 'transparent'};
-  color: ${({ $primary, $success, theme }) => ($primary || $success) ? '#fff' : theme.colors?.text};
-  border: ${({ $primary, $success, theme }) => ($primary || $success) ? 'none' : `1px solid ${theme.colors?.darkGrey}`};
+  background-color: ${({ $primary, $success, theme }) =>
+    $success
+      ? theme.colors.secondary
+      : $primary
+      ? theme.colors.text
+      : "transparent"};
+  color: ${({ $primary, $success, theme }) =>
+    $primary || $success ? "#fff" : theme.colors.text};
+  border: ${({ $primary, $success, theme }) =>
+    $primary || $success ? "none" : `1px solid ${theme.colors.darkGrey}`};
   padding: 12px 25px;
   border-radius: 12px;
   font-size: 0.95rem;
@@ -449,7 +465,7 @@ const ModalButton = styled.button`
   cursor: pointer;
   transition: all 0.2s;
   min-width: 120px;
-  
+
   &:hover {
     opacity: 0.8;
   }
@@ -482,50 +498,56 @@ const SocialGroups = () => {
     setIsLoading(true);
     setPageError("");
     const res = await getUserSocialGroups();
-    
+
     if (res.errorCode) {
       if (res.errorCode === "TOKEN_UNDEFINED") navigate("/", { replace: true });
       else setPageError(res.message || "Nie udało się pobrać grup.");
     } else {
       const groupsList = Array.isArray(res) ? res : [];
-      
-      const enrichedGroups = await Promise.all(groupsList.map(async (group) => {
-        try {
-          const [detailsRes, usersRes] = await Promise.all([
-            getSocialGroup(group.id),
-            getSocialGroupUsers(group.id)
-          ]);
 
-          const contents = [];
-          if (!detailsRes.errorCode) {
-            const fetchedNotes = detailsRes.noteResponseList || [];
-            const fetchedSets = detailsRes.cardSetResponseList || [];
+      const enrichedGroups = await Promise.all(
+        groupsList.map(async (group) => {
+          try {
+            const [detailsRes, usersRes] = await Promise.all([
+              getSocialGroup(group.id),
+              getSocialGroupUsers(group.id),
+            ]);
 
-            fetchedNotes.forEach(n => {
-              contents.push(n.name || "Notatka");
-            });
+            const contents = [];
+            if (!detailsRes.errorCode) {
+              const fetchedNotes = detailsRes.noteResponseList || [];
+              const fetchedSets = detailsRes.cardSetResponseList || [];
 
-            fetchedSets.forEach(c => {
-              contents.push(c.name || "Fiszki");
-            });
+              fetchedNotes.forEach((n) => {
+                contents.push(n.name || "Notatka");
+              });
+
+              fetchedSets.forEach((c) => {
+                contents.push(c.name || "Fiszki");
+              });
+            }
+
+            const members = Array.isArray(usersRes)
+              ? usersRes.map((u) => ({
+                  id: u.id,
+                  name: u.username,
+                  initials: u.username
+                    ? u.username.charAt(0).toUpperCase()
+                    : "?",
+                  avatarId: u.avatarId,
+                }))
+              : [];
+
+            return {
+              ...group,
+              contents: contents,
+              members: members,
+            };
+          } catch (err) {
+            return { ...group, contents: [], members: [] };
           }
-
-          const members = Array.isArray(usersRes) ? usersRes.map(u => ({
-            id: u.id,
-            name: u.username,
-            initials: u.username ? u.username.charAt(0).toUpperCase() : '?',
-            avatarId: u.avatarId
-          })) : [];
-
-          return {
-            ...group,
-            contents: contents,
-            members: members
-          };
-        } catch (err) {
-          return { ...group, contents: [], members: [] };
-        }
-      }));
+        })
+      );
 
       setGroups(enrichedGroups);
     }
@@ -536,14 +558,14 @@ const SocialGroups = () => {
   const refreshUnreadCount = async () => {
     const res = await getNotifications();
     if (!res.errorCode) {
-      const count = res.notifications.filter(n => !n.isRead).length;
+      const count = res.notifications.filter((n) => !n.isRead).length;
       setUnreadCount(count);
     }
   };
 
   useEffect(() => {
     fetchGroups();
-    refreshUnreadCount(); 
+    refreshUnreadCount();
   }, []);
 
   const handleOpenAddModal = () => {
@@ -575,8 +597,11 @@ const SocialGroups = () => {
     if (!isValid) return;
 
     setIsSubmitting(true);
-    
-    const res = await createSocialGroup(newGroupName.trim(), newGroupDesc.trim());
+
+    const res = await createSocialGroup(
+      newGroupName.trim(),
+      newGroupDesc.trim()
+    );
 
     if (res.errorCode) {
       if (res.errorCode === "TOKEN_UNDEFINED") navigate("/", { replace: true });
@@ -585,7 +610,7 @@ const SocialGroups = () => {
     } else {
       setIsSuccess(true);
       await fetchGroups();
-      
+
       setTimeout(() => {
         setIsAddModalOpen(false);
         setIsSuccess(false);
@@ -594,43 +619,66 @@ const SocialGroups = () => {
     }
   };
 
-return (
+  return (
     <Layout>
       <PageContainer $ready={isReady}>
-        
         <StyledUserHeader>
           <StyledName>Społeczności</StyledName>
           <HeaderIcons>
             {/* znajomi */}
-            <svg onClick={() => navigate('/social/friends')} viewBox="0 0 16 16" fill="currentColor" height="28" width="28">
-                <path d="m11.894 10.439333333333334 0.11733333333333332 0.118 0.11833333333333332 -0.118c0.5858 -0.5858 1.5355333333333334 -0.5858 2.1213333333333333 0 0.5858 0.5858 0.5858 1.5355333333333334 0 2.1213333333333333l-2.239133333333333 2.239133333333333 -2.2392 -2.239133333333333c-0.5858 -0.5858 -0.5858 -1.5355333333333334 0 -2.1213333333333333 0.5858 -0.5858 1.5355333333333334 -0.5858 2.1213333333333333 0ZM8 9.333333333333332v1.3333333333333333c-2.2091399999999997 0 -4 1.7908666666666666 -4 4H2.6666666666666665c0 -2.8899333333333335 2.2985599999999997 -5.242999999999999 5.167199999999999 -5.3308L8 9.333333333333332Zm0 -8.666666666666666c2.21 0 4 1.79 4 4 0 2.1597999999999997 -1.7095333333333331 3.9184 -3.85 3.9972666666666665L8 8.666666666666666c-2.21 0 -4 -1.79 -4 -4 0 -2.1597733333333333 1.70956 -3.91842 3.85 -3.99724L8 0.6666666666666666Zm0 1.3333333333333333C6.52638 2 5.333333333333333 3.1930466666666666 5.333333333333333 4.666666666666666c0 1.47362 1.1930466666666666 2.6666666666666665 2.6666666666666665 2.6666666666666665 1.4735999999999998 0 2.6666666666666665 -1.1930466666666666 2.6666666666666665 -2.6666666666666665 0 -1.47362 -1.1930666666666667 -2.6666666666666665 -2.6666666666666665 -2.6666666666666665Z" strokeWidth="0.6"></path>
+            <svg
+              onClick={() => navigate("/social/friends")}
+              viewBox="0 0 16 16"
+              fill="currentColor"
+              height="28"
+              width="28"
+            >
+              <path
+                d="m11.894 10.439333333333334 0.11733333333333332 0.118 0.11833333333333332 -0.118c0.5858 -0.5858 1.5355333333333334 -0.5858 2.1213333333333333 0 0.5858 0.5858 0.5858 1.5355333333333334 0 2.1213333333333333l-2.239133333333333 2.239133333333333 -2.2392 -2.239133333333333c-0.5858 -0.5858 -0.5858 -1.5355333333333334 0 -2.1213333333333333 0.5858 -0.5858 1.5355333333333334 -0.5858 2.1213333333333333 0ZM8 9.333333333333332v1.3333333333333333c-2.2091399999999997 0 -4 1.7908666666666666 -4 4H2.6666666666666665c0 -2.8899333333333335 2.2985599999999997 -5.242999999999999 5.167199999999999 -5.3308L8 9.333333333333332Zm0 -8.666666666666666c2.21 0 4 1.79 4 4 0 2.1597999999999997 -1.7095333333333331 3.9184 -3.85 3.9972666666666665L8 8.666666666666666c-2.21 0 -4 -1.79 -4 -4 0 -2.1597733333333333 1.70956 -3.91842 3.85 -3.99724L8 0.6666666666666666Zm0 1.3333333333333333C6.52638 2 5.333333333333333 3.1930466666666666 5.333333333333333 4.666666666666666c0 1.47362 1.1930466666666666 2.6666666666666665 2.6666666666666665 2.6666666666666665 1.4735999999999998 0 2.6666666666666665 -1.1930466666666666 2.6666666666666665 -2.6666666666666665 0 -1.47362 -1.1930666666666667 -2.6666666666666665 -2.6666666666666665 -2.6666666666666665Z"
+                strokeWidth="0.6"
+              ></path>
             </svg>
 
             {/* wrapper dla powiadomien zeby popup wyswietlal sie pod ikona */}
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-              <svg 
-                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)} 
-                fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"
+            <div
+              style={{
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <svg
+                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                />
               </svg>
-              
+
               {unreadCount > 0 && (
-                <div style={{
-                  position: 'absolute',
-                  top: '-2px',
-                  right: '-2px',
-                  width: '12px',
-                  height: '12px',
-                  backgroundColor: '#e74c3c',
-                  borderRadius: '50%',
-                  border: '2px solid white'
-                }} />
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "-2px",
+                    right: "-2px",
+                    width: "12px",
+                    height: "12px",
+                    backgroundColor: "#e74c3c",
+                    borderRadius: "50%",
+                    border: "2px solid white",
+                  }}
+                />
               )}
-              
+
               {isNotificationsOpen && (
-                <NotificationsDropdown 
-                  onClose={() => setIsNotificationsOpen(false)} 
+                <NotificationsDropdown
+                  onClose={() => setIsNotificationsOpen(false)}
                   onRefresh={refreshUnreadCount}
                 />
               )}
@@ -638,31 +686,50 @@ return (
           </HeaderIcons>
         </StyledUserHeader>
 
-        {pageError && <div style={{ color: '#e74c3c', marginBottom: '20px' }}>{pageError}</div>}
+        {pageError && (
+          <div style={{ color: "#e74c3c", marginBottom: "20px" }}>
+            {pageError}
+          </div>
+        )}
 
         {isLoading ? (
-          <div style={{ textAlign: 'center', color: '#a0a69b', marginTop: '50px' }}>Ładowanie grup...</div>
+          <div
+            style={{ textAlign: "center", color: "#a0a69b", marginTop: "50px" }}
+          >
+            Ładowanie grup...
+          </div>
         ) : isReady && groups.length === 0 ? (
-          <div style={{ textAlign: 'center', color: '#a0a69b', marginTop: '50px' }}>
-            Nie należysz jeszcze do żadnej społeczności. Kliknij +, aby utworzyć nową!
+          <div
+            style={{ textAlign: "center", color: "#a0a69b", marginTop: "50px" }}
+          >
+            Nie należysz jeszcze do żadnej społeczności. Kliknij +, aby utworzyć
+            nową!
           </div>
         ) : (
           <GroupsList>
-            {groups.map(group => (
-              <GroupCard key={group.id} onClick={() => navigate(`/social/${group.id}`)}>
-                
+            {groups.map((group) => (
+              <GroupCard
+                key={group.id}
+                onClick={() => navigate(`/social/${group.id}`)}
+              >
                 <GroupHeader>
                   <svg fill="currentColor" viewBox="0 0 16 16">
-                     <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275zM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4" />
+                    <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275zM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4" />
                   </svg>
                   <GroupTitleWrapper>
                     <GroupName>{group.name}</GroupName>
-                    {group.description && <GroupDesc>{group.description}</GroupDesc>}
+                    {group.description && (
+                      <GroupDesc>{group.description}</GroupDesc>
+                    )}
                   </GroupTitleWrapper>
                   <GroupRoleBadge>
-                    {group.userRole === 'ADMIN' ? 'Admin' : 
-                     group.userRole === 'EDITOR' ? 'Edytor' : 
-                     group.userRole === 'VIEWER' ? 'Obserwator' : 'Członek'}
+                    {group.userRole === "ADMIN"
+                      ? "Admin"
+                      : group.userRole === "EDITOR"
+                      ? "Edytor"
+                      : group.userRole === "VIEWER"
+                      ? "Obserwator"
+                      : "Członek"}
                   </GroupRoleBadge>
                 </GroupHeader>
 
@@ -674,31 +741,64 @@ return (
                         <>
                           {group.contents.slice(0, 5).map((item, idx) => (
                             <ContentItem key={idx}>
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5z"/>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                fill="currentColor"
+                                viewBox="0 0 16 16"
+                              >
+                                <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5z" />
                               </svg>
                               <ContentItemText>{item}</ContentItemText>
                             </ContentItem>
                           ))}
-                          
+
                           {group.contents.length === 6 && (
                             <ContentItem key={5}>
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5z"/>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                fill="currentColor"
+                                viewBox="0 0 16 16"
+                              >
+                                <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5z" />
                               </svg>
-                              <ContentItemText>{group.contents[5]}</ContentItemText>
+                              <ContentItemText>
+                                {group.contents[5]}
+                              </ContentItemText>
                             </ContentItem>
                           )}
 
                           {group.contents.length > 6 && (
-                            <ContentItem style={{ color: '#707a73' }}>
-                              <div style={{ width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#e9ece1', borderRadius: '4px', fontSize: '1rem', fontWeight: 'bold', flexShrink: 0 }}>+</div>
-                              <ContentItemText>{group.contents.length - 5} innych</ContentItemText>
+                            <ContentItem style={{ color: "#707a73" }}>
+                              <div
+                                style={{
+                                  width: "20px",
+                                  height: "20px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  backgroundColor: "#e9ece1",
+                                  borderRadius: "4px",
+                                  fontSize: "1rem",
+                                  fontWeight: "bold",
+                                  flexShrink: 0,
+                                }}
+                              >
+                                +
+                              </div>
+                              <ContentItemText>
+                                {group.contents.length - 5} innych
+                              </ContentItemText>
                             </ContentItem>
                           )}
                         </>
                       ) : (
-                        <div style={{ color: '#a0a69b', fontSize: '0.9rem' }}>Brak materiałów.</div>
+                        <div style={{ color: "#a0a69b", fontSize: "0.9rem" }}>
+                          Brak materiałów.
+                        </div>
                       )}
                     </ContentList>
                   </LeftSection>
@@ -712,7 +812,15 @@ return (
                             <MemberItem key={member.id}>
                               <Avatar $bg={member.bg}>
                                 {member.avatarId && member.avatarId > 0 ? (
-                                  <img src={`/icons/avatar${member.avatarId}.png`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                  <img
+                                    src={`/icons/avatar${member.avatarId}.png`}
+                                    alt=""
+                                    style={{
+                                      width: "100%",
+                                      height: "100%",
+                                      objectFit: "cover",
+                                    }}
+                                  />
                                 ) : (
                                   member.initials
                                 )}
@@ -724,8 +832,17 @@ return (
                           {group.members.length === 6 && (
                             <MemberItem key={group.members[5].id}>
                               <Avatar $bg={group.members[5].bg}>
-                                {group.members[5].avatarId && group.members[5].avatarId > 0 ? (
-                                  <img src={`/icons/avatar${group.members[5].avatarId}.png`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                {group.members[5].avatarId &&
+                                group.members[5].avatarId > 0 ? (
+                                  <img
+                                    src={`/icons/avatar${group.members[5].avatarId}.png`}
+                                    alt=""
+                                    style={{
+                                      width: "100%",
+                                      height: "100%",
+                                      objectFit: "cover",
+                                    }}
+                                  />
                                 ) : (
                                   group.members[5].initials
                                 )}
@@ -736,13 +853,25 @@ return (
 
                           {group.members.length > 6 && (
                             <MemberItem>
-                              <Avatar style={{ backgroundColor: '#e9ece1', color: '#122818', fontSize: '1rem' }}>+</Avatar>
-                              <MemberName style={{ color: '#707a73' }}>{group.members.length - 5} innych</MemberName>
+                              <Avatar
+                                style={{
+                                  backgroundColor: "#e9ece1",
+                                  color: "#122818",
+                                  fontSize: "1rem",
+                                }}
+                              >
+                                +
+                              </Avatar>
+                              <MemberName style={{ color: "#707a73" }}>
+                                {group.members.length - 5} innych
+                              </MemberName>
                             </MemberItem>
                           )}
                         </>
                       ) : (
-                        <div style={{ color: '#a0a69b', fontSize: '0.9rem' }}>...</div>
+                        <div style={{ color: "#a0a69b", fontSize: "0.9rem" }}>
+                          ...
+                        </div>
                       )}
                     </MembersGrid>
                   </RightSection>
@@ -752,7 +881,10 @@ return (
           </GroupsList>
         )}
 
-        <FloatingActionButton onClick={handleOpenAddModal} title="Utwórz nową grupę">
+        <FloatingActionButton
+          onClick={handleOpenAddModal}
+          title="Utwórz nową grupę"
+        >
           <svg fill="currentColor" viewBox="0 0 16 16">
             <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4" />
           </svg>
@@ -761,15 +893,17 @@ return (
         {/* MODAL TWORZENIA NOWEJ GRUPY */}
         {isAddModalOpen && (
           <>
-            <ModalOverlay onClick={() => !isSubmitting && setIsAddModalOpen(false)} />
+            <ModalOverlay
+              onClick={() => !isSubmitting && setIsAddModalOpen(false)}
+            />
             <StyledPopup onClick={(e) => e.stopPropagation()}>
               <ModalTitle>Utwórz nową społeczność</ModalTitle>
-              
+
               <form onSubmit={handleCreateGroup}>
                 <FormGroup>
                   <InputLabel>Nazwa grupy *</InputLabel>
-                  <ModalInput 
-                    type="text" 
+                  <ModalInput
+                    type="text"
                     placeholder="Np. Informatyka I rok - Podstawy"
                     value={newGroupName}
                     onChange={(e) => {
@@ -786,7 +920,7 @@ return (
 
                 <FormGroup>
                   <InputLabel>Krótki opis *</InputLabel>
-                  <ModalTextarea 
+                  <ModalTextarea
                     placeholder="Opisz, czym będziecie się zajmować w tej grupie..."
                     value={newGroupDesc}
                     onChange={(e) => {
@@ -801,19 +935,30 @@ return (
                 </FormGroup>
 
                 <ButtonGroup>
-                  <ModalButton type="button" onClick={() => setIsAddModalOpen(false)} disabled={isSubmitting || isSuccess}>
+                  <ModalButton
+                    type="button"
+                    onClick={() => setIsAddModalOpen(false)}
+                    disabled={isSubmitting || isSuccess}
+                  >
                     Anuluj
                   </ModalButton>
-                  <ModalButton type="submit" $primary={!isSuccess} $success={isSuccess} disabled={isSubmitting || isSuccess}>
-                    {isSuccess ? "✔ Utworzono!" : (isSubmitting ? "Tworzenie..." : "Utwórz grupę")}
+                  <ModalButton
+                    type="submit"
+                    $primary={!isSuccess}
+                    $success={isSuccess}
+                    disabled={isSubmitting || isSuccess}
+                  >
+                    {isSuccess
+                      ? "✔ Utworzono!"
+                      : isSubmitting
+                      ? "Tworzenie..."
+                      : "Utwórz grupę"}
                   </ModalButton>
                 </ButtonGroup>
               </form>
-
             </StyledPopup>
           </>
         )}
-
       </PageContainer>
     </Layout>
   );

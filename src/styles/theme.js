@@ -6,6 +6,7 @@ const shared = {
   white: "rgb(255,255,255)",
   darkGrey: "rgb(190, 190, 190)",
   dark: "rgb(20,20,20)",
+  mediumGrey: "rgb(230,230,230)",
   lightGrey: "rgb(247,247,247)",
   pageBg: "rgb(245, 245, 241)",
   text: "rgb(17, 24, 39)",

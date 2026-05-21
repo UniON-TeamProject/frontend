@@ -15,34 +15,34 @@ const DropdownContainer = styled.div`
   top: 50px;
   right: 0;
   width: 420px;
-  background: ${({ theme }) => theme.colors?.white};
+  background: ${({ theme }) => theme.colors.white};
   border-radius: 16px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-  border: 1px solid ${({ theme }) => theme.colors?.lightGrey};
+  border: 1px solid ${({ theme }) => theme.colors.lightGrey};
   z-index: 1000;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 
   @media (max-width: 450px) {
-    width: 300px;
+    width: 95vw;
   }
 `;
 
 const Header = styled.div`
   padding: 15px 20px;
-  border-bottom: 1px solid ${({ theme }) => theme.colors?.lightGrey};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.lightGrey};
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: ${({ theme }) => theme.colors?.lightGrey}30;
+  background: ${({ theme }) => theme.colors.lightGrey}30;
 `;
 
 const Title = styled.h3`
   margin: 0;
   font-size: 1.1rem;
   font-weight: 800;
-  color: ${({ theme }) => theme.colors?.text};
+  color: ${({ theme }) => theme.colors.text};
 `;
 
 const ActionLinks = styled.div`
@@ -53,7 +53,7 @@ const ActionLinks = styled.div`
 const TextBtn = styled.button`
   background: none;
   border: none;
-  color: ${({ theme }) => theme.colors?.secondary};
+  color: ${({ theme }) => theme.colors.secondary};
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
@@ -78,16 +78,16 @@ const NotificationsList = styled.div`
 
 const NotificationItem = styled.div`
   padding: 15px 20px;
-  border-bottom: 1px solid ${({ theme }) => theme.colors?.lightGrey};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.lightGrey};
   background: ${({ $isRead, theme }) =>
-    $isRead ? "transparent" : theme.colors?.lightGrey + "50"};
+    $isRead ? "transparent" : theme.colors.lightGrey + "50"};
   cursor: pointer;
   transition: background 0.2s;
   display: flex;
   gap: 15px;
 
   &:hover {
-    background: ${({ theme }) => theme.colors?.lightGrey};
+    background: ${({ theme }) => theme.colors.lightGrey};
   }
 `;
 
@@ -95,7 +95,7 @@ const UnreadDot = styled.div`
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: ${({ theme }) => theme.colors?.secondary};
+  background: ${({ theme }) => theme.colors.secondary};
   flex-shrink: 0;
   margin-top: 5px;
   display: ${({ $visible }) => ($visible ? "block" : "none")};
@@ -108,19 +108,19 @@ const Content = styled.div`
 const Message = styled.p`
   margin: 0 0 5px 0;
   font-size: 0.9rem;
-  color: ${({ theme }) => theme.colors?.text};
+  color: ${({ theme }) => theme.colors.text};
   line-height: 1.4;
 `;
 
 const Time = styled.span`
   font-size: 0.75rem;
-  color: ${({ theme }) => theme.colors?.darkGrey};
+  color: ${({ theme }) => theme.colors.darkGrey};
 `;
 
 const EmptyState = styled.div`
   padding: 40px 20px;
   text-align: center;
-  color: ${({ theme }) => theme.colors?.darkGrey};
+  color: ${({ theme }) => theme.colors.darkGrey};
   font-size: 0.95rem;
 `;
 
@@ -139,7 +139,7 @@ const StyledPopup = styled.div`
   width: 400px;
   padding: 35px 40px;
   border-radius: 25px;
-  background-color: ${({ theme }) => theme.colors?.white};
+  background-color: ${({ theme }) => theme.colors.white};
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   z-index: 1100;
   display: flex;
@@ -154,7 +154,7 @@ const StyledPopup = styled.div`
 
 const ModalTitle = styled.h2`
   text-align: center;
-  color: ${({ theme }) => theme.colors?.text};
+  color: ${({ theme }) => theme.colors.text};
   margin-top: 0;
   margin-bottom: 10px;
   font-weight: 800;
@@ -162,7 +162,7 @@ const ModalTitle = styled.h2`
 
 const ModalText = styled.p`
   text-align: center;
-  color: ${({ theme }) => theme.colors?.darkGrey};
+  color: ${({ theme }) => theme.colors.darkGrey};
   margin-bottom: 25px;
   font-size: 0.95rem;
   line-height: 1.5;
@@ -177,10 +177,10 @@ const ButtonGroup = styled.div`
 
 const ModalButton = styled.button`
   background-color: ${({ $danger, theme }) =>
-    $danger ? theme.colors?.danger : "transparent"};
-  color: ${({ $danger, theme }) => ($danger ? "#fff" : theme.colors?.text)};
+    $danger ? theme.colors.danger : "transparent"};
+  color: ${({ $danger, theme }) => ($danger ? "#fff" : theme.colors.text)};
   border: ${({ $danger, theme }) =>
-    $danger ? "none" : `1px solid ${theme.colors?.darkGrey}`};
+    $danger ? "none" : `1px solid ${theme.colors.darkGrey}`};
   padding: 10px 20px;
   border-radius: 12px;
   font-size: 0.95rem;
@@ -201,7 +201,7 @@ const CheckboxWrapper = styled.label`
   margin-bottom: 25px;
   cursor: pointer;
   font-size: 0.85rem;
-  color: ${({ theme }) => theme.colors?.darkGrey};
+  color: ${({ theme }) => theme.colors.darkGrey};
   font-weight: 600;
   user-select: none;
 `;
@@ -210,7 +210,7 @@ const StyledCheckbox = styled.input`
   width: 16px;
   height: 16px;
   cursor: pointer;
-  accent-color: ${({ theme }) => theme.colors?.danger};
+  accent-color: ${({ theme }) => theme.colors.danger};
 `;
 
 const InviteActions = styled.div`
@@ -227,7 +227,7 @@ const InviteBtn = styled.button`
   cursor: pointer;
   border: none;
   background: ${({ $accept, theme }) =>
-    $accept ? theme.colors?.secondary : theme.colors?.danger};
+    $accept ? theme.colors.secondary : theme.colors.danger};
   color: white;
   transition: opacity 0.2s;
   &:hover {

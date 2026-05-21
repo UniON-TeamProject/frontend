@@ -4,6 +4,7 @@ import {
   addCard,
   addFlashcardSet,
   getAllFlashcardSets,
+  getFlashcardSetsBySocialId,
   editCard,
   deleteCard,
 } from "../../api";
@@ -446,6 +447,7 @@ function FlashcardCreatorSidebar({
   flashcards,
   setFlashcards,
   suggestedTags = [],
+  socialId = null,
 }) {
   const [setName, setSetName] = useState("");
   const [debouncedSetName, setDebouncedSetName] = useState("");
@@ -550,7 +552,10 @@ function FlashcardCreatorSidebar({
   // Load sets on open
   useEffect(() => {
     if (!isOpen) return;
-    getAllFlashcardSets().then((result) => {
+    const fetchSets = socialId
+      ? getFlashcardSetsBySocialId(socialId)
+      : getAllFlashcardSets();
+    fetchSets.then((result) => {
       if (!result.errorCode) setSets(result.sets || []);
     });
   }, [isOpen]);
@@ -597,7 +602,7 @@ function FlashcardCreatorSidebar({
     const name = setNameRef.current.trim();
     if (!name) return null;
     const currentNoteId = window.location.pathname.split('/').pop();
-    const result = await addFlashcardSet(name, [], null, currentNoteId);
+    const result = await addFlashcardSet(name, [], socialId, currentNoteId);
     if (result.errorCode) {
       setGlobalStatus({
         error: true,
@@ -606,7 +611,10 @@ function FlashcardCreatorSidebar({
       return null;
     }
     resolvedSetIdRef.current = result.id;
-    getAllFlashcardSets().then((r) => {
+    const fetchSets = socialId
+      ? getFlashcardSetsBySocialId(socialId)
+      : getAllFlashcardSets();
+    fetchSets.then((r) => {
       if (!r.errorCode) setSets(r.sets || []);
     });
     return result.id;

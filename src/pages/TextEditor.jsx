@@ -316,13 +316,13 @@ const ReturnButton = styled.div`
   cursor: pointer;
   font-size: 1.1rem;
   font-weight: 600;
-  color: ${({ theme }) => theme.colors?.darkGrey || "#666"};
+  color: ${({ theme }) => theme.colors.darkGrey || "#666"};
   transition: color 0.2s;
   user-select: none;
   -webkit-user-select: none;
 
   &:hover {
-    color: ${({ theme }) => theme.colors?.text || "#000"};
+    color: ${({ theme }) => theme.colors.text || "#000"};
   }
 
   svg {
@@ -514,8 +514,8 @@ const HelpIconWrapper = styled.div`
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background-color: ${({ theme }) => theme.colors?.borderLight};
-  color: ${({ theme }) => theme.colors?.textLight};
+  background-color: ${({ theme }) => theme.colors.borderLight};
+  color: ${({ theme }) => theme.colors.textLight};
   font-size: 0.8rem;
   font-weight: bold;
   cursor: default;
@@ -532,8 +532,8 @@ const HelpTooltip = styled.div`
   right: calc(100% + 12px); // zeby otwieral sie w lewo
   top: 50%;
   transform: translateY(-50%);
-  background-color: ${({ theme }) => theme.colors?.takiSmiesznyZielonyAleJasny};
-  color: ${({ theme }) => theme.colors?.white};
+  background-color: ${({ theme }) => theme.colors.takiSmiesznyZielonyAleJasny};
+  color: ${({ theme }) => theme.colors.white};
   font-size: 0.8rem;
   font-weight: 500;
   text-align: left;
@@ -553,7 +553,7 @@ const HelpTooltip = styled.div`
     border-width: 6px;
     border-style: solid;
     border-color: transparent transparent
-      ${({ theme }) => theme.colors?.veryDarkPrimary} transparent;
+      ${({ theme }) => theme.colors.veryDarkPrimary} transparent;
   }
 `;
 
@@ -877,8 +877,12 @@ const TextEditor = () => {
         row.appendChild(marker);
         row.appendChild(content);
 
-        const nestedLists = Array.from(li.querySelectorAll(":scope > ul, :scope > ol"));
-        nestedLists.forEach((nested) => row.appendChild(processList(nested, depth + 1)));
+        const nestedLists = Array.from(
+          li.querySelectorAll(":scope > ul, :scope > ol")
+        );
+        nestedLists.forEach((nested) =>
+          row.appendChild(processList(nested, depth + 1))
+        );
 
         wrapper.appendChild(row);
       });
@@ -1093,8 +1097,8 @@ const TextEditor = () => {
                       <b style={{ color: theme.colors.secondary }}>
                         Stwórz fiszki AI
                       </b>{" "}
-                      - kreator AI automatycznie wygeneruje propozycje fiszek z treści, która
-                      jest obecnie zapisana w notatce.
+                      - kreator AI automatycznie wygeneruje propozycje fiszek z
+                      treści, która jest obecnie zapisana w notatce.
                     </HelpTooltip>
                   </HelpIconWrapper>
                 </div>
@@ -1179,11 +1183,13 @@ const TextEditor = () => {
             flashcards={flashcards}
             setFlashcards={setFlashcards}
             suggestedTags={suggestedTags}
+            socialId={socialId}
           />
           <AIFlashcardModal
             isOpen={isAIModalOpen}
             onClose={() => setIsAIModalOpen(false)}
             noteId={id}
+            socialId={socialId}
           />
           <CollapsingSection>
             {renameNoteError && (
@@ -1279,7 +1285,11 @@ const TextEditor = () => {
             <TagsDivider />
           </CollapsingSection>
         </StyledHeader>
-        {!isReadOnly && <StickyToolbar><TextEditorFormatting editor={editor} /></StickyToolbar>}
+        {!isReadOnly && (
+          <StickyToolbar>
+            <TextEditorFormatting editor={editor} />
+          </StickyToolbar>
+        )}
         {errorMessage && <Text color="danger" text={errorMessage} />}
         <ContentContainer
           onClick={(e) => {

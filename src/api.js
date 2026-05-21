@@ -1469,6 +1469,36 @@ export async function getAllFlashcardSets() {
   }
 }
 
+export async function getFlashcardSetsBySocialId(socialId) {
+  const token = getToken();
+  if (!token)
+    return { sets: [], errorCode: "TOKEN_UNDEFINED", message: "Brak tokena" };
+
+  try {
+    const resp = await fetch(`${API_HOST}/getCardSets/${socialId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    const authErr = checkUnauthorized(resp);
+    if (authErr) return authErr;
+
+    if (!resp.ok)
+      return {
+        sets: [],
+        errorCode: "FETCH_ERROR",
+        message: "Nie udało się pobrać zestawów społeczności",
+      };
+
+    const sets = await resp.json();
+    return { sets, errorCode: "", message: "" };
+  } catch {
+    return { sets: [], errorCode: "CONNECTION_ERROR", message: "Błąd serwera" };
+  }
+}
+
 export async function getFastLearningCards(setId) {
   const token = getToken();
   if (!token) return null;

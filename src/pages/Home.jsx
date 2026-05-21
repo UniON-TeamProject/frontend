@@ -361,10 +361,10 @@ const MobileViewDropdownBtn = styled.button`
   font-size: 12px;
   font-weight: 500;
   font-family: inherit;
-  border: 1px solid ${({ theme }) => theme.colors?.darkGrey || "#ccc"};
+  border: 1px solid ${({ theme }) => theme.colors.darkGrey || "#ccc"};
   border-radius: 8px;
-  background: ${({ theme }) => theme.colors?.white || "#fff"};
-  color: ${({ theme }) => theme.colors?.text || "#333"};
+  background: ${({ theme }) => theme.colors.white || "#fff"};
+  color: ${({ theme }) => theme.colors.text || "#333"};
   cursor: pointer;
 `;
 
@@ -372,8 +372,8 @@ const MobileViewDropdownList = styled.div`
   position: absolute;
   top: calc(100% + 4px);
   right: 0;
-  background: ${({ theme }) => theme.colors?.white || "#fff"};
-  border: 1px solid ${({ theme }) => theme.colors?.darkGrey || "#ccc"};
+  background: ${({ theme }) => theme.colors.white || "#fff"};
+  border: 1px solid ${({ theme }) => theme.colors.darkGrey || "#ccc"};
   border-radius: 8px;
   padding: 4px;
   z-index: 10;
@@ -391,11 +391,11 @@ const MobileViewDropdownItem = styled.button`
   border: none;
   border-radius: 6px;
   background: ${({ $active, theme }) =>
-    $active ? theme.colors?.primary || "#c5d89a" : "transparent"};
+    $active ? theme.colors.primary || "#c5d89a" : "transparent"};
   color: ${({ $active, theme }) =>
     $active
-      ? theme.colors?.secondary || "#4a7c3f"
-      : theme.colors?.text || "#333"};
+      ? theme.colors.secondary || "#4a7c3f"
+      : theme.colors.text || "#333"};
   cursor: pointer;
   text-align: left;
   white-space: nowrap;
@@ -500,7 +500,7 @@ const EmptyDataMessage = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  color: ${({ theme }) => theme.colors?.textLight};
+  color: ${({ theme }) => theme.colors.textLight};
   font-size: 0.95rem;
   font-weight: 500;
   text-align: center;
@@ -520,8 +520,8 @@ const HelpIconWrapper = styled.div`
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background-color: ${({ theme }) => theme.colors?.borderLight};
-  color: ${({ theme }) => theme.colors?.textLight};
+  background-color: ${({ theme }) => theme.colors.borderLight};
+  color: ${({ theme }) => theme.colors.textLight};
   font-size: 0.8rem;
   font-weight: bold;
   cursor: default;
@@ -537,8 +537,8 @@ const HelpTooltip = styled.div`
   bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
-  background-color: ${({ theme }) => theme.colors?.takiSmiesznyZielonyAleJasny};
-  color: ${({ theme }) => theme.colors?.white};
+  background-color: ${({ theme }) => theme.colors.takiSmiesznyZielonyAleJasny};
+  color: ${({ theme }) => theme.colors.white};
   font-size: 0.8rem;
   font-weight: 500;
   text-align: center;
@@ -1008,7 +1008,7 @@ const Home = () => {
                     right: "-2px",
                     width: "12px",
                     height: "12px",
-                    backgroundColor: theme.colors?.danger || "#e74c3c",
+                    backgroundColor: theme.colors.danger || "#e74c3c",
                     borderRadius: "50%",
                     border: "2px solid white",
                   }}
@@ -1184,7 +1184,7 @@ const Home = () => {
                       background: "transparent",
                       cursor: "pointer",
                       fontSize: "1.4rem",
-                      color: theme.colors?.veryDarkPrimary || "#122818",
+                      color: theme.colors.veryDarkPrimary || "#122818",
                       padding: "0 5px",
                     }}
                   >
@@ -1205,7 +1205,7 @@ const Home = () => {
                       background: "transparent",
                       cursor: "pointer",
                       fontSize: "1.4rem",
-                      color: theme.colors?.veryDarkPrimary || "#122818",
+                      color: theme.colors.veryDarkPrimary || "#122818",
                       padding: "0 5px",
                     }}
                   >
@@ -1223,12 +1223,12 @@ const Home = () => {
                       border: "none",
                       background:
                         calendarView === "week"
-                          ? theme.colors?.lightPrimary || "#e6eadb"
+                          ? theme.colors.lightPrimary || "#e6eadb"
                           : "transparent",
                       padding: "6px 12px",
                       borderRadius: "8px",
                       cursor: "pointer",
-                      color: theme.colors?.veryDarkPrimary || "#122818",
+                      color: theme.colors.veryDarkPrimary || "#122818",
                       transition: "all 0.2s",
                     }}
                   >
@@ -1243,12 +1243,12 @@ const Home = () => {
                       border: "none",
                       background:
                         calendarView === "month"
-                          ? theme.colors?.lightPrimary || "#e6eadb"
+                          ? theme.colors.lightPrimary || "#e6eadb"
                           : "transparent",
                       padding: "6px 12px",
                       borderRadius: "8px",
                       cursor: "pointer",
-                      color: theme.colors?.veryDarkPrimary || "#122818",
+                      color: theme.colors.veryDarkPrimary || "#122818",
                       transition: "all 0.2s",
                     }}
                   >
@@ -1262,7 +1262,7 @@ const Home = () => {
                   >
                     {calendarView === "week" ? "Tydzień" : "Miesiąc"}
                     <span
-                      style={{ fontSize: 9, color: theme.colors?.textLight }}
+                      style={{ fontSize: 9, color: theme.colors.textLight }}
                     >
                       {viewOpen ? "▲" : "▼"}
                     </span>
@@ -1301,7 +1301,7 @@ const Home = () => {
                   display: "flex",
                   flexDirection: "column",
                   overflow: "hidden",
-                  borderTop: `1px solid ${theme.colors?.borderLight || "#eee"}`,
+                  borderTop: `1px solid ${theme.colors.borderLight || "#eee"}`,
                   paddingTop: "10px",
                 }}
               >
@@ -1351,8 +1351,8 @@ const Home = () => {
                               width: "38px",
                               height: "38px",
                               borderRadius: "10px",
-                              backgroundColor: theme.colors?.lightGrey,
-                              color: theme.colors?.veryDarkPrimary,
+                              backgroundColor: theme.colors.lightGrey,
+                              color: theme.colors.veryDarkPrimary,
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
@@ -1385,7 +1385,7 @@ const Home = () => {
                         >
                           <TagPill
                             style={{
-                              backgroundColor: theme.colors?.lightGrey,
+                              backgroundColor: theme.colors.lightGrey,
                               padding: "3px 8px",
                               borderRadius: "8px",
                             }}
@@ -1406,7 +1406,7 @@ const Home = () => {
                               cursor: "pointer",
                               color: isPinned
                                 ? "#ffdf60"
-                                : theme.colors?.borderMuted,
+                                : theme.colors.borderMuted,
                               display: "flex",
                               alignItems: "center",
                               transition: "color 0.2s, transform 0.2s",
@@ -1470,7 +1470,7 @@ const Home = () => {
                         }
                         style={{
                           borderLeft: `4px solid ${
-                            theme.colors?.danger || "#ef4444"
+                            theme.colors.danger || "#ef4444"
                           }`,
                         }}
                       >
@@ -1503,7 +1503,11 @@ const Home = () => {
                               }}
                             >
                               {icons.slice(0, 3).map((icon, idx) => (
-                                <DeadlineIcon key={idx} title="Kategoria" $extra={idx >= 1}>
+                                <DeadlineIcon
+                                  key={idx}
+                                  title="Kategoria"
+                                  $extra={idx >= 1}
+                                >
                                   {icon}
                                 </DeadlineIcon>
                               ))}

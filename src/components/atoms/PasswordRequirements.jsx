@@ -31,7 +31,7 @@ const Item = styled.li`
 `;
 
 const REQUIREMENTS = [
-  { test: (p) => p.length >= 8, label: "co najmniej 8 znaków" },
+  { test: (p) => p.length >= 14, label: "co najmniej 14 znaków" },
   { test: (p) => /[a-z]/.test(p), label: "jedna mała litera" },
   { test: (p) => /[A-Z]/.test(p), label: "jedna wielka litera" },
   { test: (p) => /\d/.test(p), label: "jedna cyfra" },

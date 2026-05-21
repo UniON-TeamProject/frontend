@@ -4,6 +4,7 @@ import {
   generateCardsFromNote,
   addListOfCardsToSet,
   getAllFlashcardSets,
+  getFlashcardSetsBySocialId,
   addFlashcardSet,
 } from "../../api";
 import Text from "../atoms/Text";
@@ -345,7 +346,7 @@ const getCardsWord = (count) => {
   return "fiszek";
 };
 
-function AIFlashcardModal({ isOpen, onClose, noteId }) {
+function AIFlashcardModal({ isOpen, onClose, noteId, socialId }) {
   const [phase, setPhase] = useState("idle"); // idle | loading | ready | saving | done | error
   const [cards, setCards] = useState([]);
   const [sets, setSets] = useState([]);
@@ -369,7 +370,10 @@ function AIFlashcardModal({ isOpen, onClose, noteId }) {
     setSelectedSetId(null);
     setSetName("");
 
-    getAllFlashcardSets().then((r) => {
+    const fetchSets = socialId
+      ? getFlashcardSetsBySocialId(socialId)
+      : getAllFlashcardSets();
+    fetchSets.then((r) => {
       if (!r.errorCode) setSets(r.sets || []);
     });
 
@@ -469,7 +473,7 @@ function AIFlashcardModal({ isOpen, onClose, noteId }) {
 
     let targetId = selectedSetId;
     if (selectedSetId === NEW_SET) {
-      const result = await addFlashcardSet(setName.trim(), [], null, noteId);
+      const result = await addFlashcardSet(setName.trim(), [], socialId, noteId);
       if (result.errorCode) {
         setPhase("ready");
         setErrorMessage(result.message);
