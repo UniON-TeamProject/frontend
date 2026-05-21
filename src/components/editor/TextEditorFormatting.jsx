@@ -102,12 +102,7 @@ const StyledButton = styled.button`
 const ImageActionWrapper = styled.div`
   display: flex;
   align-items: center;
-  margin-right: 15px;
-
-  @media (max-width: 768px) {
-    margin-right: 4px;
-  }
-
+  margin-right: 0px;
   .image {
     margin-right: 5px !important;
   }
@@ -150,6 +145,10 @@ const HelpTooltip = styled.div`
   z-index: 100;
   box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
   line-height: 1.4;
+  @media (max-width: 768px) {
+    left: 0;
+    transform: none;
+  }
 
   &::after {
     content: "";
@@ -157,6 +156,10 @@ const HelpTooltip = styled.div`
     bottom: 100%;
     left: 50%;
     transform: translateX(-50%);
+    @media (max-width: 768px) {
+      left: 10px;
+      transform: none;
+    }
     border-width: 6px;
     border-style: solid;
     border-color: transparent transparent ${({ theme }) => theme.colors.text}
@@ -277,6 +280,8 @@ function TextEditorFormatting({ editor }) {
           </HelpTooltip>
         </HelpIconWrapper>
       </ImageActionWrapper>
+      <Separator />
+      <TextSizeDropdown editor={editor} />
       <Separator />
       <ScrollableButtons>
         <StyledButton
