@@ -903,7 +903,9 @@ export async function addCard(
   answer,
   setId,
   tags = [],
-  isForced = false
+  isForced = false,
+  noteId = null,
+  socialId = null
 ) {
   const token = getToken();
   if (!token)
@@ -914,7 +916,12 @@ export async function addCard(
     };
 
   try {
-    const resp = await fetch(`${API_HOST}/addCard`, {
+    const params = new URLSearchParams();
+    if (noteId) params.append("noteId", noteId);
+    if (socialId) params.append("socialId", socialId);
+    const queryString = params.toString() ? `?${params.toString()}` : "";
+
+    const resp = await fetch(`${API_HOST}/addCard${queryString}`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -929,8 +936,10 @@ export async function addCard(
         isForced: isForced,
       }),
     });
+    
     const authErr = checkUnauthorized(resp);
     if (authErr) return authErr;
+    
     if (resp.ok) {
       const { id } = await resp.json();
       return { id, errorCode: "", message: "" };
@@ -1686,12 +1695,18 @@ export async function moveListOfCards(cardSetId, cardIds) {
   }
 }
 
-export async function addListOfCardsToSet(cardSetId, cards) {
+export async function addListOfCardsToSet(cardSetId, cards, noteId = null, socialId = null) {
   const token = getToken();
   if (!token) return { errorCode: "TOKEN_UNDEFINED", message: "Brak tokena" };
+  
   try {
+    const params = new URLSearchParams();
+    if (noteId) params.append("noteId", noteId);
+    if (socialId) params.append("socialId", socialId);
+    const queryString = params.toString() ? `?${params.toString()}` : "";
+
     const resp = await fetch(
-      `${API_HOST}/addListOfCardsToTheCardSet/${cardSetId}`,
+      `${API_HOST}/addListOfCardsToTheCardSet/${cardSetId}${queryString}`,
       {
         method: "POST",
         headers: {
@@ -1703,6 +1718,7 @@ export async function addListOfCardsToSet(cardSetId, cards) {
     );
     const authErr = checkUnauthorized(resp);
     if (authErr) return authErr;
+    
     if (resp.ok) {
       const saved = await resp.json();
       return { cards: saved, errorCode: "", message: "" };

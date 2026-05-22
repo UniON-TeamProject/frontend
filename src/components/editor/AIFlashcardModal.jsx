@@ -464,7 +464,9 @@ function AIFlashcardModal({ isOpen, onClose, noteId, socialId }) {
 
     if (hasAnyErrors) {
       setCardValidationErrors(errors);
-      setErrorMessage("Niektóre fiszki mają puste pola. Uzupełnij je lub usuń krzyżykiem.");
+      setErrorMessage(
+        "Niektóre fiszki mają puste pola. Uzupełnij je lub usuń krzyżykiem."
+      );
       return;
     }
 
@@ -473,27 +475,38 @@ function AIFlashcardModal({ isOpen, onClose, noteId, socialId }) {
 
     let targetId = selectedSetId;
     if (selectedSetId === NEW_SET) {
-      const result = await addFlashcardSet(setName.trim(), [], socialId, noteId);
-      if (result.errorCode) {
+      const createSetResult = await addFlashcardSet(
+        setName.trim(),
+        [],
+        socialId,
+        noteId
+      );
+      if (createSetResult.errorCode) {
         setPhase("ready");
-        setErrorMessage(result.message);
+        setErrorMessage(createSetResult.message);
         return;
       }
-      targetId = result.id;
+      targetId = createSetResult.id;
     }
 
     const cardRequests = validCards.map((c) => ({
       contentFirstSide: c.front.trim(),
       contentFlipSide: c.back.trim(),
-      setId: 0, 
+      setId: 0,
       cardTags: [],
       isForced: false,
     }));
 
-    const result = await addListOfCardsToSet(targetId, cardRequests);
-    if (result.errorCode) {
+    const addCardsResult = await addListOfCardsToSet(
+      targetId,
+      cardRequests,
+      noteId,
+      socialId
+    );
+
+    if (addCardsResult.errorCode) {
       setPhase("ready");
-      setErrorMessage(result.message);
+      setErrorMessage(addCardsResult.message);
     } else {
       setPhase("done");
     }

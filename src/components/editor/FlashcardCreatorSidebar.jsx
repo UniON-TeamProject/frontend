@@ -655,6 +655,8 @@ function FlashcardCreatorSidebar({
     ];
     const meta = cardMetaRef.current[index];
     let result;
+    //id notatki z urla
+    const currentNoteId = window.location.pathname.split('/').pop();
     if (meta?.id) {
       result = await editCard(
         meta.id,
@@ -668,7 +670,10 @@ function FlashcardCreatorSidebar({
         card.front.trim(),
         card.back.trim(),
         setId,
-        mergedTags
+        mergedTags,
+        false,          //isForced
+        currentNoteId, //noteId
+        socialId       //socialId
       );
     }
 

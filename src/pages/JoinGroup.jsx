@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import Layout from "../components/organisms/Layout";
 import { validateInvitation, acceptInvitation } from "../api";
@@ -73,6 +73,7 @@ const JoinGroup = () => {
   const [message, setMessage] = useState("");
 
   const token = searchParams.get("token");
+  const theme = useTheme();
 
   useEffect(() => {
     if (!token) {
@@ -172,14 +173,20 @@ const JoinGroup = () => {
               {message.includes("Zaloguj") ? (
                 <Button
                   onClick={() => navigate("/")}
-                  style={{ backgroundColor: "#95a5a6" }}
+                  style={{
+                    background: theme.colors.secondary,
+                    color: theme.colors.white,
+                  }}
                 >
                   Przejdź do logowania
                 </Button>
               ) : (
                 <Button
                   onClick={() => navigate("/social")}
-                  style={{ backgroundColor: "#95a5a6" }}
+                  style={{
+                    background: theme.colors.secondary,
+                    color: theme.colors.white,
+                  }}
                 >
                   Wróć do społeczności
                 </Button>
