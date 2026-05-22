@@ -329,7 +329,7 @@ const SetIconContainer = styled.div`
   width: 140px;
   height: 100px;
   margin: 0 auto 10px auto;
-  color: ${({ theme }) => theme.colors.black};
+  color: ${({ theme }) => theme.colors.darkGrey};
 
   @media (max-width: 768px) {
     width: 72px;
@@ -1598,53 +1598,53 @@ const NoteDropdownItem = styled.button`
   }
 `;
 
-const StackedCardsIcon = () => (
-  <svg
-    viewBox="0 0 140 100"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    style={{ width: "100%", height: "100%" }}
-  >
-    <rect
-      x="15"
-      y="10"
-      width="115"
-      height="75"
-      rx="5"
-      transform="rotate(-4 15 10)"
-      fill="white"
-      stroke="black"
-      strokeWidth="2"
-    />
-    <circle
-      cx="22"
-      cy="18"
-      r="3"
-      fill="white"
-      stroke="black"
-      strokeWidth="1.5"
-      transform="rotate(-4 15 10)"
-    />
-    <rect
-      x="5"
-      y="20"
-      width="115"
-      height="75"
-      rx="5"
-      fill="white"
-      stroke="black"
-      strokeWidth="2.5"
-    />
-    <circle
-      cx="15"
-      cy="32"
-      r="3"
-      fill="white"
-      stroke="black"
-      strokeWidth="1.5"
-    />
-  </svg>
-);
+// const StackedCardsIcon = () => (
+//   <svg
+//     viewBox="0 0 140 100"
+//     fill="none"
+//     xmlns="http://www.w3.org/2000/svg"
+//     style={{ width: "100%", height: "100%" }}
+//   >
+//     <rect
+//       x="15"
+//       y="10"
+//       width="115"
+//       height="75"
+//       rx="5"
+//       transform="rotate(-4 15 10)"
+//       fill="white"
+//       stroke="black"
+//       strokeWidth="2"
+//     />
+//     <circle
+//       cx="22"
+//       cy="18"
+//       r="3"
+//       fill="white"
+//       stroke="black"
+//       strokeWidth="1.5"
+//       transform="rotate(-4 15 10)"
+//     />
+//     <rect
+//       x="5"
+//       y="20"
+//       width="115"
+//       height="75"
+//       rx="5"
+//       fill="white"
+//       stroke="black"
+//       strokeWidth="2.5"
+//     />
+//     <circle
+//       cx="15"
+//       cy="32"
+//       r="3"
+//       fill="white"
+//       stroke="black"
+//       strokeWidth="1.5"
+//     />
+//   </svg>
+// );
 
 const PlusIcon = () => (
   <svg fill="currentColor" viewBox="0 0 16 16">
@@ -1674,6 +1674,41 @@ const EllipsisIcon = () => (
     xmlns="http://www.w3.org/2000/svg"
   >
     <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z" />
+  </svg>
+);
+
+const CardsIcon = (props) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 288 256"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    {/* Kółko trzymające fiszki (otwarta ścieżka chowająca się za kartami) */}
+    <path d="M 89 64 A 32 32 0 1 0 62 100" />
+
+    {/* Tylna karta (z zachowaną perspektywą, ten sam rozmiar co przednia, ukryte lewe/dolne krawędzie) */}
+    <path d="M 68 80 A 16 16 0 0 1 84 64 L 216 64 A 16 16 0 0 1 232 80 L 232 180 A 16 16 0 0 1 216 196" />
+
+    {/* Przednia karta */}
+    <rect x="52" y="80" width="164" height="132" rx="16" />
+
+    {/* Dziurka w przedniej karcie */}
+    <circle cx="74" cy="100" r="7" />
+
+    {/* Litera "A" */}
+    <path d="M 100 132 L 114 92 L 128 132 M 105 120 L 123 120" />
+
+    {/* Litera "a" */}
+    <circle cx="150" cy="120" r="12" />
+    <path d="M 162 108 L 162 128 A 4 4 0 0 0 166 132" />
+
+    {/* Trzy poziome linie */}
+    <path d="M 86 156 L 182 156 M 86 176 L 158 176 M 86 196 L 122 196" />
   </svg>
 );
 
@@ -3348,7 +3383,7 @@ const FlashcardsPage = () => {
                   }}
                 >
                   <SetIconContainer>
-                    <StackedCardsIcon />
+                    <CardsIcon />
                   </SetIconContainer>
                   <StyledItemHeaderWrapper>
                     <Text
