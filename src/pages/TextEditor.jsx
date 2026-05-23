@@ -866,9 +866,11 @@ const TextEditor = () => {
         const content = document.createElement("span");
         content.style.flex = "1";
 
+        const nestedToAdd = [];
+
         Array.from(li.childNodes).forEach((child) => {
           if (child.tagName === "UL" || child.tagName === "OL") {
-            row.appendChild(processList(child, depth + 1));
+            nestedToAdd.push(processList(child, depth + 1));
           } else {
             content.appendChild(child.cloneNode(true));
           }
@@ -877,14 +879,8 @@ const TextEditor = () => {
         row.appendChild(marker);
         row.appendChild(content);
 
-        const nestedLists = Array.from(
-          li.querySelectorAll(":scope > ul, :scope > ol")
-        );
-        nestedLists.forEach((nested) =>
-          row.appendChild(processList(nested, depth + 1))
-        );
-
         wrapper.appendChild(row);
+        nestedToAdd.forEach((nested) => wrapper.appendChild(nested));
       });
 
       return wrapper;
