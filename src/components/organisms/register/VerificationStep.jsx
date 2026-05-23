@@ -34,8 +34,10 @@ const VerificationStep = ({ email, setStep, setSuccessPopupActive, setSuccessPop
         setErrorMessage("");
         const result = await verificationRequest(email, verificationCode);
         if (result.errorCode) {
-            if (result.errorCode == "SUCCESS" || result.errorCode == "EMAIL_ALREADY_VERIFIED")
+            if (result.errorCode == "SUCCESS" || result.errorCode == "EMAIL_ALREADY_VERIFIED") {
                 setStep(4);
+                return;
+            }
             setErrorMessage(result.message)
             if (result.errorCode == "INVALID_TOKEN")
                 setVerificationCodeError(true);
