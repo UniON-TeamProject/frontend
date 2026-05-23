@@ -612,19 +612,10 @@ const TextEditor = () => {
     addKeyboardShortcuts() {
       return {
         Tab: ({ editor }) => {
-          if (editor.isActive("listItem")) {
-            return editor.commands.sinkListItem("listItem");
-          }
           const { state, view } = editor;
           const { selection } = state;
           view.dispatch(state.tr.insertText("\u00A0\u00A0\u00A0\u00A0", selection.from, selection.to));
           return true;
-        },
-        "Shift-Tab": ({ editor }) => {
-          if (editor.isActive("listItem")) {
-            return editor.commands.liftListItem("listItem");
-          }
-          return false;
         },
       };
     },
