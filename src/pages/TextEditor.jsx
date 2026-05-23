@@ -20,7 +20,7 @@ import {
 import styled, { useTheme } from "styled-components";
 import Image from "@tiptap/extension-image";
 import { Extension } from "@tiptap/core";
-import { Plugin } from "@tiptap/pm/state";
+import { Plugin, EditorState } from "@tiptap/pm/state";
 import Text from "../components/atoms/Text";
 import Commands from "../helpers/textEditor/commands.js";
 import createSuggestion from "../helpers/textEditor/suggestion.js";
@@ -606,6 +606,30 @@ const TextEditor = () => {
     },
   });
 
+  const TabIndent = Extension.create({
+    name: "tabIndent",
+    priority: 1000,
+    addKeyboardShortcuts() {
+      return {
+        Tab: ({ editor }) => {
+          if (editor.isActive("listItem")) {
+            return editor.commands.sinkListItem("listItem");
+          }
+          const { state, view } = editor;
+          const { selection } = state;
+          view.dispatch(state.tr.insertText("\u00A0\u00A0\u00A0\u00A0", selection.from, selection.to));
+          return true;
+        },
+        "Shift-Tab": ({ editor }) => {
+          if (editor.isActive("listItem")) {
+            return editor.commands.liftListItem("listItem");
+          }
+          return false;
+        },
+      };
+    },
+  });
+
   const ImageDropHandler = Extension.create({
     name: "imageDropHandler",
     addProseMirrorPlugins() {
@@ -681,6 +705,7 @@ const TextEditor = () => {
       Markdown,
       Typography,
       SaveShortcut,
+      TabIndent,
       ImageDropHandler,
       Commands.configure({
         suggestion: createSuggestion(slashItems),
@@ -730,6 +755,11 @@ const TextEditor = () => {
         if (editor) {
           isReadyForAutoSave.current = false;
           editor.commands.setContent(result.content, false);
+          editor.view.updateState(EditorState.create({
+            schema: editor.state.schema,
+            doc: editor.state.doc,
+            plugins: editor.state.plugins,
+          }));
 
           const isReadOnly = socialId
             ? currentRole !== "ADMIN" && currentRole !== "EDITOR"
@@ -963,8 +993,14 @@ const TextEditor = () => {
   }, [id, socialId]);
 
   useEffect(() => {
-    if (editor && content !== undefined)
+    if (editor && content !== undefined) {
       editor.commands.setContent(content, false);
+      editor.view.updateState(EditorState.create({
+        schema: editor.state.schema,
+        doc: editor.state.doc,
+        plugins: editor.state.plugins,
+      }));
+    }
   }, [editor, content]);
 
   useEffect(() => {
