@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import styled, { useTheme } from "styled-components";
 import { useParams, useNavigate } from "react-router-dom";
 import Layout from "../components/organisms/Layout";
-import AIFlashcardModal from "../components/editor/AIFlashcardModal";
 import { getToken, parseJwt } from "../token";
 import {
   getSocialGroup,
@@ -554,6 +553,7 @@ const MaterialIcon = styled.div`
   svg {
     width: 50px;
     height: 50px;
+    ${({ $isNote }) => !$isNote && "transform: scale(1.25);"}
   }
 `;
 
@@ -964,51 +964,38 @@ const RoleHelpTooltip = styled.div`
     }
 `;
 
-const StackedCardsIcon = () => (
+const CardsIcon = (props) => (
   <svg
-    viewBox="0 0 140 100"
-    fill="none"
     xmlns="http://www.w3.org/2000/svg"
-    style={{ width: "100%", height: "100%" }}
+    viewBox="20 30 220 200"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
   >
-    <rect
-      x="15"
-      y="10"
-      width="115"
-      height="75"
-      rx="5"
-      transform="rotate(-4 15 10)"
-      fill="white"
-      stroke="black"
-      strokeWidth="2"
-    />
-    <circle
-      cx="22"
-      cy="18"
-      r="3"
-      fill="white"
-      stroke="black"
-      strokeWidth="1.5"
-      transform="rotate(-4 15 10)"
-    />
-    <rect
-      x="5"
-      y="20"
-      width="115"
-      height="75"
-      rx="5"
-      fill="white"
-      stroke="black"
-      strokeWidth="2.5"
-    />
-    <circle
-      cx="15"
-      cy="32"
-      r="3"
-      fill="white"
-      stroke="black"
-      strokeWidth="1.5"
-    />
+    {/* Kółko trzymające fiszki (otwarta ścieżka chowająca się za kartami) */}
+    <path d="M 89 64 A 32 32 0 1 0 62 100" />
+
+    {/* Tylna karta (z zachowaną perspektywą, ten sam rozmiar co przednia, ukryte lewe/dolne krawędzie) */}
+    <path d="M 68 80 A 16 16 0 0 1 84 64 L 216 64 A 16 16 0 0 1 232 80 L 232 180 A 16 16 0 0 1 216 196" />
+
+    {/* Przednia karta */}
+    <rect x="52" y="80" width="164" height="132" rx="16" />
+
+    {/* Dziurka w przedniej karcie */}
+    <circle cx="74" cy="100" r="7" />
+
+    {/* Litera "A" */}
+    <path d="M 100 132 L 114 92 L 128 132 M 105 120 L 123 120" />
+
+    {/* Litera "a" */}
+    <circle cx="150" cy="120" r="12" />
+    <path d="M 162 108 L 162 128 A 4 4 0 0 0 166 132" />
+
+    {/* Trzy poziome linie */}
+    <path d="M 86 156 L 182 156 M 86 176 L 158 176 M 86 196 L 122 196" />
   </svg>
 );
 
@@ -1048,10 +1035,7 @@ const SocialGroupDetails = () => {
   const [materialError, setMaterialError] = useState("");
 
   const [activeMenuId, setActiveMenuId] = useState(null);
-  const [aiFlashcardModal, setAiFlashcardModal] = useState({
-    isOpen: false,
-    noteId: null,
-  });
+
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
   const [materialToRename, setMaterialToRename] = useState(null);
   const [newRenameValue, setNewRenameValue] = useState("");
@@ -1983,23 +1967,6 @@ const SocialGroupDetails = () => {
                               </svg>
                               Zmień nazwę
                             </DropdownItem>
-                            {activeTab === "notes" && (
-                              <DropdownItem
-                                onClick={() => {
-                                  setActiveMenuId(null);
-                                  setAiFlashcardModal({
-                                    isOpen: true,
-                                    noteId: mat.id,
-                                  });
-                                }}
-                              >
-                                <svg fill="currentColor" viewBox="0 0 16 16">
-                                  <path d="M5 4a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5zm-.5 2.5A.5.5 0 0 1 5 6h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5zM5 8a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5zm0 2a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1H5z" />
-                                  <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2zm10-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1z" />
-                                </svg>
-                                Generuj fiszki AI
-                              </DropdownItem>
-                            )}
                             <DropdownItem
                               className="danger"
                               onClick={() => {
@@ -2035,7 +2002,7 @@ const SocialGroupDetails = () => {
                           <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z" />
                         </svg>
                       ) : (
-                        <StackedCardsIcon />
+                        <CardsIcon />
                       )}
                     </MaterialIcon>
 
@@ -2640,13 +2607,6 @@ const SocialGroupDetails = () => {
             </StyledPopup>
           </>
         )}
-
-        <AIFlashcardModal
-          isOpen={aiFlashcardModal.isOpen}
-          onClose={() => setAiFlashcardModal({ isOpen: false, noteId: null })}
-          noteId={aiFlashcardModal.noteId}
-          socialId={group?.id}
-        />
       </PageContainer>
     </Layout>
   );

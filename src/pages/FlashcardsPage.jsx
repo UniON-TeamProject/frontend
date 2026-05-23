@@ -329,7 +329,7 @@ const SetIconContainer = styled.div`
   width: 140px;
   height: 100px;
   margin: 0 auto 10px auto;
-  color: ${({ theme }) => theme.colors.black};
+  color: ${({ theme }) => theme.colors.darkGrey};
 
   @media (max-width: 768px) {
     width: 72px;
@@ -1565,53 +1565,86 @@ const NoteLinkButton = styled.button`
   }
 `;
 
-const StackedCardsIcon = () => (
-  <svg
-    viewBox="0 0 140 100"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    style={{ width: "100%", height: "100%" }}
-  >
-    <rect
-      x="15"
-      y="10"
-      width="115"
-      height="75"
-      rx="5"
-      transform="rotate(-4 15 10)"
-      fill="white"
-      stroke="black"
-      strokeWidth="2"
-    />
-    <circle
-      cx="22"
-      cy="18"
-      r="3"
-      fill="white"
-      stroke="black"
-      strokeWidth="1.5"
-      transform="rotate(-4 15 10)"
-    />
-    <rect
-      x="5"
-      y="20"
-      width="115"
-      height="75"
-      rx="5"
-      fill="white"
-      stroke="black"
-      strokeWidth="2.5"
-    />
-    <circle
-      cx="15"
-      cy="32"
-      r="3"
-      fill="white"
-      stroke="black"
-      strokeWidth="1.5"
-    />
-  </svg>
-);
+const NoteDropdownMenu = styled.div`
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.darkGrey};
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  padding: 8px;
+  z-index: 1000;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+`;
+
+const NoteDropdownItem = styled.button`
+  width: 100%;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.text};
+  background: transparent;
+  font-family: inherit;
+  transition: background 0.2s;
+  &:hover {
+    background: ${({ theme }) => theme.colors.lightGrey};
+  }
+`;
+
+// const StackedCardsIcon = () => (
+//   <svg
+//     viewBox="0 0 140 100"
+//     fill="none"
+//     xmlns="http://www.w3.org/2000/svg"
+//     style={{ width: "100%", height: "100%" }}
+//   >
+//     <rect
+//       x="15"
+//       y="10"
+//       width="115"
+//       height="75"
+//       rx="5"
+//       transform="rotate(-4 15 10)"
+//       fill="white"
+//       stroke="black"
+//       strokeWidth="2"
+//     />
+//     <circle
+//       cx="22"
+//       cy="18"
+//       r="3"
+//       fill="white"
+//       stroke="black"
+//       strokeWidth="1.5"
+//       transform="rotate(-4 15 10)"
+//     />
+//     <rect
+//       x="5"
+//       y="20"
+//       width="115"
+//       height="75"
+//       rx="5"
+//       fill="white"
+//       stroke="black"
+//       strokeWidth="2.5"
+//     />
+//     <circle
+//       cx="15"
+//       cy="32"
+//       r="3"
+//       fill="white"
+//       stroke="black"
+//       strokeWidth="1.5"
+//     />
+//   </svg>
+// );
 
 const PlusIcon = () => (
   <svg fill="currentColor" viewBox="0 0 16 16">
@@ -1641,6 +1674,41 @@ const EllipsisIcon = () => (
     xmlns="http://www.w3.org/2000/svg"
   >
     <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z" />
+  </svg>
+);
+
+const CardsIcon = (props) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 288 256"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    {/* Kółko trzymające fiszki (otwarta ścieżka chowająca się za kartami) */}
+    <path d="M 89 64 A 32 32 0 1 0 62 100" />
+
+    {/* Tylna karta (z zachowaną perspektywą, ten sam rozmiar co przednia, ukryte lewe/dolne krawędzie) */}
+    <path d="M 68 80 A 16 16 0 0 1 84 64 L 216 64 A 16 16 0 0 1 232 80 L 232 180 A 16 16 0 0 1 216 196" />
+
+    {/* Przednia karta */}
+    <rect x="52" y="80" width="164" height="132" rx="16" />
+
+    {/* Dziurka w przedniej karcie */}
+    <circle cx="74" cy="100" r="7" />
+
+    {/* Litera "A" */}
+    <path d="M 100 132 L 114 92 L 128 132 M 105 120 L 123 120" />
+
+    {/* Litera "a" */}
+    <circle cx="150" cy="120" r="12" />
+    <path d="M 162 108 L 162 128 A 4 4 0 0 0 166 132" />
+
+    {/* Trzy poziome linie */}
+    <path d="M 86 156 L 182 156 M 86 176 L 158 176 M 86 196 L 122 196" />
   </svg>
 );
 
@@ -1776,6 +1844,19 @@ const FlashcardsPage = () => {
   const [pendingIgnoreDuplicates, setPendingIgnoreDuplicates] = useState(false);
 
   const [hasLearningSession, setHasLearningSession] = useState(null);
+
+  const [isNoteLinkDropdownOpen, setIsNoteLinkDropdownOpen] = useState(false);
+  const noteLinkRef = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (noteLinkRef.current && !noteLinkRef.current.contains(e.target)) {
+        setIsNoteLinkDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   const fetchData = async () => {
     setIsReady(false);
@@ -2616,7 +2697,11 @@ const FlashcardsPage = () => {
                     setErrorMessage("");
                   }
                 } else {
-                  navigate("/learning");
+                  if (socialId) {
+                    navigate(`/social/${socialId}`);
+                  } else {
+                    navigate("/learning");
+                  }
                 }
               }}
             >
@@ -2633,7 +2718,9 @@ const FlashcardsPage = () => {
               </svg>
               {isAddingMode || isAddByTagMode
                 ? "Wróć do zestawu"
-                : "Powrót do zestawów"}
+                : socialId 
+                  ? "Powrót do społeczności" 
+                  : "Powrót do zestawów"}
             </BackButton>
           )}
 
@@ -2967,25 +3054,58 @@ const FlashcardsPage = () => {
                   </TagsContainer>
                 )}
 
-              {currentSet?.noteId !== undefined && currentSet?.noteId > 0 && (
-                <NoteLinkButton
-                  style={{ marginLeft: "auto" }}
-                  onClick={() =>
-                    navigate(
-                      `/note/${currentSet.noteId}${
-                        socialId ? `?socialId=${socialId}` : ""
-                      }`
-                    )
-                  }
-                  title="Przejdź do notatki źródłowej"
-                >
-                  <svg fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M5 10.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5" />
-                    <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2" />
-                    <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z" />
-                  </svg>
-                  Otwórz notatkę
-                </NoteLinkButton>
+              {currentSet?.noteId && Array.isArray(currentSet.noteId) && currentSet.noteId.length > 0 && (
+                <div style={{ position: "relative", marginLeft: "auto" }} ref={noteLinkRef}>
+                  {currentSet.noteId.length === 1 ? (
+                    <NoteLinkButton
+                      onClick={() =>
+                        navigate(
+                          `/note/${currentSet.noteId[0]}${
+                            socialId ? `?socialId=${socialId}` : ""
+                          }`
+                        )
+                      }
+                      title="Przejdź do notatki źródłowej"
+                    >
+                      <svg fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M5 10.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5" />
+                        <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2" />
+                        <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z" />
+                      </svg>
+                      Otwórz notatkę
+                    </NoteLinkButton>
+                  ) : (
+                    <>
+                      <NoteLinkButton
+                        onClick={() => setIsNoteLinkDropdownOpen((o) => !o)}
+                        title="Przejdź do notatek źródłowych"
+                      >
+                        <svg fill="currentColor" viewBox="0 0 16 16">
+                          <path d="M5 10.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5" />
+                          <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2" />
+                          <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z" />
+                        </svg>
+                        Notatki źródłowe ({currentSet.noteId.length}) ▼
+                      </NoteLinkButton>
+                      
+                      {isNoteLinkDropdownOpen && (
+                        <NoteDropdownMenu>
+                          {currentSet.noteId.map((nId) => (
+                            <NoteDropdownItem
+                              key={nId}
+                              onClick={() => {
+                                setIsNoteLinkDropdownOpen(false);
+                                navigate(`/note/${nId}${socialId ? `?socialId=${socialId}` : ""}`);
+                              }}
+                            >
+                              Otwórz notatkę #{nId}
+                            </NoteDropdownItem>
+                          ))}
+                        </NoteDropdownMenu>
+                      )}
+                    </>
+                  )}
+                </div>
               )}
             </SetNameHeader>
 
@@ -3263,7 +3383,7 @@ const FlashcardsPage = () => {
                   }}
                 >
                   <SetIconContainer>
-                    <StackedCardsIcon />
+                    <CardsIcon />
                   </SetIconContainer>
                   <StyledItemHeaderWrapper>
                     <Text

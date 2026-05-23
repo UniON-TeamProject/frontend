@@ -561,6 +561,28 @@ const HelpTooltip = styled.div`
   }
 `;
 
+const GreetingWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 15px;
+
+  @media (max-width: 768px) {
+    gap: 5px;
+  }
+`;
+
+const StyledLogo = styled.img`
+  height: 50px; 
+  width: auto;
+  object-fit: contain;
+  transform: translateY(-5px);
+
+  @media (max-width: 768px) {
+    height: 36px;
+    transform: translateY(-3px);
+  }
+`;
+
 const Home = () => {
   const theme = useTheme();
   const [username, setUsername] = useState("");
@@ -978,7 +1000,10 @@ const Home = () => {
     <Layout>
       <StyledContainer $ready={isReady}>
         <StyledHeader>
-          <StyledName>Witaj, {username || "użytkowniku"}!</StyledName>
+          <GreetingWrapper>
+            <StyledLogo src="/icons/onionResized.png" alt="Logo" />
+            <StyledName>Witaj, {username || "użytkowniku"}!</StyledName>
+          </GreetingWrapper>
           <HeaderRight>
             <MobileProfileButton onClick={() => navigate("/user")}>
               <svg fill="currentColor" viewBox="0 0 16 16">
