@@ -20,7 +20,7 @@ import {
 import styled, { useTheme } from "styled-components";
 import Image from "@tiptap/extension-image";
 import { Extension } from "@tiptap/core";
-import { Plugin, EditorState } from "@tiptap/pm/state";
+import { Plugin } from "@tiptap/pm/state";
 import Text from "../components/atoms/Text";
 import Commands from "../helpers/textEditor/commands.js";
 import createSuggestion from "../helpers/textEditor/suggestion.js";
@@ -221,6 +221,34 @@ const ContentContainer = styled.div`
       &.ProseMirror-selectednode {
         outline: 3px solid var(--purple);
       }
+    }
+    [data-resize-container] {
+      margin: 1.5rem 0;
+
+      img {
+        margin: 0;
+      }
+    }
+
+    [data-resize-handle] {
+      position: absolute;
+      background: ${({ theme }) => theme.colors.text};
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-radius: 2px;
+      z-index: 10;
+
+      &[data-resize-handle="bottom-right"] {
+        width: 8px;
+        height: 8px;
+        bottom: -4px;
+        right: -4px;
+        cursor: nwse-resize;
+      }
+    }
+
+    [data-resize-state="true"] [data-resize-wrapper] {
+      outline: 1px solid rgba(0, 0, 0, 0.25);
+      border-radius: 0.125rem;
     }
     /* List styles */
     ul,
@@ -614,7 +642,13 @@ const TextEditor = () => {
         Tab: ({ editor }) => {
           const { state, view } = editor;
           const { selection } = state;
-          view.dispatch(state.tr.insertText("\u00A0\u00A0\u00A0\u00A0", selection.from, selection.to));
+          view.dispatch(
+            state.tr.insertText(
+              "\u00A0\u00A0\u00A0\u00A0",
+              selection.from,
+              selection.to
+            )
+          );
           return true;
         },
       };
@@ -706,7 +740,17 @@ const TextEditor = () => {
           return "'/' dla formatowania";
         },
       }),
-      Image.configure({ inline: false }),
+      Image.configure({
+        inline: false,
+        allowBase64: true,
+        resize: {
+          enabled: true,
+          directions: ["bottom-right"],
+          minWidth: 50,
+          minHeight: 50,
+          alwaysPreserveAspectRatio: true,
+        },
+      }),
     ],
     content: "",
     onUpdate() {
@@ -746,11 +790,6 @@ const TextEditor = () => {
         if (editor) {
           isReadyForAutoSave.current = false;
           editor.commands.setContent(result.content, false);
-          editor.view.updateState(EditorState.create({
-            schema: editor.state.schema,
-            doc: editor.state.doc,
-            plugins: editor.state.plugins,
-          }));
 
           const isReadOnly = socialId
             ? currentRole !== "ADMIN" && currentRole !== "EDITOR"
@@ -854,6 +893,10 @@ const TextEditor = () => {
       if (result.errorCode === "NOTE_NOT_FOUND") {
         setNoteNotFoundError(true);
         setNoteNotFoundMessage(result.message);
+      } else if (result.errorCode === "JSON_ERROR") {
+        setErrorMessage(
+          "Notatka jest zbyt duża. Zmniejsz liczbę lub rozmiar zdjęć."
+        );
       } else {
         setErrorMessage(result.message);
         if (result.errorCode == "TOKEN_UNDEFINED")
@@ -986,11 +1029,6 @@ const TextEditor = () => {
   useEffect(() => {
     if (editor && content !== undefined) {
       editor.commands.setContent(content, false);
-      editor.view.updateState(EditorState.create({
-        schema: editor.state.schema,
-        doc: editor.state.doc,
-        plugins: editor.state.plugins,
-      }));
     }
   }, [editor, content]);
 
