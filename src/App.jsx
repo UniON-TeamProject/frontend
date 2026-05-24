@@ -170,14 +170,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/validateInvitation"
-            element={
-              <ProtectedRoute>
-                <JoinGroup />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/validateInvitation" element={<JoinGroup />} />
         </Routes>
       </BrowserRouter>
     </>
