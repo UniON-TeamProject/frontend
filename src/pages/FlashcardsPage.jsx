@@ -3090,7 +3090,7 @@ const FlashcardsPage = () => {
                       
                       {isNoteLinkDropdownOpen && (
                         <NoteDropdownMenu>
-                          {currentSet.noteId.map((nId) => (
+                          {currentSet.noteId.map((nId, index) => (
                             <NoteDropdownItem
                               key={nId}
                               onClick={() => {
@@ -3098,7 +3098,7 @@ const FlashcardsPage = () => {
                                 navigate(`/note/${nId}${socialId ? `?socialId=${socialId}` : ""}`);
                               }}
                             >
-                              Otwórz notatkę #{nId}
+                              Otwórz notatkę #{index + 1}
                             </NoteDropdownItem>
                           ))}
                         </NoteDropdownMenu>

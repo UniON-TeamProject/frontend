@@ -205,7 +205,7 @@ const RightSection = styled.div`
 const SectionTitle = styled.h3`
   font-size: 1.1rem;
   color: ${({ theme }) => theme.colors.text};
-  font-weight: 800;
+  font-weight: 700;
   margin-top: 0;
   margin-bottom: 15px;
 `;
@@ -904,7 +904,7 @@ const SocialGroups = () => {
                   <InputLabel>Nazwa grupy *</InputLabel>
                   <ModalInput
                     type="text"
-                    placeholder="Np. Informatyka I rok - Podstawy"
+                    placeholder="Np. Informatyka I rok"
                     value={newGroupName}
                     onChange={(e) => {
                       setNewGroupName(e.target.value);
