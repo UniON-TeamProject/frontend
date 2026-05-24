@@ -330,6 +330,7 @@ const SetIconContainer = styled.div`
   height: 100px;
   margin: 0 auto 10px auto;
   color: ${({ theme }) => theme.colors.darkGrey};
+  color: ${({ theme }) => theme.colors.primary};
 
   @media (max-width: 768px) {
     width: 72px;
@@ -1205,7 +1206,7 @@ const SelectionBar = styled.div`
   left: 50%;
   transform: translateX(-50%);
   background-color: ${({ theme }) => theme.colors.white};
-  color: ${({ theme }) => theme.colors.takiSmiesznyZielony};
+  color: ${({ theme }) => theme.colors.tertiary};
   padding: 14px 24px;
   border-radius: 20px;
   display: flex;
@@ -1433,7 +1434,7 @@ const HelpTooltip = styled.span`
   position: absolute;
   bottom: calc(100% + 8px);
   right: 0;
-  background: ${({ theme }) => theme.colors.takiSmiesznyZielonyAleJasny};
+  background: ${({ theme }) => theme.colors.lightTertiary};
   color: ${({ theme }) => theme.colors.white};
   font-size: 11px;
   font-weight: 500;
@@ -2718,9 +2719,9 @@ const FlashcardsPage = () => {
               </svg>
               {isAddingMode || isAddByTagMode
                 ? "Wróć do zestawu"
-                : socialId 
-                  ? "Powrót do społeczności" 
-                  : "Powrót do zestawów"}
+                : socialId
+                ? "Powrót do społeczności"
+                : "Powrót do zestawów"}
             </BackButton>
           )}
 
@@ -2927,7 +2928,10 @@ const FlashcardsPage = () => {
 
                   {/* MENU FILTRÓW */}
                   {isFilterMenuOpen && (
-                    <FilterDropdown $filterDropdownY={filterDropdownY} onClick={(e) => e.stopPropagation()}>
+                    <FilterDropdown
+                      $filterDropdownY={filterDropdownY}
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <Text
                         bold="true"
                         text="Filtruj po tagach"
@@ -3054,59 +3058,68 @@ const FlashcardsPage = () => {
                   </TagsContainer>
                 )}
 
-              {currentSet?.noteId && Array.isArray(currentSet.noteId) && currentSet.noteId.length > 0 && (
-                <div style={{ position: "relative", marginLeft: "auto" }} ref={noteLinkRef}>
-                  {currentSet.noteId.length === 1 ? (
-                    <NoteLinkButton
-                      onClick={() =>
-                        navigate(
-                          `/note/${currentSet.noteId[0]}${
-                            socialId ? `?socialId=${socialId}` : ""
-                          }`
-                        )
-                      }
-                      title="Przejdź do notatki źródłowej"
-                    >
-                      <svg fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M5 10.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5" />
-                        <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2" />
-                        <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z" />
-                      </svg>
-                      Otwórz notatkę
-                    </NoteLinkButton>
-                  ) : (
-                    <>
+              {currentSet?.noteId &&
+                Array.isArray(currentSet.noteId) &&
+                currentSet.noteId.length > 0 && (
+                  <div
+                    style={{ position: "relative", marginLeft: "auto" }}
+                    ref={noteLinkRef}
+                  >
+                    {currentSet.noteId.length === 1 ? (
                       <NoteLinkButton
-                        onClick={() => setIsNoteLinkDropdownOpen((o) => !o)}
-                        title="Przejdź do notatek źródłowych"
+                        onClick={() =>
+                          navigate(
+                            `/note/${currentSet.noteId[0]}${
+                              socialId ? `?socialId=${socialId}` : ""
+                            }`
+                          )
+                        }
+                        title="Przejdź do notatki źródłowej"
                       >
                         <svg fill="currentColor" viewBox="0 0 16 16">
                           <path d="M5 10.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5" />
                           <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2" />
                           <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z" />
                         </svg>
-                        Notatki źródłowe ({currentSet.noteId.length}) ▼
+                        Otwórz notatkę
                       </NoteLinkButton>
-                      
-                      {isNoteLinkDropdownOpen && (
-                        <NoteDropdownMenu>
-                          {currentSet.noteId.map((nId) => (
-                            <NoteDropdownItem
-                              key={nId}
-                              onClick={() => {
-                                setIsNoteLinkDropdownOpen(false);
-                                navigate(`/note/${nId}${socialId ? `?socialId=${socialId}` : ""}`);
-                              }}
-                            >
-                              Otwórz notatkę #{nId}
-                            </NoteDropdownItem>
-                          ))}
-                        </NoteDropdownMenu>
-                      )}
-                    </>
-                  )}
-                </div>
-              )}
+                    ) : (
+                      <>
+                        <NoteLinkButton
+                          onClick={() => setIsNoteLinkDropdownOpen((o) => !o)}
+                          title="Przejdź do notatek źródłowych"
+                        >
+                          <svg fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M5 10.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5" />
+                            <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2" />
+                            <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z" />
+                          </svg>
+                          Notatki źródłowe ({currentSet.noteId.length}) ▼
+                        </NoteLinkButton>
+
+                        {isNoteLinkDropdownOpen && (
+                          <NoteDropdownMenu>
+                            {currentSet.noteId.map((nId) => (
+                              <NoteDropdownItem
+                                key={nId}
+                                onClick={() => {
+                                  setIsNoteLinkDropdownOpen(false);
+                                  navigate(
+                                    `/note/${nId}${
+                                      socialId ? `?socialId=${socialId}` : ""
+                                    }`
+                                  );
+                                }}
+                              >
+                                Otwórz notatkę #{nId}
+                              </NoteDropdownItem>
+                            ))}
+                          </NoteDropdownMenu>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
             </SetNameHeader>
 
             {!isAddingMode && !isAddByTagMode && !isTrashView && (
@@ -4078,32 +4091,32 @@ const FlashcardsPage = () => {
                     </div>
                     {card.cardTags && card.cardTags.length > 0 && (
                       <div>
-                      <TagsDivider />
-                      <div
-                        style={{
-                          display: "flex",
-                          flexWrap: "wrap",
-                          gap: "6px",
-                          alignItems: "flex-start",
-                        }}
-                      >
-                        {card.cardTags.map((tag, idx) => (
-                          <div
-                            key={idx}
-                            style={{
-                              padding: "4px 10px",
-                              backgroundColor: theme.colors.secondary,
-                              color: theme.colors.white,
-                              borderRadius: "6px",
-                              fontSize: "0.8rem",
-                              fontWeight: "500",
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            {tag}
-                          </div>
-                        ))}
-                      </div>
+                        <TagsDivider />
+                        <div
+                          style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: "6px",
+                            alignItems: "flex-start",
+                          }}
+                        >
+                          {card.cardTags.map((tag, idx) => (
+                            <div
+                              key={idx}
+                              style={{
+                                padding: "4px 10px",
+                                backgroundColor: theme.colors.secondary,
+                                color: theme.colors.white,
+                                borderRadius: "6px",
+                                fontSize: "0.8rem",
+                                fontWeight: "500",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {tag}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -4811,10 +4824,7 @@ const FlashcardsPage = () => {
 
                     const cardIds = selectedCards.map((card) => card.id);
 
-                    const res = await moveListOfCards(
-                      targetId,
-                      cardIds
-                    );
+                    const res = await moveListOfCards(targetId, cardIds);
 
                     if (res.errorCode) {
                       setErrorMessage(res.message);

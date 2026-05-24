@@ -21,7 +21,7 @@ const Item = styled.li`
   text-decoration: ${({ $crossedOut }) =>
     $crossedOut ? "line-through" : "none"};
   color: ${({ $crossedOut, theme }) =>
-    $crossedOut ? theme.colors.success : theme.colors.takiSmiesznyZielony};
+    $crossedOut ? theme.colors.success : theme.colors.tertiary};
   &::before {
     content: "${({ $crossedOut }) => ($crossedOut ? "✓" : "•")}";
     display: inline-block;

@@ -30,7 +30,7 @@ const Title = styled.h2`
 
 const Description = styled.p`
   font-size: 0.9rem;
-  color: ${({ theme }) => theme.colors.takiSmiesznyZielony};
+  color: ${({ theme }) => theme.colors.tertiary};
   margin: 0 0 24px 0;
   line-height: 1.5;
 `;
@@ -67,8 +67,7 @@ const Button = styled.button`
     background-color: ${({ theme }) => theme.colors.secondaryLight};
   }
   &:disabled {
-    background-color: ${({ theme }) =>
-      theme.colors.takiSmiesznyZielonyAleJasny};
+    background-color: ${({ theme }) => theme.colors.lightTertiary};
     cursor: not-allowed;
   }
 `;

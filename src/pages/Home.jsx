@@ -537,7 +537,7 @@ const HelpTooltip = styled.div`
   bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
-  background-color: ${({ theme }) => theme.colors.takiSmiesznyZielonyAleJasny};
+  background-color: ${({ theme }) => theme.colors.lightTertiary};
   color: ${({ theme }) => theme.colors.white};
   font-size: 0.8rem;
   font-weight: 500;
@@ -572,7 +572,7 @@ const GreetingWrapper = styled.div`
 `;
 
 const StyledLogo = styled.img`
-  height: 50px; 
+  height: 50px;
   width: auto;
   object-fit: contain;
   transform: translateY(-5px);

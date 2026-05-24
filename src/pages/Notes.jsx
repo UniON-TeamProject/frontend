@@ -263,7 +263,8 @@ const StyledNoteImage = styled.div`
   > svg {
     width: 80%;
     height: 80%;
-    color: ${({ theme }) => theme.colors.darkGrey};
+    /* color: ${({ theme }) => theme.colors.darkGrey}; */
+    color: ${({ theme }) => theme.colors.primary};
   }
 
   @media (max-width: 768px) {
@@ -1065,7 +1066,7 @@ const HelpTooltip = styled.span`
   position: absolute;
   bottom: calc(100% + 8px);
   right: 0;
-  background: ${({ theme }) => theme.colors.takiSmiesznyZielonyAleJasny};
+  background: ${({ theme }) => theme.colors.lightTertiary};
   color: ${({ theme }) => theme.colors.white};
   font-size: 11px;
   font-weight: 500;
@@ -1079,7 +1080,7 @@ const HelpTooltip = styled.span`
   z-index: 100;
   pointer-events: none;
   text-align: left;
-  transform: scale(0.909); 
+  transform: scale(0.909);
   transform-origin: bottom right;
 
   &::after {
@@ -1640,7 +1641,6 @@ const Notes = () => {
     fetchForCurrentUrl();
   }, [urlPath]);
 
-
   const getVisualSortedItems = (items) => {
     const sorted = [...items];
 
@@ -1702,7 +1702,6 @@ const Notes = () => {
           setIsFilterMenuOpen(false);
         }}
       >
-
         <StyledHeader>
           {pathSegments.length === 0 ? (
             <StyledName>Notatki</StyledName>
@@ -1910,7 +1909,10 @@ const Notes = () => {
 
                 {/* MENU FILTRÓW */}
                 {isFilterMenuOpen && (
-                  <FilterDropdown $filterDropdownY={filterDropdownY} onClick={(e) => e.stopPropagation()}>
+                  <FilterDropdown
+                    $filterDropdownY={filterDropdownY}
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <Text
                       bold="true"
                       text="Filtruj po tagach"
@@ -2008,13 +2010,14 @@ const Notes = () => {
             )}
 
             {isTrashView && (
-                <HelpIcon>
-                  ?
-                  <HelpTooltip>
-                    Pliki w koszu są przechowywane przez 30 dni, po czym ulegają automatycznemu usunięciu.
-                  </HelpTooltip>
-                </HelpIcon>
-              )}
+              <HelpIcon>
+                ?
+                <HelpTooltip>
+                  Pliki w koszu są przechowywane przez 30 dni, po czym ulegają
+                  automatycznemu usunięciu.
+                </HelpTooltip>
+              </HelpIcon>
+            )}
           </ToolbarActions>
         </StyledToolbar>
         <div
@@ -2181,7 +2184,6 @@ const Notes = () => {
                       $flipLeft={flipLeft}
                       $centerBelow={centerBelow}
                       $narrow={isTrashView}
-
                       onClick={(e) => e.stopPropagation()}
                     >
                       {isTrashView ? (
@@ -2200,7 +2202,9 @@ const Notes = () => {
                           <input
                             value={editingName}
                             maxLength={55}
-                            onChange={(e) => setEditingName(stripEmoji(e.target.value))}
+                            onChange={(e) =>
+                              setEditingName(stripEmoji(e.target.value))
+                            }
                             onKeyDown={(e) => {
                               if (
                                 e.key === "Enter" &&
@@ -2315,7 +2319,11 @@ const Notes = () => {
                             className="danger"
                             onClick={(e) => {
                               e.stopPropagation();
-                              setItemToDelete({ id: folder.id, type: "folder", name: folder.name });
+                              setItemToDelete({
+                                id: folder.id,
+                                type: "folder",
+                                name: folder.name,
+                              });
                               setActiveFolderOptionsId(null);
                             }}
                           >
@@ -2416,7 +2424,6 @@ const Notes = () => {
                       $flipLeft={flipLeft}
                       $centerBelow={centerBelow}
                       $narrow={isTrashView}
-
                       onClick={(e) => e.stopPropagation()}
                     >
                       {isTrashView ? (
@@ -2435,7 +2442,9 @@ const Notes = () => {
                           <input
                             value={editingName}
                             maxLength={55}
-                            onChange={(e) => setEditingName(stripEmoji(e.target.value))}
+                            onChange={(e) =>
+                              setEditingName(stripEmoji(e.target.value))
+                            }
                             onKeyDown={(e) => {
                               if (
                                 e.key === "Enter" &&
@@ -2548,7 +2557,11 @@ const Notes = () => {
                             className="danger"
                             onClick={(e) => {
                               e.stopPropagation();
-                              setItemToDelete({ id: d.id, type: "note", name: d.name });
+                              setItemToDelete({
+                                id: d.id,
+                                type: "note",
+                                name: d.name,
+                              });
                               setActiveNoteOptionsId(null);
                             }}
                           >
@@ -2783,7 +2796,10 @@ const Notes = () => {
                 >
                   Wyczyść kosz
                 </ModalButton>
-                <ModalButton type="button" onClick={() => setIsConfirmingTrashClear(false)}>
+                <ModalButton
+                  type="button"
+                  onClick={() => setIsConfirmingTrashClear(false)}
+                >
                   Anuluj
                 </ModalButton>
               </div>
@@ -2801,17 +2817,33 @@ const Notes = () => {
               <Text
                 bold="true"
                 as="h2"
-                text={itemToDelete.type === "folder" ? "Usuń folder" : "Usuń dokument"}
+                text={
+                  itemToDelete.type === "folder"
+                    ? "Usuń folder"
+                    : "Usuń dokument"
+                }
               />
               <Text
                 text={`Czy na pewno chcesz usunąć "${itemToDelete.name}"?`}
-                style={{ margin: "20px 0 30px 0", color: theme.colors.textLight }}
+                style={{
+                  margin: "20px 0 30px 0",
+                  color: theme.colors.textLight,
+                }}
               />
-              <div style={{ display: "flex", justifyContent: "center", gap: "15px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: "15px",
+                }}
+              >
                 <ModalButton type="button" $danger onClick={executeDelete}>
                   Usuń
                 </ModalButton>
-                <ModalButton type="button" onClick={() => setItemToDelete(null)}>
+                <ModalButton
+                  type="button"
+                  onClick={() => setItemToDelete(null)}
+                >
                   Anuluj
                 </ModalButton>
               </div>
