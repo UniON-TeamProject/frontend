@@ -474,7 +474,7 @@ const UsosBtnTitle = styled.div`
 
 const UsosBtnSub = styled.div`
   font-size: 10px;
-  color: ${({ theme }) => theme.colors.takiSmiesznyZielony};
+  color: ${({ theme }) => theme.colors.tertiary};
   line-height: 1;
 `;
 
@@ -1535,11 +1535,18 @@ const Calendar = () => {
       });
       return;
     }
-    setExpandedTagData((prev) => ({ ...prev, [key]: { loading: true, notes: [], sets: [] } }));
+    setExpandedTagData((prev) => ({
+      ...prev,
+      [key]: { loading: true, notes: [], sets: [] },
+    }));
     const res = await getContentByTag(tagName);
     setExpandedTagData((prev) => ({
       ...prev,
-      [key]: { loading: false, notes: res.notes || [], sets: res.cardSets || [] },
+      [key]: {
+        loading: false,
+        notes: res.notes || [],
+        sets: res.cardSets || [],
+      },
     }));
   };
 
@@ -2077,7 +2084,9 @@ const Calendar = () => {
                           onClick={() => handleTagDropdownToggle(key, t)}
                         >
                           <span>{t}</span>
-                          <TagDropdownChevron $open={isOpen}>▾</TagDropdownChevron>
+                          <TagDropdownChevron $open={isOpen}>
+                            ▾
+                          </TagDropdownChevron>
                         </TagDropdownHeader>
                         <TagDropdownSlider $open={isOpen}>
                           <TagDropdownContent $open={isOpen}>
@@ -2087,7 +2096,9 @@ const Calendar = () => {
                               <>
                                 {data.notes.length > 0 && (
                                   <>
-                                    <TagDropdownSubLabel>Dokumenty</TagDropdownSubLabel>
+                                    <TagDropdownSubLabel>
+                                      Dokumenty
+                                    </TagDropdownSubLabel>
                                     {data.notes.map((n) => (
                                       <TagDropdownItem
                                         key={n.id}
@@ -2102,7 +2113,9 @@ const Calendar = () => {
                                 )}
                                 {data.sets.length > 0 && (
                                   <>
-                                    <TagDropdownSubLabel>Zestawy fiszek</TagDropdownSubLabel>
+                                    <TagDropdownSubLabel>
+                                      Zestawy fiszek
+                                    </TagDropdownSubLabel>
                                     {data.sets.map((s) => (
                                       <TagDropdownItem
                                         key={s.id}
@@ -2115,9 +2128,12 @@ const Calendar = () => {
                                     ))}
                                   </>
                                 )}
-                                {data.notes.length === 0 && data.sets.length === 0 && (
-                                  <TagDropdownEmpty>Brak powiązanych materiałów</TagDropdownEmpty>
-                                )}
+                                {data.notes.length === 0 &&
+                                  data.sets.length === 0 && (
+                                    <TagDropdownEmpty>
+                                      Brak powiązanych materiałów
+                                    </TagDropdownEmpty>
+                                  )}
                               </>
                             )}
                           </TagDropdownContent>
@@ -3008,7 +3024,8 @@ const Calendar = () => {
                       <ChipsScroll>
                         {[...allSelected].reverse().map((s) => (
                           <SelectedChip key={s.key}>
-                            {s.icon && <>{s.icon}{" "}</>}{s.label}
+                            {s.icon && <>{s.icon} </>}
+                            {s.label}
                             <SelectedChipRemove
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -3082,7 +3099,8 @@ const Calendar = () => {
                             const tag = available.find((t) => t.key === ft);
                             return (
                               <SelectedChip key={ft}>
-                                {tag?.icon && <>{tag.icon}{" "}</>}{tag ? tag.label : ft}
+                                {tag?.icon && <>{tag.icon} </>}
+                                {tag ? tag.label : ft}
                                 <SelectedChipRemove
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -3153,7 +3171,7 @@ const Calendar = () => {
                                 >
                                   {filterTags.includes(t.key) && "✓"}
                                 </DropdownCheck>
-                                {t.icon && <>{t.icon}{" "}</>}
+                                {t.icon && <>{t.icon} </>}
                                 {t.label}
                               </DropdownItem>
                             ))}

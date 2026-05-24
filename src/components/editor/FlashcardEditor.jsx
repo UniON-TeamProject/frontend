@@ -76,7 +76,7 @@ const FlashcardEditor = ({ value, onChange, placeholder, hasError }) => {
   }, [editor, onChange]);
 
   useEffect(() => {
-    if (editor && value !== editor.getHTML()) {
+    if (editor && !editor.isDestroyed && value !== editor.getHTML()) {
       editor.commands.setContent(value, false);
     }
   }, [value, editor]);

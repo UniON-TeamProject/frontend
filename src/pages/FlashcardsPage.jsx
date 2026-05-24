@@ -330,6 +330,7 @@ const SetIconContainer = styled.div`
   height: 100px;
   margin: 0 auto 10px auto;
   color: ${({ theme }) => theme.colors.darkGrey};
+  color: ${({ theme }) => theme.colors.primary};
 
   @media (max-width: 768px) {
     width: 72px;
@@ -1205,7 +1206,7 @@ const SelectionBar = styled.div`
   left: 50%;
   transform: translateX(-50%);
   background-color: ${({ theme }) => theme.colors.white};
-  color: ${({ theme }) => theme.colors.takiSmiesznyZielony};
+  color: ${({ theme }) => theme.colors.tertiary};
   padding: 14px 24px;
   border-radius: 20px;
   display: flex;
@@ -1433,7 +1434,7 @@ const HelpTooltip = styled.span`
   position: absolute;
   bottom: calc(100% + 8px);
   right: 0;
-  background: ${({ theme }) => theme.colors.takiSmiesznyZielonyAleJasny};
+  background: ${({ theme }) => theme.colors.lightTertiary};
   color: ${({ theme }) => theme.colors.white};
   font-size: 11px;
   font-weight: 500;
@@ -2718,9 +2719,9 @@ const FlashcardsPage = () => {
               </svg>
               {isAddingMode || isAddByTagMode
                 ? "Wróć do zestawu"
-                : socialId 
-                  ? "Powrót do społeczności" 
-                  : "Powrót do zestawów"}
+                : socialId
+                ? "Powrót do społeczności"
+                : "Powrót do zestawów"}
             </BackButton>
           )}
 
@@ -2927,7 +2928,10 @@ const FlashcardsPage = () => {
 
                   {/* MENU FILTRÓW */}
                   {isFilterMenuOpen && (
-                    <FilterDropdown $filterDropdownY={filterDropdownY} onClick={(e) => e.stopPropagation()}>
+                    <FilterDropdown
+                      $filterDropdownY={filterDropdownY}
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <Text
                         bold="true"
                         text="Filtruj po tagach"
@@ -4078,32 +4082,32 @@ const FlashcardsPage = () => {
                     </div>
                     {card.cardTags && card.cardTags.length > 0 && (
                       <div>
-                      <TagsDivider />
-                      <div
-                        style={{
-                          display: "flex",
-                          flexWrap: "wrap",
-                          gap: "6px",
-                          alignItems: "flex-start",
-                        }}
-                      >
-                        {card.cardTags.map((tag, idx) => (
-                          <div
-                            key={idx}
-                            style={{
-                              padding: "4px 10px",
-                              backgroundColor: theme.colors.secondary,
-                              color: theme.colors.white,
-                              borderRadius: "6px",
-                              fontSize: "0.8rem",
-                              fontWeight: "500",
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            {tag}
-                          </div>
-                        ))}
-                      </div>
+                        <TagsDivider />
+                        <div
+                          style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: "6px",
+                            alignItems: "flex-start",
+                          }}
+                        >
+                          {card.cardTags.map((tag, idx) => (
+                            <div
+                              key={idx}
+                              style={{
+                                padding: "4px 10px",
+                                backgroundColor: theme.colors.secondary,
+                                color: theme.colors.white,
+                                borderRadius: "6px",
+                                fontSize: "0.8rem",
+                                fontWeight: "500",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {tag}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -4811,10 +4815,7 @@ const FlashcardsPage = () => {
 
                     const cardIds = selectedCards.map((card) => card.id);
 
-                    const res = await moveListOfCards(
-                      targetId,
-                      cardIds
-                    );
+                    const res = await moveListOfCards(targetId, cardIds);
 
                     if (res.errorCode) {
                       setErrorMessage(res.message);

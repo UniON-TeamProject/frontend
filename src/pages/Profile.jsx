@@ -79,7 +79,7 @@ const TabButton = styled.button`
   font-weight: 700;
   font-size: 0.9rem;
   color: ${({ $active, theme }) =>
-    $active ? theme.colors.veryDarkPrimary : theme.colors.takiSmiesznyZielony};
+    $active ? theme.colors.veryDarkPrimary : theme.colors.tertiary};
   border-bottom: 3px solid
     ${({ $active, theme }) => ($active ? theme.veryDarkPrimary : "transparent")};
   transition: 0.2s;
@@ -91,7 +91,7 @@ const TabButton = styled.button`
 const EmptyTabState = styled.div`
   padding: 60px 20px;
   text-align: center;
-  color: ${({ theme }) => theme.colors.takiSmiesznyZielonyAleJasny};
+  color: ${({ theme }) => theme.colors.lightTertiary};
   font-size: 0.9rem;
 `;
 
@@ -171,7 +171,7 @@ const IdentityName = styled.span`
 
 const IdentityEmail = styled.span`
   font-size: 0.9rem;
-  color: ${({ theme }) => theme.colors.takiSmiesznyZielony};
+  color: ${({ theme }) => theme.colors.tertiary};
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -249,7 +249,7 @@ const ModalTitle = styled.h3`
 `;
 
 const ModalText = styled.p`
-  color: ${({ theme }) => theme.colors.takiSmiesznyZielony};
+  color: ${({ theme }) => theme.colors.tertiary};
   margin: 0 0 20px 0;
   font-size: 0.9rem;
 `;
@@ -314,7 +314,7 @@ const DangerTitle = styled(SectionTitle)`
 const DangerText = styled.p`
   margin: 0 0 14px 0;
   font-size: 0.9rem;
-  color: ${({ theme }) => theme.colors.takiSmiesznyZielony};
+  color: ${({ theme }) => theme.colors.tertiary};
   line-height: 1.4;
 `;
 
@@ -343,7 +343,7 @@ const LegalFooter = styled.div`
   padding: 8px 4px 0;
   text-align: center;
   font-size: 0.8rem;
-  color: ${({ theme }) => theme.colors.takiSmiesznyZielony};
+  color: ${({ theme }) => theme.colors.tertiary};
 `;
 
 const LegalLink = styled.button`
@@ -513,7 +513,7 @@ const UsosBannerTitle = styled.div`
 
 const UsosBannerSub = styled.div`
   font-size: 0.78rem;
-  color: ${({ theme }) => theme.colors.takiSmiesznyZielony};
+  color: ${({ theme }) => theme.colors.tertiary};
   margin-top: 2px;
 `;
 

@@ -561,7 +561,7 @@ const HelpTooltip = styled.div`
   right: calc(100% + 12px); // zeby otwieral sie w lewo
   top: 50%;
   transform: translateY(-50%);
-  background-color: ${({ theme }) => theme.colors.takiSmiesznyZielonyAleJasny};
+  background-color: ${({ theme }) => theme.colors.lightTertiary};
   color: ${({ theme }) => theme.colors.white};
   font-size: 0.8rem;
   font-weight: 500;
