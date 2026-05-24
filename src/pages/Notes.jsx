@@ -38,6 +38,7 @@ import AIFlashcardModal from "../components/editor/AIFlashcardModal.jsx";
 import TagSelector from "../components/organisms/TagSelector";
 
 const noteNameRegex = /^[a-zA-Z0-9 _\-ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+$/;
+const folderNameRegex = /^[a-zA-Z0-9 _\-ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+$/;
 const stripEmoji = (str) => str.replace(/\p{Extended_Pictographic}/gu, "");
 
 const StyledContainer = styled.div`
@@ -2717,9 +2718,18 @@ const Notes = () => {
                   }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
-                      const nameEmpty = !folderName.trim();
-                      if (nameEmpty) setFolderNameErrorMessage("Wypełnij pole");
-                      if (!nameEmpty) handleAddFolder();
+                      const trimmed = folderName.trim();
+                      if (!trimmed) {
+                        setFolderNameErrorMessage("Wypełnij pole");
+                        return;
+                      }
+                      if (!folderNameRegex.test(trimmed)) {
+                        setFolderNameErrorMessage(
+                          "Nazwa może zawierać tylko litery, cyfry, spacje, _ i -"
+                        );
+                        return;
+                      }
+                      handleAddFolder();
                     }
                   }}
                 />
@@ -2750,9 +2760,18 @@ const Notes = () => {
                   color={isSuccess ? "secondary" : "dark"}
                   onClick={(e) => {
                     e.preventDefault();
-                    const nameEmpty = !folderName.trim();
-                    if (nameEmpty) setFolderNameErrorMessage("Wypełnij pole");
-                    if (!nameEmpty) handleAddFolder();
+                    const trimmed = folderName.trim();
+                    if (!trimmed) {
+                      setFolderNameErrorMessage("Wypełnij pole");
+                      return;
+                    }
+                    if (!folderNameRegex.test(trimmed)) {
+                      setFolderNameErrorMessage(
+                        "Nazwa może zawierać tylko litery, cyfry, spacje, _ i -"
+                      );
+                      return;
+                    }
+                    handleAddFolder();
                   }}
                 />
               </div>
