@@ -57,8 +57,8 @@ const StickyToolbar = styled.div`
   background-color: ${({ theme }) => theme.colors.lightGrey};
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
 `;
 
 const StyledTitleInput = styled.input`
@@ -243,6 +243,7 @@ const ContentContainer = styled.div`
         bottom: -4px;
         right: -4px;
         cursor: nwse-resize;
+        z-index: 1;
       }
     }
 
@@ -741,7 +742,7 @@ const TextEditor = () => {
         },
       }),
       Image.configure({
-        inline: false,
+        inline: true,
         allowBase64: true,
         resize: {
           enabled: true,
@@ -1349,9 +1350,9 @@ const TextEditor = () => {
         {!isReadOnly && (
           <StickyToolbar>
             <TextEditorFormatting editor={editor} />
+            {errorMessage && <Text color="danger" text={errorMessage} />}
           </StickyToolbar>
         )}
-        {errorMessage && <Text color="danger" text={errorMessage} />}
         <ContentContainer
           onClick={(e) => {
             if (!editor) return;
