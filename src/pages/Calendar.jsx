@@ -2103,8 +2103,6 @@ const Calendar = () => {
                                       <TagDropdownItem
                                         key={n.id}
                                         href={`/note/${n.id}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
                                       >
                                         {n.name}
                                       </TagDropdownItem>
@@ -2120,8 +2118,6 @@ const Calendar = () => {
                                       <TagDropdownItem
                                         key={s.id}
                                         href={`/learning/set/${s.id}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
                                       >
                                         {s.name || s.title}
                                       </TagDropdownItem>
