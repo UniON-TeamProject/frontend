@@ -822,7 +822,7 @@ const Home = () => {
 
         setRecentSets(setsWithStats.slice(0, 3));
         setRecentNotes(sortedNotes.slice(0, 3));
-        setRecentFolders(sortedFolders.slice(0, 4));
+        setRecentFolders(sortedFolders.slice(0, 3));
         setAllFoldersList(foldersArray);
 
         const groupsArray = groupsData.errorCode ? [] : groupsData;

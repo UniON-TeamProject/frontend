@@ -3,8 +3,8 @@ import styled, { useTheme } from "styled-components";
 
 const CardWrapper = styled.div`
   perspective: 1000px;
-  width: 350px;
-  height: 350px;
+  width: 325px;
+  height: 325px;
   position: relative;
   margin: 10px;
   z-index: ${({ $menuOpen }) => ($menuOpen ? 10 : 0)};
@@ -12,7 +12,7 @@ const CardWrapper = styled.div`
 
   @media (max-width: 768px) {
     width: 100%;
-    height: auto;
+    height: 325px;
     min-height: 200px;
     margin: 0 auto;
   }
@@ -56,8 +56,29 @@ const CardContent = styled.div`
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  overscroll-behavior-y: contain;
-  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: auto;
+
+  scrollbar-width: thin;
+  scrollbar-color: ${({ theme }) => theme.colors.secondary}
+    transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: ${({ theme }) => theme.colors.secondary};
+    border-radius: 10px;
+  }
+
+  @media (max-width: 768px) {
+    -webkit-overflow-scrolling: auto;
+    touch-action: auto;
+  }
 
   .inner-content {
     margin: auto 0;

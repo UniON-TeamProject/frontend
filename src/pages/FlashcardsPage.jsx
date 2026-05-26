@@ -25,6 +25,7 @@ import {
   getAllUsersCards,
   getCardsByTags,
   getSocialGroup,
+  getNoteDetails
 } from "../api";
 import { getToken } from "../token";
 import Flashcard from "../components/organisms/Flashcard";
@@ -442,7 +443,7 @@ const StyledItemOptions = styled.div`
     background: transparent;
   }
   &::-webkit-scrollbar-thumb {
-    background: ${({ theme }) => theme.colors.darkGrey};
+    background: ${({ theme }) => theme.colors.lightGrey};
     border-radius: 10px;
   }
 
@@ -1848,6 +1849,7 @@ const FlashcardsPage = () => {
 
   const [isNoteLinkDropdownOpen, setIsNoteLinkDropdownOpen] = useState(false);
   const noteLinkRef = useRef(null);
+  const [noteNames, setNoteNames] = useState({});
 
   useEffect(() => {
     const handler = (e) => {
@@ -2134,15 +2136,22 @@ const FlashcardsPage = () => {
         }
       };
 
-      const scrollTimer = setTimeout(scrollToElement, 150);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          scrollToElement();
+        });
+      });
 
       const clearTimer = setTimeout(() => {
         setHighlightedCardId(null);
-        navigate(location.pathname, { replace: true, state: {} });
+
+        navigate(location.pathname, {
+          replace: true,
+          state: {},
+        });
       }, 4000);
 
       return () => {
-        clearTimeout(scrollTimer);
         clearTimeout(clearTimer);
       };
     }
@@ -2661,6 +2670,32 @@ const FlashcardsPage = () => {
     }
   };
 
+  useEffect(() => {
+  const fetchNoteNames = async () => {
+    if (currentSet?.noteId && currentSet.noteId.length > 0) {
+      try {
+        const promises = currentSet.noteId.map((id) => getNoteDetails(id, socialId));
+        
+        const results = await Promise.all(promises);
+        
+        const newNamesMap = {};
+        currentSet.noteId.forEach((id, index) => {
+          const noteData = results[index];
+          if (noteData && !noteData.errorCode && noteData.name) {
+            newNamesMap[id] = noteData.name;
+          }
+        });
+        
+        setNoteNames(newNamesMap);
+      } catch (error) {
+        console.error("Błąd podczas pobierania nazw notatek:", error);
+      }
+    }
+  };
+
+  fetchNoteNames();
+}, [currentSet?.noteId, socialId]);
+
   return (
     <Layout>
       <StyledContainer
@@ -2827,8 +2862,7 @@ const FlashcardsPage = () => {
                             );
                             return (
                               <StyledSearchResultItem
-                                key={`card-${c.id}`}
-                                onClick={() => {
+                                onMouseDown={() => {
                                   setSearchQuery("");
                                   setIsSearchFocused(false);
                                   navigate(`/learning/set/${c.setId}`, {
@@ -3076,7 +3110,7 @@ const FlashcardsPage = () => {
                         <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2" />
                         <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z" />
                       </svg>
-                      Otwórz notatkę
+                      {noteNames[currentSet.noteId[0]] || "Otwórz notatkę"}
                     </NoteLinkButton>
                   ) : (
                     <>
@@ -3102,7 +3136,7 @@ const FlashcardsPage = () => {
                                 navigate(`/note/${nId}${socialId ? `?socialId=${socialId}` : ""}`);
                               }}
                             >
-                              Otwórz notatkę #{index + 1}
+                              {noteNames[nId] || `Otwórz notatkę #${index + 1}`}
                             </NoteDropdownItem>
                           ))}
                         </NoteDropdownMenu>
