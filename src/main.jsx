@@ -1,4 +1,13 @@
 import ReactDom from 'react-dom/client'
+
+const APP_VERSION = __APP_VERSION__;
+const storedVersion = localStorage.getItem("appVersion");
+if (storedVersion !== APP_VERSION) {
+  const token = localStorage.getItem("token");
+  localStorage.clear();
+  if (token) localStorage.setItem("token", token);
+  localStorage.setItem("appVersion", APP_VERSION);
+}
 import './index.css'
 import App from './App.jsx'
 
