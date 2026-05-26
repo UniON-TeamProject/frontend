@@ -1142,6 +1142,10 @@ const SortSelectContainer = styled.div`
   position: relative;
   display: flex;
   align-items: center;
+  @media (max-width: 768px) {
+    width: auto;
+    max-width: 180px;
+  }
 `;
 
 const SortSelect = styled.select`
@@ -1164,6 +1168,7 @@ const SortSelect = styled.select`
   @media (max-width: 768px) {
     padding: 6px 24px 6px 10px;
     font-size: 0.78rem;
+    max-width: 180px;
   }
 `;
 
@@ -1282,7 +1287,9 @@ const ToolbarActions = styled.div`
   min-height: 40px;
 
   @media (max-width: 768px) {
-    gap: 6px;
+    gap: 4px;
+    flex-wrap: wrap;
+    align-items: center;
   }
 `;
 
@@ -1307,14 +1314,18 @@ const ToolbarButton = styled.button`
 
   &.outline {
     background-color: ${({ theme }) => theme.colors.white};
-    color: ${({ theme }) => theme.colors.textLight};
-    border: 1px solid ${({ theme }) => theme.colors.darkGrey};
+    color: ${({ $danger, theme }) =>
+      $danger ? theme.colors.danger : theme.colors.textLight};
+    border: 1px solid
+      ${({ $danger, theme }) =>
+        $danger ? theme.colors.danger : theme.colors.darkGrey};
   }
 
   @media (max-width: 768px) {
-    padding: 6px 10px;
-    font-size: 0.78rem;
-    gap: 4px;
+    padding: 4px 8px;
+    font-size: 0.72rem;
+    gap: 3px;
+    min-height: 34px;
   }
 `;
 
@@ -1402,6 +1413,12 @@ const ActiveFilterBadge = styled.span`
   justify-content: center;
   font-size: 0.75rem;
   margin-left: 6px;
+  @media (max-width: 768px) {
+    width: 16px;
+    height: 16px;
+    font-size: 0.65rem;
+    margin-left: 4px;
+  }
 `;
 
 const HelpIcon = styled.div`
@@ -1810,6 +1827,8 @@ const FlashcardsPage = () => {
   const [selectedTagsFilter, setSelectedTagsFilter] = useState([]);
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
   const [filterDropdownY, setFilterDropdownY] = useState(0);
+  const [selectedCardTagsFilter, setSelectedCardTagsFilter] = useState([]);
+  const [isCardFilterMenuOpen, setIsCardFilterMenuOpen] = useState(false);
 
   const [duplicateWarning, setDuplicateWarning] = useState(null);
 
@@ -1850,6 +1869,8 @@ const FlashcardsPage = () => {
   const [isNoteLinkDropdownOpen, setIsNoteLinkDropdownOpen] = useState(false);
   const noteLinkRef = useRef(null);
   const [noteNames, setNoteNames] = useState({});
+
+  const cardFilterRef = useRef(null);
 
   useEffect(() => {
     const handler = (e) => {
@@ -1997,6 +2018,12 @@ const FlashcardsPage = () => {
 
   const currentSet = sets.find((s) => s.id === activeSetId);
 
+  const allAvailableCardTags = [
+    ...new Set(
+      (currentSet?.cards || []).flatMap((card) => card.cardTags || [])
+    ),
+  ].sort();
+
   const isReadOnly = socialId
     ? groupRole !== "ADMIN" && groupRole !== "EDITOR"
     : false;
@@ -2064,6 +2091,8 @@ const FlashcardsPage = () => {
       const setToOpen = sets.find((set) => set.id === parseInt(setId));
       if (setToOpen) {
         setActiveSetId(setToOpen.id);
+        setSelectedCardTagsFilter([]);
+        setIsCardFilterMenuOpen(false);
       }
     } else if (!setId) {
       setActiveSetId(null);
@@ -2099,7 +2128,15 @@ const FlashcardsPage = () => {
 
   const getSortedCards = () => {
     if (!currentSet || !currentSet.cards) return [];
-    const sorted = [...currentSet.cards];
+    let sorted = [...currentSet.cards];
+
+    if (selectedCardTagsFilter.length > 0) {
+      sorted = sorted.filter((card) =>
+        selectedCardTagsFilter.every((tag) =>
+          card.cardTags?.includes(tag)
+        )
+      );
+    }
 
     if (cardSortOption === "oldest") {
       sorted.sort((a, b) => a.id - b.id);
@@ -2122,6 +2159,27 @@ const FlashcardsPage = () => {
 
   const sortedSets = getSortedSets();
   const sortedCards = getSortedCards();
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (
+        cardFilterRef.current &&
+        !cardFilterRef.current.contains(e.target)
+      ) {
+        setIsCardFilterMenuOpen(false);
+      }
+    };
+
+    if (isCardFilterMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+
+      return () =>
+        document.removeEventListener(
+          "mousedown",
+          handleClickOutside
+        );
+    }
+  }, [isCardFilterMenuOpen]);
 
   useEffect(() => {
     const targetId = location.state?.highlightCardId;
@@ -3310,6 +3368,7 @@ const FlashcardsPage = () => {
                       isSelectMode) && (
                       <ToolbarButton
                         className="outline"
+                        $danger={isSelectMode}
                         disabled={
                           !currentSet?.cards || currentSet.cards.length === 0
                         }
@@ -3344,35 +3403,153 @@ const FlashcardsPage = () => {
                           <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z" />
                           <path d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425z" />
                         </svg>
-                        {isSelectMode ? "Zamknij wybór" : "Zaznacz fiszki"}
+                        {isSelectMode ? "Anuluj" : "Zaznacz"}
                       </ToolbarButton>
                     )}
 
                   {currentSet?.cards && currentSet.cards.length > 0 && (
-                    <SortSelectContainer>
-                      <SortSelect
-                        value={cardSortOption}
-                        onChange={(e) => setCardSortOption(e.target.value)}
-                      >
-                        <option value="oldest">
-                          ↑ Sortuj: Od najstarszych
-                        </option>
-                        <option value="newest">↓ Sortuj: Od najnowszych</option>
-                        <option value="alphabetical">
-                          ↓ Sortuj: Alfabetycznie (A-Z)
-                        </option>
-                      </SortSelect>
-                      <SortIconWrapper>
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 16 16"
-                          fill="currentColor"
+                    <>
+                      <FilterContainer ref={cardFilterRef}>
+                        <ToolbarButton
+                          className="outline"
+                          disabled={allAvailableCardTags.length === 0}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            setFilterDropdownY(rect.bottom + 8);
+                            setIsCardFilterMenuOpen(!isCardFilterMenuOpen);
+                          }}
                         >
-                          <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
-                        </svg>
-                      </SortIconWrapper>
-                    </SortSelectContainer>
+                          <svg
+                            width="14"
+                            height="14"
+                            fill="currentColor"
+                            viewBox="0 0 16 16"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3m-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1z"
+                            />
+                          </svg>
+                          Filtruj
+
+                          {selectedCardTagsFilter.length > 0 && (
+                            <ActiveFilterBadge>
+                              {selectedCardTagsFilter.length}
+                            </ActiveFilterBadge>
+                          )}
+                        </ToolbarButton>
+
+                        {isCardFilterMenuOpen && (
+                          <FilterDropdown
+                            $filterDropdownY={filterDropdownY}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Text
+                              bold="true"
+                              text="Filtruj po tagach"
+                              style={{
+                                fontSize: "0.95rem",
+                                margin: "0 0 5px 5px",
+                              }}
+                            />
+
+                            {allAvailableCardTags.length === 0 ? (
+                              <Text
+                                text="Brak tagów w fiszkach."
+                                style={{
+                                  fontSize: "0.85rem",
+                                  color: theme.colors.textMuted,
+                                  marginLeft: "5px",
+                                }}
+                              />
+                            ) : (
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexWrap: "wrap",
+                                  gap: "8px",
+                                }}
+                              >
+                                {allAvailableCardTags.map((tag) => {
+                                  const isActive =
+                                    selectedCardTagsFilter.includes(tag);
+
+                                  return (
+                                    <FilterTag
+                                      key={tag}
+                                      $active={isActive}
+                                      onClick={() => {
+                                        if (isActive) {
+                                          setSelectedCardTagsFilter((prev) =>
+                                            prev.filter((t) => t !== tag)
+                                          );
+                                        } else {
+                                          setSelectedCardTagsFilter((prev) => [
+                                            ...prev,
+                                            tag,
+                                          ]);
+                                        }
+                                      }}
+                                    >
+                                      {tag}
+                                    </FilterTag>
+                                  );
+                                })}
+                              </div>
+                            )}
+
+                            {selectedCardTagsFilter.length > 0 && (
+                              <div
+                                style={{
+                                  fontSize: "0.8rem",
+                                  color: theme.colors.danger,
+                                  cursor: "pointer",
+                                  marginTop: "10px",
+                                  textAlign: "center",
+                                  fontWeight: "bold",
+                                }}
+                                onClick={() =>
+                                  setSelectedCardTagsFilter([])
+                                }
+                              >
+                                Wyczyść filtry
+                              </div>
+                            )}
+                          </FilterDropdown>
+                        )}
+                      </FilterContainer>
+
+                      <SortSelectContainer>
+                        <SortSelect
+                          value={cardSortOption}
+                          onChange={(e) => setCardSortOption(e.target.value)}
+                        >
+                          <option value="oldest">
+                            ↑ Sortuj: Od najstarszych
+                          </option>
+
+                          <option value="newest">
+                            ↓ Sortuj: Od najnowszych
+                          </option>
+
+                          <option value="alphabetical">
+                            ↓ Sortuj: Alfabetycznie (A-Z)
+                          </option>
+                        </SortSelect>
+
+                        <SortIconWrapper>
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 16 16"
+                            fill="currentColor"
+                          >
+                            <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
+                          </svg>
+                        </SortIconWrapper>
+                      </SortSelectContainer>
+                    </>
                   )}
                 </div>
               </SetHeaderControls>
