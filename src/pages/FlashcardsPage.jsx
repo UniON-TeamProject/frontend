@@ -2857,7 +2857,7 @@ const FlashcardsPage = () => {
                           {globalSearchResults.sets.map((s) => (
                             <StyledSearchResultItem
                               key={`set-${s.id}`}
-                              onClick={() => {
+                              onMouseDown={() => {
                                 setSearchQuery("");
                                 setIsSearchFocused(false);
                                 navigate(`/learning/set/${s.id}`);
