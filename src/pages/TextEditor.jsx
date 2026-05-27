@@ -970,9 +970,36 @@ const TextEditor = () => {
     return doc.body.innerHTML;
   };
 
-  const exportToPdf = () => {
+  const toDataUrl = (url) =>
+    fetch(url)
+      .then((res) => res.blob())
+      .then(
+        (blob) =>
+          new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.readAsDataURL(blob);
+          })
+      )
+      .catch(() => null);
+
+  const exportToPdf = async () => {
     if (!editor) return;
     const html = prepareHtmlForPdf(editor.getHTML());
+
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = html;
+    const imgs = tempDiv.querySelectorAll("img");
+    await Promise.all(
+      Array.from(imgs).map(async (img) => {
+        const src = img.getAttribute("src");
+        if (src && !src.startsWith("data:")) {
+          const dataUrl = await toDataUrl(src);
+          if (dataUrl) img.setAttribute("src", dataUrl);
+        }
+      })
+    );
+
     const content = `
       <div style="font-family: sans-serif; padding: 20px;">
         <style>
@@ -995,7 +1022,7 @@ const TextEditor = () => {
             font-size: 0.8rem;
           }
         </style>
-        ${html}
+        ${tempDiv.innerHTML}
       </div>
     `;
     html2pdf()
