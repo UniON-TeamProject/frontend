@@ -96,7 +96,8 @@ const CardWrapper = styled.div`
   height: 100%;
   position: relative;
   transform-style: preserve-3d;
-  transition: ${(props) => props.$instant ? "none" : "transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1)"};
+  transition: ${(props) =>
+    props.$instant ? "none" : "transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1)"};
   cursor: pointer;
   transform: ${(props) => (props.$isFlipped ? "rotateY(180deg)" : "none")};
 `;
@@ -389,6 +390,7 @@ const StyledTextArea = styled.textarea`
   padding: 15px;
   margin: 10px 0 20px 0;
   border: 1px solid ${({ theme }) => theme.colors.darkGrey};
+  color: ${({ theme }) => theme.colors.text};
   border-radius: 8px;
   font-family: inherit;
   font-size: 1rem;
@@ -453,8 +455,10 @@ const EndScreenButton = styled.button`
 `;
 
 const ModalButton = styled.button`
-  background-color: ${({ $danger, theme }) => ($danger ? theme.colors.danger : theme.colors.borderLight)};
-  color: ${({ $danger, theme }) => ($danger ? theme.colors.white : theme.colors.text)};
+  background-color: ${({ $danger, theme }) =>
+    $danger ? theme.colors.danger : theme.colors.borderLight};
+  color: ${({ $danger, theme }) =>
+    $danger ? theme.colors.white : theme.colors.text};
   border: none;
   padding: 12px 25px;
   border-radius: 10px;
@@ -487,7 +491,6 @@ const CheckboxContainer = styled.label`
     accent-color: ${({ theme }) => theme.colors.secondary};
   }
 `;
-
 
 const shuffleArray = (array) => {
   const shuffled = [...array];
@@ -554,7 +557,10 @@ export default function FastLearningPage() {
     if (e) e.stopPropagation();
     const currentCard = cards[currentIndex];
 
-    const answerResult = await sendFastLearningAnswer(currentCard.id, isCorrect ? 1 : 0);
+    const answerResult = await sendFastLearningAnswer(
+      currentCard.id,
+      isCorrect ? 1 : 0
+    );
     if (answerResult?.errorCode === "TOKEN_UNDEFINED") {
       removeToken();
       navigate("/", { replace: true });
@@ -712,7 +718,7 @@ export default function FastLearningPage() {
       </TopBar>
 
       <AppContainer>
-{/* PODPOWIEDZI NAD FISZKĄ */}
+        {/* PODPOWIEDZI NAD FISZKĄ */}
         <HintsContainer $visible={isFlipped && !isFinished}>
           <span className="bad">Nie umiem &larr; Kliknij w lewo</span>
           <span className="good">Kliknij w prawo &rarr; Umiem</span>
@@ -856,17 +862,26 @@ export default function FastLearningPage() {
         </EndScreenOverlay>
       )}
 
-
       {/* MODAL EDYCJI FISZKI */}
       {isEditModalOpen && (
         <>
           <ModalOverlay onClick={() => setIsEditModalOpen(false)} />
           <StyledPopup style={{ textAlign: "left" }}>
             <h2 style={{ marginBottom: "20px" }}>Edytuj fiszkę</h2>
-            {modalError && <p style={{ color: theme.colors.danger }}>{modalError}</p>}
-            {modalSuccess && <p style={{ color: theme.colors.success }}>{modalSuccess}</p>}
+            {modalError && (
+              <p style={{ color: theme.colors.danger }}>{modalError}</p>
+            )}
+            {modalSuccess && (
+              <p style={{ color: theme.colors.success }}>{modalSuccess}</p>
+            )}
 
-            <p style={{ fontWeight: "600", fontSize: "0.9rem", color: theme.colors.textLight }}>
+            <p
+              style={{
+                fontWeight: "600",
+                fontSize: "0.9rem",
+                color: theme.colors.textLight,
+              }}
+            >
               Przód:
             </p>
             <StyledTextArea
@@ -875,7 +890,13 @@ export default function FastLearningPage() {
               onChange={(e) => setEditQ(e.target.value)}
             />
 
-            <p style={{ fontWeight: "600", fontSize: "0.9rem", color: theme.colors.textLight }}>
+            <p
+              style={{
+                fontWeight: "600",
+                fontSize: "0.9rem",
+                color: theme.colors.textLight,
+              }}
+            >
               Tył:
             </p>
             <StyledTextArea
@@ -911,7 +932,9 @@ export default function FastLearningPage() {
               }}
             >
               {!currentCard?.cardTags || currentCard.cardTags.length === 0 ? (
-                <p style={{ color: theme.colors.textMuted }}>Brak przypisanych tagów.</p>
+                <p style={{ color: theme.colors.textMuted }}>
+                  Brak przypisanych tagów.
+                </p>
               ) : (
                 currentCard.cardTags.map((t, i) => (
                   <span
@@ -931,7 +954,11 @@ export default function FastLearningPage() {
               )}
             </div>
             <p
-              style={{ fontSize: "0.85rem", color: theme.colors.textMuted, marginTop: "20px" }}
+              style={{
+                fontSize: "0.85rem",
+                color: theme.colors.textMuted,
+                marginTop: "20px",
+              }}
             >
               Możesz zmienić tagi używając przycisku edycji fiszki.
             </p>

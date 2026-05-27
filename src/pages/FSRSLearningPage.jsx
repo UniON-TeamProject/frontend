@@ -333,6 +333,7 @@ const StyledTextArea = styled.textarea`
   padding: 15px;
   margin: 10px 0 20px 0;
   border: 1px solid ${({ theme }) => theme.colors.darkGrey};
+  color: ${({ theme }) => theme.colors.text};
   border-radius: 8px;
   font-family: inherit;
   font-size: 1rem;

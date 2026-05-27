@@ -855,6 +855,7 @@ const StyledCardTextarea = styled.textarea`
   height: 220px;
   border-radius: 15px;
   border: 1px solid ${({ theme }) => theme.colors.borderLight};
+  color: ${({ theme }) => theme.colors.text};
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
   padding: 30px;
   font-size: 16px;
@@ -1009,6 +1010,7 @@ const StyledModalTextArea = styled.textarea`
   width: 100%;
   padding: 15px;
   margin: 10px 0 20px 0;
+  color: ${({ theme }) => theme.colors.text};
   border: 1px solid ${({ theme }) => theme.colors.darkGrey};
   border-radius: 5px;
   font-family: inherit;
