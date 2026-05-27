@@ -25,7 +25,7 @@ import {
   getAllUsersCards,
   getCardsByTags,
   getSocialGroup,
-  getNoteDetails
+  getNoteDetails,
 } from "../api";
 import { getToken } from "../token";
 import Flashcard from "../components/organisms/Flashcard";
@@ -1776,7 +1776,7 @@ const FlashcardsPage = () => {
     (card) => card.question.trim() === "" && card.answer.trim() === ""
   );
 
-  // stany dla menu dodawania fiszkek
+  // stany dla menu dodawania fiszek
   const [isAddModeMenuOpen, setIsAddModeMenuOpen] = useState(false);
   const [isAddByTagMode, setIsAddByTagMode] = useState(false);
   const [selectedCardsForAdding, setSelectedCardsForAdding] = useState(
@@ -2132,9 +2132,7 @@ const FlashcardsPage = () => {
 
     if (selectedCardTagsFilter.length > 0) {
       sorted = sorted.filter((card) =>
-        selectedCardTagsFilter.every((tag) =>
-          card.cardTags?.includes(tag)
-        )
+        selectedCardTagsFilter.every((tag) => card.cardTags?.includes(tag))
       );
     }
 
@@ -2162,10 +2160,7 @@ const FlashcardsPage = () => {
 
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (
-        cardFilterRef.current &&
-        !cardFilterRef.current.contains(e.target)
-      ) {
+      if (cardFilterRef.current && !cardFilterRef.current.contains(e.target)) {
         setIsCardFilterMenuOpen(false);
       }
     };
@@ -2174,10 +2169,7 @@ const FlashcardsPage = () => {
       document.addEventListener("mousedown", handleClickOutside);
 
       return () =>
-        document.removeEventListener(
-          "mousedown",
-          handleClickOutside
-        );
+        document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [isCardFilterMenuOpen]);
 
@@ -2729,30 +2721,32 @@ const FlashcardsPage = () => {
   };
 
   useEffect(() => {
-  const fetchNoteNames = async () => {
-    if (currentSet?.noteId && currentSet.noteId.length > 0) {
-      try {
-        const promises = currentSet.noteId.map((id) => getNoteDetails(id, socialId));
-        
-        const results = await Promise.all(promises);
-        
-        const newNamesMap = {};
-        currentSet.noteId.forEach((id, index) => {
-          const noteData = results[index];
-          if (noteData && !noteData.errorCode && noteData.name) {
-            newNamesMap[id] = noteData.name;
-          }
-        });
-        
-        setNoteNames(newNamesMap);
-      } catch (error) {
-        console.error("Błąd podczas pobierania nazw notatek:", error);
-      }
-    }
-  };
+    const fetchNoteNames = async () => {
+      if (currentSet?.noteId && currentSet.noteId.length > 0) {
+        try {
+          const promises = currentSet.noteId.map((id) =>
+            getNoteDetails(id, socialId)
+          );
 
-  fetchNoteNames();
-}, [currentSet?.noteId, socialId]);
+          const results = await Promise.all(promises);
+
+          const newNamesMap = {};
+          currentSet.noteId.forEach((id, index) => {
+            const noteData = results[index];
+            if (noteData && !noteData.errorCode && noteData.name) {
+              newNamesMap[id] = noteData.name;
+            }
+          });
+
+          setNoteNames(newNamesMap);
+        } catch (error) {
+          console.error("Błąd podczas pobierania nazw notatek:", error);
+        }
+      }
+    };
+
+    fetchNoteNames();
+  }, [currentSet?.noteId, socialId]);
 
   return (
     <Layout>
@@ -3150,59 +3144,69 @@ const FlashcardsPage = () => {
                   </TagsContainer>
                 )}
 
-              {currentSet?.noteId && Array.isArray(currentSet.noteId) && currentSet.noteId.length > 0 && (
-                <div style={{ position: "relative", marginLeft: "auto" }} ref={noteLinkRef}>
-                  {currentSet.noteId.length === 1 ? (
-                    <NoteLinkButton
-                      onClick={() =>
-                        navigate(
-                          `/note/${currentSet.noteId[0]}${
-                            socialId ? `?socialId=${socialId}` : ""
-                          }`
-                        )
-                      }
-                      title="Przejdź do notatki źródłowej"
-                    >
-                      <svg fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M5 10.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5" />
-                        <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2" />
-                        <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z" />
-                      </svg>
-                      {noteNames[currentSet.noteId[0]] || "Otwórz notatkę"}
-                    </NoteLinkButton>
-                  ) : (
-                    <>
+              {currentSet?.noteId &&
+                Array.isArray(currentSet.noteId) &&
+                currentSet.noteId.length > 0 && (
+                  <div
+                    style={{ position: "relative", marginLeft: "auto" }}
+                    ref={noteLinkRef}
+                  >
+                    {currentSet.noteId.length === 1 ? (
                       <NoteLinkButton
-                        onClick={() => setIsNoteLinkDropdownOpen((o) => !o)}
-                        title="Przejdź do notatek źródłowych"
+                        onClick={() =>
+                          navigate(
+                            `/note/${currentSet.noteId[0]}${
+                              socialId ? `?socialId=${socialId}` : ""
+                            }`
+                          )
+                        }
+                        title="Przejdź do notatki źródłowej"
                       >
                         <svg fill="currentColor" viewBox="0 0 16 16">
                           <path d="M5 10.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5" />
                           <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2" />
                           <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z" />
                         </svg>
-                        Notatki źródłowe ({currentSet.noteId.length}) ▼
+                        {noteNames[currentSet.noteId[0]] || "Otwórz notatkę"}
                       </NoteLinkButton>
-                      
-                      {isNoteLinkDropdownOpen && (
-                        <NoteDropdownMenu>
-                          {currentSet.noteId.map((nId, index) => (
-                            <NoteDropdownItem
-                              key={nId}
-                              onClick={() => {
-                                setIsNoteLinkDropdownOpen(false);
-                                navigate(`/note/${nId}${socialId ? `?socialId=${socialId}` : ""}`);
-                              }}
-                            >
-                              {noteNames[nId] || `Otwórz notatkę #${index + 1}`}
-                            </NoteDropdownItem>
-                          ))}
-                        </NoteDropdownMenu>
-                      )}
-                    </>
-                  )}
-                </div>
-              )}
+                    ) : (
+                      <>
+                        <NoteLinkButton
+                          onClick={() => setIsNoteLinkDropdownOpen((o) => !o)}
+                          title="Przejdź do notatek źródłowych"
+                        >
+                          <svg fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M5 10.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5" />
+                            <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2" />
+                            <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z" />
+                          </svg>
+                          Notatki źródłowe ({currentSet.noteId.length}) ▼
+                        </NoteLinkButton>
+
+                        {isNoteLinkDropdownOpen && (
+                          <NoteDropdownMenu>
+                            {currentSet.noteId.map((nId, index) => (
+                              <NoteDropdownItem
+                                key={nId}
+                                onClick={() => {
+                                  setIsNoteLinkDropdownOpen(false);
+                                  navigate(
+                                    `/note/${nId}${
+                                      socialId ? `?socialId=${socialId}` : ""
+                                    }`
+                                  );
+                                }}
+                              >
+                                {noteNames[nId] ||
+                                  `Otwórz notatkę #${index + 1}`}
+                              </NoteDropdownItem>
+                            ))}
+                          </NoteDropdownMenu>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
             </SetNameHeader>
 
             {!isAddingMode && !isAddByTagMode && !isTrashView && (
@@ -3415,7 +3419,8 @@ const FlashcardsPage = () => {
                           disabled={allAvailableCardTags.length === 0}
                           onClick={(e) => {
                             e.stopPropagation();
-                            const rect = e.currentTarget.getBoundingClientRect();
+                            const rect =
+                              e.currentTarget.getBoundingClientRect();
                             setFilterDropdownY(rect.bottom + 8);
                             setIsCardFilterMenuOpen(!isCardFilterMenuOpen);
                           }}
@@ -3432,7 +3437,6 @@ const FlashcardsPage = () => {
                             />
                           </svg>
                           Filtruj
-
                           {selectedCardTagsFilter.length > 0 && (
                             <ActiveFilterBadge>
                               {selectedCardTagsFilter.length}
@@ -3509,9 +3513,7 @@ const FlashcardsPage = () => {
                                   textAlign: "center",
                                   fontWeight: "bold",
                                 }}
-                                onClick={() =>
-                                  setSelectedCardTagsFilter([])
-                                }
+                                onClick={() => setSelectedCardTagsFilter([])}
                               >
                                 Wyczyść filtry
                               </div>
@@ -4182,7 +4184,7 @@ const FlashcardsPage = () => {
 
               {isLoadingCards && (
                 <div style={{ textAlign: "center", padding: "20px" }}>
-                  <Text text="Szukam fiszkek..." />
+                  <Text text="Szukam fiszek..." />
                 </div>
               )}
 
@@ -4197,7 +4199,7 @@ const FlashcardsPage = () => {
                       fontSize: "0.95rem",
                     }}
                   >
-                    Brak fiszkek z tym tagiem, które nie są już w zestawie
+                    Brak fiszek z tym tagiem, które nie są już w zestawie
                   </div>
                 )}
             </CardInputRow>

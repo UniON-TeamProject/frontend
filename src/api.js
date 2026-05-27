@@ -936,10 +936,10 @@ export async function addCard(
         isForced: isForced,
       }),
     });
-    
+
     const authErr = checkUnauthorized(resp);
     if (authErr) return authErr;
-    
+
     if (resp.ok) {
       const { id } = await resp.json();
       return { id, errorCode: "", message: "" };
@@ -1057,7 +1057,12 @@ export async function removeFolderTag(id, name) {
   }
 }
 
-export async function addFlashcardSet(name, tags = [], socialId = null, noteId = null) {
+export async function addFlashcardSet(
+  name,
+  tags = [],
+  socialId = null,
+  noteId = null
+) {
   const token = getToken();
   if (!token)
     return {
@@ -1071,9 +1076,9 @@ export async function addFlashcardSet(name, tags = [], socialId = null, noteId =
     const params = [];
     if (socialId) params.push(`socialId=${socialId}`);
     if (noteId) params.push(`noteId=${noteId}`);
-    
+
     if (params.length > 0) {
-      url += `?${params.join('&')}`;
+      url += `?${params.join("&")}`;
     }
 
     const bodyPayload = {
@@ -1695,10 +1700,15 @@ export async function moveListOfCards(cardSetId, cardIds) {
   }
 }
 
-export async function addListOfCardsToSet(cardSetId, cards, noteId = null, socialId = null) {
+export async function addListOfCardsToSet(
+  cardSetId,
+  cards,
+  noteId = null,
+  socialId = null
+) {
   const token = getToken();
   if (!token) return { errorCode: "TOKEN_UNDEFINED", message: "Brak tokena" };
-  
+
   try {
     const params = new URLSearchParams();
     if (noteId) params.append("noteId", noteId);
@@ -1718,7 +1728,7 @@ export async function addListOfCardsToSet(cardSetId, cards, noteId = null, socia
     );
     const authErr = checkUnauthorized(resp);
     if (authErr) return authErr;
-    
+
     if (resp.ok) {
       const saved = await resp.json();
       return { cards: saved, errorCode: "", message: "" };
@@ -2920,7 +2930,7 @@ export async function getAllUsersCards() {
       return {
         cards: [],
         errorCode: "FETCH_ERROR",
-        message: "Nie udało się pobrać fiszkek",
+        message: "Nie udało się pobrać fiszek",
       };
 
     const cards = await resp.json();
@@ -3032,7 +3042,7 @@ export async function getCardsByTags(tags) {
       return {
         cards: [],
         errorCode: "FETCH_ERROR",
-        message: "Nie udało się pobrać fiszkek",
+        message: "Nie udało się pobrać fiszek",
       };
 
     const cards = await resp.json();
