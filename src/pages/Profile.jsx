@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import styled, { keyframes } from "styled-components";
+import { useDispatch } from "react-redux";
+import styled from "styled-components";
 import Layout from "../components/organisms/Layout";
 import LegalModal from "../components/organisms/LegalModal";
 import {
@@ -10,11 +10,8 @@ import {
   changeEmail,
   confirmEmailChange,
   changePassword,
-  changeTheme,
   changeAvatar,
   deleteAccount,
-  getUniversities,
-  setUniversity,
 } from "../api";
 import { removeToken } from "../token";
 import { PASSWORD_REGEX } from "../helpers/validation";
@@ -22,51 +19,35 @@ import PasswordRequirements from "../components/atoms/PasswordRequirements";
 import Input from "../components/atoms/Input";
 import VerificationInput from "react-verification-input";
 import { setThemeColor } from "../store/themeSlice";
-import { THEME_COLORS, buildTheme } from "../styles/theme";
+import {CardBox} from '../components/profile/CardBox'
+import { AvatarModal } from '../components/profile/AvatarModal'
+import { DeleteAccountModal } from '../components/profile/DeleteAccountModal'
+import { LogoutButton } from '../components/profile/LogoutButton'
+import { ThemeSelector } from '../components/profile/ThemeSelector'
+import { UniversitySelector } from '../components/profile/UniversitySelector'
+import { ProfileCard } from '../components/profile/ProfileCard'
 
 const StyledContainer = styled.div`
-  padding: 30px 20px 27px;
-  min-height: 100vh;
   max-width: 640px;
+  padding: 30px 20px 27px;
   margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-`;
+`
 
 const HeaderRow = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 20px;
-  gap: 16px;
 `;
 
 const PageHeader = styled.h2`
   color: ${({ theme }) => theme.colors.veryDarkPrimary};
   font-size: 1.7rem;
   font-weight: 800;
-  margin: 0;
-`;
-
-const LogoutButton = styled.button`
-  padding: 9px 18px;
-  background-color: ${({ theme }) => theme.colors.white};
-  color: ${({ theme }) => theme.colors.veryDarkPrimary};
-  border: 1px solid ${({ theme }) => theme.colors.primary};
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: 0.2s;
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.lightPrimary};
-  }
 `;
 
 const TabsBar = styled.div`
   display: flex;
-  gap: 4px;
   margin: 8px 0 18px;
   border-bottom: 1px solid ${({ theme }) => theme.colors.primary};
 `;
@@ -86,102 +67,6 @@ const TabButton = styled.button`
   &:hover {
     color: ${({ theme }) => theme.colors.veryDarkPrimary};
   }
-`;
-
-const EmptyTabState = styled.div`
-  padding: 60px 20px;
-  text-align: center;
-  color: ${({ theme }) => theme.colors.lightTertiary};
-  font-size: 0.9rem;
-`;
-
-const CardBox = styled.div`
-  background-color: ${({ theme }) => theme.colors.white};
-  border-radius: 20px;
-  box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.05);
-  padding: 24px;
-  margin-bottom: 16px;
-`;
-
-const ProfileHeader = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 18px;
-`;
-
-const AvatarButton = styled.button`
-  width: 110px;
-  height: 110px;
-  border-radius: 50%;
-  background-color: ${({ theme }) => theme.colors.pageBg};
-  color: ${({ theme }) => theme.colors.veryDarkPrimary};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2.6rem;
-  font-weight: 800;
-  flex-shrink: 0;
-  border: none;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: transform 0.15s, box-shadow 0.15s;
-
-  &:hover {
-    transform: scale(1.04);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-  }
-  &::after {
-    content: "Zmień";
-    position: absolute;
-    inset: 0;
-    background: rgba(18, 40, 24, 0.55);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    opacity: 0;
-    transition: opacity 0.15s;
-    border-radius: 50%;
-  }
-  &:hover::after {
-    opacity: 1;
-  }
-`;
-
-const IdentityText = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-`;
-
-const IdentityName = styled.span`
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: ${({ theme }) => theme.colors.veryDarkPrimary};
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`;
-
-const IdentityEmail = styled.span`
-  font-size: 0.9rem;
-  color: ${({ theme }) => theme.colors.tertiary};
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`;
-
-const SectionTitle = styled.h3`
-  color: ${({ theme }) => theme.colors.veryDarkPrimary};
-  font-size: 1.05rem;
-  font-weight: 700;
-  margin: 0 0 14px 0;
 `;
 
 const ButtonsRow = styled.div`
@@ -204,9 +89,12 @@ const ActionButton = styled.button`
     opacity: 0.6;
     cursor: not-allowed;
   }
+  &:hover{
+    background-color: ${({ theme }) => theme.colors.darkPrimary};
+  }
 `;
 
-const SecondaryButton = styled(ActionButton)`
+const OutlineButton = styled(ActionButton)`
   background-color: transparent;
   color: ${({ theme }) => theme.colors.veryDarkPrimary};
   border: 1px solid ${({ theme }) => theme.colors.primary};
@@ -215,126 +103,10 @@ const SecondaryButton = styled(ActionButton)`
   }
 `;
 
-const FeedbackText = styled.p`
-  margin: 0 0 10px 0;
-  font-size: 0.9em;
-  color: ${({ $error, theme }) =>
-    $error ? theme.colors.danger : theme.colors.success};
-`;
-
-const ModalBackdrop = styled.div`
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-`;
-
-const ModalBox = styled.div`
-  background: ${({ theme }) => theme.colors.white};
-  border-radius: 16px;
-  padding: 28px;
-  width: 90%;
-  max-width: 560px;
-  text-align: center;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
-`;
-
-const ModalTitle = styled.h3`
-  color: ${({ theme }) => theme.colors.veryDarkPrimary};
-  margin: 0 0 10px 0;
-  font-size: 1.15rem;
-`;
-
-const ModalText = styled.p`
-  color: ${({ theme }) => theme.colors.tertiary};
-  margin: 0 0 20px 0;
-  font-size: 0.9rem;
-`;
-
-const ModalClose = styled.button`
-  padding: 8px 18px;
-  background-color: ${({ theme }) => theme.colors.veryDarkPrimary};
-  color: ${({ theme }) => theme.colors.white};
-  border: none;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 0.9rem;
-  cursor: pointer;
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.veryDarkPrimary};
-  }
-`;
-
-const AvatarGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 12px;
-  margin: 16px 0 20px;
-
-  @media (max-width: 480px) {
-    gap: 8px;
-  }
-`;
-
-const AvatarOption = styled.button`
-  aspect-ratio: 1;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 3px solid
-    ${({ $active, theme }) =>
-      $active ? theme.colors.veryDarkPrimary : "transparent"};
-  box-shadow: ${({ $active }) =>
-    $active ? "0 0 0 2px rgba(0,0,0,0.15)" : "0 1px 4px rgba(0,0,0,0.1)"};
-  cursor: pointer;
-  padding: 0;
-  background: ${({ theme }) => theme.colors.pageBg};
-  transition: transform 0.15s, box-shadow 0.15s;
-  &:hover {
-    transform: scale(1.07);
-  }
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-`;
-
-const DangerCard = styled(CardBox)`
-  border: 1px solid rgba(239, 68, 68, 0.35);
-`;
-
-const DangerTitle = styled(SectionTitle)`
-  color: ${({ theme }) => theme.colors.dangerDark};
-`;
-
-const DangerText = styled.p`
-  margin: 0 0 14px 0;
-  font-size: 0.9rem;
-  color: ${({ theme }) => theme.colors.tertiary};
-  line-height: 1.4;
-`;
-
-const DangerButton = styled.button`
-  padding: 9px 16px;
+const DangerButton = styled(ActionButton)`
   background-color: ${({ theme }) => theme.colors.danger};
-  color: ${({ theme }) => theme.colors.white};
-  border: none;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: 0.2s;
-
   &:hover {
     background-color: ${({ theme }) => theme.colors.dangerDark};
-  }
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
   }
 `;
 
@@ -356,202 +128,22 @@ const LegalLink = styled.button`
   text-decoration: underline;
 `;
 
-const THEME_LABELS = {
-  GREEN: "Zielony",
-  RED: "Czerwony",
-  ORANGE: "Pomarańczowy",
-  YELLOW: "Żółty",
-  BLUE: "Niebieski",
-  NAVY: "Granatowy",
-  PURPLE: "Fioletowy",
-};
-
-/* ── Miniaturka UI ── */
-const MiniGrid = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-`;
-
-const MiniPreview = styled.button`
-  width: 80px;
-  height: 60px;
-  border-radius: 10px;
-  border: 3px solid ${({ $active, $dark }) => ($active ? $dark : "transparent")};
-  background-color: ${({ theme }) => theme.colors.pageBg};
-  cursor: pointer;
-  padding: 0;
-  overflow: hidden;
-  display: flex;
-  transition: transform 0.15s, box-shadow 0.2s;
-  box-shadow: ${({ $active }) =>
-    $active ? "0 3px 10px rgba(0,0,0,0.2)" : "0 1px 4px rgba(0,0,0,0.08)"};
-  &:hover {
-    transform: scale(1.06);
-  }
-`;
-
-const MiniSidebar = styled.div`
-  width: 18px;
-  height: 100%;
-  background-color: ${({ $color }) => $color};
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-`;
-
-const MiniDot = styled.div`
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: ${({ $color }) => $color};
-`;
-
-const MiniContent = styled.div`
-  flex: 1;
-  padding: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-`;
-
-const MiniCard = styled.div`
-  flex: 1;
-  border-radius: 4px;
-  background-color: white;
-  border: 1px solid ${({ $color }) => $color};
-`;
-
-const MiniBar = styled.div`
-  height: 5px;
-  border-radius: 3px;
-  background-color: ${({ $color }) => $color};
-`;
-
-const ThemeFeedback = styled.p`
-  margin: 12px 0 0;
-  font-size: 0.85rem;
-  color: ${({ $error, theme }) =>
-    $error ? theme.colors.danger : theme.colors.success};
-`;
-
-const UniSelect = styled.select`
-  width: 100%;
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1px solid
-    ${({ $highlight, theme }) =>
-      $highlight ? theme.colors.danger : theme.colors.primary};
-  background-color: ${({ theme }) => theme.colors.white};
-  color: ${({ theme }) => theme.colors.veryDarkPrimary};
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 14px center;
-  padding-right: 36px;
-  margin-bottom: 14px;
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.colors.veryDarkPrimary};
-  }
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-`;
-
-const arrowBounce = keyframes`
-  0%   { transform: translateX(0); }
-  40%  { transform: translateX(6px); }
-  65%  { transform: translateX(-1px); }
-  100% { transform: translateX(0); }
-`;
-
-const UsosBanner = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  width: 100%;
-  margin-top: 14px;
-  padding: 14px 18px;
-  background-color: ${({ theme }) => theme.colors.darkPageBg};
-  border: 1.5px solid ${({ theme }) => theme.colors.primary};
-  border-radius: 14px;
-  cursor: pointer;
-  text-align: left;
-
-  &:hover:not(:disabled) > *:last-child {
-    animation: ${arrowBounce} 0.5s ease;
-  }
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-`;
-
-const UsosBannerIcon = styled.div`
-  font-size: 1.6rem;
-  flex-shrink: 0;
-  line-height: 1;
-`;
-
-const UsosBannerText = styled.div`
-  flex: 1;
-  min-width: 0;
-`;
-
-const UsosBannerTitle = styled.div`
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: ${({ theme }) => theme.colors.veryDarkPrimary};
-`;
-
-const UsosBannerSub = styled.div`
-  font-size: 0.78rem;
-  color: ${({ theme }) => theme.colors.tertiary};
-  margin-top: 2px;
-`;
-
-const UsosBannerArrow = styled.div`
-  font-size: 1.2rem;
-  color: ${({ theme }) => theme.colors.veryDarkPrimary};
-  flex-shrink: 0;
-  opacity: 0.5;
-`;
-
-const getInitials = (name) => {
-  if (!name) return "?";
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[1][0]).toUpperCase();
-};
 
 const Profile = () => {
   const navigate = useNavigate();
   const { state: locationState } = useLocation();
   const dispatch = useDispatch();
-  const currentTheme = useSelector((state) => state.theme.color);
+  const highlightUniversity = locationState?.highlightUniversity ?? false;
   const [loading, setLoading] = useState(true);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [avatarId, setAvatarId] = useState(0);
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(locationState?.tab ?? "account");
-  const [highlightUniversity, setHighlightUniversity] = useState(
-    locationState?.highlightUniversity ?? false
-  );
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
-  const [deleteFeedback, setDeleteFeedback] = useState({
-    message: "",
-    error: false,
-  });
+  const [deleteFeedback, setDeleteFeedback] = useState({message: "", error: false});
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
 
   const [termsOpen, setTermsOpen] = useState(false);
@@ -585,36 +177,18 @@ const Profile = () => {
   const [passwordSubmitting, setPasswordSubmitting] = useState(false);
   const [passwordRegexVisible, setPasswordRegexVisible] = useState(false);
 
-  const [themeSaving, setThemeSaving] = useState(false);
-  const [themeFeedback, setThemeFeedback] = useState({
-    message: "",
-    error: false,
-  });
-
-  const [universities, setUniversities] = useState([]);
-  const [selectedUniversity, setSelectedUniversity] = useState("");
-  const [universitySaving, setUniversitySaving] = useState(false);
-  const [universityFeedback, setUniversityFeedback] = useState({
-    message: "",
-    error: false,
-  });
+  const [initialUniversity, setInitialUniversity] = useState("");
 
   useEffect(() => {
     (async () => {
-      const [profileRes, uniRes] = await Promise.all([
-        getProfile(),
-        getUniversities(),
-      ]);
+      const profileRes = await getProfile();
       if (!profileRes.errorCode) {
         setUsername(profileRes.username || "");
         setEmail(profileRes.email || "");
         if (profileRes.avatarId) setAvatarId(profileRes.avatarId);
-        if (profileRes.themeColor)
-          dispatch(setThemeColor(profileRes.themeColor));
-        if (profileRes.universityName)
-          setSelectedUniversity(profileRes.universityName);
+        if (profileRes.themeColor) dispatch(setThemeColor(profileRes.themeColor));
+        if (profileRes.universityName) setInitialUniversity(profileRes.universityName);
       }
-      if (!uniRes.errorCode) setUniversities(uniRes.universities);
       setLoading(false);
     })();
   }, [dispatch]);
@@ -779,51 +353,10 @@ const Profile = () => {
     setPasswordFeedback({ message: res.message, error: false });
   };
 
-  const handleThemeChange = async (color) => {
-    if (color === currentTheme || themeSaving) return;
-    setThemeFeedback({ message: "", error: false });
-    setThemeSaving(true);
-    dispatch(setThemeColor(color));
-    const res = await changeTheme(color);
-    setThemeSaving(false);
-    if (res.errorCode) {
-      dispatch(setThemeColor(currentTheme));
-      setThemeFeedback({
-        message: res.message || "Nie udało się zmienić motywu.",
-        error: true,
-      });
-      return;
-    }
-    setThemeFeedback({ message: res.message, error: false });
-  };
-
-  const handleUniversityChange = async (e) => {
-    const value = e.target.value;
-    setSelectedUniversity(value);
-    setHighlightUniversity(false);
-    if (!value) return;
-    setUniversityFeedback({ message: "", error: false });
-    setUniversitySaving(true);
-    const res = await setUniversity(value);
-    setUniversitySaving(false);
-    if (res.errorCode) {
-      setUniversityFeedback({
-        message: res.message || "Nie udało się zapisać uczelni.",
-        error: true,
-      });
-      return;
-    }
-    setUniversityFeedback({ message: res.message, error: false });
-  };
-
   const handleAvatarSelect = async (id) => {
     if (id === avatarId) return;
     const res = await changeAvatar(id);
     if (!res.errorCode) setAvatarId(id);
-  };
-
-  const handleUsosImport = () => {
-    navigate("/calendar", { state: { openUsosImport: true } });
   };
 
   return (
@@ -831,37 +364,16 @@ const Profile = () => {
       <StyledContainer>
         <HeaderRow>
           <PageHeader>Profil</PageHeader>
-          <LogoutButton
-            onClick={() => {
-              removeToken();
-              navigate("/");
-            }}
-          >
-            Wyloguj
-          </LogoutButton>
+          <LogoutButton />
         </HeaderRow>
 
-        <CardBox>
-          <ProfileHeader>
-            <AvatarButton
-              onClick={() => setAvatarModalOpen(true)}
-              title="Zmień awatar"
-            >
-              {!loading && avatarId > 0 && (
-                <img
-                  src={`/icons/avatar${avatarId}.png`}
-                  alt=""
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
-              )}
-              {!loading && avatarId === 0 && getInitials(username)}
-            </AvatarButton>
-            <IdentityText>
-              <IdentityName>{username || "Użytkownik"}</IdentityName>
-              <IdentityEmail>{email}</IdentityEmail>
-            </IdentityText>
-          </ProfileHeader>
-        </CardBox>
+        <ProfileCard
+          username={username}
+          email={email}
+          avatarId={avatarId}
+          loading={loading}
+          onAvatarClick={() => setAvatarModalOpen(true)}
+        />
 
         <TabsBar>
           <TabButton
@@ -878,104 +390,17 @@ const Profile = () => {
           </TabButton>
         </TabsBar>
 
+        {activeTab === "preferences" && <ThemeSelector />}
         {activeTab === "preferences" && (
-          <CardBox>
-            <SectionTitle>Kolor motywu</SectionTitle>
-
-            <MiniGrid>
-              {THEME_COLORS.map((color) => {
-                const p = buildTheme(color).colors;
-                const active = color === currentTheme;
-                return (
-                  <MiniPreview
-                    key={color}
-                    $active={active}
-                    $dark={p.veryDarkPrimary}
-                    onClick={() => handleThemeChange(color)}
-                    disabled={themeSaving}
-                    title={THEME_LABELS[color]}
-                  >
-                    <MiniSidebar $color={p.lightPrimary}>
-                      <MiniDot $color={p.secondary} />
-                      <MiniDot $color={p.secondary} />
-                      <MiniDot $color={p.secondary} />
-                    </MiniSidebar>
-                    <MiniContent>
-                      <MiniCard $color={p.border} />
-                      <MiniBar $color={p.secondary} />
-                    </MiniContent>
-                  </MiniPreview>
-                );
-              })}
-            </MiniGrid>
-
-            {themeFeedback.message && (
-              <ThemeFeedback $error={themeFeedback.error}>
-                {themeFeedback.message}
-              </ThemeFeedback>
-            )}
-          </CardBox>
-        )}
-
-        {activeTab === "preferences" && (
-          <CardBox>
-            <SectionTitle>Uczelnia</SectionTitle>
-            {highlightUniversity && (
-              <FeedbackText $error>
-                Aby korzystać z integracji USOS, najpierw wybierz swoją
-                uczelnię.
-              </FeedbackText>
-            )}
-            <UniSelect
-              value={selectedUniversity}
-              onChange={handleUniversityChange}
-              disabled={universitySaving || universities.length === 0}
-              $highlight={highlightUniversity}
-            >
-              <option value="">Wybierz uczelnię..</option>
-              {universities.map((uni) => (
-                <option key={uni.id} value={uni.name}>
-                  {uni.name}
-                </option>
-              ))}
-            </UniSelect>
-            {universityFeedback.message && (
-              <FeedbackText $error={universityFeedback.error}>
-                {universityFeedback.message}
-              </FeedbackText>
-            )}
-            <UsosBanner
-              type="button"
-              onClick={handleUsosImport}
-              disabled={!selectedUniversity}
-            >
-              <UsosBannerIcon>
-                <img
-                  src="/icons/usos.png"
-                  alt="USOS"
-                  style={{ width: 28, height: 28, borderRadius: 6 }}
-                />
-              </UsosBannerIcon>
-              <UsosBannerText>
-                <UsosBannerTitle>Importuj plan z USOS</UsosBannerTitle>
-                <UsosBannerSub>
-                  Pobierz zajęcia z uczelni do kalendarza
-                </UsosBannerSub>
-              </UsosBannerText>
-              <UsosBannerArrow>›</UsosBannerArrow>
-            </UsosBanner>
-          </CardBox>
+          <UniversitySelector
+            initialUniversity={initialUniversity}
+            highlightUniversity={highlightUniversity}
+          />
         )}
 
         {activeTab === "account" && (
           <>
-            <CardBox>
-              <SectionTitle>Zmiana nazwy użytkownika</SectionTitle>
-              {usernameFeedback.message && (
-                <FeedbackText $error={usernameFeedback.error}>
-                  {usernameFeedback.message}
-                </FeedbackText>
-              )}
+            <CardBox title="Zmiana nazwy użytkownika" feedbackMessage={usernameFeedback.message} feedbackError={usernameFeedback.error}>
               <form onSubmit={handleUsernameSubmit} autoComplete="off">
                 <Input
                   label="Nowa nazwa użytkownika"
@@ -994,13 +419,7 @@ const Profile = () => {
               </form>
             </CardBox>
 
-            <CardBox>
-              <SectionTitle>Zmiana adresu e-mail</SectionTitle>
-              {emailFeedback.message && (
-                <FeedbackText $error={emailFeedback.error}>
-                  {emailFeedback.message}
-                </FeedbackText>
-              )}
+            <CardBox title="Zmiana adresu e-mail" feedbackMessage={emailFeedback.message} feedbackError={emailFeedback.error}>
               {emailStep === "request" ? (
                 <form onSubmit={handleEmailRequestSubmit} autoComplete="off">
                   <Input
@@ -1054,25 +473,19 @@ const Profile = () => {
                         ? "Potwierdzanie..."
                         : "Potwierdź zmianę"}
                     </ActionButton>
-                    <SecondaryButton
+                    <OutlineButton
                       type="button"
                       onClick={cancelEmailChange}
                       disabled={emailSubmitting}
                     >
                       Anuluj
-                    </SecondaryButton>
+                    </OutlineButton>
                   </ButtonsRow>
                 </form>
               )}
             </CardBox>
 
-            <CardBox>
-              <SectionTitle>Zmiana hasła</SectionTitle>
-              {passwordFeedback.message && (
-                <FeedbackText $error={passwordFeedback.error}>
-                  {passwordFeedback.message}
-                </FeedbackText>
-              )}
+            <CardBox title="Zmiana hasła" feedbackMessage={passwordFeedback.message} feedbackError={passwordFeedback.error}>
               <form onSubmit={handlePasswordSubmit} autoComplete="off">
                 <Input
                   label="Obecne hasło"
@@ -1125,31 +538,20 @@ const Profile = () => {
               </form>
             </CardBox>
 
-            <DangerCard>
-              <DangerTitle>Usunięcie konta</DangerTitle>
-              <DangerText>
-                Usunięcie konta jest nieodwracalne. Wszystkie Twoje notatki,
-                fiszki i wydarzenia zostaną trwale usunięte.
-              </DangerText>
+            <CardBox
+              title="Usunięcie konta"
+              danger
+              text="Usunięcie konta jest nieodwracalne. Wszystkie Twoje notatki, fiszki i wydarzenia zostaną trwale usunięte."
+            >
               <DangerButton type="button" onClick={openDeleteModal}>
                 Usuń konto
               </DangerButton>
-            </DangerCard>
-
-            <CardBox>
-              <SectionTitle>Kontakt z zespołem</SectionTitle>
-              <p
-                style={{ margin: "0", fontSize: "0.95rem", lineHeight: "1.6" }}
-              >
-                Zauważyłeś błąd lub masz sugestię? Napisz do nas na:{" "}
-                <a
-                  href="mailto:unionteamproject@gmail.com"
-                  style={{ color: "inherit", fontWeight: 600 }}
-                >
-                  unionteamproject@gmail.com
-                </a>
-              </p>
             </CardBox>
+
+            <CardBox
+              title="Kontakt z zespołem"
+              text={<>Zauważyłeś błąd lub masz sugestię? Napisz do nas na:{" "}<a href="mailto:unionteamproject@gmail.com" style={{ color: "inherit", fontWeight: 600 }}>unionteamproject@gmail.com</a></>}
+            />
           </>
         )}
 
@@ -1164,26 +566,11 @@ const Profile = () => {
         </LegalFooter>
 
         {avatarModalOpen && (
-          <ModalBackdrop onClick={() => setAvatarModalOpen(false)}>
-            <ModalBox onClick={(e) => e.stopPropagation()}>
-              <ModalTitle>Zmiana awatara</ModalTitle>
-              <AvatarGrid>
-                {[1, 2, 3, 4, 5].map((id) => (
-                  <AvatarOption
-                    key={id}
-                    $active={avatarId === id}
-                    onClick={() => handleAvatarSelect(id)}
-                    title={`Awatar ${id}`}
-                  >
-                    <img src={`/icons/avatar${id}.png`} alt={`Awatar ${id}`} />
-                  </AvatarOption>
-                ))}
-              </AvatarGrid>
-              <ModalClose onClick={() => setAvatarModalOpen(false)}>
-                Zamknij
-              </ModalClose>
-            </ModalBox>
-          </ModalBackdrop>
+          <AvatarModal
+            onClose={() => setAvatarModalOpen(false)}
+            avatarId={avatarId}
+            onSelect={handleAvatarSelect}
+          />
         )}
 
         {termsOpen && (
@@ -1195,43 +582,14 @@ const Profile = () => {
         )}
 
         {deleteModalOpen && (
-          <ModalBackdrop onClick={closeDeleteModal}>
-            <ModalBox onClick={(e) => e.stopPropagation()}>
-              <ModalTitle>Usunąć konto?</ModalTitle>
-              <ModalText>
-                Ta operacja jest nieodwracalna. Wpisz swoje obecne hasło, aby
-                potwierdzić.
-              </ModalText>
-              <form onSubmit={handleDeleteAccount} autoComplete="off">
-                <Input
-                  name="profile-delete-pass"
-                  type="password"
-                  value={deletePassword}
-                  onChange={(e) => setDeletePassword(e.target.value)}
-                  placeholder="Obecne hasło"
-                  autoComplete="new-password"
-                  autoFocus
-                />
-                {deleteFeedback.message && (
-                  <FeedbackText $error={deleteFeedback.error}>
-                    {deleteFeedback.message}
-                  </FeedbackText>
-                )}
-                <ButtonsRow style={{ justifyContent: "center" }}>
-                  <SecondaryButton
-                    type="button"
-                    onClick={closeDeleteModal}
-                    disabled={deleteSubmitting}
-                  >
-                    Anuluj
-                  </SecondaryButton>
-                  <DangerButton type="submit" disabled={deleteSubmitting}>
-                    {deleteSubmitting ? "Usuwanie..." : "Tak, usuń konto"}
-                  </DangerButton>
-                </ButtonsRow>
-              </form>
-            </ModalBox>
-          </ModalBackdrop>
+          <DeleteAccountModal
+            onClose={closeDeleteModal}
+            onSubmit={handleDeleteAccount}
+            password={deletePassword}
+            onPasswordChange={(e) => setDeletePassword(e.target.value)}
+            feedback={deleteFeedback}
+            submitting={deleteSubmitting}
+          />
         )}
       </StyledContainer>
     </Layout>
