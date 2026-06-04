@@ -21,7 +21,7 @@ const EmailVerifiedStep = () => {
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            navigate('/');
+            navigate('/login');
         }, 5000);
 
         return () => clearTimeout(timer);

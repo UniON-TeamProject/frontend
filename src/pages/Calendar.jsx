@@ -1863,7 +1863,12 @@ const Calendar = () => {
     setTagScopePopup(null);
     if (res.errorCode && res.errorCode !== "") return;
 
-    await refreshEvents();
+    const newEvents = await refreshEvents();
+    if (newEvents && sidebar) {
+      setSidebar((s) =>
+        s ? { ...s, events: getEventsForDay(newEvents, s.date) } : null
+      );
+    }
     setEditEvent(null);
     setForm({ ...defaultFormState });
     setPopup(false);
@@ -2336,7 +2341,12 @@ const Calendar = () => {
           recurrenceRule
         );
         if (res.errorCode && res.errorCode !== "") return;
-        await refreshEvents();
+        const newEvents = await refreshEvents();
+        if (newEvents && sidebar) {
+          setSidebar((s) =>
+            s ? { ...s, events: getEventsForDay(newEvents, s.date) } : null
+          );
+        }
       }
 
       setForm({ ...defaultFormState });
