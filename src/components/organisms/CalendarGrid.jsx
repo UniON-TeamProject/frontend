@@ -720,7 +720,7 @@ const WeekDayNum = styled.div`
   background: ${({ $today, theme }) =>
     $today ? theme.colors.secondary : "transparent"};
   color: ${({ $today, $selected, theme }) =>
-    $today ? "" : $selected ? theme.colors.secondary : theme.colors.text};
+    $today ? theme.colors.white : $selected ? theme.colors.secondary : theme.colors.text};
   box-shadow: ${({ $today, $selected, theme }) =>
     !$today && $selected
       ? `inset 0 0 0 2px ${theme.colors.secondary}`

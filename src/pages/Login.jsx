@@ -6,6 +6,7 @@ import Input from "../components/atoms/Input";
 import Text from "../components/atoms/Text";
 import Logo from "../components/atoms/Logo";
 import Box from "../components/atoms/Box";
+import AppTitle from "../components/atoms/AppTitle";
 import { loginRequest } from "../api";
 import { getToken, saveToken } from "../token";
 
@@ -34,15 +35,9 @@ const StyledBox = styled(Box)`
     width: 100%;
     padding: 30px 40px;
     background-color: ${({ theme }) => theme.colors.pageBg};
-  }
-`;
+    box-shadow:unset;
 
-const StyledTitleImage = styled.img`
-  height: 40px;
-  width: auto;
-  margin: 10px auto;
-  display: block;
-  object-fit: contain;
+  }
 `;
 
 const StyledRegisterButton = styled.div`
@@ -160,7 +155,7 @@ const Login = () => {
       <StyledContent>
         <StyledBox>
           <Logo size="small" />
-          <StyledTitleImage src="/icons/UniON.PNG" alt="UniON" />
+          <AppTitle />
           <Text
             as="h3"
             bold="true"

@@ -615,6 +615,7 @@ const SocialGroups = () => {
 
             {/* wrapper dla powiadomien zeby popup wyswietlal sie pod ikona */}
             <div
+              onMouseDown={(e) => e.stopPropagation()}
               style={{
                 position: "relative",
                 display: "flex",

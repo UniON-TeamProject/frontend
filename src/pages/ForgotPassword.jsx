@@ -5,6 +5,7 @@ import SubmitButton from "../components/atoms/SubmitButton";
 import Input from "../components/atoms/Input";
 import Logo from "../components/atoms/Logo";
 import Text from "../components/atoms/Text";
+import AppTitle from "../components/atoms/AppTitle";
 import Box from "../components/atoms/Box";
 import { sendResetPasswordCode, resetPassword } from "../api";
 import { PASSWORD_REGEX } from "../helpers/validation";
@@ -37,15 +38,8 @@ const StyledBox = styled(Box)`
     width: 100%;
     padding: 30px 40px;
     background-color: ${({ theme }) => theme.colors.pageBg};
+    box-shadow:unset;
   }
-`;
-
-const StyledTitleImage = styled.img`
-  height: 40px;
-  width: auto;
-  margin: 10px auto;
-  display: block;
-  object-fit: contain;
 `;
 
 const StyledTitle = styled.h2`
@@ -180,8 +174,8 @@ const ForgotPassword = () => {
     <StyledContainer>
       <StyledContent>
         <StyledBox>
-          <Logo size="big" />
-          <StyledTitleImage src="/icons/UniON.PNG" alt="UniON" />
+          <Logo size="small" />
+          <AppTitle />
           {step == 1 && (
             <>
               <StyledTitle>Zresetuj hasło</StyledTitle>

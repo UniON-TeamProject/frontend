@@ -7,6 +7,7 @@ import VerificationStep from "../components/organisms/register/VerificationStep"
 import EmailVerifiedStep from "../components/organisms/register/EmailVerifiedStep";
 import Logo from "../components/atoms/Logo";
 import Text from "../components/atoms/Text";
+import AppTitle from "../components/atoms/AppTitle";
 import LegalModal from "../components/organisms/LegalModal";
 import Box from "../components/atoms/Box";
 
@@ -38,15 +39,8 @@ const StyledBox = styled(Box)`
     width: 100%;
     padding: 30px 40px;
     background-color: ${({ theme }) => theme.colors.pageBg};
+    box-shadow:unset;
   }
-`;
-
-const StyledTitleImage = styled.img`
-  height: 40px;
-  width: auto;
-  margin: 10px auto;
-  display: block;
-  object-fit: contain;
 `;
 
 const StyledLoginButton = styled.div`
@@ -117,7 +111,7 @@ const Register = () => {
       <StyledContent>
         <StyledBox>
           <Logo size="small" />
-          <StyledTitleImage src="/icons/UniON.PNG" alt="UniON" />
+          <AppTitle />
           {step == 1 && location.state && (
             <Text color="danger" text="Twoje konto nie jest jeszcze zweryfikowane. Wpisz swój adres e-mail, aby zweryfikować konto." />
           )}

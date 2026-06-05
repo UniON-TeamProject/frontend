@@ -4,10 +4,16 @@ import SubmitButton from "../components/atoms/SubmitButton";
 import Text from "../components/atoms/Text";
 import Logo from "../components/atoms/Logo";
 import Box from "../components/atoms/Box";
+import AppTitle from "../components/atoms/AppTitle";
 
 const fadeOut = keyframes`
   from { opacity: 1; }
   to { opacity: 0; }
+`;
+
+const fadeIn = keyframes`
+  from { opacity: 0; }
+  to { opacity: 1; }
 `;
 
 const SplashContainer = styled.div`
@@ -16,9 +22,8 @@ const SplashContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #ffff;
+  background-color: ${({theme})=> theme.colors.white};
   overflow: hidden;
-  
   animation: ${({ $isClosing }) => ($isClosing ? fadeOut : "none")} 0.5s ease forwards;
 `;
 
@@ -26,7 +31,6 @@ const SplashVideo = styled.video`
   width: 320px;
   height: 320px;
   object-fit: cover; 
-  
   transform: scale(1.02) translateY(-40px);
 `;
 
@@ -35,11 +39,7 @@ const StyledContainer = styled.div`
   min-height: 100vh;
   text-align: center;
   position: relative;
-  animation: fadeIn 0.5s ease;
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
+  animation: ${fadeIn} 0.5s ease;
 `;
 
 const StyledBox = styled(Box)`
@@ -58,29 +58,20 @@ const StyledBox = styled(Box)`
     margin: 0 auto;
     padding: 30px 40px;
     background-color: ${({ theme }) => theme.colors.pageBg};
+    box-shadow:unset;SubmitButton
   }
 `;
 
-const StyledTitleImage = styled.img`
-  height: 40px;
-  width: auto;
-  margin: 10px auto;
-  display: block;
-  object-fit: contain;
-`;
-
-const MobileButtonWrapper = styled.div`
+const StyledSubmitButton = styled(SubmitButton)`
   @media (max-width: 768px) {
-    a {
-      background-color: ${({ theme }) => theme.colors.white};
-    }
+    background-color: ${({ theme }) => theme.colors.white};
   }
 `;
 
 const StyledInfoBanner = styled.div`
   background-color: ${({ theme }) => theme.colors.primary}22;
   border: 1px solid ${({ theme }) => theme.colors.primary};
-  border-radius: 5px;
+  border-radius: 10px;
   padding: 10px 14px;
   margin-bottom: 16px;
   font-size: 0.9rem;
@@ -145,19 +136,16 @@ const WelcomePage = () => {
   return (
     <StyledContainer>
       <StyledBox>
-        <Logo size="big" />
-        <StyledTitleImage src="/icons/UniON.PNG" alt="UniON" />
+        <Logo />
+        <AppTitle />
         <Text
           as="h3"
           style={{ padding: "20px 0", fontWeight: "600"}}
           text="Włącz się do nauki!"
-
         />
         {infoBanner && <StyledInfoBanner>{infoBanner}</StyledInfoBanner>}
-        <MobileButtonWrapper>
-          <SubmitButton text="Logowanie" path="/login" light />
-          <SubmitButton text="Stwórz konto" path="/register" light />
-        </MobileButtonWrapper>
+        <StyledSubmitButton text="Logowanie" path="/login" />
+        <StyledSubmitButton text="Stwórz konto" path="/register" />
       </StyledBox>
     </StyledContainer>
   );

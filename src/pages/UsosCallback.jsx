@@ -2,6 +2,7 @@ import { useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/organisms/Layout";
+import Input from "../components/atoms/Input";
 import { submitUsosVerifier } from "../api";
 
 const Wrapper = styled.div`
@@ -33,22 +34,6 @@ const Description = styled.p`
   color: ${({ theme }) => theme.colors.tertiary};
   margin: 0 0 24px 0;
   line-height: 1.5;
-`;
-
-const Input = styled.input`
-  width: 100%;
-  padding: 12px 14px;
-  border: 1.5px solid ${({ theme }) => theme.colors.border};
-  border-radius: 8px;
-  font-size: 1rem;
-  color: ${({ theme }) => theme.colors.veryDarkPrimary};
-  background: ${({ theme }) => theme.colors.pageBg};
-  box-sizing: border-box;
-  outline: none;
-  transition: border-color 0.15s;
-  &:focus {
-    border-color: ${({ theme }) => theme.colors.secondary};
-  }
 `;
 
 const Button = styled.button`
