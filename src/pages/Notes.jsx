@@ -36,6 +36,7 @@ import Input from "../components/atoms/Input";
 import Layout from "../components/organisms/Layout";
 import AIFlashcardModal from "../components/editor/AIFlashcardModal.jsx";
 import TagSelector from "../components/organisms/TagSelector";
+import { Modal } from "../components/atoms/Modal";
 
 const noteNameRegex = /^[a-zA-Z0-9 _\-ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+$/;
 const folderNameRegex = /^[a-zA-Z0-9 _\-ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+$/;
@@ -574,35 +575,6 @@ const StyledTreeItemLabel = styled.div`
     margin-right: 6px;
     flex-shrink: 0;
   }
-`;
-
-const StyledPopup = styled.div`
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 600px;
-  min-height: 250px;
-  padding: 50px;
-  border-radius: 25px;
-  background-color: ${({ theme }) => theme.colors.white};
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-
-  @media (max-width: 768px) {
-    width: 92%;
-    padding: 24px 20px;
-    min-height: unset;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-`;
-
-const ModalOverlay = styled.div`
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 999;
 `;
 
 const ModalButton = styled.button`
@@ -2593,9 +2565,7 @@ const Notes = () => {
         </ContentContainer>
 
         {isAddingNote && (
-          <>
-            <ModalOverlay onClick={() => setIsAddingNote(false)} />
-            <StyledPopup onClick={(e) => e.stopPropagation()}>
+          <Modal onClose={() => setIsAddingNote(false)}>
               <Text
                 bold="true"
                 as="h2"
@@ -2663,7 +2633,7 @@ const Notes = () => {
 
               <div style={{ display: "flex", justifyContent: "center" }}>
                 <SubmitButton
-                  text={isSuccess ? "✔ Utworzono!" : "Stwórz"}
+                  text={isSuccess ? "✔ Utworzono!" : "Stwórz dokument"}
                   color={isSuccess ? "secondary" : "dark"}
                   onClick={(e) => {
                     e.preventDefault();
@@ -2682,14 +2652,11 @@ const Notes = () => {
                   }}
                 />
               </div>
-            </StyledPopup>
-          </>
+          </Modal>
         )}
 
         {isAddingFolder && (
-          <>
-            <ModalOverlay onClick={() => setIsAddingFolder(false)} />
-            <StyledPopup onClick={(e) => e.stopPropagation()}>
+          <Modal onClose={() => setIsAddingFolder(false)}>
               <Text
                 bold="true"
                 as="h2"
@@ -2756,7 +2723,7 @@ const Notes = () => {
 
               <div style={{ display: "flex", justifyContent: "center" }}>
                 <SubmitButton
-                  text={isSuccess ? "✔ Utworzono!" : "Stwórz"}
+                  text={isSuccess ? "✔ Utworzono!" : "Stwórz folder"}
                   color={isSuccess ? "secondary" : "dark"}
                   onClick={(e) => {
                     e.preventDefault();
@@ -2775,17 +2742,11 @@ const Notes = () => {
                   }}
                 />
               </div>
-            </StyledPopup>
-          </>
+          </Modal>
         )}
 
         {isConfirmingTrashClear && (
-          <>
-            <ModalOverlay onClick={() => setIsConfirmingTrashClear(false)} />
-            <StyledPopup
-              onClick={(e) => e.stopPropagation()}
-              style={{ textAlign: "center" }}
-            >
+          <Modal centered onClose={() => setIsConfirmingTrashClear(false)}>
               <Text bold="true" as="h2" text="Wyczyścić kosz?" />
               <Text
                 text="Czy na pewno chcesz usunąć wszystkie pliki z kosza? Tej operacji nie można cofnąć."
@@ -2799,6 +2760,12 @@ const Notes = () => {
                   marginTop: "30px",
                 }}
               >
+                <ModalButton
+                  type="button"
+                  onClick={() => setIsConfirmingTrashClear(false)}
+                >
+                  Anuluj
+                </ModalButton>
                 <ModalButton
                   type="button"
                   $danger
@@ -2815,24 +2782,12 @@ const Notes = () => {
                 >
                   Wyczyść kosz
                 </ModalButton>
-                <ModalButton
-                  type="button"
-                  onClick={() => setIsConfirmingTrashClear(false)}
-                >
-                  Anuluj
-                </ModalButton>
               </div>
-            </StyledPopup>
-          </>
+          </Modal>
         )}
 
         {itemToDelete && (
-          <>
-            <ModalOverlay onClick={() => setItemToDelete(null)} />
-            <StyledPopup
-              onClick={(e) => e.stopPropagation()}
-              style={{ textAlign: "center" }}
-            >
+          <Modal centered onClose={() => setItemToDelete(null)}>
               <Text
                 bold="true"
                 as="h2"
@@ -2856,35 +2811,32 @@ const Notes = () => {
                   gap: "15px",
                 }}
               >
-                <ModalButton type="button" $danger onClick={executeDelete}>
-                  Usuń
-                </ModalButton>
                 <ModalButton
                   type="button"
                   onClick={() => setItemToDelete(null)}
                 >
                   Anuluj
                 </ModalButton>
+                <ModalButton type="button" $danger onClick={executeDelete}>
+                  Usuń
+                </ModalButton>
               </div>
-            </StyledPopup>
-          </>
+          </Modal>
         )}
 
         {isMoving && (
-          <>
-            <ModalOverlay
-              onClick={() => {
-                setIsMoving(false);
-                setMovingItem(null);
-                setMoveErrorMessage("");
-              }}
-            />
-            <StyledPopup onClick={(e) => e.stopPropagation()}>
+          <Modal
+            onClose={() => {
+              setIsMoving(false);
+              setMovingItem(null);
+              setMoveErrorMessage("");
+            }}
+          >
               <Text
                 bold="true"
                 as="h2"
                 text={`Przenieś: ${movingItem?.name || ""}`}
-                style={{ textAlign: "center" }}
+               
               />
               {moveErrorMessage && (
                 <Text color="danger" text={moveErrorMessage} />
@@ -2946,8 +2898,7 @@ const Notes = () => {
                   }}
                 />
               </div>
-            </StyledPopup>
-          </>
+          </Modal>
         )}
         {!isTrashView && (
           <>

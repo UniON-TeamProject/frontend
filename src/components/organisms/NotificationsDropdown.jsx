@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import { Modal } from "../atoms/Modal";
 import {
   getNotifications,
   markNotificationAsRead,
@@ -124,33 +125,6 @@ const EmptyState = styled.div`
   font-size: 0.95rem;
 `;
 
-const ModalOverlay = styled.div`
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 1099;
-`;
-
-const StyledPopup = styled.div`
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 400px;
-  padding: 35px 40px;
-  border-radius: 25px;
-  background-color: ${({ theme }) => theme.colors.white};
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  z-index: 1100;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-
-  @media (max-width: 768px) {
-    width: 90%;
-    padding: 30px;
-  }
-`;
 
 const ModalTitle = styled.h2`
   text-align: center;
@@ -479,32 +453,29 @@ const NotificationsDropdown = ({ onClose, onRefresh }) => {
       </DropdownContainer>
 
       {isConfirmModalOpen && (
-        <>
-          <ModalOverlay id="modal-overlay" onClick={cancelClearAll} />
-          <StyledPopup id="confirm-modal" onClick={(e) => e.stopPropagation()}>
-            <ModalTitle>Czy na pewno?</ModalTitle>
-            <ModalText>
-              Chcesz trwale usunąć wszystkie swoje powiadomienia? Tej akcji nie
-              można cofnąć.
-            </ModalText>
+        <Modal onClose={cancelClearAll} centered>
+          <ModalTitle>Czy na pewno?</ModalTitle>
+          <ModalText>
+            Chcesz trwale usunąć wszystkie swoje powiadomienia? Tej akcji nie
+            można cofnąć.
+          </ModalText>
 
-            <CheckboxWrapper>
-              <StyledCheckbox
-                type="checkbox"
-                checked={dontAskAgain}
-                onChange={(e) => setDontAskAgain(e.target.checked)}
-              />
-              Nie pytaj ponownie
-            </CheckboxWrapper>
+          <CheckboxWrapper>
+            <StyledCheckbox
+              type="checkbox"
+              checked={dontAskAgain}
+              onChange={(e) => setDontAskAgain(e.target.checked)}
+            />
+            Nie pytaj ponownie
+          </CheckboxWrapper>
 
-            <ButtonGroup>
-              <ModalButton onClick={cancelClearAll}>Anuluj</ModalButton>
-              <ModalButton $danger onClick={confirmClearAll}>
-                Tak, wyczyść
-              </ModalButton>
-            </ButtonGroup>
-          </StyledPopup>
-        </>
+          <ButtonGroup>
+            <ModalButton onClick={cancelClearAll}>Anuluj</ModalButton>
+            <ModalButton $danger onClick={confirmClearAll}>
+              Tak, wyczyść
+            </ModalButton>
+          </ButtonGroup>
+        </Modal>
       )}
     </>
   );

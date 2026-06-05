@@ -85,39 +85,6 @@ const SuccessPopup = styled.div`
   }
 `;
 
-const StyledPopup = styled.div`
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: min(1000px, 90vw);
-  max-height: 85vh;
-  overflow-y: auto;
-  padding: 60px;
-  border-radius: 5px;
-  background-color: ${({ theme }) => theme.colors.white};
-  text-align: center;
-  z-index: 1000;
-  .closeButton {
-    position: sticky;
-    top: 0;
-    float: right;
-    width: 30px;
-    height: 30px;
-    border-radius: 100%;
-    cursor: pointer;
-    background-color: ${({ theme }) => theme.colors.dark};
-    > svg {
-      width: 100%;
-      height: 100%;
-      color: ${({ theme }) => theme.colors.white};
-    }
-  }
-  @media (max-width: 768px) {
-    padding: 40px 24px;
-    border: 1px solid black;
-  }
-`;
 
 const Register = () => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

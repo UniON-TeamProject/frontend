@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/organisms/Layout";
+import { Modal } from "../components/atoms/Modal";
 import {
   getUserSocialGroups,
   createSocialGroup,
@@ -332,33 +333,6 @@ const FloatingActionButton = styled.button`
       width: 24px;
       height: 24px;
     }
-  }
-`;
-
-const ModalOverlay = styled.div`
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 999;
-`;
-
-const StyledPopup = styled.div`
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 500px;
-  padding: 40px 50px;
-  border-radius: 25px;
-  background-color: ${({ theme }) => theme.colors.white};
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-  display: flex;
-  flex-direction: column;
-
-  @media (max-width: 768px) {
-    width: 90%;
-    padding: 30px;
   }
 `;
 
@@ -892,72 +866,67 @@ const SocialGroups = () => {
 
         {/* MODAL TWORZENIA NOWEJ GRUPY */}
         {isAddModalOpen && (
-          <>
-            <ModalOverlay
-              onClick={() => !isSubmitting && setIsAddModalOpen(false)}
-            />
-            <StyledPopup onClick={(e) => e.stopPropagation()}>
-              <ModalTitle>Utwórz nową społeczność</ModalTitle>
+          <Modal onClose={() => !isSubmitting && setIsAddModalOpen(false)}>
+            <ModalTitle>Utwórz nową społeczność</ModalTitle>
 
-              <form onSubmit={handleCreateGroup}>
-                <FormGroup>
-                  <InputLabel>Nazwa grupy *</InputLabel>
-                  <ModalInput
-                    type="text"
-                    placeholder="Np. Informatyka I rok"
-                    value={newGroupName}
-                    onChange={(e) => {
-                      setNewGroupName(e.target.value);
-                      if (nameError) setNameError("");
-                    }}
-                    maxLength={55}
-                    $error={!!nameError}
-                    autoFocus
-                    disabled={isSubmitting || isSuccess}
-                  />
-                  {nameError && <ErrorText>{nameError}</ErrorText>}
-                </FormGroup>
+            <form onSubmit={handleCreateGroup}>
+              <FormGroup>
+                <InputLabel>Nazwa grupy *</InputLabel>
+                <ModalInput
+                  type="text"
+                  placeholder="Np. Informatyka I rok"
+                  value={newGroupName}
+                  onChange={(e) => {
+                    setNewGroupName(e.target.value);
+                    if (nameError) setNameError("");
+                  }}
+                  maxLength={55}
+                  $error={!!nameError}
+                  autoFocus
+                  disabled={isSubmitting || isSuccess}
+                />
+                {nameError && <ErrorText>{nameError}</ErrorText>}
+              </FormGroup>
 
-                <FormGroup>
-                  <InputLabel>Krótki opis *</InputLabel>
-                  <ModalTextarea
-                    placeholder="Opisz, czym będziecie się zajmować w tej grupie..."
-                    value={newGroupDesc}
-                    onChange={(e) => {
-                      setNewGroupDesc(e.target.value);
-                      if (descError) setDescError("");
-                    }}
-                    maxLength={255}
-                    $error={!!descError}
-                    disabled={isSubmitting || isSuccess}
-                  />
-                  {descError && <ErrorText>{descError}</ErrorText>}
-                </FormGroup>
+              <FormGroup>
+                <InputLabel>Krótki opis *</InputLabel>
+                <ModalTextarea
+                  placeholder="Opisz, czym będziecie się zajmować w tej grupie..."
+                  value={newGroupDesc}
+                  onChange={(e) => {
+                    setNewGroupDesc(e.target.value);
+                    if (descError) setDescError("");
+                  }}
+                  maxLength={255}
+                  $error={!!descError}
+                  disabled={isSubmitting || isSuccess}
+                />
+                {descError && <ErrorText>{descError}</ErrorText>}
+              </FormGroup>
 
-                <ButtonGroup>
-                  <ModalButton
-                    type="button"
-                    onClick={() => setIsAddModalOpen(false)}
-                    disabled={isSubmitting || isSuccess}
-                  >
-                    Anuluj
-                  </ModalButton>
-                  <ModalButton
-                    type="submit"
-                    $primary={!isSuccess}
-                    $success={isSuccess}
-                    disabled={isSubmitting || isSuccess}
-                  >
-                    {isSuccess
-                      ? "✔ Utworzono!"
-                      : isSubmitting
-                      ? "Tworzenie..."
-                      : "Utwórz grupę"}
-                  </ModalButton>
-                </ButtonGroup>
-              </form>
-            </StyledPopup>
-          </>
+              <ButtonGroup>
+                <ModalButton
+                  type="button"
+                  onClick={() => setIsAddModalOpen(false)}
+                  disabled={isSubmitting || isSuccess}
+                >
+                  Anuluj
+                </ModalButton>
+                <ModalButton
+                  type="submit"
+                  $primary={!isSuccess}
+                  $success={isSuccess}
+                  disabled={isSubmitting || isSuccess}
+                >
+                  {isSuccess
+                    ? "✔ Utworzono!"
+                    : isSubmitting
+                    ? "Tworzenie..."
+                    : "Utwórz grupę"}
+                </ModalButton>
+              </ButtonGroup>
+            </form>
+          </Modal>
         )}
       </PageContainer>
     </Layout>

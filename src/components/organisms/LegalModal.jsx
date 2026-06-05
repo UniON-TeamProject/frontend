@@ -3,7 +3,7 @@ import styled from "styled-components";
 const Backdrop = styled.div`
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -12,12 +12,12 @@ const Backdrop = styled.div`
 
 const Box = styled.div`
   background: ${({ theme }) => theme.colors.white};
-  border-radius: 12px;
+  border-radius: 24px;
   padding: 40px 48px;
   width: min(860px, 92vw);
   max-height: 85vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
   @media (max-width: 768px) {
@@ -72,6 +72,10 @@ const Li = styled.li`
   line-height: 1.6;
   margin-bottom: 4px;
   color: ${({ theme }) => theme.colors.text};
+`;
+
+const StyledLink = styled.a`
+  color: ${({ theme }) => theme.colors.secondary};
 `;
 
 const CloseButton = styled.button`
@@ -237,7 +241,7 @@ const TermsContent = () => (
         <Li>Regulamin podlega prawu polskiemu.</Li>
         <Li>Spory rozstrzygane będą przez właściwy sąd powszechny.</Li>
         <Li>W sprawach nieuregulowanych stosuje się przepisy Kodeksu cywilnego.</Li>
-        <Li>Kontakt z administratorem: <a href="mailto:unionteamproject@gmail.com">unionteamproject@gmail.com</a></Li>
+        <Li>Kontakt z administratorem: <StyledLink href="mailto:unionteamproject@gmail.com">unionteamproject@gmail.com</StyledLink></Li>
       </List>
     </Section>
   </>
@@ -254,7 +258,7 @@ const PrivacyContent = () => (
 
     <Section>
       <SectionTitle>Administrator danych osobowych</SectionTitle>
-      <P>Administratorem danych jest: UniON Team, e-mail: <a href="mailto:unionteamproject@gmail.com">unionteamproject@gmail.com</a></P>
+      <P>Administratorem danych jest: UniON Team, e-mail: <StyledLink href="mailto:unionteamproject@gmail.com">unionteamproject@gmail.com</StyledLink></P>
     </Section>
 
     <Section>
@@ -371,7 +375,7 @@ const PrivacyContent = () => (
         <Li>Prawo do sprzeciwu wobec przetwarzania;</Li>
         <Li>Prawo do cofnięcia zgody.</Li>
       </UList>
-      <P>Kontakt w sprawach praw: <a href="mailto:unionteamproject@gmail.com">unionteamproject@gmail.com</a></P>
+      <P>Kontakt w sprawach praw: <StyledLink href="mailto:unionteamproject@gmail.com">unionteamproject@gmail.com</StyledLink></P>
       <P>Masz również prawo wnieść skargę do Prezesa Urzędu Ochrony Danych Osobowych.</P>
     </Section>
 
@@ -382,7 +386,7 @@ const PrivacyContent = () => (
 
     <Section>
       <SectionTitle>Kontakt</SectionTitle>
-      <P>W ramach ochrony danych skontaktuj się: <a href="mailto:unionteamproject@gmail.com">unionteamproject@gmail.com</a></P>
+      <P>W ramach ochrony danych skontaktuj się: <StyledLink href="mailto:unionteamproject@gmail.com">unionteamproject@gmail.com</StyledLink></P>
     </Section>
   </>
 );

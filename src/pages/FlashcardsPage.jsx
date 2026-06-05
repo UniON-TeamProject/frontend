@@ -33,6 +33,7 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import Layout from "../components/organisms/Layout";
 import FlashcardEditor from "../components/editor/FlashcardEditor";
 import TagSelector from "../components/organisms/TagSelector";
+import { Modal } from "../components/atoms/Modal";
 
 const stripHtml = (html) => {
   if (!html) return "";
@@ -961,35 +962,6 @@ const FabMenuItem = styled.button`
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
     background: ${({ theme }) => theme.colors.primary};
   }
-`;
-
-const StyledPopup = styled.div`
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 600px;
-  min-height: 250px;
-  padding: 50px;
-  border-radius: 25px;
-  background-color: ${({ theme }) => theme.colors.white};
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-
-  @media (max-width: 768px) {
-    width: 92%;
-    padding: 24px 20px;
-    min-height: unset;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-`;
-
-const ModalOverlay = styled.div`
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 999;
 `;
 
 const EmptyStateContainer = styled.div`
@@ -4421,50 +4393,40 @@ const FlashcardsPage = () => {
 
         {/* EDYCJA POJEDYNCZEJ FISZKI */}
         {isCardEditModalOpen && (
-          <>
-            <ModalOverlay onClick={() => setIsCardEditModalOpen(false)} />
-            <StyledPopup onClick={(e) => e.stopPropagation()}>
+          <Modal onClose={() => setIsCardEditModalOpen(false)} centered>
               <Text bold="true" as="h2" text="Edytuj fiszkę" />
               {errorMessage && <Text color="danger" text={errorMessage} />}
 
-              <Text text="Pytanie:" style={{ marginTop: "20px" }} />
-              <FlashcardEditor
-                maxLength={1020}
-                value={editQuestion}
-                placeholder="Wpisz pytanie..."
-                onChange={(htmlContent) => setEditQuestion(htmlContent)}
-              />
+              <div style={{ textAlign: "left" }}>
+                <Text text="Pytanie:" style={{ marginTop: "20px", textAlign: "left" }} />
+                <FlashcardEditor
+                  maxLength={1020}
+                  value={editQuestion}
+                  placeholder="Wpisz pytanie..."
+                  onChange={(htmlContent) => setEditQuestion(htmlContent)}
+                />
 
-              <Text text="Odpowiedź:" style={{ marginTop: "20px" }} />
-              <FlashcardEditor
-                maxLength={1020}
-                value={editAnswer}
-                placeholder="Wpisz odpowiedź..."
-                onChange={(htmlContent) => setEditAnswer(htmlContent)}
-              />
-
-              <div
-                style={{
-                  marginTop: "20px",
-                  display: "flex",
-                  justifyContent: "center",
-                }}
-              >
-                <SubmitButton
-                  text={successMessage ? "✔ Zapisano!" : "Zapisz zmiany"}
-                  color={successMessage ? "secondary" : "dark"}
-                  onClick={handleEditSingleCard}
+                <Text text="Odpowiedź:" style={{ marginTop: "20px", textAlign: "left" }} />
+                <FlashcardEditor
+                  maxLength={1020}
+                  value={editAnswer}
+                  placeholder="Wpisz odpowiedź..."
+                  onChange={(htmlContent) => setEditAnswer(htmlContent)}
                 />
               </div>
-            </StyledPopup>
-          </>
+
+              <SubmitButton
+                text={successMessage ? "✔ Zapisano!" : "Zapisz zmiany"}
+                color={successMessage ? "secondary" : "dark"}
+                onClick={handleEditSingleCard}
+                style={{ marginTop: "20px" }}
+              />
+          </Modal>
         )}
 
         {/* DODAWANIE/EDYCJA ZESTAWU */}
         {isSetModalOpen && (
-          <>
-            <ModalOverlay onClick={() => setIsSetModalOpen(false)} />
-            <StyledPopup onClick={(e) => e.stopPropagation()}>
+          <Modal onClose={() => setIsSetModalOpen(false)}>
               <Text
                 bold="true"
                 as="h2"
@@ -4523,18 +4485,12 @@ const FlashcardsPage = () => {
                   onClick={handleSaveNewSet}
                 />
               </div>
-            </StyledPopup>
-          </>
+          </Modal>
         )}
 
         {/* MODAL WYJŚCIA Z TRYBU DODAWANIA FISZEK */}
         {isExitAddModeModalOpen && (
-          <>
-            <ModalOverlay onClick={() => setIsExitAddModeModalOpen(false)} />
-            <StyledPopup
-              onClick={(e) => e.stopPropagation()}
-              style={{ textAlign: "center" }}
-            >
+          <Modal centered onClose={() => setIsExitAddModeModalOpen(false)}>
               <Text bold="true" as="h2" text="Czy na pewno chcesz wyjść?" />
               <Text
                 text="Wprowadzone zmiany zostaną bezpowrotnie utracone."
@@ -4570,18 +4526,12 @@ const FlashcardsPage = () => {
                   Zostań i dokończ
                 </ModalButton>
               </div>
-            </StyledPopup>
-          </>
+          </Modal>
         )}
 
         {/* MODAL USUWANIA ZESTAWU */}
         {setToDelete && (
-          <>
-            <ModalOverlay onClick={() => setSetToDelete(null)} />
-            <StyledPopup
-              onClick={(e) => e.stopPropagation()}
-              style={{ textAlign: "center" }}
-            >
+          <Modal centered onClose={() => setSetToDelete(null)}>
               <Text bold="true" as="h2" text="Usuń zestaw" />
               <Text
                 text="Czy na pewno chcesz usunąć ten zestaw?"
@@ -4598,25 +4548,19 @@ const FlashcardsPage = () => {
                   gap: "15px",
                 }}
               >
-                <ModalButton type="button" $danger onClick={executeDeleteSet}>
-                  Usuń
-                </ModalButton>
                 <ModalButton type="button" onClick={() => setSetToDelete(null)}>
                   Anuluj
                 </ModalButton>
+                <ModalButton type="button" $danger onClick={executeDeleteSet}>
+                  Usuń
+                </ModalButton>
               </div>
-            </StyledPopup>
-          </>
+          </Modal>
         )}
 
         {/* MODAL OSTRZEGAJĄCY O DUPLIKATACH */}
         {duplicateWarning && (
-          <>
-            <ModalOverlay onClick={() => setDuplicateWarning(null)} />
-            <StyledPopup
-              onClick={(e) => e.stopPropagation()}
-              style={{ textAlign: "center" }}
-            >
+          <Modal centered onClose={() => setDuplicateWarning(null)}>
               <Text bold="true" as="h2" text="Uwaga: Znaleziono duplikaty!" />
               <Text
                 text="Fiszki z takimi pytaniami już istnieją w Twoich zestawach:"
@@ -4676,8 +4620,7 @@ const FlashcardsPage = () => {
                   Zapisz mimo to
                 </ModalButton>
               </div>
-            </StyledPopup>
-          </>
+          </Modal>
         )}
 
         {/* PŁYWAJĄCY PASEK ZAZNACZENIA */}
@@ -4715,9 +4658,7 @@ const FlashcardsPage = () => {
 
         {/* MODAL KOPIOWANIA FISZEK */}
         {isBulkCopyModalOpen && (
-          <>
-            <ModalOverlay onClick={() => setIsBulkCopyModalOpen(false)} />
-            <StyledPopup onClick={(e) => e.stopPropagation()}>
+          <Modal onClose={() => setIsBulkCopyModalOpen(false)}>
               <Text
                 bold="true"
                 as="h2"
@@ -4823,15 +4764,12 @@ const FlashcardsPage = () => {
                   Anuluj
                 </ModalButton>
               </div>
-            </StyledPopup>
-          </>
+          </Modal>
         )}
 
         {/* MODAL DODAWANIA TAGÓW DO ZAZNACZONYCH FISZEK */}
         {isBulkTagsModalOpen && (
-          <>
-            <ModalOverlay onClick={() => setIsBulkTagsModalOpen(false)} />
-            <StyledPopup onClick={(e) => e.stopPropagation()}>
+          <Modal onClose={() => setIsBulkTagsModalOpen(false)}>
               <Text
                 bold="true"
                 as="h2"
@@ -4925,15 +4863,12 @@ const FlashcardsPage = () => {
                   Anuluj
                 </ModalButton>
               </div>
-            </StyledPopup>
-          </>
+          </Modal>
         )}
 
         {/* MODAL PRZENOSZENIA FISZEK */}
         {isBulkMoveModalOpen && (
-          <>
-            <ModalOverlay onClick={() => setIsBulkMoveModalOpen(false)} />
-            <StyledPopup onClick={(e) => e.stopPropagation()}>
+          <Modal onClose={() => setIsBulkMoveModalOpen(false)}>
               <Text
                 bold="true"
                 as="h2"
@@ -5066,18 +5001,12 @@ const FlashcardsPage = () => {
                   Anuluj
                 </ModalButton>
               </div>
-            </StyledPopup>
-          </>
+          </Modal>
         )}
 
         {/* MODAL USUWANIA FISZKI */}
         {cardToDelete && (
-          <>
-            <ModalOverlay onClick={() => setCardToDelete(null)} />
-            <StyledPopup
-              onClick={(e) => e.stopPropagation()}
-              style={{ textAlign: "center" }}
-            >
+          <Modal centered onClose={() => setCardToDelete(null)}>
               <Text bold="true" as="h2" text="Usuń fiszkę" />
               <Text
                 text="Czy na pewno chcesz usunąć tę fiszkę?"
@@ -5094,18 +5023,17 @@ const FlashcardsPage = () => {
                   gap: "15px",
                 }}
               >
-                <ModalButton type="button" $danger onClick={executeDeleteCard}>
-                  Usuń
-                </ModalButton>
                 <ModalButton
                   type="button"
                   onClick={() => setCardToDelete(null)}
                 >
                   Anuluj
                 </ModalButton>
+                <ModalButton type="button" $danger onClick={executeDeleteCard}>
+                  Usuń
+                </ModalButton>
               </div>
-            </StyledPopup>
-          </>
+          </Modal>
         )}
 
         {/* PRZYCISK WYCZYSZCZENIA KOSZA */}
@@ -5126,12 +5054,7 @@ const FlashcardsPage = () => {
 
         {/* MODAL POTWIERDZENIA CZYSZCZENIA KOSZA */}
         {isConfirmingTrashClear && (
-          <>
-            <ModalOverlay onClick={() => setIsConfirmingTrashClear(false)} />
-            <StyledPopup
-              onClick={(e) => e.stopPropagation()}
-              style={{ textAlign: "center" }}
-            >
+          <Modal centered onClose={() => setIsConfirmingTrashClear(false)}>
               <Text bold="true" as="h2" text="Wyczyścić kosz?" />
               <Text
                 text="Czy na pewno chcesz usunąć wszystkie zestawy wraz z ich fiszkiami z kosza? Tej operacji nie można cofnąć."
@@ -5156,18 +5079,12 @@ const FlashcardsPage = () => {
                   Anuluj
                 </ModalButton>
               </div>
-            </StyledPopup>
-          </>
+          </Modal>
         )}
 
         {/* MODAL INFORMACYJNY O TRYBACH NAUKI */}
         {isLearningInfoModalOpen && (
-          <>
-            <ModalOverlay onClick={() => setIsLearningInfoModalOpen(false)} />
-            <StyledPopup
-              onClick={(e) => e.stopPropagation()}
-              style={{ textAlign: "center", maxWidth: "650px" }}
-            >
+          <Modal centered onClose={() => setIsLearningInfoModalOpen(false)}>
               <Text
                 bold="true"
                 as="h2"
@@ -5212,18 +5129,12 @@ const FlashcardsPage = () => {
                   Rozumiem
                 </ModalButton>
               </div>
-            </StyledPopup>
-          </>
+          </Modal>
         )}
 
         {/* RESET SESJI */}
         {isResetConfirmModalOpen && (
-          <>
-            <ModalOverlay onClick={() => setIsResetConfirmModalOpen(false)} />
-            <StyledPopup
-              onClick={(e) => e.stopPropagation()}
-              style={{ textAlign: "center" }}
-            >
+          <Modal centered onClose={() => setIsResetConfirmModalOpen(false)}>
               <CloseButton
                 type="button"
                 onClick={() => setIsResetConfirmModalOpen(false)}
@@ -5284,20 +5195,12 @@ const FlashcardsPage = () => {
                   Zacznij od nowa (zresetuj postępy)
                 </ModalButton>
               </div>
-            </StyledPopup>
-          </>
+          </Modal>
         )}
 
         {/* MODAL USUWANIA FISZEK Z ZAZNACZENIA */}
         {isBulkDeleteModalOpen && (
-          <>
-            <ModalOverlay
-              onClick={() => !isDeletingBulk && setIsBulkDeleteModalOpen(false)}
-            />
-            <StyledPopup
-              onClick={(e) => e.stopPropagation()}
-              style={{ textAlign: "center" }}
-            >
+          <Modal centered onClose={() => !isDeletingBulk && setIsBulkDeleteModalOpen(false)}>
               <Text bold="true" as="h2" text="Usuń zaznaczone fiszki" />
               <Text
                 text={`Czy na pewno chcesz trwale usunąć zaznaczone fiszki (${selectedCards.length})?`}
@@ -5316,32 +5219,26 @@ const FlashcardsPage = () => {
               >
                 <ModalButton
                   type="button"
+                  onClick={() => setIsBulkDeleteModalOpen(false)}
+                  disabled={isDeletingBulk}
+                >
+                  Anuluj
+                </ModalButton>
+                <ModalButton
+                  type="button"
                   $danger
                   onClick={executeBulkDelete}
                   disabled={isDeletingBulk}
                 >
                   {isDeletingBulk ? "Usuwanie..." : "Tak, usuń"}
                 </ModalButton>
-                <ModalButton
-                  type="button"
-                  onClick={() => setIsBulkDeleteModalOpen(false)}
-                  disabled={isDeletingBulk}
-                >
-                  Anuluj
-                </ModalButton>
               </div>
-            </StyledPopup>
-          </>
+          </Modal>
         )}
 
         {/* MODAL CZĘŚCIOWO PUSTYCH FISZEK */}
         {isPartialEmptyModalOpen && (
-          <>
-            <ModalOverlay onClick={() => setIsPartialEmptyModalOpen(false)} />
-            <StyledPopup
-              onClick={(e) => e.stopPropagation()}
-              style={{ textAlign: "center" }}
-            >
+          <Modal centered onClose={() => setIsPartialEmptyModalOpen(false)}>
               <Text bold="true" as="h2" text="Puste pola!" />
               <Text
                 text="Niektóre fiszki mają puste pola (pytanie lub odpowiedź). Możesz wrócić i je uzupełnić albo kontynuować – puste fiszki nie zostaną zapisane."
@@ -5378,8 +5275,7 @@ const FlashcardsPage = () => {
                   Kontynuuj bez nich
                 </ModalButton>
               </div>
-            </StyledPopup>
-          </>
+          </Modal>
         )}
       </StyledContainer>
     </Layout>

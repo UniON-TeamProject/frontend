@@ -5,6 +5,7 @@ import TextSizeDropdown from "./TextSizeDropdown.jsx";
 import Text from "../atoms/Text";
 import Input from "../atoms/Input";
 import SubmitButton from "../atoms/SubmitButton";
+import { Modal } from "../atoms/Modal";
 
 const StyledContainer = styled.div`
   margin: 20px auto;
@@ -167,49 +168,7 @@ const HelpTooltip = styled.div`
   }
 `;
 
-const ModalOverlay = styled.div`
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 999;
-`;
 
-const StyledPopup = styled.div`
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 500px;
-  min-height: 200px;
-  padding: 40px;
-  border-radius: 25px;
-  background-color: ${({ theme }) => theme.colors.white};
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-  display: flex;
-  flex-direction: column;
-
-  @media (max-width: 768px) {
-    width: 90%;
-    padding: 30px 20px;
-  }
-`;
-
-const ModalButtonGhost = styled.button`
-  background: transparent;
-  color: ${({ theme }) => theme.colors.darkGrey};
-  border: none;
-  padding: 12px 20px;
-  border-radius: 10px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    color: ${({ theme }) => theme.colors.text};
-  }
-`;
 
 function TextEditorFormatting({ editor }) {
   const theme = useTheme();
@@ -374,69 +333,66 @@ function TextEditorFormatting({ editor }) {
       </ScrollableButtons>
 
       {isImageModalOpen && (
-        <>
-          <ModalOverlay
-            onClick={() => {
+        <Modal
+          onClose={() => {
+            if (isSuccess) return;
+            setIsImageModalOpen(false);
+            setImageUrl("");
+          }}
+        >
+          <Text
+            bold="true"
+            as="h2"
+            text="Wstaw obraz z URL"
+            style={{ textAlign: "center", marginBottom: "20px" }}
+          />
+
+          <Input
+            ref={inputRef}
+            type="text"
+            placeholder="Wklej tutaj link (np. https://example.com/image.png)"
+            value={imageUrl}
+            disabled={isSuccess}
+            onChange={(e) => setImageUrl(e.target.value)}
+            onKeyDown={(e) => {
               if (isSuccess) return;
-              setIsImageModalOpen(false);
-              setImageUrl("");
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleAddImage();
+              }
+              if (e.key === "Escape") {
+                setIsImageModalOpen(false);
+                setImageUrl("");
+              }
             }}
           />
-          <StyledPopup onClick={(e) => e.stopPropagation()}>
-            <Text
-              bold="true"
-              as="h2"
-              text="Wstaw obraz z URL"
-              style={{ textAlign: "center", marginBottom: "20px" }}
-            />
 
-            <Input
-              ref={inputRef}
-              type="text"
-              placeholder="Wklej tutaj link (np. https://example.com/image.png)"
-              value={imageUrl}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: "15px",
+              marginTop: "30px",
+            }}
+          >
+            <SubmitButton
+              text="Anuluj"
+              color="light"
               disabled={isSuccess}
-              onChange={(e) => setImageUrl(e.target.value)}
-              onKeyDown={(e) => {
-                if (isSuccess) return;
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleAddImage();
-                }
-                if (e.key === "Escape") {
-                  setIsImageModalOpen(false);
-                  setImageUrl("");
-                }
+              onClick={() => {
+                setIsImageModalOpen(false);
+                setImageUrl("");
               }}
             />
 
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                gap: "15px",
-                marginTop: "30px",
-              }}
-            >
-              <ModalButtonGhost
-                disabled={isSuccess}
-                onClick={() => {
-                  setIsImageModalOpen(false);
-                  setImageUrl("");
-                }}
-              >
-                Anuluj
-              </ModalButtonGhost>
-
-              <SubmitButton
-                text={isSuccess ? "✔ Dodano!" : "Dodaj obraz"}
-                color={isSuccess ? "secondary" : "dark"}
-                disabled={isSuccess}
-                onClick={handleAddImage}
-              />
-            </div>
-          </StyledPopup>
-        </>
+            <SubmitButton
+              text={isSuccess ? "✔ Dodano!" : "Dodaj zdjęcie"}
+              color={isSuccess ? "secondary" : "dark"}
+              disabled={isSuccess}
+              onClick={handleAddImage}
+            />
+          </div>
+        </Modal>
       )}
     </StyledContainer>
   );

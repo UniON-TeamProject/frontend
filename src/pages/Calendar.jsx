@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import styled, { keyframes, useTheme } from "styled-components";
 import { useNavigate, useLocation } from "react-router-dom";
 import Layout from "../components/organisms/Layout";
+import { Modal } from "../components/atoms/Modal";
 import {
   getUsosAuthUrl,
   addRegularTagToEvent,
@@ -44,7 +45,6 @@ const MONTHS_PL = [
 const fadeIn = keyframes`from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}`;
 const slideIn = keyframes`from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}`;
 const scaleIn = keyframes`from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}`;
-const fadeInOverlay = keyframes`from{opacity:0}to{opacity:1}`;
 
 const Wrapper = styled.div`
   display: flex;
@@ -1071,6 +1071,22 @@ const CancelBtn = styled.button`
   }
 `;
 
+const ModalButton = styled.button`
+  background-color: ${({ theme }) => theme.colors.borderLight};
+  color: ${({ theme }) => theme.colors.text};
+  border: none;
+  padding: 12px 25px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  &:hover {
+    opacity: 0.8;
+  }
+`;
+
 const SaveBtn = styled.button`
   padding: 8px 18px;
   border-radius: 8px;
@@ -1243,25 +1259,6 @@ const CustomTagInput = styled.input`
   }
 `;
 
-const ScopeOverlay = styled.div`
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.35);
-  z-index: 200;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: ${fadeInOverlay} 0.2s ease;
-`;
-
-const ScopeBox = styled.div`
-  background: ${({ theme }) => theme.colors.white};
-  border-radius: 16px;
-  padding: 24px;
-  width: 340px;
-  animation: ${scaleIn} 0.2s ease;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-`;
 
 const ScopeTitle = styled.h3`
   font-size: 15px;
@@ -3347,12 +3344,7 @@ const Calendar = () => {
         <FormSidebar $open={popup}>{popup && renderPopup()}</FormSidebar>
 
         {confirmUsosImport && (
-          <ScopeOverlay
-            onClick={(e) =>
-              e.target === e.currentTarget && setConfirmUsosImport(false)
-            }
-          >
-            <ScopeBox>
+          <Modal centered onClose={() => setConfirmUsosImport(false)}>
               <ScopeTitle>Import planu z USOS</ScopeTitle>
               <div
                 style={{
@@ -3376,23 +3368,17 @@ const Calendar = () => {
               >
                 Znam ryzyko, kontynuuj
               </ScopeBtn>
-              <CancelBtn
+              <ModalButton
                 onClick={() => setConfirmUsosImport(false)}
                 style={{ width: "100%", marginTop: 4 }}
               >
                 Anuluj
-              </CancelBtn>
-            </ScopeBox>
-          </ScopeOverlay>
+              </ModalButton>
+          </Modal>
         )}
 
         {confirmDelete && (
-          <ScopeOverlay
-            onClick={(e) =>
-              e.target === e.currentTarget && setConfirmDelete(null)
-            }
-          >
-            <ScopeBox>
+          <Modal centered onClose={() => setConfirmDelete(null)}>
               <ScopeTitle>
                 {confirmDelete.scope === "all"
                   ? "Czy na pewno chcesz usunąć wszystkie wystąpienia?"
@@ -3426,23 +3412,17 @@ const Calendar = () => {
               >
                 Usuń
               </ScopeBtn>
-              <CancelBtn
+              <ModalButton
                 onClick={() => setConfirmDelete(null)}
                 style={{ width: "100%", marginTop: 4 }}
               >
                 Anuluj
-              </CancelBtn>
-            </ScopeBox>
-          </ScopeOverlay>
+              </ModalButton>
+          </Modal>
         )}
 
         {scopeAction && (
-          <ScopeOverlay
-            onClick={(e) =>
-              e.target === e.currentTarget && setScopeAction(null)
-            }
-          >
-            <ScopeBox>
+          <Modal centered onClose={() => setScopeAction(null)}>
               <ScopeTitle>
                 {scopeAction.type === "edit"
                   ? "Edytuj wydarzenie cykliczne"
@@ -3459,7 +3439,7 @@ const Calendar = () => {
               <ScopeBtn onClick={() => handleScopeChoice("all")}>
                 Wszystkie wystąpienia
               </ScopeBtn>
-              <CancelBtn
+              <ModalButton
                 onClick={() => {
                   setScopeAction(null);
                   setPendingSave(null);
@@ -3467,17 +3447,11 @@ const Calendar = () => {
                 style={{ width: "100%", marginTop: 4 }}
               >
                 Anuluj
-              </CancelBtn>
-            </ScopeBox>
-          </ScopeOverlay>
+              </ModalButton>
+          </Modal>
         )}
         {tagScopePopup && (
-          <ScopeOverlay
-            onClick={(e) =>
-              e.target === e.currentTarget && setTagScopePopup(null)
-            }
-          >
-            <ScopeBox>
+          <Modal centered onClose={() => setTagScopePopup(null)}>
               <ScopeTitle>Przypisanie tagów</ScopeTitle>
               <p
                 style={{
@@ -3496,14 +3470,13 @@ const Calendar = () => {
               <ScopeBtn onClick={() => handleTagScopeChoice("this")}>
                 Tylko to wydarzenie
               </ScopeBtn>
-              <CancelBtn
+              <ModalButton
                 onClick={() => setTagScopePopup(null)}
                 style={{ width: "100%", marginTop: 4 }}
               >
                 Anuluj
-              </CancelBtn>
-            </ScopeBox>
-          </ScopeOverlay>
+              </ModalButton>
+          </Modal>
         )}
       </Wrapper>
     </Layout>

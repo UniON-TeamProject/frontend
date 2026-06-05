@@ -6,6 +6,7 @@ import { getToken, removeToken } from "../token";
 import SubmitButton from "../components/atoms/SubmitButton";
 import Input from "../components/atoms/Input";
 import Text from "../components/atoms/Text";
+import { Modal } from "../components/atoms/Modal";
 
 const stripHtml = (html) => {
   if (!html) return "";
@@ -51,10 +52,8 @@ const TopBar = styled.div`
   max-width: 1560px;
   display: flex;
   margin-top: 20px;
-  @media (max-width: 768px) {
-    padding: 0 16px;
-    box-sizing: border-box;
-  }
+  padding: 0 16px;
+  box-sizing: border-box;
 `;
 
 const ExitButton = styled.button`
@@ -82,21 +81,22 @@ const ExitButton = styled.button`
 const AppContainer = styled.div`
   width: 100%;
   max-width: 700px;
+  padding: 0 16px 16px;
+  box-sizing: border-box;
   text-align: center;
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   @media (max-width: 768px) {
-    padding: 0 16px;
-    box-sizing: border-box;
+    padding-top: 16px;
   }
 `;
 
 const CardContainer = styled.div`
   perspective: 1000px;
-  width: 150%;
-  height: 700px;
+  width: 100%;
+  height: 580px;
   position: relative;
   margin-bottom: 20px;
   @media (max-width: 768px) {
@@ -246,9 +246,9 @@ const RatingScaleContainer = styled.div`
   justify-content: space-between;
   align-items: flex-start;
   position: absolute;
-  bottom: 40px;
-  left: 80px;
-  right: 80px;
+  bottom: 20px;
+  left: 40px;
+  right: 40px;
 
   &::before {
     content: "";
@@ -300,32 +300,6 @@ const NodeLabel = styled.span`
   font-size: 13px;
   font-weight: 700;
   color: ${({ theme }) => theme.colors.textMuted};
-`;
-
-const ModalOverlay = styled.div`
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 999;
-`;
-
-const StyledPopup = styled.div`
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 600px;
-  max-width: 92vw;
-  padding: 40px;
-  border-radius: 16px;
-  background: ${({ theme }) => theme.colors.white};
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-  text-align: left;
-  box-sizing: border-box;
-  @media (max-width: 768px) {
-    padding: 24px 20px;
-  }
 `;
 
 const StyledTextArea = styled.textarea`
@@ -832,9 +806,7 @@ export default function FsrsLearningPage() {
 
       {/* MODAL EDYCJI Z TAGAMI */}
       {isEditModalOpen && (
-        <>
-          <ModalOverlay onClick={() => setIsEditModalOpen(false)} />
-          <StyledPopup style={{ textAlign: "left" }}>
+        <Modal onClose={() => setIsEditModalOpen(false)} centered>
             <h2 style={{ marginBottom: "20px" }}>Edytuj fiszkę</h2>
             {modalError && (
               <p style={{ color: theme.colors.danger }}>{modalError}</p>
@@ -843,50 +815,49 @@ export default function FsrsLearningPage() {
               <p style={{ color: theme.colors.success }}>{modalSuccess}</p>
             )}
 
-            <p
-              style={{
-                fontWeight: "600",
-                fontSize: "0.9rem",
-                color: theme.colors.textLight,
-              }}
-            >
-              Przód:
-            </p>
-            <StyledTextArea
-              maxLength={1020}
-              value={editQ}
-              onChange={(e) => setEditQ(e.target.value)}
-            />
+            <div style={{ textAlign: "left" }}>
+              <p
+                style={{
+                  fontWeight: "600",
+                  fontSize: "0.9rem",
+                  color: theme.colors.textLight,
+                }}
+              >
+                Przód:
+              </p>
+              <StyledTextArea
+                maxLength={1020}
+                value={editQ}
+                onChange={(e) => setEditQ(e.target.value)}
+              />
 
-            <p
-              style={{
-                fontWeight: "600",
-                fontSize: "0.9rem",
-                color: theme.colors.textLight,
-              }}
-            >
-              Tył:
-            </p>
-            <StyledTextArea
-              maxLength={1020}
-              value={editA}
-              onChange={(e) => setEditA(e.target.value)}
-            />
-
-            <div style={{ textAlign: "center" }}>
-              <ModalButton type="button" onClick={handleEditSubmit}>
-                Zapisz zmiany
-              </ModalButton>
+              <p
+                style={{
+                  fontWeight: "600",
+                  fontSize: "0.9rem",
+                  color: theme.colors.textLight,
+                }}
+              >
+                Tył:
+              </p>
+              <StyledTextArea
+                maxLength={1020}
+                value={editA}
+                onChange={(e) => setEditA(e.target.value)}
+              />
             </div>
-          </StyledPopup>
-        </>
+
+            <SubmitButton
+              text="Zapisz zmiany"
+              color="dark"
+              onClick={handleEditSubmit}
+            />
+        </Modal>
       )}
 
       {/* MODAL INFORMACJI O FISZCE */}
       {isInfoModalOpen && (
-        <>
-          <ModalOverlay onClick={() => setIsInfoModalOpen(false)} />
-          <StyledPopup>
+        <Modal onClose={() => setIsInfoModalOpen(false)}>
             <h2 style={{ marginBottom: "30px" }}>Tagi przypisane do fiszki</h2>
             <div
               style={{
@@ -1083,8 +1054,7 @@ export default function FsrsLearningPage() {
                 </div>
               )}
             </div>
-          </StyledPopup>
-        </>
+        </Modal>
       )}
     </PageContainer>
   );

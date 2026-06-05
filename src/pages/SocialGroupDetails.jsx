@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import styled, { useTheme } from "styled-components";
 import { useParams, useNavigate } from "react-router-dom";
 import Layout from "../components/organisms/Layout";
+import { Modal } from "../components/atoms/Modal";
 import { getToken, parseJwt } from "../token";
 import {
   getSocialGroup,
@@ -650,43 +651,6 @@ const DropdownItem = styled.button`
   }
 `;
 
-const ModalOverlay = styled.div`
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 999;
-`;
-
-const StyledPopup = styled.div`
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 500px;
-  max-height: 80vh;
-  overflow-y: auto;
-  padding: 40px 50px;
-  border-radius: 25px;
-  background-color: ${({ theme }) => theme.colors.white};
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-  display: flex;
-  flex-direction: column;
-
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: #e0e0e0;
-    border-radius: 4px;
-  }
-
-  @media (max-width: 768px) {
-    width: 92%;
-    padding: 24px 20px;
-  }
-`;
-
 const ModalTitle = styled.h2`
   text-align: center;
   color: ${({ theme }) => theme.colors.text};
@@ -836,7 +800,6 @@ const ManageMembersList = styled.div`
   gap: 12px;
   max-height: 50vh;
   overflow-y: auto;
-  padding-right: 10px;
   margin-top: 10px;
 
   &::-webkit-scrollbar {
@@ -852,7 +815,7 @@ const ManageMemberItem = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 15px;
+  padding: 12px 0px;
   border-radius: 12px;
   border: 1px solid transparent;
 
@@ -2037,92 +2000,89 @@ const SocialGroupDetails = () => {
 
         {/* MODAL USTAWIEŃ GRUPY */}
         {isSettingsModalOpen && (
-          <>
-            <ModalOverlay
-              onClick={() =>
-                !isSaving && !isDeleting && setIsSettingsModalOpen(false)
-              }
-            />
-            <StyledPopup onClick={(e) => e.stopPropagation()}>
-              <ModalTitle>Ustawienia grupy</ModalTitle>
+          <Modal
+            onClose={() =>
+              !isSaving && !isDeleting && setIsSettingsModalOpen(false)
+            }
+            style={{ maxHeight: "80vh", overflowY: "auto" }}
+          >
+            <ModalTitle>Ustawienia grupy</ModalTitle>
 
-              <form onSubmit={handleSaveChanges}>
-                <FormGroup>
-                  <InputLabel>Nazwa grupy</InputLabel>
-                  <ModalInput
-                    type="text"
-                    value={editName}
-                    onChange={(e) => {
-                      setEditName(e.target.value);
-                      if (settingsError) setSettingsError("");
-                    }}
-                    maxLength={55}
-                    $error={!!settingsError && !editName.trim()}
-                    disabled={isSaving || isDeleting}
-                  />
-                </FormGroup>
-
-                <FormGroup>
-                  <InputLabel>Krótki opis</InputLabel>
-                  <ModalTextarea
-                    value={editDesc}
-                    onChange={(e) => setEditDesc(e.target.value)}
-                    maxLength={255}
-                    disabled={isSaving || isDeleting}
-                  />
-                </FormGroup>
-
-                {settingsError && <ErrorText>{settingsError}</ErrorText>}
-
-                <ButtonGroup
-                  style={{
-                    marginTop: "25px",
-                    borderBottom: "1px solid #eee",
-                    paddingBottom: "25px",
+            <form onSubmit={handleSaveChanges}>
+              <FormGroup>
+                <InputLabel>Nazwa grupy</InputLabel>
+                <ModalInput
+                  type="text"
+                  value={editName}
+                  onChange={(e) => {
+                    setEditName(e.target.value);
+                    if (settingsError) setSettingsError("");
                   }}
-                >
-                  <ModalButton
-                    type="button"
-                    onClick={() => setIsSettingsModalOpen(false)}
-                    disabled={isSaving || isDeleting}
-                  >
-                    Anuluj
-                  </ModalButton>
-                  <ModalButton
-                    type="submit"
-                    $primary
-                    disabled={isSaving || isDeleting}
-                  >
-                    {isSaving ? "Zapisywanie..." : "Zapisz zmiany"}
-                  </ModalButton>
-                </ButtonGroup>
+                  maxLength={55}
+                  $error={!!settingsError && !editName.trim()}
+                  disabled={isSaving || isDeleting}
+                />
+              </FormGroup>
 
-                <div style={{ marginTop: "20px", textAlign: "center" }}>
-                  <ModalButton
-                    type="button"
-                    $danger
-                    onClick={() => {
-                      setIsSettingsModalOpen(false);
-                      setConfirmGroupDeleteModal(true);
-                    }}
-                    disabled={isSaving || isDeleting}
-                  >
-                    {isDeleting ? "Usuwanie..." : "Usuń bezpowrotnie grupę"}
-                  </ModalButton>
-                </div>
-              </form>
-            </StyledPopup>
-          </>
+              <FormGroup>
+                <InputLabel>Krótki opis</InputLabel>
+                <ModalTextarea
+                  value={editDesc}
+                  onChange={(e) => setEditDesc(e.target.value)}
+                  maxLength={255}
+                  disabled={isSaving || isDeleting}
+                />
+              </FormGroup>
+
+              {settingsError && <ErrorText>{settingsError}</ErrorText>}
+
+              <ButtonGroup
+                style={{
+                  marginTop: "25px",
+                  borderBottom: "1px solid #eee",
+                  paddingBottom: "25px",
+                }}
+              >
+                <ModalButton
+                  type="button"
+                  onClick={() => setIsSettingsModalOpen(false)}
+                  disabled={isSaving || isDeleting}
+                >
+                  Anuluj
+                </ModalButton>
+                <ModalButton
+                  type="submit"
+                  $primary
+                  disabled={isSaving || isDeleting}
+                >
+                  {isSaving ? "Zapisywanie..." : "Zapisz zmiany"}
+                </ModalButton>
+              </ButtonGroup>
+
+              <div style={{ marginTop: "20px", textAlign: "center" }}>
+                <ModalButton
+                  type="button"
+                  $danger
+                  onClick={() => {
+                    setIsSettingsModalOpen(false);
+                    setConfirmGroupDeleteModal(true);
+                  }}
+                  disabled={isSaving || isDeleting}
+                >
+                  {isDeleting ? "Usuwanie..." : "Usuń bezpowrotnie grupę"}
+                </ModalButton>
+              </div>
+            </form>
+          </Modal>
         )}
 
         {/* MODAL DODAWANIA MATERIAŁÓW */}
         {isMaterialModalOpen && (
-          <>
-            <ModalOverlay
-              onClick={() => !isMaterialSaving && setIsMaterialModalOpen(false)}
-            />
-            <StyledPopup onClick={(e) => e.stopPropagation()}>
-              {materialMode === null && (
+          <Modal
+            onClose={() => !isMaterialSaving && setIsMaterialModalOpen(false)}
+            style={{ maxHeight: "80vh", overflowY: "auto" }}
+          >
+            {materialMode === null && (
                 <>
                   <ModalTitle>
                     Dodaj {activeTab === "notes" ? "notatkę" : "zestaw fiszek"}
@@ -2264,348 +2224,328 @@ const SocialGroupDetails = () => {
                   </ButtonGroup>
                 </form>
               )}
-            </StyledPopup>
-          </>
+          </Modal>
         )}
 
         {/* MODAL ZMIANY NAZWY MATERIALU */}
         {isRenameModalOpen && (
-          <>
-            <ModalOverlay onClick={() => setIsRenameModalOpen(false)} />
-            <StyledPopup onClick={(e) => e.stopPropagation()}>
-              <ModalTitle>Zmień nazwę</ModalTitle>
-              <form onSubmit={handleSubmitRename}>
-                <FormGroup>
-                  <InputLabel>
-                    Nowa nazwa dla:{" "}
-                    {materialToRename?.name || materialToRename?.title}
-                  </InputLabel>
-                  <ModalInput
-                    autoFocus
-                    type="text"
-                    value={newRenameValue}
-                    onChange={(e) => {
-                      setNewRenameValue(e.target.value);
-                      setRenameError("");
-                    }}
-                    $error={!!renameError}
-                  />
-                  {renameError && <ErrorText>{renameError}</ErrorText>}
-                </FormGroup>
-                <ButtonGroup>
-                  <ModalButton
-                    type="button"
-                    onClick={() => setIsRenameModalOpen(false)}
-                  >
-                    Anuluj
-                  </ModalButton>
-                  <ModalButton type="submit" $primary>
-                    Zapisz nazwę
-                  </ModalButton>
-                </ButtonGroup>
-              </form>
-            </StyledPopup>
-          </>
+          <Modal
+            onClose={() => setIsRenameModalOpen(false)}
+            style={{ maxHeight: "80vh", overflowY: "auto" }}
+          >
+            <ModalTitle>Zmień nazwę</ModalTitle>
+            <form onSubmit={handleSubmitRename}>
+              <FormGroup>
+                <InputLabel>
+                  Nowa nazwa dla:{" "}
+                  {materialToRename?.name || materialToRename?.title}
+                </InputLabel>
+                <ModalInput
+                  autoFocus
+                  type="text"
+                  value={newRenameValue}
+                  onChange={(e) => {
+                    setNewRenameValue(e.target.value);
+                    setRenameError("");
+                  }}
+                  $error={!!renameError}
+                />
+                {renameError && <ErrorText>{renameError}</ErrorText>}
+              </FormGroup>
+              <ButtonGroup>
+                <ModalButton
+                  type="button"
+                  onClick={() => setIsRenameModalOpen(false)}
+                >
+                  Anuluj
+                </ModalButton>
+                <ModalButton type="submit" $primary>
+                  Zapisz nazwę
+                </ModalButton>
+              </ButtonGroup>
+            </form>
+          </Modal>
         )}
 
         {deleteModal.isOpen && (
-          <>
-            <ModalOverlay
-              onClick={() => setDeleteModal({ ...deleteModal, isOpen: false })}
-            />
-            <StyledPopup
-              onClick={(e) => e.stopPropagation()}
-              style={{ textAlign: "center" }}
-            >
-              <ModalTitle>Potwierdź usunięcie</ModalTitle>
-              <p style={{ color: "#666", marginBottom: "30px" }}>
-                Czy na pewno chcesz bezpowrotnie usunąć {deleteModal.type}{" "}
-                <b>{deleteModal.name}</b> ze społeczności?
-              </p>
-              <ButtonGroup>
-                <ModalButton
-                  type="button"
-                  onClick={() =>
-                    setDeleteModal({ ...deleteModal, isOpen: false })
-                  }
-                >
-                  Anuluj
-                </ModalButton>
-                <ModalButton
-                  $danger
-                  onClick={async () => {
-                    await handleRemoveMaterial(deleteModal.id);
-                    setDeleteModal({ ...deleteModal, isOpen: false });
-                  }}
-                >
-                  Usuń plik
-                </ModalButton>
-              </ButtonGroup>
-            </StyledPopup>
-          </>
+          <Modal
+            onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
+            centered
+            style={{ maxHeight: "80vh", overflowY: "auto" }}
+          >
+            <ModalTitle>Potwierdź usunięcie</ModalTitle>
+            <p style={{ color: "#666", marginBottom: "30px" }}>
+              Czy na pewno chcesz bezpowrotnie usunąć {deleteModal.type}{" "}
+              <b>{deleteModal.name}</b> ze społeczności?
+            </p>
+            <ButtonGroup>
+              <ModalButton
+                type="button"
+                onClick={() =>
+                  setDeleteModal({ ...deleteModal, isOpen: false })
+                }
+              >
+                Anuluj
+              </ModalButton>
+              <ModalButton
+                $danger
+                onClick={async () => {
+                  await handleRemoveMaterial(deleteModal.id);
+                  setDeleteModal({ ...deleteModal, isOpen: false });
+                }}
+              >
+                Usuń plik
+              </ModalButton>
+            </ButtonGroup>
+          </Modal>
         )}
 
         {confirmGroupDeleteModal && (
-          <>
-            <ModalOverlay
-              onClick={() => !isDeleting && setConfirmGroupDeleteModal(false)}
-            />
-            <StyledPopup
-              onClick={(e) => e.stopPropagation()}
-              style={{ textAlign: "center" }}
+          <Modal
+            onClose={() => !isDeleting && setConfirmGroupDeleteModal(false)}
+            centered
+            style={{ maxHeight: "80vh", overflowY: "auto" }}
+          >
+            <ModalTitle>Usuń społeczność</ModalTitle>
+            <p
+              style={{
+                color: "#666",
+                marginBottom: "30px",
+                fontSize: "1rem",
+                lineHeight: "1.5",
+              }}
             >
-              <ModalTitle>Usuń społeczność</ModalTitle>
-              <p
-                style={{
-                  color: "#666",
-                  marginBottom: "30px",
-                  fontSize: "1rem",
-                  lineHeight: "1.5",
+              Czy na pewno chcesz bezpowrotnie usunąć społeczność{" "}
+              <b style={{ color: "#122818" }}>{group.name}</b>? Ta operacja
+              jest nieodwracalna, a wszyscy członkowie stracą do niej dostęp.
+            </p>
+            <ButtonGroup>
+              <ModalButton
+                type="button"
+                onClick={() => {
+                  setConfirmGroupDeleteModal(false);
+                  setIsSettingsModalOpen(true);
                 }}
+                disabled={isDeleting}
               >
-                Czy na pewno chcesz bezpowrotnie usunąć społeczność{" "}
-                <b style={{ color: "#122818" }}>{group.name}</b>? Ta operacja
-                jest nieodwracalna, a wszyscy członkowie stracą do niej dostęp.
-              </p>
-              <ButtonGroup>
-                <ModalButton
-                  type="button"
-                  onClick={() => {
-                    setConfirmGroupDeleteModal(false);
-                    setIsSettingsModalOpen(true);
-                  }}
-                  disabled={isDeleting}
-                >
-                  Anuluj
-                </ModalButton>
-                <ModalButton
-                  type="button"
-                  $danger
-                  onClick={handleDeleteGroup}
-                  disabled={isDeleting}
-                >
-                  {isDeleting ? "Usuwanie..." : "Tak, usuń"}
-                </ModalButton>
-              </ButtonGroup>
-            </StyledPopup>
-          </>
+                Anuluj
+              </ModalButton>
+              <ModalButton
+                type="button"
+                $danger
+                onClick={handleDeleteGroup}
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Usuwanie..." : "Tak, usuń"}
+              </ModalButton>
+            </ButtonGroup>
+          </Modal>
         )}
 
         {/* MODAL ZARZĄDZANIA CZŁONKAMI */}
         {isManageMembersModalOpen && (
-          <>
-            <ModalOverlay onClick={() => setIsManageMembersModalOpen(false)} />
-            <StyledPopup
-              onClick={(e) => e.stopPropagation()}
-              style={{ width: "92%", maxWidth: "600px" }}
-            >
-              <ModalTitle>Zarządzaj członkami</ModalTitle>
+          <Modal
+            onClose={() => setIsManageMembersModalOpen(false)}
+            style={{ maxHeight: "80vh", overflowY: "auto" }}
+          >
+            <ModalTitle>Zarządzaj członkami</ModalTitle>
 
-              <ManageMembersList>
-                {groupMembers.map((member) => (
-                  <ManageMemberItem key={member.id}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "12px",
-                        flex: 1,
-                        minWidth: 0,
-                      }}
+            <ManageMembersList>
+              {groupMembers.map((member) => (
+                <ManageMemberItem key={member.id}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      flex: 1,
+                      minWidth: 0,
+                    }}
+                  >
+                    <Avatar>
+                      {member.avatarId && member.avatarId > 0 ? (
+                        <img
+                          src={`/icons/avatar${member.avatarId}.png`}
+                          alt=""
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                          }}
+                        />
+                      ) : (
+                        member.username.charAt(0).toUpperCase()
+                      )}
+                    </Avatar>
+                    <MemberInfo>
+                      <MemberName $isMe={member.username === currentUser}>
+                        {member.username}{" "}
+                        {member.username === currentUser && "(JA)"}
+                      </MemberName>
+                      <MemberRole>{translateRole(member.role)}</MemberRole>
+                    </MemberInfo>
+                  </div>
+
+                  <MemberActions>
+                    <InviteRoleSelect
+                      style={{ padding: "6px 12px", fontSize: "0.85rem" }}
+                      value={member.role}
+                      disabled={
+                        group.userRole !== "ADMIN" ||
+                        updatingUserId === member.id ||
+                        member.username === currentUser
+                      }
+                      onChange={(e) =>
+                        handleRoleChange(member.id, e.target.value)
+                      }
+                      title={
+                        group.userRole !== "ADMIN"
+                          ? "Tylko administrator może zmieniać role"
+                          : ""
+                      }
                     >
-                      <Avatar>
-                        {member.avatarId && member.avatarId > 0 ? (
-                          <img
-                            src={`/icons/avatar${member.avatarId}.png`}
-                            alt=""
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                            }}
-                          />
-                        ) : (
-                          member.username.charAt(0).toUpperCase()
-                        )}
-                      </Avatar>
-                      <MemberInfo>
-                        <MemberName $isMe={member.username === currentUser}>
-                          {member.username}{" "}
-                          {member.username === currentUser && "(JA)"}
-                        </MemberName>
-                        <MemberRole>{translateRole(member.role)}</MemberRole>
-                      </MemberInfo>
-                    </div>
+                      <option value="ADMIN">Admin</option>
+                      <option value="EDITOR">Edytor</option>
+                      <option value="VIEWER">Obserwator</option>
+                    </InviteRoleSelect>
 
-                    <MemberActions>
-                      <InviteRoleSelect
-                        style={{ padding: "6px 12px", fontSize: "0.85rem" }}
-                        value={member.role}
-                        disabled={
-                          group.userRole !== "ADMIN" ||
-                          updatingUserId === member.id ||
-                          member.username === currentUser
-                        }
-                        onChange={(e) =>
-                          handleRoleChange(member.id, e.target.value)
-                        }
-                        title={
-                          group.userRole !== "ADMIN"
-                            ? "Tylko administrator może zmieniać role"
-                            : ""
-                        }
+                    <TrashButton
+                      disabled={
+                        group.userRole !== "ADMIN" ||
+                        updatingUserId === member.id ||
+                        member.username === currentUser
+                      }
+                      onClick={() => handleRemoveUserClick(member.id)}
+                      title={
+                        group.userRole !== "ADMIN"
+                          ? "Tylko administrator może usuwać członków"
+                          : member.username === currentUser
+                          ? "Aby opuścić grupę, użyj ikony wyjścia w prawym górnym rogu."
+                          : "Wyrzuć ze społeczności"
+                      }
+                    >
+                      <svg
+                        width="20"
+                        height="20"
+                        fill="currentColor"
+                        viewBox="0 0 16 16"
                       >
-                        <option value="ADMIN">Admin</option>
-                        <option value="EDITOR">Edytor</option>
-                        <option value="VIEWER">Obserwator</option>
-                      </InviteRoleSelect>
+                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
+                        <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
+                      </svg>
+                    </TrashButton>
+                  </MemberActions>
+                </ManageMemberItem>
+              ))}
+            </ManageMembersList>
 
-                      <TrashButton
-                        disabled={
-                          group.userRole !== "ADMIN" ||
-                          updatingUserId === member.id ||
-                          member.username === currentUser
-                        }
-                        onClick={() => handleRemoveUserClick(member.id)}
-                        title={
-                          group.userRole !== "ADMIN"
-                            ? "Tylko administrator może usuwać członków"
-                            : member.username === currentUser
-                            ? "Aby opuścić grupę, użyj ikony wyjścia w prawym górnym rogu."
-                            : "Wyrzuć ze społeczności"
-                        }
-                      >
-                        <svg
-                          width="20"
-                          height="20"
-                          fill="currentColor"
-                          viewBox="0 0 16 16"
-                        >
-                          <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
-                          <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
-                        </svg>
-                      </TrashButton>
-                    </MemberActions>
-                  </ManageMemberItem>
-                ))}
-              </ManageMembersList>
+            {roleChangeError && (
+              <ErrorText style={{ marginTop: "15px" }}>
+                {roleChangeError}
+              </ErrorText>
+            )}
 
-              {roleChangeError && (
-                <ErrorText style={{ marginTop: "15px" }}>
-                  {roleChangeError}
-                </ErrorText>
-              )}
-
-              <ButtonGroup style={{ marginTop: "25px" }}>
-                <ModalButton
-                  type="button"
-                  onClick={() => setIsManageMembersModalOpen(false)}
-                >
-                  Zamknij
-                </ModalButton>
-              </ButtonGroup>
-            </StyledPopup>
-          </>
+            <ButtonGroup style={{ marginTop: "25px" }}>
+              <ModalButton
+                type="button"
+                onClick={() => setIsManageMembersModalOpen(false)}
+              >
+                Zamknij
+              </ModalButton>
+            </ButtonGroup>
+          </Modal>
         )}
 
         {/* MODAL OPUSZCZANIA GRUPY */}
         {confirmLeaveGroupModal && (
-          <>
-            <ModalOverlay
-              onClick={() => !isDeleting && setConfirmLeaveGroupModal(false)}
-            />
-            <StyledPopup
-              onClick={(e) => e.stopPropagation()}
-              style={{ textAlign: "center" }}
+          <Modal
+            onClose={() => !isDeleting && setConfirmLeaveGroupModal(false)}
+            centered
+            style={{ maxHeight: "80vh", overflowY: "auto" }}
+          >
+            <ModalTitle>Opuść społeczność</ModalTitle>
+            <p
+              style={{
+                color: "#666",
+                marginBottom: "15px",
+                fontSize: "1rem",
+                lineHeight: "1.5",
+              }}
             >
-              <ModalTitle>Opuść społeczność</ModalTitle>
-              <p
-                style={{
-                  color: "#666",
-                  marginBottom: "15px",
-                  fontSize: "1rem",
-                  lineHeight: "1.5",
+              Czy na pewno chcesz opuścić tę społeczność? Utracisz dostęp do
+              wszystkich materiałów grupowych.
+            </p>
+            {leaveGroupError && (
+              <ErrorText style={{ marginBottom: "15px" }}>
+                {leaveGroupError}
+              </ErrorText>
+            )}
+            <ButtonGroup>
+              <ModalButton
+                type="button"
+                onClick={() => {
+                  setConfirmLeaveGroupModal(false);
+                  setLeaveGroupError("");
                 }}
+                disabled={isDeleting}
               >
-                Czy na pewno chcesz opuścić tę społeczność? Utracisz dostęp do
-                wszystkich materiałów grupowych.
-              </p>
-              {leaveGroupError && (
-                <ErrorText style={{ marginBottom: "15px" }}>
-                  {leaveGroupError}
-                </ErrorText>
-              )}
-              <ButtonGroup>
-                <ModalButton
-                  type="button"
-                  onClick={() => {
-                    setConfirmLeaveGroupModal(false);
-                    setLeaveGroupError("");
-                  }}
-                  disabled={isDeleting}
-                >
-                  Anuluj
-                </ModalButton>
-                <ModalButton
-                  type="button"
-                  $danger
-                  onClick={executeLeaveGroup}
-                  disabled={isDeleting}
-                >
-                  {isDeleting ? "Opuszczanie..." : "Tak, opuść"}
-                </ModalButton>
-              </ButtonGroup>
-            </StyledPopup>
-          </>
+                Anuluj
+              </ModalButton>
+              <ModalButton
+                type="button"
+                $danger
+                onClick={executeLeaveGroup}
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Opuszczanie..." : "Tak, opuść"}
+              </ModalButton>
+            </ButtonGroup>
+          </Modal>
         )}
 
         {/* MODAL WYRZUCANIA UŻYTKOWNIKA Z GRUPY */}
         {confirmRemoveUserModal.isOpen && (
-          <>
-            <ModalOverlay
-              onClick={() => {
-                setConfirmRemoveUserModal({ isOpen: false, userId: null });
-                setRemoveUserError("");
-                setIsManageMembersModalOpen(true);
+          <Modal
+            onClose={() => {
+              setConfirmRemoveUserModal({ isOpen: false, userId: null });
+              setRemoveUserError("");
+              setIsManageMembersModalOpen(true);
+            }}
+            centered
+            style={{ maxHeight: "80vh", overflowY: "auto" }}
+          >
+            <ModalTitle>Wyrzuć użytkownika</ModalTitle>
+            <p
+              style={{
+                color: "#666",
+                marginBottom: "15px",
+                fontSize: "1rem",
+                lineHeight: "1.5",
               }}
-            />
-            <StyledPopup
-              onClick={(e) => e.stopPropagation()}
-              style={{ textAlign: "center" }}
             >
-              <ModalTitle>Wyrzuć użytkownika</ModalTitle>
-              <p
-                style={{
-                  color: "#666",
-                  marginBottom: "15px",
-                  fontSize: "1rem",
-                  lineHeight: "1.5",
+              Czy na pewno chcesz wyrzucić tego użytkownika ze społeczności?
+            </p>
+            {removeUserError && (
+              <ErrorText style={{ marginBottom: "15px" }}>
+                {removeUserError}
+              </ErrorText>
+            )}
+            <ButtonGroup>
+              <ModalButton
+                type="button"
+                onClick={() => {
+                  setConfirmRemoveUserModal({ isOpen: false, userId: null });
+                  setRemoveUserError("");
+                  setIsManageMembersModalOpen(true);
                 }}
               >
-                Czy na pewno chcesz wyrzucić tego użytkownika ze społeczności?
-              </p>
-              {removeUserError && (
-                <ErrorText style={{ marginBottom: "15px" }}>
-                  {removeUserError}
-                </ErrorText>
-              )}
-              <ButtonGroup>
-                <ModalButton
-                  type="button"
-                  onClick={() => {
-                    setConfirmRemoveUserModal({ isOpen: false, userId: null });
-                    setRemoveUserError("");
-                    setIsManageMembersModalOpen(true);
-                  }}
-                >
-                  Anuluj
-                </ModalButton>
-                <ModalButton type="button" $danger onClick={executeRemoveUser}>
-                  Tak, wyrzuć
-                </ModalButton>
-              </ButtonGroup>
-            </StyledPopup>
-          </>
+                Anuluj
+              </ModalButton>
+              <ModalButton type="button" $danger onClick={executeRemoveUser}>
+                Tak, wyrzuć
+              </ModalButton>
+            </ButtonGroup>
+          </Modal>
         )}
       </PageContainer>
     </Layout>

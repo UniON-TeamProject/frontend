@@ -31,7 +31,7 @@ const fadeIn = keyframes`
 const Overlay = styled.div`
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.4);
   z-index: 1100;
 `;
 
@@ -45,8 +45,8 @@ const StyledPopup = styled.div`
   max-width: 94vw;
   max-height: 85vh;
   background-color: ${({ theme }) => theme.colors.white};
-  padding: 40px 50px;
-  border-radius: 25px;
+  padding: 35px 50px;
+  border-radius: 24px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;

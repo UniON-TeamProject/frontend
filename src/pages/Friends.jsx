@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import styled, { useTheme } from "styled-components";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/organisms/Layout";
+import { Modal } from "../components/atoms/Modal";
 import {
   getFriends,
   getPendingInvites,
@@ -301,32 +302,6 @@ const AddFriendInput = styled.input`
   }
 `;
 
-const ModalOverlay = styled.div`
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 999;
-`;
-
-const StyledPopup = styled.div`
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 500px;
-  padding: 40px 50px;
-  border-radius: 25px;
-  background-color: ${({ theme }) => theme.colors.white};
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-  display: flex;
-  flex-direction: column;
-
-  @media (max-width: 768px) {
-    width: 90%;
-    padding: 30px;
-  }
-`;
 
 const ModalTitle = styled.h2`
   text-align: center;
@@ -660,99 +635,89 @@ const Friends = () => {
 
         {/* MODAL USUWANIA ZNAJOMEGO */}
         {deleteFriendModal.isOpen && (
-          <>
-            <ModalOverlay
-              onClick={() =>
-                setDeleteFriendModal({ ...deleteFriendModal, isOpen: false })
-              }
-            />
-            <StyledPopup
-              onClick={(e) => e.stopPropagation()}
-              style={{ textAlign: "center" }}
+          <Modal
+            onClose={() =>
+              setDeleteFriendModal({ ...deleteFriendModal, isOpen: false })
+            }
+            centered
+          >
+            <ModalTitle>Potwierdź usunięcie</ModalTitle>
+            <p
+              style={{
+                color: "#666",
+                marginBottom: "30px",
+                fontSize: "1rem",
+                lineHeight: "1.5",
+              }}
             >
-              <ModalTitle>Potwierdź usunięcie</ModalTitle>
-              <p
-                style={{
-                  color: "#666",
-                  marginBottom: "30px",
-                  fontSize: "1rem",
-                  lineHeight: "1.5",
+              Czy na pewno chcesz usunąć użytkownika{" "}
+              <b style={{ color: "#122818" }}>{deleteFriendModal.username}</b>{" "}
+              ze swoich znajomych?
+            </p>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                gap: "15px",
+              }}
+            >
+              <ActionBtn
+                onClick={() =>
+                  setDeleteFriendModal({
+                    ...deleteFriendModal,
+                    isOpen: false,
+                  })
+                }
+              >
+                Anuluj
+              </ActionBtn>
+              <ActionBtn
+                $variant="danger"
+                onClick={async () => {
+                  await handleRemoveFriend(deleteFriendModal.friendId);
+                  setDeleteFriendModal({
+                    ...deleteFriendModal,
+                    isOpen: false,
+                  });
                 }}
               >
-                Czy na pewno chcesz usunąć użytkownika{" "}
-                <b style={{ color: "#122818" }}>{deleteFriendModal.username}</b>{" "}
-                ze swoich znajomych?
-              </p>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  gap: "15px",
-                }}
-              >
-                <ActionBtn
-                  onClick={() =>
-                    setDeleteFriendModal({
-                      ...deleteFriendModal,
-                      isOpen: false,
-                    })
-                  }
-                >
-                  Anuluj
-                </ActionBtn>
-                <ActionBtn
-                  $variant="danger"
-                  onClick={async () => {
-                    await handleRemoveFriend(deleteFriendModal.friendId);
-                    setDeleteFriendModal({
-                      ...deleteFriendModal,
-                      isOpen: false,
-                    });
-                  }}
-                >
-                  Usuń znajomego
-                </ActionBtn>
-              </div>
-            </StyledPopup>
-          </>
+                Usuń znajomego
+              </ActionBtn>
+            </div>
+          </Modal>
         )}
 
         {/* MODAL INFO O WYSŁANIU ZAPROSZENIA */}
         {infoModal.isOpen && (
-          <>
-            <ModalOverlay
-              onClick={() =>
-                setInfoModal({ isOpen: false, message: "", isError: false })
-              }
-            />
-            <StyledPopup
-              onClick={(e) => e.stopPropagation()}
-              style={{ textAlign: "center" }}
+          <Modal
+            onClose={() =>
+              setInfoModal({ isOpen: false, message: "", isError: false })
+            }
+            centered
+          >
+            <ModalTitle>{infoModal.isError ? "Błąd" : "Sukces"}</ModalTitle>
+            <p
+              style={{
+                color: infoModal.isError
+                  ? theme.colors.danger || "#e74c3c"
+                  : theme.colors.secondary || "#00b894",
+                marginBottom: "30px",
+                fontSize: "1.05rem",
+                fontWeight: "600",
+              }}
             >
-              <ModalTitle>{infoModal.isError ? "Błąd" : "Sukces"}</ModalTitle>
-              <p
-                style={{
-                  color: infoModal.isError
-                    ? theme.colors.danger || "#e74c3c"
-                    : theme.colors.secondary || "#00b894",
-                  marginBottom: "30px",
-                  fontSize: "1.05rem",
-                  fontWeight: "600",
-                }}
+              {infoModal.message}
+            </p>
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <ActionBtn
+                onClick={() =>
+                  setInfoModal({ isOpen: false, message: "", isError: false })
+                }
               >
-                {infoModal.message}
-              </p>
-              <div style={{ display: "flex", justifyContent: "center" }}>
-                <ActionBtn
-                  onClick={() =>
-                    setInfoModal({ isOpen: false, message: "", isError: false })
-                  }
-                >
-                  Zamknij
-                </ActionBtn>
-              </div>
-            </StyledPopup>
-          </>
+                Zamknij
+              </ActionBtn>
+            </div>
+          </Modal>
         )}
       </PageContainer>
     </Layout>

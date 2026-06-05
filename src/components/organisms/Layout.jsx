@@ -204,8 +204,10 @@ const Layout = ({ children, hideBottomBar }) => {
 
   const isActive = (path) => location.pathname.startsWith(path);
 
+  const sidebarWidth = expanded ? EXPANDED_WIDTH : COLLAPSED_WIDTH;
+
   return (
-    <StyledPageWrapper>
+    <StyledPageWrapper style={{ '--sidebar-width': `${sidebarWidth}px` }}>
       {/* <StyledTopbar>
             <StyledLogo>UniON</StyledLogo>
         </StyledTopbar> */}

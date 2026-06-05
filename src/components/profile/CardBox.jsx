@@ -1,10 +1,7 @@
 import styled from 'styled-components'
+import Box from '../atoms/Box'
 
-const StyledContainer= styled.div`
-  background-color: ${({ theme }) => theme.colors.white};
-  border-radius: 20px;
-  box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.05);
-  padding: 24px;
+const StyledContainer = styled(Box)`
   margin-bottom: 16px;
   ${({ $danger }) => $danger && 'border: 1px solid rgba(239, 68, 68, 0.35);'}
 `

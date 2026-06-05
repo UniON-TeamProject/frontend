@@ -51,7 +51,7 @@ export const DeleteAccountModal = ({
   feedback,
   submitting,
 }) => (
-  <Modal onClose={onClose}>
+  <Modal onClose={onClose} centered>
     <ModalTitle>Usunąć konto?</ModalTitle>
     <ModalText>
       Ta operacja jest nieodwracalna. Wpisz swoje obecne hasło, aby potwierdzić.

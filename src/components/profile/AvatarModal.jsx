@@ -47,7 +47,7 @@ const CloseButton = styled.button`
 `
 
 export const AvatarModal = ({ onClose, avatarId, onSelect }) => (
-  <Modal onClose={onClose}>
+  <Modal onClose={onClose} centered>
     <ModalTitle>Zmiana awatara</ModalTitle>
     <AvatarGrid>
       {[1, 2, 3, 4, 5].map((id) => (
