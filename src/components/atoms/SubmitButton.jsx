@@ -10,7 +10,7 @@ const StyledButton = styled(Link)`
   width: 100%;
   padding: 10px;
   margin-top: 8px;
-  border-radius: 5px;
+  border-radius: 10px;
   text-decoration: none;
   cursor: pointer;
   color: ${({ theme, color }) =>

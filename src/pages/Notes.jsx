@@ -37,6 +37,7 @@ import Layout from "../components/organisms/Layout";
 import AIFlashcardModal from "../components/editor/AIFlashcardModal.jsx";
 import TagSelector from "../components/organisms/TagSelector";
 import { Modal } from "../components/atoms/Modal";
+import HelpInfoIcon from "../components/atoms/HelpIcon";
 
 const noteNameRegex = /^[a-zA-Z0-9 _\-ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+$/;
 const folderNameRegex = /^[a-zA-Z0-9 _\-ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+$/;
@@ -75,7 +76,7 @@ const StyledHeader = styled.div`
 
 const StyledName = styled.h2`
   color: ${({ theme }) => theme.colors.text};
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   margin: 0;
   cursor: default;
   @media (max-width: 768px) {
@@ -1008,63 +1009,6 @@ const ActiveFilterBadge = styled.span`
   margin-left: 6px;
 `;
 
-const HelpIcon = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background-color: ${({ theme }) => theme.colors.borderLight};
-  color: ${({ theme }) => theme.colors.textLight};
-  font-size: 0.9rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.2s;
-  margin-left: 10px;
-  position: relative;
-
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.darkGrey};
-    color: ${({ theme }) => theme.colors.text};
-    transform: scale(1.1);
-  }
-  &:hover > span {
-    display: block;
-  }
-`;
-
-const HelpTooltip = styled.span`
-  display: none;
-  position: absolute;
-  bottom: calc(100% + 8px);
-  right: 0;
-  background: ${({ theme }) => theme.colors.lightTertiary};
-  color: ${({ theme }) => theme.colors.white};
-  font-size: 11px;
-  font-weight: 500;
-  text-transform: none;
-  letter-spacing: 0;
-  border-radius: 8px;
-  padding: 10px 14px;
-  width: 200px;
-  white-space: normal;
-  line-height: 1.5;
-  z-index: 100;
-  pointer-events: none;
-  text-align: left;
-  transform: scale(0.909);
-  transform-origin: bottom right;
-
-  &::after {
-    content: "";
-    position: absolute;
-    top: 100%;
-    right: 8px;
-    border: 5px solid transparent;
-    border-top-color: ${({ theme }) => theme.colors.veryDarkPrimary};
-  }
-`;
 
 const EllipsisIcon = () => (
   <svg
@@ -1983,13 +1927,7 @@ const Notes = () => {
             )}
 
             {isTrashView && (
-              <HelpIcon>
-                ?
-                <HelpTooltip>
-                  Pliki w koszu są przechowywane przez 30 dni, po czym ulegają
-                  automatycznemu usunięciu.
-                </HelpTooltip>
-              </HelpIcon>
+              <HelpInfoIcon  tooltipAlign="right" tooltip="Pliki w koszu są przechowywane przez 30 dni, po czym ulegają automatycznemu usunięciu." />
             )}
           </ToolbarActions>
         </StyledToolbar>

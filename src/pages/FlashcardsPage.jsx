@@ -34,6 +34,7 @@ import Layout from "../components/organisms/Layout";
 import FlashcardEditor from "../components/editor/FlashcardEditor";
 import TagSelector from "../components/organisms/TagSelector";
 import { Modal } from "../components/atoms/Modal";
+import HelpInfoIcon from "../components/atoms/HelpIcon";
 
 const stripHtml = (html) => {
   if (!html) return "";
@@ -214,7 +215,7 @@ const StyledSearchDivider = styled.div`
 
 const StyledName = styled.h2`
   color: ${({ theme }) => theme.colors.text};
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   margin: 0;
   cursor: default;
   @media (max-width: 768px) {
@@ -1421,37 +1422,6 @@ const HelpIcon = styled.div`
   }
 `;
 
-const HelpTooltip = styled.span`
-  display: none;
-  position: absolute;
-  bottom: calc(100% + 8px);
-  right: 0;
-  background: ${({ theme }) => theme.colors.lightTertiary};
-  color: ${({ theme }) => theme.colors.white};
-  font-size: 11px;
-  font-weight: 500;
-  text-transform: none;
-  letter-spacing: 0;
-  border-radius: 8px;
-  padding: 10px 14px;
-  width: 200px;
-  white-space: normal;
-  line-height: 1.5;
-  z-index: 100;
-  pointer-events: none;
-  text-align: left;
-  transform: scale(0.909);
-  transform-origin: bottom right;
-
-  &::after {
-    content: "";
-    position: absolute;
-    top: 100%;
-    right: 8px;
-    border: 5px solid transparent;
-    border-top-color: ${({ theme }) => theme.colors.veryDarkPrimary};
-  }
-`;
 
 const ModeCard = styled.div`
   background: ${({ theme }) => theme.colors.lightGrey};
@@ -3087,13 +3057,7 @@ const FlashcardsPage = () => {
                 </SortSelectContainer>
               )}
               {isTrashView && (
-                <HelpIcon>
-                  ?
-                  <HelpTooltip>
-                    Zestawy w koszu są przechowywane przez 30 dni, po czym
-                    ulegają automatycznemu usunięciu.
-                  </HelpTooltip>
-                </HelpIcon>
+                <HelpInfoIcon tooltip="Zestawy w koszu są przechowywane przez 30 dni, po czym ulegają automatycznemu usunięciu." />
               )}
             </ToolbarActions>
           </StyledToolbar>

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import SubmitButton from "../components/atoms/SubmitButton";
 import Text from "../components/atoms/Text";
 import Logo from "../components/atoms/Logo";
+import Box from "../components/atoms/Box";
 
 const fadeOut = keyframes`
   from { opacity: 1; }
@@ -41,14 +42,12 @@ const StyledContainer = styled.div`
   }
 `;
 
-const StyledBox = styled.div`
+const StyledBox = styled(Box)`
   width: 600px;
-  border-radius: 5px;
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: ${({ theme }) => theme.colors.white};
   padding: 30px 80px 50px 80px;
   cursor: default;
   a {

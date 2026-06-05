@@ -5,6 +5,7 @@ import SubmitButton from "../components/atoms/SubmitButton";
 import Input from "../components/atoms/Input";
 import Logo from "../components/atoms/Logo";
 import Text from "../components/atoms/Text";
+import Box from "../components/atoms/Box";
 import { sendResetPasswordCode, resetPassword } from "../api";
 import { PASSWORD_REGEX } from "../helpers/validation";
 import PasswordRequirements from "../components/atoms/PasswordRequirements";
@@ -27,10 +28,8 @@ const StyledContent = styled.div`
   }
 `;
 
-const StyledBox = styled.div`
+const StyledBox = styled(Box)`
   width: 600px;
-  border-radius: 5px;
-  background-color: ${({ theme }) => theme.colors.white};
   padding: 30px 80px;
   margin-bottom: 15px;
   cursor: default;

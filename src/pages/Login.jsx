@@ -5,6 +5,7 @@ import SubmitButton from "../components/atoms/SubmitButton";
 import Input from "../components/atoms/Input";
 import Text from "../components/atoms/Text";
 import Logo from "../components/atoms/Logo";
+import Box from "../components/atoms/Box";
 import { loginRequest } from "../api";
 import { getToken, saveToken } from "../token";
 
@@ -24,10 +25,8 @@ const StyledContent = styled.div`
   }
 `;
 
-const StyledBox = styled.div`
+const StyledBox = styled(Box)`
   width: 600px;
-  border-radius: 5px;
-  background-color: ${({ theme }) => theme.colors.white};
   padding: 30px 80px 54px;
   margin-bottom: 15px;
   cursor: default;
@@ -176,7 +175,7 @@ const Login = () => {
               <Text key={idx} color="danger" text={error} />
             ))}
           <Input
-            label="Wpisz swój login i hasło, aby zalogować się do konta"
+            label="Wpisz swój login i hasło, aby się zalogować"
             type="text"
             name="login"
             placeholder="Email lub nazwa użytkownika"

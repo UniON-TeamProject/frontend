@@ -49,7 +49,7 @@ const StyledUserHeader = styled.div`
 
 const StyledName = styled.h2`
   color: ${({ theme }) => theme.colors.text};
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   margin: 0;
   cursor: default;
   @media (max-width: 768px) {

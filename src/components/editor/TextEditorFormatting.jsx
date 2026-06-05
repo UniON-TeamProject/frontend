@@ -6,6 +6,7 @@ import Text from "../atoms/Text";
 import Input from "../atoms/Input";
 import SubmitButton from "../atoms/SubmitButton";
 import { Modal } from "../atoms/Modal";
+import HelpIcon from "../atoms/HelpIcon";
 
 const StyledContainer = styled.div`
   margin: 20px auto;
@@ -109,64 +110,6 @@ const ImageActionWrapper = styled.div`
   }
 `;
 
-const HelpIconWrapper = styled.div`
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background-color: ${({ theme }) => theme.colors.borderLight};
-  color: ${({ theme }) => theme.colors.textLight};
-  font-size: 0.8rem;
-  font-weight: bold;
-  cursor: default;
-  z-index: 12;
-
-  &:hover > div {
-    display: block;
-  }
-`;
-
-const HelpTooltip = styled.div`
-  display: none;
-  position: absolute;
-  top: calc(100% + 10px);
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: ${({ theme }) => theme.colors.lightTertiary};
-  color: ${({ theme }) => theme.colors.white};
-  font-size: 0.85rem;
-  font-weight: 500;
-  text-align: center;
-  padding: 12px 14px;
-  border-radius: 8px;
-  width: 260px;
-  z-index: 100;
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
-  line-height: 1.4;
-  @media (max-width: 768px) {
-    left: 0;
-    transform: none;
-  }
-
-  &::after {
-    content: "";
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    @media (max-width: 768px) {
-      left: 10px;
-      transform: none;
-    }
-    border-width: 6px;
-    border-style: solid;
-    border-color: transparent transparent ${({ theme }) => theme.colors.text}
-      transparent;
-  }
-`;
 
 
 
@@ -229,15 +172,7 @@ function TextEditorFormatting({ editor }) {
           <p>Dodaj zdjęcie</p>
         </StyledButton>
 
-        <HelpIconWrapper>
-          ?
-          <HelpTooltip>
-            Zdjęcia możesz dodać poprzez{" "}
-            <b style={{ color: theme.colors.secondary }}>URL</b> lub{" "}
-            <b style={{ color: theme.colors.secondary }}>przeciągając plik</b>{" "}
-            bezpośrednio w tekst.
-          </HelpTooltip>
-        </HelpIconWrapper>
+        <HelpIcon tooltipPosition="bottom" tooltipAlign="left" tooltip={<>Zdjęcia możesz dodać poprzez{" "}<b style={{ color: theme.colors.secondary }}>URL</b> lub{" "}<b style={{ color: theme.colors.secondary }}>przeciągając plik</b>{" "}bezpośrednio w tekst.</>} />
       </ImageActionWrapper>
       <Separator />
       <TextSizeDropdown editor={editor} />

@@ -8,6 +8,7 @@ import EmailVerifiedStep from "../components/organisms/register/EmailVerifiedSte
 import Logo from "../components/atoms/Logo";
 import Text from "../components/atoms/Text";
 import LegalModal from "../components/organisms/LegalModal";
+import Box from "../components/atoms/Box";
 
 const StyledContainer = styled.div`
   width: 100%;
@@ -27,10 +28,8 @@ const StyledContent = styled.div`
   }
 `;
 
-const StyledBox = styled.div`
+const StyledBox = styled(Box)`
   width: 600px;
-  border-radius: 5px;
-  background-color: ${({ theme }) => theme.colors.white};
   padding: 30px 80px 54px;
   margin-bottom: 15px;
   text-align: center;

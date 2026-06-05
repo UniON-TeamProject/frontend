@@ -30,6 +30,7 @@ import DragHandle from "@tiptap/extension-drag-handle-react";
 import FlashcardCreatorSidebar from "../components/editor/FlashcardCreatorSidebar.jsx";
 import AIFlashcardModal from "../components/editor/AIFlashcardModal.jsx";
 import Layout from "../components/organisms/Layout.jsx";
+import HelpIcon from "../components/atoms/HelpIcon";
 
 const StyledContainer = styled.div`
   width: 100%;
@@ -534,57 +535,6 @@ const StyledFloatingButton = styled.button`
   }
 `;
 
-const HelpIconWrapper = styled.div`
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 8px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background-color: ${({ theme }) => theme.colors.borderLight};
-  color: ${({ theme }) => theme.colors.textLight};
-  font-size: 0.8rem;
-  font-weight: bold;
-  cursor: default;
-  z-index: 12;
-
-  &:hover > div {
-    display: block;
-  }
-`;
-
-const HelpTooltip = styled.div`
-  display: none;
-  position: absolute;
-  right: calc(100% + 12px); // zeby otwieral sie w lewo
-  top: 50%;
-  transform: translateY(-50%);
-  background-color: ${({ theme }) => theme.colors.lightTertiary};
-  color: ${({ theme }) => theme.colors.white};
-  font-size: 0.8rem;
-  font-weight: 500;
-  text-align: left;
-  padding: 12px 14px;
-  border-radius: 8px;
-  width: 280px;
-  z-index: 100;
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
-  line-height: 1.4;
-
-  &::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 100%;
-    transform: translateY(-50%);
-    border-width: 6px;
-    border-style: solid;
-    border-color: transparent transparent
-      ${({ theme }) => theme.colors.veryDarkPrimary} transparent;
-  }
-`;
 
 const noteNameRegex = /^[a-zA-Z0-9 _\-ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+$/;
 const stripEmoji = (str) => str.replace(/\p{Extended_Pictographic}/gu, "");
@@ -1180,16 +1130,7 @@ const TextEditor = () => {
                     </svg>
                     Stwórz fiszki AI
                   </FlashcardToggleButton>
-                  <HelpIconWrapper style={{ marginLeft: "8px" }}>
-                    ?
-                    <HelpTooltip>
-                      <b style={{ color: theme.colors.secondary }}>
-                        Stwórz fiszki AI
-                      </b>{" "}
-                      - kreator AI automatycznie wygeneruje propozycje fiszek z
-                      treści, która jest obecnie zapisana w notatce.
-                    </HelpTooltip>
-                  </HelpIconWrapper>
+                  <HelpIcon style={{ marginLeft: "8px" }} tooltipPosition="bottom" tooltipAlign="right" tooltip={<><b style={{ color: theme.colors.secondary }}>Stwórz fiszki AI</b>{" "}- kreator AI automatycznie wygeneruje propozycje fiszek z treści, która jest obecnie zapisana w notatce.</>} />
                 </div>
               </DesktopButtonsWrapper>
 

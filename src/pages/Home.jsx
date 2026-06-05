@@ -19,6 +19,8 @@ import CalendarGrid, {
 } from "../components/organisms/CalendarGrid";
 import NotificationsDropdown from "../components/organisms/NotificationsDropdown";
 import Box from "../components/atoms/Box";
+import HelpIcon from "../components/atoms/HelpIcon";
+import Logo from "../components/atoms/Logo";
 
 const MONTHS_PL = [
   "Styczeń",
@@ -73,7 +75,7 @@ const StyledHeader = styled.div`
 
 const StyledName = styled.h2`
   color: ${({ theme }) => theme.colors.veryDarkPrimary};
-  font-size: 2.3rem;
+  font-size: 2rem;
   cursor: default;
   margin: 0;
   line-height: 1;
@@ -508,55 +510,6 @@ const EmptyDataMessage = styled.div`
   }
 `;
 
-const HelpIconWrapper = styled.div`
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 10px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background-color: ${({ theme }) => theme.colors.borderLight};
-  color: ${({ theme }) => theme.colors.textLight};
-  font-size: 0.8rem;
-  font-weight: bold;
-  cursor: default;
-
-  &:hover > div {
-    display: block;
-  }
-`;
-
-const HelpTooltip = styled.div`
-  display: none;
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: ${({ theme }) => theme.colors.lightTertiary};
-  color: ${({ theme }) => theme.colors.white};
-  font-size: 0.8rem;
-  font-weight: 500;
-  text-align: center;
-  padding: 14px;
-  border-radius: 8px;
-  width: 220px;
-  z-index: 100;
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
-
-  &::after {
-    content: "";
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border-width: 6px;
-    border-style: solid;
-    border-color: ${({ theme }) => theme.colors.veryDarkPrimary} transparent
-      transparent transparent;
-  }
-`;
 
 const GreetingWrapper = styled.div`
   display: flex;
@@ -568,17 +521,6 @@ const GreetingWrapper = styled.div`
   }
 `;
 
-const StyledLogo = styled.img`
-  height: 50px;
-  width: auto;
-  object-fit: contain;
-  transform: translateY(-5px);
-
-  @media (max-width: 768px) {
-    height: 36px;
-    transform: translateY(-3px);
-  }
-`;
 
 const Home = () => {
   const theme = useTheme();
@@ -998,7 +940,7 @@ const Home = () => {
       <StyledContainer $ready={isReady}>
         <StyledHeader>
           <GreetingWrapper>
-            <StyledLogo src="/icons/onionResized.png" alt="Logo" />
+            <Logo size="mini" />
             <StyledName>Witaj, {username || "użytkowniku"}!</StyledName>
           </GreetingWrapper>
           <HeaderRight>
@@ -1054,16 +996,7 @@ const Home = () => {
               <CardTitle>
                 <div style={{ display: "flex", alignItems: "center" }}>
                   Wróć do nauki
-                  <HelpIconWrapper>
-                    ?
-                    <HelpTooltip>
-                      Tu wyświetlają się Twoje aktywne sesje{" "}
-                      <b style={{ color: theme.colors.secondary }}>
-                        Szybkiej nauki
-                      </b>
-                      , które nie zostały ukończone w 100%.
-                    </HelpTooltip>
-                  </HelpIconWrapper>
+                  <HelpIcon style={{ marginLeft: '10px' }} tooltip={<>Tu wyświetlają się Twoje aktywne sesje{" "}<b style={{ color: theme.colors.secondary }}>Szybkiej nauki</b>, które nie zostały ukończone w 100%.</>} />
                 </div>
               </CardTitle>
               <ItemList>

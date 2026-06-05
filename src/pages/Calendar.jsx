@@ -26,6 +26,7 @@ import CalendarGrid, {
   getEventStyle,
   mapBackendEvent,
 } from "../components/organisms/CalendarGrid";
+import HelpIcon from "../components/atoms/HelpIcon";
 
 const MONTHS_PL = [
   "Styczeń",
@@ -1146,56 +1147,6 @@ const TagLabelRow = styled.div`
   margin-bottom: 6px;
 `;
 
-const TagHelpIcon = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background-color: ${({ theme }) => theme.colors.borderLight};
-  color: ${({ theme }) => theme.colors.textLight};
-  font-size: 0.65rem;
-  font-weight: bold;
-  cursor: default;
-  flex-shrink: 0;
-  position: relative;
-
-  &:hover > span {
-    display: block;
-  }
-`;
-
-const TagHelpTooltip = styled.span`
-  display: none;
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 0;
-  transform: none;
-  background: ${({ theme }) => theme.colors.veryDarkPrimary};
-  color: ${({ theme }) => theme.colors.white};
-  font-size: 11px;
-  font-weight: 400;
-  text-transform: none;
-  letter-spacing: 0;
-  border-radius: 8px;
-  padding: 10px 14px;
-  width: 150px;
-  white-space: normal;
-  line-height: 1.5;
-  z-index: 100;
-  pointer-events: none;
-
-  &::after {
-    content: "";
-    position: absolute;
-    top: 100%;
-    left: 8px;
-    transform: none;
-    border: 5px solid transparent;
-    border-top-color: ${({ theme }) => theme.colors.veryDarkPrimary};
-  }
-`;
 
 const CustomTagChip = styled.div`
   padding: 2px 10px;
@@ -2641,14 +2592,7 @@ const Calendar = () => {
         <FormGroup>
           <TagLabelRow>
             <Label style={{ margin: 0 }}>Tagi</Label>
-            <TagHelpIcon>
-              ?
-              <TagHelpTooltip>
-                Tagi pozwalają powiązać event z zestawami fiszek. Dzięki temu
-                możesz szybko odnaleźć materiały do nauki przypisane do tego
-                wydarzenia.
-              </TagHelpTooltip>
-            </TagHelpIcon>
+            <HelpIcon size="s" tooltipAlign="left" tooltip="Tagi pozwalają powiązać event z zestawami fiszek. Dzięki temu możesz szybko odnaleźć materiały do nauki przypisane do tego wydarzenia." />
           </TagLabelRow>
           <TagGrid>
             {form.docTags.map((dt) => (

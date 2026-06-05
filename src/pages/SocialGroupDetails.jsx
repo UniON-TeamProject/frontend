@@ -3,6 +3,7 @@ import styled, { useTheme } from "styled-components";
 import { useParams, useNavigate } from "react-router-dom";
 import Layout from "../components/organisms/Layout";
 import { Modal } from "../components/atoms/Modal";
+import HelpIcon from "../components/atoms/HelpIcon";
 import { getToken, parseJwt } from "../token";
 import {
   getSocialGroup,
@@ -860,72 +861,6 @@ const TrashButton = styled.button`
   }
 `;
 
-const RoleHelpIconWrapper = styled.div`
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 8px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background-color: ${({ theme }) => theme.colors.borderLight};
-  color: ${({ theme }) => theme.colors.textLight};
-  font-size: 0.8rem;
-  font-weight: bold;
-  cursor: default;
-
-  &:hover > div {
-    display: block;
-  }
-`;
-
-const RoleHelpTooltip = styled.div`
-  display: none;
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: ${({ theme }) => theme.colors.lightTertiary};
-  color: ${({ theme }) => theme.colors.white};
-  font-size: 0.8rem;
-  font-weight: 500;
-  text-align: left;
-  padding: 12px 14px;
-  border-radius: 8px;
-  width: 280px;
-  z-index: 100;
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
-  line-height: 1.4;
-
-  &::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border-width: 6px;
-    border-style: solid;
-    border-color: ${({ theme }) =>
-      theme.colors.veryDarkPrimary} transparent transparent transparent;
-  }
-
-  @media (max-width: 768px) {
-    bottom: auto;
-    top: calc(100% + 8px);
-    left: -30px;
-    transform: none;
-    width: 250px;
-
-    &::after {
-      top: auto;
-      bottom: 100%;
-      left: 35px;
-      transform: none;
-      border-color: transparent transparent ${({ theme }) =>
-        theme.colors.veryDarkPrimary} transparent;
-    }
-`;
 
 const CardsIcon = (props) => (
   <svg
@@ -1561,19 +1496,7 @@ const SocialGroupDetails = () => {
                       <option value="VIEWER">Obserwator</option>
                     </InviteRoleSelect>
 
-                    <RoleHelpIconWrapper style={{ marginLeft: 0 }}>
-                      ?
-                      <RoleHelpTooltip>
-                        <b style={{ color: theme.colors.secondary }}>Edytor</b>{" "}
-                        może przeglądać i edytować materiały oraz dodawać nowe.
-                        <br />
-                        <br />
-                        <b style={{ color: theme.colors.secondary }}>
-                          Obserwator
-                        </b>{" "}
-                        może wyłącznie przeglądać materiały w grupie.
-                      </RoleHelpTooltip>
-                    </RoleHelpIconWrapper>
+                    <HelpIcon style={{ marginLeft: 0 }} tooltip={<><b style={{ color: theme.colors.secondary }}>Edytor</b>{" "}może przeglądać i edytować materiały oraz dodawać nowe.<br /><br /><b style={{ color: theme.colors.secondary }}>Obserwator</b>{" "}może wyłącznie przeglądać materiały w grupie.</>} />
                   </div>
                 </div>
 

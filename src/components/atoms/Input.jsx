@@ -19,7 +19,7 @@ const StyledLabel = styled.label`
 const StyledInput = styled.input`
   padding: 8px;
   padding-right: ${({ $hasToggle }) => ($hasToggle ? "36px" : "8px")};
-  border-radius: 6px;
+  border-radius: 8px;
   color: ${({ theme }) => theme.colors.text};
   font-size: 0.9rem;
   background-color: ${({ theme }) => theme.colors.white};
