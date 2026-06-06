@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import SubmitButton from "../components/atoms/SubmitButton";
+import Button from "../components/atoms/Button";
 import Input from "../components/atoms/Input";
 import Logo from "../components/atoms/Logo";
 import Text from "../components/atoms/Text";
@@ -202,17 +202,18 @@ const ForgotPassword = () => {
                     handleSendResetPasswordCode();
                 }}
               />
-              <SubmitButton
-                text={
-                  submitting ? "Wysyłanie..." : "Wyślij e-mail resetujący hasło"
-                }
+              <Button
+                $variant="dark"
+                type="button"
                 disabled={submitting}
                 onClick={(e) => {
                   e.preventDefault();
                   if (validateEmail()) handleSendResetPasswordCode();
                 }}
-                color="dark"
-              />
+                style={{ width: "100%" }}
+              >
+                {submitting ? "Wysyłanie..." : "Wyślij e-mail resetujący hasło"}
+              </Button>
             </>
           )}
           {step == 2 && (
@@ -275,8 +276,9 @@ const ForgotPassword = () => {
               {passwordRegexVisible && (
                 <PasswordRequirements password={password} />
               )}
-              <SubmitButton
-                text={submitting ? "Resetowanie..." : "Zresetuj hasło"}
+              <Button
+                $variant="dark"
+                type="button"
                 disabled={submitting}
                 onClick={(e) => {
                   e.preventDefault();
@@ -285,8 +287,10 @@ const ForgotPassword = () => {
                   if (passOk && confirmOk) handleResetPassword();
                   if (!passOk) setPasswordRegexVisible(true);
                 }}
-                color="dark"
-              />
+                style={{ width: "100%"}}
+              >
+                {submitting ? "Resetowanie..." : "Zresetuj hasło"}
+              </Button>
             </>
           )}
           {step == 3 && (

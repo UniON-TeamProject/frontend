@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/organisms/Layout";
 import Input from "../components/atoms/Input";
+import Box from "../components/atoms/Box";
 import { submitUsosVerifier } from "../api";
 
 const Wrapper = styled.div`
@@ -13,13 +14,9 @@ const Wrapper = styled.div`
   padding: 40px 20px;
 `;
 
-const Card = styled.div`
-  background: ${({ theme }) => theme.colors.white};
-  border-radius: 12px;
-  padding: 40px 48px;
+const Card = styled(Box)`
   max-width: 480px;
   width: 100%;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
 `;
 
 const Title = styled.h2`

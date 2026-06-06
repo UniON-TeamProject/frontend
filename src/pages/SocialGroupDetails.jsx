@@ -3,7 +3,9 @@ import styled, { useTheme } from "styled-components";
 import { useParams, useNavigate } from "react-router-dom";
 import Layout from "../components/organisms/Layout";
 import { Modal } from "../components/atoms/Modal";
+import Button from "../components/atoms/Button";
 import HelpIcon from "../components/atoms/HelpIcon";
+import Box from "../components/atoms/Box";
 import { getToken, parseJwt } from "../token";
 import {
   getSocialGroup,
@@ -107,7 +109,8 @@ const PageTitle = styled.h1`
   font-size: 2.2rem;
   font-weight: 800;
   margin: 0 0 10px 0;
-  line-height: 1.2;
+  line-height: 1.3;
+  padding-bottom: 2px;
 
   white-space: nowrap;
   overflow: hidden;
@@ -166,12 +169,7 @@ const TopCardsGrid = styled.div`
   }
 `;
 
-const Card = styled.div`
-  background: ${({ theme }) => theme.colors.white};
-  border-radius: 20px;
-  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.03);
-  border: 1px solid ${({ theme }) => theme.colors.lightGrey};
-  padding: 25px;
+const Card = styled(Box)`
   display: flex;
   flex-direction: column;
 
@@ -372,12 +370,8 @@ const MemberRole = styled.span`
   font-weight: 700;
 `;
 
-const MaterialsSection = styled.div`
-  background: ${({ theme }) => theme.colors.white};
-  border-radius: 20px;
-  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.03);
-  border: 1px solid ${({ theme }) => theme.colors.lightGrey};
-  padding: 25px 60px;
+const MaterialsSection = styled(Box)`
+  padding: 25px 50px;
   flex: 1;
 
   @media (max-width: 768px) {
@@ -734,31 +728,6 @@ const ButtonGroup = styled.div`
   justify-content: center;
   gap: 15px;
   margin-top: 15px;
-`;
-
-const ModalButton = styled.button`
-  background-color: ${({ $primary, $danger, theme }) =>
-    $danger
-      ? theme.colors.danger
-      : $primary
-      ? theme.colors.text
-      : "transparent"};
-  color: ${({ $primary, $danger, theme }) =>
-    $primary || $danger ? "#fff" : theme.colors.text};
-  border: ${({ $primary, $danger, theme }) =>
-    $primary || $danger ? "none" : `1px solid ${theme.colors.darkGrey}`};
-  padding: 12px 25px;
-  border-radius: 12px;
-  font-size: 0.95rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-  min-width: 120px;
-  flex: 1;
-
-  &:hover {
-    opacity: 0.8;
-  }
 `;
 
 const BigSelectButton = styled.button`
@@ -1966,34 +1935,35 @@ const SocialGroupDetails = () => {
                   paddingBottom: "25px",
                 }}
               >
-                <ModalButton
+                <Button $variant="light"
                   type="button"
                   onClick={() => setIsSettingsModalOpen(false)}
                   disabled={isSaving || isDeleting}
+                  style={{ flex: 1 }}
                 >
                   Anuluj
-                </ModalButton>
-                <ModalButton
+                </Button>
+                <Button $variant="dark"
                   type="submit"
-                  $primary
                   disabled={isSaving || isDeleting}
+                  style={{ flex: 1 }}
                 >
                   {isSaving ? "Zapisywanie..." : "Zapisz zmiany"}
-                </ModalButton>
+                </Button>
               </ButtonGroup>
 
               <div style={{ marginTop: "20px", textAlign: "center" }}>
-                <ModalButton
+                <Button $variant="danger"
                   type="button"
-                  $danger
                   onClick={() => {
                     setIsSettingsModalOpen(false);
                     setConfirmGroupDeleteModal(true);
                   }}
                   disabled={isSaving || isDeleting}
+                  style={{ flex: 1 }}
                 >
                   {isDeleting ? "Usuwanie..." : "Usuń bezpowrotnie grupę"}
-                </ModalButton>
+                </Button>
               </div>
             </form>
           </Modal>
@@ -2126,24 +2096,25 @@ const SocialGroupDetails = () => {
                   {materialError && <ErrorText>{materialError}</ErrorText>}
 
                   <ButtonGroup style={{ marginTop: "25px" }}>
-                    <ModalButton
+                    <Button $variant="light"
                       type="button"
                       onClick={() => setMaterialMode(null)}
                       disabled={isMaterialSaving}
+                      style={{ flex: 1 }}
                     >
                       Wróć
-                    </ModalButton>
-                    <ModalButton
+                    </Button>
+                    <Button $variant="dark"
                       type="submit"
-                      $primary
                       disabled={
                         isMaterialSaving ||
                         (materialMode === "IMPORT" &&
                           !selectedPrivateMaterialId)
                       }
+                      style={{ flex: 1 }}
                     >
                       {isMaterialSaving ? "Zapisywanie..." : "Dodaj do grupy"}
-                    </ModalButton>
+                    </Button>
                   </ButtonGroup>
                 </form>
               )}
@@ -2176,15 +2147,16 @@ const SocialGroupDetails = () => {
                 {renameError && <ErrorText>{renameError}</ErrorText>}
               </FormGroup>
               <ButtonGroup>
-                <ModalButton
+                <Button $variant="light"
                   type="button"
                   onClick={() => setIsRenameModalOpen(false)}
+                  style={{ flex: 1 }}
                 >
                   Anuluj
-                </ModalButton>
-                <ModalButton type="submit" $primary>
+                </Button>
+                <Button $variant="dark" type="submit" style={{ flex: 1 }}>
                   Zapisz nazwę
-                </ModalButton>
+                </Button>
               </ButtonGroup>
             </form>
           </Modal>
@@ -2202,23 +2174,24 @@ const SocialGroupDetails = () => {
               <b>{deleteModal.name}</b> ze społeczności?
             </p>
             <ButtonGroup>
-              <ModalButton
+              <Button $variant="light"
                 type="button"
                 onClick={() =>
                   setDeleteModal({ ...deleteModal, isOpen: false })
                 }
+                style={{ flex: 1 }}
               >
                 Anuluj
-              </ModalButton>
-              <ModalButton
-                $danger
+              </Button>
+              <Button $variant="danger"
                 onClick={async () => {
                   await handleRemoveMaterial(deleteModal.id);
                   setDeleteModal({ ...deleteModal, isOpen: false });
                 }}
+                style={{ flex: 1 }}
               >
                 Usuń plik
-              </ModalButton>
+              </Button>
             </ButtonGroup>
           </Modal>
         )}
@@ -2243,24 +2216,25 @@ const SocialGroupDetails = () => {
               jest nieodwracalna, a wszyscy członkowie stracą do niej dostęp.
             </p>
             <ButtonGroup>
-              <ModalButton
+              <Button $variant="light"
                 type="button"
                 onClick={() => {
                   setConfirmGroupDeleteModal(false);
                   setIsSettingsModalOpen(true);
                 }}
                 disabled={isDeleting}
+                style={{ flex: 1 }}
               >
                 Anuluj
-              </ModalButton>
-              <ModalButton
+              </Button>
+              <Button $variant="danger"
                 type="button"
-                $danger
                 onClick={handleDeleteGroup}
                 disabled={isDeleting}
+                style={{ flex: 1 }}
               >
                 {isDeleting ? "Usuwanie..." : "Tak, usuń"}
-              </ModalButton>
+              </Button>
             </ButtonGroup>
           </Modal>
         )}
@@ -2369,12 +2343,13 @@ const SocialGroupDetails = () => {
             )}
 
             <ButtonGroup style={{ marginTop: "25px" }}>
-              <ModalButton
+              <Button $variant="light"
                 type="button"
                 onClick={() => setIsManageMembersModalOpen(false)}
+                style={{ flex: 1 }}
               >
                 Zamknij
-              </ModalButton>
+              </Button>
             </ButtonGroup>
           </Modal>
         )}
@@ -2404,24 +2379,25 @@ const SocialGroupDetails = () => {
               </ErrorText>
             )}
             <ButtonGroup>
-              <ModalButton
+              <Button $variant="light"
                 type="button"
                 onClick={() => {
                   setConfirmLeaveGroupModal(false);
                   setLeaveGroupError("");
                 }}
                 disabled={isDeleting}
+                style={{ flex: 1 }}
               >
                 Anuluj
-              </ModalButton>
-              <ModalButton
+              </Button>
+              <Button $variant="danger"
                 type="button"
-                $danger
                 onClick={executeLeaveGroup}
                 disabled={isDeleting}
+                style={{ flex: 1 }}
               >
                 {isDeleting ? "Opuszczanie..." : "Tak, opuść"}
-              </ModalButton>
+              </Button>
             </ButtonGroup>
           </Modal>
         )}
@@ -2454,19 +2430,20 @@ const SocialGroupDetails = () => {
               </ErrorText>
             )}
             <ButtonGroup>
-              <ModalButton
+              <Button $variant="light"
                 type="button"
                 onClick={() => {
                   setConfirmRemoveUserModal({ isOpen: false, userId: null });
                   setRemoveUserError("");
                   setIsManageMembersModalOpen(true);
                 }}
+                style={{ flex: 1 }}
               >
                 Anuluj
-              </ModalButton>
-              <ModalButton type="button" $danger onClick={executeRemoveUser}>
+              </Button>
+              <Button $variant="danger" type="button" onClick={executeRemoveUser} style={{ flex: 1 }}>
                 Tak, wyrzuć
-              </ModalButton>
+              </Button>
             </ButtonGroup>
           </Modal>
         )}

@@ -1,5 +1,6 @@
 import styled from 'styled-components'
 import { Modal, ModalTitle, ModalText } from '../atoms/Modal'
+import Button from '../atoms/Button'
 import Input from '../atoms/Input'
 
 const FeedbackText = styled.p`
@@ -12,35 +13,10 @@ const FeedbackText = styled.p`
 const ButtonsRow = styled.div`
   display: flex;
   gap: 10px;
-  flex-wrap: wrap;
   justify-content: center;
-`
-
-const BaseButton = styled.button`
-  padding: 9px 16px;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 0.8rem;
-  cursor: pointer;
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+  & > button {
+    flex: 1;
   }
-`
-
-const SecondaryButton = styled(BaseButton)`
-  background-color: transparent;
-  color: ${({ theme }) => theme.colors.veryDarkPrimary};
-  border: 1px solid ${({ theme }) => theme.colors.primary};
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.lightPrimary};
-  }
-`
-
-const DangerButton = styled(BaseButton)`
-  background-color: ${({ theme }) => theme.colors.danger};
-  color: ${({ theme }) => theme.colors.white};
-  border: none;
 `
 
 export const DeleteAccountModal = ({
@@ -72,12 +48,12 @@ export const DeleteAccountModal = ({
         </FeedbackText>
       )}
       <ButtonsRow>
-        <SecondaryButton type="button" onClick={onClose} disabled={submitting}>
+        <Button $variant="light" type="button" onClick={onClose} disabled={submitting}>
           Anuluj
-        </SecondaryButton>
-        <DangerButton type="submit" disabled={submitting}>
+        </Button>
+        <Button $variant="danger" type="submit" disabled={submitting}>
           {submitting ? 'Usuwanie...' : 'Tak, usuń konto'}
-        </DangerButton>
+        </Button>
       </ButtonsRow>
     </form>
   </Modal>

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import styled from "styled-components";
 import { useNavigate, useLocation } from "react-router-dom";
-import SubmitButton from "../atoms/SubmitButton";
 
 const COLLAPSED_WIDTH = 80;
 const EXPANDED_WIDTH = 220;

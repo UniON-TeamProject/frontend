@@ -3,6 +3,7 @@ import styled, { keyframes, useTheme } from "styled-components";
 import { useNavigate, useLocation } from "react-router-dom";
 import Layout from "../components/organisms/Layout";
 import { Modal } from "../components/atoms/Modal";
+import Button from "../components/atoms/Button";
 import {
   getUsosAuthUrl,
   addRegularTagToEvent,
@@ -1072,22 +1073,6 @@ const CancelBtn = styled.button`
   }
 `;
 
-const ModalButton = styled.button`
-  background-color: ${({ theme }) => theme.colors.borderLight};
-  color: ${({ theme }) => theme.colors.text};
-  border: none;
-  padding: 12px 25px;
-  border-radius: 10px;
-  font-size: 1rem;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  transition: opacity 0.2s;
-  &:hover {
-    opacity: 0.8;
-  }
-`;
-
 const SaveBtn = styled.button`
   padding: 8px 18px;
   border-radius: 8px;
@@ -1215,26 +1200,13 @@ const ScopeTitle = styled.h3`
   font-size: 15px;
   font-weight: 600;
   margin-bottom: 16px;
+  text-align: center;
 `;
 
-const ScopeBtn = styled.button`
-  display: block;
-  width: 100%;
-  padding: 10px 14px;
-  margin-bottom: 8px;
-  border: 1.5px solid ${({ theme }) => theme.colors.darkGrey};
-  border-radius: 8px;
-  background: transparent;
-  color: ${({ theme }) => theme.colors.text};
-  font-size: 13px;
-  font-family: inherit;
-  cursor: pointer;
-  text-align: left;
-  transition: all 0.15s;
-  &:hover {
-    border-color: ${({ theme }) => theme.colors.secondary};
-    background: ${({ theme }) => theme.colors.primary};
-  }
+const ButtonColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 `;
 
 const SidebarCardHeader = styled.div`
@@ -3302,22 +3274,14 @@ const Calendar = () => {
                 Jeśli masz już zaimportowany plan z USOS, zostanie on nadpisany
                 nowym- wszystkie dotychczasowe wydarzenia USOS zostaną usunięte.
               </div>
-              <ScopeBtn
-                onClick={doUsosImport}
-                style={{
-                  color: theme.colors.danger,
-                  fontWeight: 600,
-                  textAlign: "center",
-                }}
-              >
-                Znam ryzyko, kontynuuj
-              </ScopeBtn>
-              <ModalButton
-                onClick={() => setConfirmUsosImport(false)}
-                style={{ width: "100%", marginTop: 4 }}
-              >
-                Anuluj
-              </ModalButton>
+              <ButtonColumn>
+                <Button $variant="danger" onClick={doUsosImport}>
+                  Znam ryzyko, kontynuuj
+                </Button>
+                <Button $variant="light" onClick={() => setConfirmUsosImport(false)}>
+                  Anuluj
+                </Button>
+              </ButtonColumn>
           </Modal>
         )}
 
@@ -3328,40 +3292,34 @@ const Calendar = () => {
                   ? "Czy na pewno chcesz usunąć wszystkie wystąpienia?"
                   : "Czy na pewno chcesz usunąć to wydarzenie?"}
               </ScopeTitle>
-              <ScopeBtn
-                onClick={async () => {
-                  const { event: ev, scope } = confirmDelete;
-                  if (ev.backendId) {
-                    const res =
-                      scope === "all"
-                        ? await deleteAllInSeriesApi(ev.backendId)
-                        : await deleteEventApi(ev.backendId);
-                    if (res.errorCode && res.errorCode !== "") {
-                      setConfirmDelete(null);
-                      return;
+              <ButtonColumn>
+                <Button $variant="danger"
+                  onClick={async () => {
+                    const { event: ev, scope } = confirmDelete;
+                    if (ev.backendId) {
+                      const res =
+                        scope === "all"
+                          ? await deleteAllInSeriesApi(ev.backendId)
+                          : await deleteEventApi(ev.backendId);
+                      if (res.errorCode && res.errorCode !== "") {
+                        setConfirmDelete(null);
+                        return;
+                      }
                     }
-                  }
-                  await refreshEvents();
-                  setConfirmDelete(null);
-                  setEditEvent(null);
-                  setForm({ ...defaultFormState });
-                  setPopup(false);
-                  setSidebar(null);
-                }}
-                style={{
-                  color: theme.colors.danger,
-                  fontWeight: 600,
-                  textAlign: "center",
-                }}
-              >
-                Usuń
-              </ScopeBtn>
-              <ModalButton
-                onClick={() => setConfirmDelete(null)}
-                style={{ width: "100%", marginTop: 4 }}
-              >
-                Anuluj
-              </ModalButton>
+                    await refreshEvents();
+                    setConfirmDelete(null);
+                    setEditEvent(null);
+                    setForm({ ...defaultFormState });
+                    setPopup(false);
+                    setSidebar(null);
+                  }}
+                >
+                  Usuń
+                </Button>
+                <Button $variant="light" onClick={() => setConfirmDelete(null)}>
+                  Anuluj
+                </Button>
+              </ButtonColumn>
           </Modal>
         )}
 
@@ -3372,26 +3330,27 @@ const Calendar = () => {
                   ? "Edytuj wydarzenie cykliczne"
                   : "Usuń wydarzenie cykliczne"}
               </ScopeTitle>
-              <ScopeBtn onClick={() => handleScopeChoice("this")}>
-                Tylko to wystąpienie
-              </ScopeBtn>
-              {scopeAction.type === "edit" && (
-                <ScopeBtn onClick={() => handleScopeChoice("thisAndFollowing")}>
-                  To i przyszłe wydarzenia
-                </ScopeBtn>
-              )}
-              <ScopeBtn onClick={() => handleScopeChoice("all")}>
-                Wszystkie wystąpienia
-              </ScopeBtn>
-              <ModalButton
-                onClick={() => {
-                  setScopeAction(null);
-                  setPendingSave(null);
-                }}
-                style={{ width: "100%", marginTop: 4 }}
-              >
-                Anuluj
-              </ModalButton>
+              <ButtonColumn>
+                <Button $variant="light" onClick={() => handleScopeChoice("this")}>
+                  Tylko to wystąpienie
+                </Button>
+                {scopeAction.type === "edit" && (
+                  <Button $variant="light" onClick={() => handleScopeChoice("thisAndFollowing")}>
+                    To i przyszłe wydarzenia
+                  </Button>
+                )}
+                <Button $variant="light" onClick={() => handleScopeChoice("all")}>
+                  Wszystkie wystąpienia
+                </Button>
+                <Button $variant="light"
+                  onClick={() => {
+                    setScopeAction(null);
+                    setPendingSave(null);
+                  }}
+                >
+                  Anuluj
+                </Button>
+              </ButtonColumn>
           </Modal>
         )}
         {tagScopePopup && (
@@ -3408,18 +3367,17 @@ const Calendar = () => {
                 Czy tagi mają być przypisane do wszystkich wystąpień w serii,
                 czy tylko do tego wydarzenia?
               </p>
-              <ScopeBtn onClick={() => handleTagScopeChoice("all")}>
-                Wszystkie wystąpienia
-              </ScopeBtn>
-              <ScopeBtn onClick={() => handleTagScopeChoice("this")}>
-                Tylko to wydarzenie
-              </ScopeBtn>
-              <ModalButton
-                onClick={() => setTagScopePopup(null)}
-                style={{ width: "100%", marginTop: 4 }}
-              >
-                Anuluj
-              </ModalButton>
+              <ButtonColumn>
+                <Button $variant="light" onClick={() => handleTagScopeChoice("all")}>
+                  Wszystkie wystąpienia
+                </Button>
+                <Button $variant="light" onClick={() => handleTagScopeChoice("this")}>
+                  Tylko to wydarzenie
+                </Button>
+                <Button $variant="light" onClick={() => setTagScopePopup(null)}>
+                  Anuluj
+                </Button>
+              </ButtonColumn>
           </Modal>
         )}
       </Wrapper>

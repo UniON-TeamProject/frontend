@@ -1,5 +1,6 @@
 import styled from 'styled-components'
 import { Modal, ModalTitle } from '../atoms/Modal'
+import Button from '../atoms/Button'
 
 const AvatarGrid = styled.div`
   display: grid;
@@ -35,17 +36,6 @@ const AvatarOption = styled.button`
   }
 `
 
-const CloseButton = styled.button`
-  padding: 8px 18px;
-  background-color: ${({ theme }) => theme.colors.veryDarkPrimary};
-  color: ${({ theme }) => theme.colors.white};
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-`
-
 export const AvatarModal = ({ onClose, avatarId, onSelect }) => (
   <Modal onClose={onClose} centered>
     <ModalTitle>Zmiana awatara</ModalTitle>
@@ -60,6 +50,6 @@ export const AvatarModal = ({ onClose, avatarId, onSelect }) => (
         </AvatarOption>
       ))}
     </AvatarGrid>
-    <CloseButton onClick={onClose}>Zamknij</CloseButton>
+    <Button $variant="dark" onClick={onClose}>Zamknij</Button>
   </Modal>
 )

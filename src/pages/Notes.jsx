@@ -1,6 +1,5 @@
 import styled, { useTheme } from "styled-components";
 import React, { useState, useEffect } from "react";
-import SubmitButton from "../components/atoms/SubmitButton";
 import Text from "../components/atoms/Text";
 import {
   addNote,
@@ -37,6 +36,7 @@ import Layout from "../components/organisms/Layout";
 import AIFlashcardModal from "../components/editor/AIFlashcardModal.jsx";
 import TagSelector from "../components/organisms/TagSelector";
 import { Modal } from "../components/atoms/Modal";
+import Button from "../components/atoms/Button";
 import HelpInfoIcon from "../components/atoms/HelpIcon";
 
 const noteNameRegex = /^[a-zA-Z0-9 _\-ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+$/;
@@ -575,25 +575,6 @@ const StyledTreeItemLabel = styled.div`
     width: 16px;
     margin-right: 6px;
     flex-shrink: 0;
-  }
-`;
-
-const ModalButton = styled.button`
-  background-color: ${({ $danger, theme }) =>
-    $danger ? theme.colors.danger : theme.colors.borderLight};
-  color: ${({ $danger, theme }) =>
-    $danger ? theme.colors.white : theme.colors.text};
-  border: none;
-  padding: 12px 25px;
-  border-radius: 10px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    opacity: 0.9;
-    transform: translateY(-2px);
   }
 `;
 
@@ -1927,7 +1908,7 @@ const Notes = () => {
             )}
 
             {isTrashView && (
-              <HelpInfoIcon  tooltipAlign="right" tooltip="Pliki w koszu są przechowywane przez 30 dni, po czym ulegają automatycznemu usunięciu." />
+              <HelpInfoIcon tooltipAlign="right" tooltipPosition="bottom" tooltip="Pliki w koszu są przechowywane przez 30 dni, po czym ulegają automatycznemu usunięciu." />
             )}
           </ToolbarActions>
         </StyledToolbar>
@@ -2568,28 +2549,24 @@ const Notes = () => {
                 onSetIsAddingTag={setIsAddingTag}
                 onSetNewTag={setNewTag}
               />
-
-              <div style={{ display: "flex", justifyContent: "center" }}>
-                <SubmitButton
-                  text={isSuccess ? "✔ Utworzono!" : "Stwórz dokument"}
-                  color={isSuccess ? "secondary" : "dark"}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    const trimmed = noteName.trim();
-                    if (!trimmed) {
-                      setNoteNameErrorMessage("Wypełnij pole");
-                      return;
-                    }
-                    if (!noteNameRegex.test(trimmed)) {
-                      setNoteNameErrorMessage(
-                        "Nazwa może zawierać tylko litery, cyfry, spacje, _ i -"
-                      );
-                      return;
-                    }
-                    handleAddNote();
-                  }}
-                />
-              </div>
+              <Button $variant="dark"
+                style={{ width: "100%" }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  const trimmed = noteName.trim();
+                  if (!trimmed) {
+                    setNoteNameErrorMessage("Wypełnij pole");
+                    return;
+                  }
+                  if (!noteNameRegex.test(trimmed)) {
+                    setNoteNameErrorMessage(
+                      "Nazwa może zawierać tylko litery, cyfry, spacje, _ i -"
+                    );
+                    return;
+                  }
+                  handleAddNote();
+                }}
+              >{isSuccess ? "✔ Utworzono!" : "Utwórz dokument"}</Button>
           </Modal>
         )}
 
@@ -2658,11 +2635,8 @@ const Notes = () => {
                 onSetIsAddingTag={setIsAddingTag}
                 onSetNewTag={setNewTag}
               />
-
-              <div style={{ display: "flex", justifyContent: "center" }}>
-                <SubmitButton
-                  text={isSuccess ? "✔ Utworzono!" : "Stwórz folder"}
-                  color={isSuccess ? "secondary" : "dark"}
+                <Button $variant="dark"
+                  style={{ width: "100%" }}
                   onClick={(e) => {
                     e.preventDefault();
                     const trimmed = folderName.trim();
@@ -2678,8 +2652,7 @@ const Notes = () => {
                     }
                     handleAddFolder();
                   }}
-                />
-              </div>
+                >{isSuccess ? "✔ Utworzono!" : "Utwórz folder"}</Button>
           </Modal>
         )}
 
@@ -2698,15 +2671,14 @@ const Notes = () => {
                   marginTop: "30px",
                 }}
               >
-                <ModalButton
+                <Button $variant="light"
                   type="button"
                   onClick={() => setIsConfirmingTrashClear(false)}
                 >
                   Anuluj
-                </ModalButton>
-                <ModalButton
+                </Button>
+                <Button $variant="danger"
                   type="button"
-                  $danger
                   onClick={async () => {
                     await handleClearTrash();
                     await handleClearFolderTrash();
@@ -2719,7 +2691,7 @@ const Notes = () => {
                   }}
                 >
                   Wyczyść kosz
-                </ModalButton>
+                </Button>
               </div>
           </Modal>
         )}
@@ -2745,19 +2717,18 @@ const Notes = () => {
               <div
                 style={{
                   display: "flex",
-                  justifyContent: "center",
                   gap: "15px",
                 }}
               >
-                <ModalButton
-                  type="button"
+                <Button $variant="light"
+                  style={{ flex: 1 }}
                   onClick={() => setItemToDelete(null)}
                 >
                   Anuluj
-                </ModalButton>
-                <ModalButton type="button" $danger onClick={executeDelete}>
+                </Button>
+                <Button $variant="danger" style={{ flex: 1 }} onClick={executeDelete}>
                   Usuń
-                </ModalButton>
+                </Button>
               </div>
           </Modal>
         )}
@@ -2812,29 +2783,26 @@ const Notes = () => {
               <div
                 style={{
                   display: "flex",
-                  justifyContent: "center",
                   gap: "15px",
                 }}
               >
-                <SubmitButton
-                  text="Anuluj"
-                  color="dark"
-                  light
+                <Button $variant="light"
+                  style={{ flex: 1 }}
                   onClick={() => {
                     setIsMoving(false);
                     setMovingItem(null);
                     setMoveErrorMessage("");
                   }}
-                />
-                <SubmitButton
-                  text={isSuccess ? "✔ Przeniesiono!" : "Zatwierdź"}
-                  color={isSuccess ? "secondary" : "dark"}
+                >
+                  Anuluj
+                </Button>
+                <Button $variant="dark"
+                  style={{ flex: 1 }}
                   onClick={handleMove}
-                  style={{
-                    opacity: selectedMovePath === null ? 0.5 : 1,
-                    pointerEvents: selectedMovePath === null ? "none" : "auto",
-                  }}
-                />
+                  disabled={selectedMovePath === null}
+                >
+                  {isSuccess ? "✔ Przeniesiono!" : "Zatwierdź"}
+                </Button>
               </div>
           </Modal>
         )}

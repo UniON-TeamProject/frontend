@@ -9,6 +9,7 @@ import {
 } from "../../api";
 import Text from "../atoms/Text";
 import FlashcardEditor from "./FlashcardEditor";
+import Button from "../atoms/Button";
 
 const stripHtml = (html) => {
   if (!html) return "";
@@ -199,24 +200,6 @@ const SuccessText = styled.p`
   font-size: 1.1rem;
   font-weight: 700;
   margin: 0;
-`;
-
-const ModalButton = styled.button`
-  background: ${({ theme }) => theme.colors.dark};
-  color: ${({ theme }) => theme.colors.white};
-  border: none;
-  padding: 10px 25px;
-  border-radius: 10px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
-  opacity: ${(props) => (props.disabled ? 0.5 : 1)};
-  transition: all 0.2s;
-  white-space: nowrap;
-
-  &:hover {
-    opacity: ${(props) => (props.disabled ? 0.5 : 0.9)};
-  }
 `;
 
 const ModalContent = styled.div`
@@ -592,8 +575,7 @@ function AIFlashcardModal({ isOpen, onClose, noteId, socialId }) {
               {errorMessage && <ErrorText>{errorMessage}</ErrorText>}
             </SetSelectorArea>
 
-            <ModalButton
-              $primary
+            <Button $variant="dark"
               disabled={
                 !isReady || cards.length === 0 || phase === "saving"
               }
@@ -604,7 +586,7 @@ function AIFlashcardModal({ isOpen, onClose, noteId, socialId }) {
                 : `Zapisz ${cards.length} ${getCardsWord(
                     cards.length
                   )}`}
-            </ModalButton>
+            </Button>
           </ActionBar>
         )}
 
@@ -638,9 +620,9 @@ function AIFlashcardModal({ isOpen, onClose, noteId, socialId }) {
               <SuccessText>
                 Fiszki zostały pomyślnie dodane do zestawu!
               </SuccessText>
-              <ModalButton onClick={onClose} style={{ marginTop: "20px" }}>
+              <Button $variant="dark" onClick={onClose} style={{ marginTop: "20px" }}>
                 Zamknij
-              </ModalButton>
+              </Button>
             </CenteredState>
           )}
 

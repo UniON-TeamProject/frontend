@@ -1,6 +1,5 @@
 import styled, { useTheme, keyframes, css } from "styled-components";
 import React, { useState, useEffect, useRef } from "react";
-import SubmitButton from "../components/atoms/SubmitButton";
 import Text from "../components/atoms/Text";
 import Input from "../components/atoms/Input";
 import {
@@ -34,6 +33,7 @@ import Layout from "../components/organisms/Layout";
 import FlashcardEditor from "../components/editor/FlashcardEditor";
 import TagSelector from "../components/organisms/TagSelector";
 import { Modal } from "../components/atoms/Modal";
+import Button from "../components/atoms/Button";
 import HelpInfoIcon from "../components/atoms/HelpIcon";
 
 const stripHtml = (html) => {
@@ -1731,6 +1731,7 @@ const FlashcardsPage = () => {
   const [showTagDropdown, setShowTagDropdown] = useState(false);
   const tagSearchRef = useRef(null);
   const tagSearchInputRef = useRef(null);
+  const learningMenuRef = useRef(null);
   const [foundCards, setFoundCards] = useState([]);
   const [allUserCards, setAllUserCards] = useState([]);
   const [isLoadingCards, setIsLoadingCards] = useState(false);
@@ -1749,6 +1750,17 @@ const FlashcardsPage = () => {
   useEffect(() => {
     localStorage.setItem("flashcardSetsSortOption", setSortOption);
   }, [setSortOption]);
+
+  useEffect(() => {
+    if (!isLearningMenuOpen) return;
+    const handleClickOutside = (e) => {
+      if (learningMenuRef.current && !learningMenuRef.current.contains(e.target)) {
+        setIsLearningMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isLearningMenuOpen]);
   useEffect(() => {
     localStorage.setItem("flashcardsSortOption", cardSortOption);
   }, [cardSortOption]);
@@ -3057,7 +3069,7 @@ const FlashcardsPage = () => {
                 </SortSelectContainer>
               )}
               {isTrashView && (
-                <HelpInfoIcon tooltip="Zestawy w koszu są przechowywane przez 30 dni, po czym ulegają automatycznemu usunięciu." />
+                <HelpInfoIcon tooltipAlign="right" tooltipPosition="bottom" tooltip="Zestawy w koszu są przechowywane przez 30 dni, po czym ulegają automatycznemu usunięciu." />
               )}
             </ToolbarActions>
           </StyledToolbar>
@@ -3238,6 +3250,7 @@ const FlashcardsPage = () => {
                     </ActionBanner>
 
                     <div
+                      ref={learningMenuRef}
                       style={{
                         position: "relative",
                         display: "flex",
@@ -4379,12 +4392,12 @@ const FlashcardsPage = () => {
                 />
               </div>
 
-              <SubmitButton
-                text={successMessage ? "✔ Zapisano!" : "Zapisz zmiany"}
-                color={successMessage ? "secondary" : "dark"}
+              <Button $variant="dark"
+                style={{ width: "100%", marginTop: "20px" }}
                 onClick={handleEditSingleCard}
-                style={{ marginTop: "20px" }}
-              />
+              >
+                {successMessage ? "✔ Zapisano!" : "Zapisz zmiany"}
+              </Button>
           </Modal>
         )}
 
@@ -4436,19 +4449,13 @@ const FlashcardsPage = () => {
                 onSetNewTag={setNewTagForSet}
               />
 
-              <div style={{ display: "flex", justifyContent: "center" }}>
-                <SubmitButton
-                  text={
-                    successMessage
-                      ? "✔ Zapisano!"
-                      : editingSetId
-                      ? "Zapisz zmiany"
-                      : "Utwórz zestaw"
-                  }
-                  color={successMessage ? "secondary" : "dark"}
-                  onClick={handleSaveNewSet}
-                />
-              </div>
+              <Button $variant="dark" style={{ width: "100%" }} onClick={handleSaveNewSet}>
+                {successMessage
+                  ? "✔ Zapisano!"
+                  : editingSetId
+                  ? "Zapisz zmiany"
+                  : "Utwórz zestaw"}
+              </Button>
           </Modal>
         )}
 
@@ -4467,13 +4474,17 @@ const FlashcardsPage = () => {
               <div
                 style={{
                   display: "flex",
-                  justifyContent: "center",
                   gap: "15px",
                 }}
               >
-                <ModalButton
-                  type="button"
-                  $danger
+                <Button $variant="light"
+                  style={{ flex: 1 }}
+                  onClick={() => setIsExitAddModeModalOpen(false)}
+                >
+                  Zostań i dokończ
+                </Button>
+                <Button $variant="danger"
+                  style={{ flex: 1 }}
                   onClick={() => {
                     setIsExitAddModeModalOpen(false);
                     setIsAddingMode(false);
@@ -4482,13 +4493,7 @@ const FlashcardsPage = () => {
                   }}
                 >
                   Wyjdź bez zapisywania
-                </ModalButton>
-                <ModalButton
-                  type="button"
-                  onClick={() => setIsExitAddModeModalOpen(false)}
-                >
-                  Zostań i dokończ
-                </ModalButton>
+                </Button>
               </div>
           </Modal>
         )}
@@ -4508,16 +4513,15 @@ const FlashcardsPage = () => {
               <div
                 style={{
                   display: "flex",
-                  justifyContent: "center",
                   gap: "15px",
                 }}
               >
-                <ModalButton type="button" onClick={() => setSetToDelete(null)}>
+                <Button $variant="light" style={{ flex: 1 }} onClick={() => setSetToDelete(null)}>
                   Anuluj
-                </ModalButton>
-                <ModalButton type="button" $danger onClick={executeDeleteSet}>
+                </Button>
+                <Button $variant="danger" style={{ flex: 1 }} onClick={executeDeleteSet}>
                   Usuń
-                </ModalButton>
+                </Button>
               </div>
           </Modal>
         )}
@@ -4563,26 +4567,24 @@ const FlashcardsPage = () => {
               <div
                 style={{
                   display: "flex",
-                  justifyContent: "center",
                   gap: "15px",
                 }}
               >
-                <ModalButton
-                  type="button"
+                <Button $variant="light"
+                  style={{ flex: 1 }}
                   onClick={() => setDuplicateWarning(null)}
                 >
                   Anuluj
-                </ModalButton>
-                <ModalButton
-                  type="button"
-                  $danger
+                </Button>
+                <Button $variant="danger"
+                  style={{ flex: 1 }}
                   onClick={() => {
                     setDuplicateWarning(null);
                     executeSaveCards(pendingValidCards, true);
                   }}
                 >
                   Zapisz mimo to
-                </ModalButton>
+                </Button>
               </div>
           </Modal>
         )}
@@ -4701,23 +4703,12 @@ const FlashcardsPage = () => {
               <div
                 style={{
                   display: "flex",
-                  justifyContent: "center",
                   gap: "15px",
                   marginTop: "20px",
                 }}
               >
-                <ModalButton
-                  type="button"
-                  onClick={handleBulkCopy}
-                  style={{
-                    background: theme.colors.secondary,
-                    color: theme.colors.white,
-                  }}
-                >
-                  Skopiuj fiszki
-                </ModalButton>
-                <ModalButton
-                  type="button"
+                <Button $variant="light"
+                  style={{ flex: 1 }}
                   onClick={() => {
                     setIsBulkCopyModalOpen(false);
                     setBulkTargetSetId("");
@@ -4726,7 +4717,10 @@ const FlashcardsPage = () => {
                   }}
                 >
                   Anuluj
-                </ModalButton>
+                </Button>
+                <Button $variant="dark" style={{ flex: 1 }} onClick={handleBulkCopy}>
+                  Skopiuj fiszki
+                </Button>
               </div>
           </Modal>
         )}
@@ -4772,13 +4766,25 @@ const FlashcardsPage = () => {
               <div
                 style={{
                   display: "flex",
-                  justifyContent: "center",
                   gap: "15px",
                   marginTop: "20px",
                 }}
               >
-                <ModalButton
-                  type="button"
+                <Button $variant="light"
+                  style={{ flex: 1 }}
+                  onClick={() => {
+                    setIsBulkTagsModalOpen(false);
+                    setChosenBulkTags([]);
+                    setSuggestedBulkTags([]);
+                    setIsAddingBulkTag(false);
+                    setNewBulkTag("");
+                    setErrorMessage("");
+                  }}
+                >
+                  Anuluj
+                </Button>
+                <Button $variant="dark"
+                  style={{ flex: 1 }}
                   onClick={async () => {
                     if (chosenBulkTags.length === 0) {
                       setErrorMessage("Wybierz co najmniej jeden tag");
@@ -4806,26 +4812,9 @@ const FlashcardsPage = () => {
                     setNewBulkTag("");
                     fetchData();
                   }}
-                  style={{
-                    background: theme.colors.secondary,
-                    color: theme.colors.white,
-                  }}
                 >
                   Dodaj tagi
-                </ModalButton>
-                <ModalButton
-                  type="button"
-                  onClick={() => {
-                    setIsBulkTagsModalOpen(false);
-                    setChosenBulkTags([]);
-                    setSuggestedBulkTags([]);
-                    setIsAddingBulkTag(false);
-                    setNewBulkTag("");
-                    setErrorMessage("");
-                  }}
-                >
-                  Anuluj
-                </ModalButton>
+                </Button>
               </div>
           </Modal>
         )}
@@ -4890,12 +4879,22 @@ const FlashcardsPage = () => {
               <div
                 style={{
                   display: "flex",
-                  justifyContent: "center",
                   gap: "15px",
                 }}
               >
-                <ModalButton
-                  type="button"
+                <Button $variant="light"
+                  style={{ flex: 1 }}
+                  onClick={() => {
+                    setIsBulkMoveModalOpen(false);
+                    setBulkMoveTargetSetId("");
+                    setBulkNewSetName("");
+                    setErrorMessage("");
+                  }}
+                >
+                  Anuluj
+                </Button>
+                <Button $variant="dark"
+                  style={{ flex: 1 }}
                   onClick={async () => {
                     if (!bulkMoveTargetSetId) {
                       setErrorMessage("Wybierz zestaw docelowy");
@@ -4946,24 +4945,9 @@ const FlashcardsPage = () => {
                       fetchData();
                     }
                   }}
-                  style={{
-                    background: theme.colors.secondary,
-                    color: theme.colors.white,
-                  }}
                 >
                   Przenieś
-                </ModalButton>
-                <ModalButton
-                  type="button"
-                  onClick={() => {
-                    setIsBulkMoveModalOpen(false);
-                    setBulkMoveTargetSetId("");
-                    setBulkNewSetName("");
-                    setErrorMessage("");
-                  }}
-                >
-                  Anuluj
-                </ModalButton>
+                </Button>
               </div>
           </Modal>
         )}
@@ -4983,19 +4967,18 @@ const FlashcardsPage = () => {
               <div
                 style={{
                   display: "flex",
-                  justifyContent: "center",
                   gap: "15px",
                 }}
               >
-                <ModalButton
-                  type="button"
+                <Button $variant="light"
+                  style={{ flex: 1 }}
                   onClick={() => setCardToDelete(null)}
                 >
                   Anuluj
-                </ModalButton>
-                <ModalButton type="button" $danger onClick={executeDeleteCard}>
+                </Button>
+                <Button $variant="danger" style={{ flex: 1 }} onClick={executeDeleteCard}>
                   Usuń
-                </ModalButton>
+                </Button>
               </div>
           </Modal>
         )}
@@ -5028,20 +5011,19 @@ const FlashcardsPage = () => {
               <div
                 style={{
                   display: "flex",
-                  justifyContent: "center",
                   gap: "15px",
                   marginTop: "30px",
                 }}
               >
-                <ModalButton type="button" $danger onClick={handleClearTrash}>
-                  Wyczyść kosz
-                </ModalButton>
-                <ModalButton
-                  type="button"
+                <Button $variant="light"
+                  style={{ flex: 1 }}
                   onClick={() => setIsConfirmingTrashClear(false)}
                 >
                   Anuluj
-                </ModalButton>
+                </Button>
+                <Button $variant="danger" style={{ flex: 1 }} onClick={handleClearTrash}>
+                  Wyczyść kosz
+                </Button>
               </div>
           </Modal>
         )}
@@ -5079,19 +5061,13 @@ const FlashcardsPage = () => {
                 </p>
               </ModeCard>
 
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  marginTop: "30px",
-                }}
-              >
-                <ModalButton
-                  type="button"
+              <div style={{ marginTop: "30px" }}>
+                <Button $variant="dark"
+                  style={{ width: "100%" }}
                   onClick={() => setIsLearningInfoModalOpen(false)}
                 >
                   Rozumiem
-                </ModalButton>
+                </Button>
               </div>
           </Modal>
         )}
@@ -5131,33 +5107,19 @@ const FlashcardsPage = () => {
                   display: "flex",
                   flexDirection: "column",
                   gap: "15px",
-                  alignItems: "center",
                 }}
               >
-                <ModalButton
-                  type="button"
-                  style={{ width: "85%", padding: "14px", fontSize: "1.05rem" }}
+                <Button $variant="dark"
                   onClick={() => {
                     setIsResetConfirmModalOpen(false);
                     goToLearning(pendingMode);
                   }}
                 >
                   Kontynuuj naukę
-                </ModalButton>
-                <ModalButton
-                  type="button"
-                  style={{
-                    width: "85%",
-                    padding: "14px",
-                    background: "transparent",
-                    border: `2px solid ${theme.colors.danger}`,
-                    color: theme.colors.danger,
-                    fontSize: "1.05rem",
-                  }}
-                  onClick={handleResetAndStart}
-                >
+                </Button>
+                <Button $variant="danger" onClick={handleResetAndStart}>
                   Zacznij od nowa (zresetuj postępy)
-                </ModalButton>
+                </Button>
               </div>
           </Modal>
         )}
@@ -5177,25 +5139,23 @@ const FlashcardsPage = () => {
               <div
                 style={{
                   display: "flex",
-                  justifyContent: "center",
                   gap: "15px",
                 }}
               >
-                <ModalButton
-                  type="button"
+                <Button $variant="light"
+                  style={{ flex: 1 }}
                   onClick={() => setIsBulkDeleteModalOpen(false)}
                   disabled={isDeletingBulk}
                 >
                   Anuluj
-                </ModalButton>
-                <ModalButton
-                  type="button"
-                  $danger
+                </Button>
+                <Button $variant="danger"
+                  style={{ flex: 1 }}
                   onClick={executeBulkDelete}
                   disabled={isDeletingBulk}
                 >
                   {isDeletingBulk ? "Usuwanie..." : "Tak, usuń"}
-                </ModalButton>
+                </Button>
               </div>
           </Modal>
         )}
@@ -5215,19 +5175,17 @@ const FlashcardsPage = () => {
               <div
                 style={{
                   display: "flex",
-                  justifyContent: "center",
                   gap: "15px",
                 }}
               >
-                <ModalButton
-                  type="button"
+                <Button $variant="light"
+                  style={{ flex: 1 }}
                   onClick={() => setIsPartialEmptyModalOpen(false)}
                 >
                   Wróć i uzupełnij
-                </ModalButton>
-                <ModalButton
-                  type="button"
-                  $danger
+                </Button>
+                <Button $variant="danger"
+                  style={{ flex: 1 }}
                   onClick={() => {
                     setIsPartialEmptyModalOpen(false);
                     executeSaveCards(
@@ -5237,7 +5195,7 @@ const FlashcardsPage = () => {
                   }}
                 >
                   Kontynuuj bez nich
-                </ModalButton>
+                </Button>
               </div>
           </Modal>
         )}

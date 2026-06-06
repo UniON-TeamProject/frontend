@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import Button from "../atoms/Button";
 
 const Backdrop = styled.div`
   position: fixed;
@@ -78,20 +79,9 @@ const StyledLink = styled.a`
   color: ${({ theme }) => theme.colors.secondary};
 `;
 
-const CloseButton = styled.button`
+const CloseButton = styled(Button).attrs({ $variant: "dark" })`
   display: block;
   margin: 24px auto 0;
-  padding: 10px 32px;
-  background: ${({ theme }) => theme.colors.veryDarkPrimary};
-  color: ${({ theme }) => theme.colors.white};
-  border: none;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  &:hover {
-    opacity: 0.85;
-  }
 `;
 
 const TermsContent = () => (

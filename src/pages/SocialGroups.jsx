@@ -3,6 +3,8 @@ import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/organisms/Layout";
 import { Modal } from "../components/atoms/Modal";
+import Button from "../components/atoms/Button";
+import Box from "../components/atoms/Box";
 import {
   getUserSocialGroups,
   createSocialGroup,
@@ -82,11 +84,7 @@ const GroupsList = styled.div`
   margin-top: 10px;
 `;
 
-const GroupCard = styled.div`
-  background-color: ${({ theme }) => theme.colors.white};
-  border-radius: 20px;
-  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.04);
-  border: 1px solid ${({ theme }) => theme.colors.lightGrey};
+const GroupCard = styled(Box)`
   display: flex;
   padding: 20px 30px;
   width: 80%;
@@ -421,29 +419,6 @@ const ButtonGroup = styled.div`
   margin-top: 15px;
 `;
 
-const ModalButton = styled.button`
-  background-color: ${({ $primary, $success, theme }) =>
-    $success
-      ? theme.colors.secondary
-      : $primary
-      ? theme.colors.text
-      : "transparent"};
-  color: ${({ $primary, $success, theme }) =>
-    $primary || $success ? "#fff" : theme.colors.text};
-  border: ${({ $primary, $success, theme }) =>
-    $primary || $success ? "none" : `1px solid ${theme.colors.darkGrey}`};
-  padding: 12px 25px;
-  border-radius: 12px;
-  font-size: 0.95rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-  min-width: 120px;
-
-  &:hover {
-    opacity: 0.8;
-  }
-`;
 
 const SocialGroups = () => {
   const navigate = useNavigate();
@@ -906,17 +881,17 @@ const SocialGroups = () => {
               </FormGroup>
 
               <ButtonGroup>
-                <ModalButton
+                <Button $variant="light"
                   type="button"
+                  style={{ flex: 1 }}
                   onClick={() => setIsAddModalOpen(false)}
                   disabled={isSubmitting || isSuccess}
                 >
                   Anuluj
-                </ModalButton>
-                <ModalButton
+                </Button>
+                <Button $variant="dark"
                   type="submit"
-                  $primary={!isSuccess}
-                  $success={isSuccess}
+                  style={{ flex: 1 }}
                   disabled={isSubmitting || isSuccess}
                 >
                   {isSuccess
@@ -924,7 +899,7 @@ const SocialGroups = () => {
                     : isSubmitting
                     ? "Tworzenie..."
                     : "Utwórz grupę"}
-                </ModalButton>
+                </Button>
               </ButtonGroup>
             </form>
           </Modal>

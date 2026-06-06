@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import SubmitButton from "../../atoms/SubmitButton";
+import Button from "../../atoms/Button";
 import Input from "../../atoms/Input";
 import styled from "styled-components";
 import Text from "../../atoms/Text";
@@ -31,12 +31,6 @@ const StyledLine = styled.div`
     > span {
       background-color: ${({ theme }) => theme.colors.pageBg};
     }
-  }
-`;
-
-const StyledRedirectButton = styled(SubmitButton)`
-  @media (max-width: 768px) {
-    background-color: ${({ theme }) => theme.colors.white};
   }
 `;
 
@@ -116,15 +110,18 @@ const EmailStep = ({
           if (e.key === "Enter") handleSubmit();
         }}
       />
-      <SubmitButton
-        text={submitting ? "Wysyłanie..." : "Kontynuuj"}
-        color="dark"
+      <Button
+        $variant="dark"
+        type="button"
         disabled={submitting}
         onClick={(e) => {
           e.preventDefault();
           if (validateEmail()) handleVerifyEmail();
         }}
-      />
+        style={{ width: "100%" }}
+      >
+        {submitting ? "Wysyłanie..." : "Kontynuuj"}
+      </Button>
       {/* <StyledLine>
         <span>lub</span>
       </StyledLine>

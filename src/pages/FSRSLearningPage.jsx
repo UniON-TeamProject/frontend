@@ -3,10 +3,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import styled, { keyframes, useTheme } from "styled-components";
 import { getFsrsCards, sendFsrsAnswer, editCard, getCardDues } from "../api";
 import { getToken, removeToken } from "../token";
-import SubmitButton from "../components/atoms/SubmitButton";
 import Input from "../components/atoms/Input";
 import Text from "../components/atoms/Text";
 import { Modal } from "../components/atoms/Modal";
+import Button from "../components/atoms/Button";
 
 const stripHtml = (html) => {
   if (!html) return "";
@@ -847,11 +847,9 @@ export default function FsrsLearningPage() {
               />
             </div>
 
-            <SubmitButton
-              text="Zapisz zmiany"
-              color="dark"
-              onClick={handleEditSubmit}
-            />
+            <Button $variant="dark" style={{ width: "100%" }} onClick={handleEditSubmit}>
+              Zapisz zmiany
+            </Button>
         </Modal>
       )}
 

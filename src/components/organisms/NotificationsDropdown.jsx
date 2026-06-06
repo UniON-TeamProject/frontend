@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { Modal } from "../atoms/Modal";
+import Button from "../atoms/Button";
 import {
   getNotifications,
   markNotificationAsRead,
@@ -147,25 +148,6 @@ const ButtonGroup = styled.div`
   justify-content: center;
   gap: 15px;
   width: 100%;
-`;
-
-const ModalButton = styled.button`
-  background-color: ${({ $danger, theme }) =>
-    $danger ? theme.colors.danger : "transparent"};
-  color: ${({ $danger, theme }) => ($danger ? "#fff" : theme.colors.text)};
-  border: ${({ $danger, theme }) =>
-    $danger ? "none" : `1px solid ${theme.colors.darkGrey}`};
-  padding: 10px 20px;
-  border-radius: 12px;
-  font-size: 0.95rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-  flex: 1;
-
-  &:hover {
-    opacity: 0.8;
-  }
 `;
 
 const CheckboxWrapper = styled.label`
@@ -470,10 +452,12 @@ const NotificationsDropdown = ({ onClose, onRefresh }) => {
           </CheckboxWrapper>
 
           <ButtonGroup>
-            <ModalButton onClick={cancelClearAll}>Anuluj</ModalButton>
-            <ModalButton $danger onClick={confirmClearAll}>
+            <Button $variant="light" style={{ flex: 1 }} onClick={cancelClearAll}>
+              Anuluj
+            </Button>
+            <Button $variant="danger" style={{ flex: 1 }} onClick={confirmClearAll}>
               Tak, wyczyść
-            </ModalButton>
+            </Button>
           </ButtonGroup>
         </Modal>
       )}

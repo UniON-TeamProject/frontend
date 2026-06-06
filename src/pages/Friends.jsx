@@ -3,6 +3,7 @@ import styled, { useTheme } from "styled-components";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/organisms/Layout";
 import { Modal } from "../components/atoms/Modal";
+import Button from "../components/atoms/Button";
 import {
   getFriends,
   getPendingInvites,
@@ -657,11 +658,11 @@ const Friends = () => {
             <div
               style={{
                 display: "flex",
-                justifyContent: "center",
                 gap: "15px",
               }}
             >
-              <ActionBtn
+              <Button $variant="light"
+                style={{ flex: 1 }}
                 onClick={() =>
                   setDeleteFriendModal({
                     ...deleteFriendModal,
@@ -670,9 +671,9 @@ const Friends = () => {
                 }
               >
                 Anuluj
-              </ActionBtn>
-              <ActionBtn
-                $variant="danger"
+              </Button>
+              <Button $variant="danger"
+                style={{ flex: 1 }}
                 onClick={async () => {
                   await handleRemoveFriend(deleteFriendModal.friendId);
                   setDeleteFriendModal({
@@ -682,7 +683,7 @@ const Friends = () => {
                 }}
               >
                 Usuń znajomego
-              </ActionBtn>
+              </Button>
             </div>
           </Modal>
         )}
@@ -708,15 +709,14 @@ const Friends = () => {
             >
               {infoModal.message}
             </p>
-            <div style={{ display: "flex", justifyContent: "center" }}>
-              <ActionBtn
-                onClick={() =>
-                  setInfoModal({ isOpen: false, message: "", isError: false })
-                }
-              >
-                Zamknij
-              </ActionBtn>
-            </div>
+            <Button $variant="dark"
+              style={{ width: "100%" }}
+              onClick={() =>
+                setInfoModal({ isOpen: false, message: "", isError: false })
+              }
+            >
+              Zamknij
+            </Button>
           </Modal>
         )}
       </PageContainer>

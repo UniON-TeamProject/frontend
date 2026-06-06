@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import SubmitButton from "../../atoms/SubmitButton";
+import Button from "../../atoms/Button";
 import Input from "../../atoms/Input";
 import Text from "../../atoms/Text";
 import { registerRequest, usernameVerificationRequest } from "../../../api";
@@ -278,15 +278,18 @@ const AccountDataStep = ({
       {passwordRegexVisible && (
         <PasswordRequirements password={password} />
       )}
-      <SubmitButton
-        text={submitting ? "Rejestrowanie..." : "Kontynuuj"}
-        color="dark"
+      <Button
+        $variant="dark"
+        type="button"
         disabled={submitting}
         onClick={(e) => {
           e.preventDefault();
           handleSubmit();
         }}
-      />
+        style={{ width: "100%"}}
+      >
+        {submitting ? "Rejestrowanie..." : "Kontynuuj"}
+      </Button>
       <StyledTermsClause>
         Klikając “Kontynuuj” akceptujesz nasz{" "}
         <p

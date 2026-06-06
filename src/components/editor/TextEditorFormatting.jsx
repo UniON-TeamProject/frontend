@@ -4,8 +4,8 @@ import styled, { useTheme } from "styled-components";
 import TextSizeDropdown from "./TextSizeDropdown.jsx";
 import Text from "../atoms/Text";
 import Input from "../atoms/Input";
-import SubmitButton from "../atoms/SubmitButton";
 import { Modal } from "../atoms/Modal";
+import Button from "../atoms/Button";
 import HelpIcon from "../atoms/HelpIcon";
 
 const StyledContainer = styled.div`
@@ -305,27 +305,27 @@ function TextEditorFormatting({ editor }) {
           <div
             style={{
               display: "flex",
-              justifyContent: "center",
               gap: "15px",
               marginTop: "30px",
             }}
           >
-            <SubmitButton
-              text="Anuluj"
-              color="light"
+            <Button $variant="light"
+              style={{ flex: 1 }}
               disabled={isSuccess}
               onClick={() => {
                 setIsImageModalOpen(false);
                 setImageUrl("");
               }}
-            />
-
-            <SubmitButton
-              text={isSuccess ? "✔ Dodano!" : "Dodaj zdjęcie"}
-              color={isSuccess ? "secondary" : "dark"}
+            >
+              Anuluj
+            </Button>
+            <Button $variant="dark"
+              style={{ flex: 1 }}
               disabled={isSuccess}
               onClick={handleAddImage}
-            />
+            >
+              {isSuccess ? "✔ Dodano!" : "Dodaj zdjęcie"}
+            </Button>
           </div>
         </Modal>
       )}

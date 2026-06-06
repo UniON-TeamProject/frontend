@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import SubmitButton from "../components/atoms/SubmitButton";
+import Button from "../components/atoms/Button";
 import Input from "../components/atoms/Input";
 import Text from "../components/atoms/Text";
 import Logo from "../components/atoms/Logo";
@@ -99,12 +99,6 @@ const StyledLink = styled(Link)`
   font-weight: 600;
   color: ${({ theme }) => theme.colors.text};
   font-size: 0.9rem;
-`;
-
-const StyledRedirectButton = styled(SubmitButton)`
-  @media (max-width: 768px) {
-    background-color: ${({ theme }) => theme.colors.white};
-  }
 `;
 
 const Login = () => {
@@ -209,15 +203,18 @@ const Login = () => {
             </StyledCheckbox>
             <StyledLink to="/reset-password">Nie pamiętasz hasła?</StyledLink>
           </StyledRememberMeAndForgotPassword>
-          <SubmitButton
-            text={submitting ? "Logowanie..." : "Kontynuuj"}
-            color="dark"
+          <Button
+            $variant="dark"
+            type="button"
             disabled={submitting}
             onClick={(e) => {
               e.preventDefault();
               handleSubmit();
             }}
-          />
+            style={{ width: "100%", marginTop: "8px" }}
+          >
+            {submitting ? "Logowanie..." : "Kontynuuj"}
+          </Button>
           {/* <StyledLine>
             <span>lub</span>
           </StyledLine>

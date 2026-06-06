@@ -1,6 +1,7 @@
 import styled, { keyframes } from "styled-components";
-import React, { useState, useEffect } from "react";
-import SubmitButton from "../components/atoms/SubmitButton";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import Button from "../components/atoms/Button";
 import Text from "../components/atoms/Text";
 import Logo from "../components/atoms/Logo";
 import Box from "../components/atoms/Box";
@@ -14,7 +15,7 @@ const fadeOut = keyframes`
 const fadeIn = keyframes`
   from { opacity: 0; }
   to { opacity: 1; }
-`;
+`; 
 
 const SplashContainer = styled.div`
   width: 100vw;
@@ -50,26 +51,25 @@ const StyledBox = styled(Box)`
   transform: translate(-50%, -50%);
   padding: 30px 80px 50px 80px;
   cursor: default;
-  a {
-    margin: 10px 0;
-  }
   @media (max-width: 768px) {
     width: 100%;
     margin: 0 auto;
     padding: 30px 40px;
     background-color: ${({ theme }) => theme.colors.pageBg};
-    box-shadow:unset;SubmitButton
+    box-shadow: unset;
   }
 `;
 
-const StyledSubmitButton = styled(SubmitButton)`
+const StyledSubmitButton = styled(Button)`
+  width: 100%;
+  margin: 5px 0;
   @media (max-width: 768px) {
     background-color: ${({ theme }) => theme.colors.white};
   }
 `;
 
 const StyledInfoBanner = styled.div`
-  background-color: ${({ theme }) => theme.colors.primary}22;
+  background-color: ${({ theme }) => theme.colors.lightPrimary};
   border: 1px solid ${({ theme }) => theme.colors.primary};
   border-radius: 10px;
   padding: 10px 14px;
@@ -83,6 +83,7 @@ const LOGOUT_MESSAGES = {
 };
 
 const WelcomePage = () => {
+  const navigate = useNavigate();
   const [infoBanner, setInfoBanner] = useState("");
   
   const [showSplash, setShowSplash] = useState(() => {
@@ -109,7 +110,7 @@ const WelcomePage = () => {
     }, 400);
   };
 
-  //jeśli by się zacięło to po 5 sekundach przechodzimy dalej jakby nigdy nic
+  //jeśli by się zacięło to po 7 sekundach przechodzimy dalej jakby nigdy nic
   useEffect(() => {
     if (showSplash) {
       const timer = setTimeout(() => {
@@ -140,12 +141,19 @@ const WelcomePage = () => {
         <AppTitle />
         <Text
           as="h3"
-          style={{ padding: "20px 0", fontWeight: "600"}}
+          style={{ padding: "15px 0", fontWeight: "600"}}
           text="Włącz się do nauki!"
         />
         {infoBanner && <StyledInfoBanner>{infoBanner}</StyledInfoBanner>}
-        <StyledSubmitButton text="Logowanie" path="/login" />
-        <StyledSubmitButton text="Stwórz konto" path="/register" />
+        <StyledSubmitButton $variant="grey" onClick={() => navigate("/login")}>
+          Logowanie
+        </StyledSubmitButton>
+        <StyledSubmitButton
+          $variant="grey"
+          onClick={() => navigate("/register")}
+        >
+          Stwórz konto
+        </StyledSubmitButton>
       </StyledBox>
     </StyledContainer>
   );

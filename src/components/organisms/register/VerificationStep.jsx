@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { useNavigate } from 'react-router-dom'
-import SubmitButton from '../../atoms/SubmitButton'
+import Button from '../../atoms/Button'
 import Text from '../../atoms/Text'
 import VerificationInput from "react-verification-input"
 import { verificationRequest, resendVerificationCode } from '../../../api'
@@ -87,10 +87,10 @@ const VerificationStep = ({ email, setStep, setSuccessPopupActive, setSuccessPop
                     }}
                 />
             </div>
-            <SubmitButton text="Kontynuuj" color="dark" onClick={() => {
+            <Button $variant="dark" type="button" onClick={() => {
                 if (verificationCode.length == 6)
                     handleVerifyVerificationCode();
-            }} />
+            }} style={{ width: "100%"}}>Kontynuuj</Button>
 
             <ResendVerificationCodeButton>
                 <p>Kod nie dotarł?</p>
