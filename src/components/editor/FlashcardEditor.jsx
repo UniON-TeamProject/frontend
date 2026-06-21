@@ -11,9 +11,7 @@ import { slashItems } from "../../helpers/textEditor/slashItems.jsx";
 const EditorWrapper = styled.div`
   border: 1px solid
     ${({ theme, $hasError }) =>
-      $hasError
-        ? theme.colors.danger
-        : theme.colors.darkGrey};
+      $hasError ? theme.colors.danger : theme.colors.darkGrey};
   border-radius: 8px;
   padding: 10px 12px;
   height: 100px;
@@ -35,6 +33,31 @@ const EditorWrapper = styled.div`
     word-wrap: break-word;
     overflow-wrap: break-word;
     word-break: break-word;
+  }
+
+  .ProseMirror p {
+    margin: 0.35em 0;
+  }
+
+  .ProseMirror ul {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+    margin: 0.5em 0;
+  }
+
+  .ProseMirror ol {
+    list-style-type: decimal;
+    padding-left: 1.5rem;
+    margin: 0.5em 0;
+  }
+
+  .ProseMirror li {
+    display: list-item;
+    margin: 0.25em 0;
+  }
+
+  .ProseMirror li p {
+    margin: 0;
   }
 
   .is-empty::before {

@@ -843,6 +843,9 @@ const TagsDivider = styled.hr`
 
 const CardSideContent = styled.div`
   font-size: 0.95rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+
   @media (max-width: 768px) {
     font-size: 0.8rem;
     p {
@@ -1861,12 +1864,31 @@ const FlashcardsPage = () => {
     }
 
     if (setId && !isTrashView) {
-      const parsedId = parseInt(setId);
-      let targetSet = safeSets.find((s) => s.id === parsedId);
-
+      const parsedId = parseInt(setId, 10);
       const sId = new URLSearchParams(location.search).get("socialId");
 
+      if (sId) {
+        const groupRes = await getSocialGroup(sId);
+
+        if (groupRes.errorCode) {
+          if (groupRes.errorCode === "TOKEN_UNDEFINED") {
+            navigate("/", { replace: true });
+            return;
+          }
+
+          setGroupRole(null);
+          setErrorMessage(groupRes.message || "Nie udało się pobrać roli w grupie.");
+        } else {
+          setGroupRole(groupRes.userRole);
+        }
+      } else {
+        setGroupRole(null);
+      }
+
+      let targetSet = safeSets.find((s) => s.id === parsedId);
+
       const singleRes = await getFlashcardSet(parsedId, sId);
+
       if (!singleRes.errorCode && singleRes.id) {
         if (targetSet) {
           Object.assign(targetSet, singleRes);
@@ -1874,28 +1896,8 @@ const FlashcardsPage = () => {
           safeSets = [...safeSets, singleRes];
           targetSet = singleRes;
         }
-      }
-
-      if (!targetSet) {
-        if (sId) {
-          const singleRes = await getFlashcardSet(parsedId, sId);
-
-          if (!singleRes.errorCode && singleRes.id) {
-            safeSets = [...safeSets, singleRes];
-            targetSet = singleRes;
-
-            const groupRes = await getSocialGroup(sId);
-            if (!groupRes.errorCode) {
-              setGroupRole(groupRes.userRole);
-            }
-          } else {
-            setErrorMessage(
-              singleRes.message || "Brak dostępu do zestawu grupowego."
-            );
-          }
-        }
-      } else {
-        setGroupRole(null);
+      } else if (sId) {
+        setErrorMessage(singleRes.message || "Brak dostępu do zestawu grupowego.");
       }
 
       if (targetSet) {
@@ -1905,6 +1907,7 @@ const FlashcardsPage = () => {
       }
     } else {
       setActiveSetId(null);
+      setGroupRole(null);
       setIsLearningMenuOpen(false);
       setIsAddingMode(false);
     }
@@ -2642,6 +2645,18 @@ const FlashcardsPage = () => {
     }
   };
 
+  const withSocialQuery = (path) => {
+    return socialId ? `${path}?socialId=${socialId}` : path;
+  };
+
+  const goToLearning = (mode) => {
+    if (mode === "fast") {
+      navigate(withSocialQuery(`/learning/fast/${currentSet.id}`));
+    } else {
+      navigate(withSocialQuery(`/learning/fsrs/${currentSet.id}`));
+    }
+  };
+
   const handleModeSelection = async (mode) => {
     setIsLearningMenuOpen(false);
     setPendingMode(mode);
@@ -2655,14 +2670,6 @@ const FlashcardsPage = () => {
     } else {
       // jesli nie, po prostu wchodzimy do nauki
       goToLearning(mode);
-    }
-  };
-
-  const goToLearning = (mode) => {
-    if (mode === "fast") {
-      navigate(`/learning/fast/${currentSet.id}`);
-    } else {
-      navigate(`/learning/fsrs/${currentSet.id}`);
     }
   };
 
@@ -3241,7 +3248,7 @@ const FlashcardsPage = () => {
                       $disabled={hasLearningSession === false}
                       onClick={() => {
                         if (hasLearningSession !== false) {
-                          navigate(`/learning/fast/${currentSet?.id}`);
+                          navigate(withSocialQuery(`/learning/fast/${currentSet?.id}`));
                         }
                       }}
                     >

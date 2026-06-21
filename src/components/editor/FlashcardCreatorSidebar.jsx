@@ -272,6 +272,8 @@ const FlashcardInput = styled.textarea`
   color: ${({ theme }) => theme.colors.text};
   background: ${({ theme }) => theme.colors.lightGrey};
   line-height: 1.4;
+  white-space: pre-wrap;
+
   &:focus {
     outline: none;
     border-color: ${({ theme }) => theme.colors.secondary};
@@ -440,6 +442,43 @@ function SaveStatusIcon({ status }) {
 
 const NEW_SET = "__new__";
 const DEBOUNCE_MS = 1000;
+
+const hasHtmlTags = (value) => /<\/?[a-z][\s\S]*>/i.test(value || "");
+
+const htmlToPlainTextWithLines = (value) => {
+  if (!value) return "";
+
+  if (!hasHtmlTags(value)) {
+    return value;
+  }
+
+  const html = value
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>\s*<p[^>]*>/gi, "\n")
+    .replace(/<\/div>\s*<div[^>]*>/gi, "\n")
+    .replace(/<\/h[1-6]>\s*<h[1-6][^>]*>/gi, "\n")
+    .replace(/<\/li>\s*<li[^>]*>/gi, "\n• ")
+    .replace(/<li[^>]*>/gi, "• ")
+    .replace(/<\/li>/gi, "\n")
+    .replace(/<\/p>/gi, "\n")
+    .replace(/<\/div>/gi, "\n")
+    .replace(/<\/h[1-6]>/gi, "\n");
+
+  const doc = new DOMParser().parseFromString(html, "text/html");
+
+  return (doc.body.textContent || "")
+    .replace(/\u00a0/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+};
+
+const plainTextToHtml = (text) => {
+  return (text || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\n/g, "<br />");
+};
 
 function FlashcardCreatorSidebar({
   isOpen,
@@ -630,7 +669,10 @@ function FlashcardCreatorSidebar({
 
   const autoSave = async (index) => {
     const card = flashcardsRef.current[index];
-    if (!card || (!card.front.trim() && !card.back.trim())) return;
+    const frontPlain = htmlToPlainTextWithLines(card?.front).trim();
+    const backPlain = htmlToPlainTextWithLines(card?.back).trim();
+
+    if (!card || (!frontPlain && !backPlain)) return;
     if (!isSetReady()) return;
 
     const setId = await getOrCreateSetId();
@@ -657,18 +699,22 @@ function FlashcardCreatorSidebar({
     let result;
     //id notatki z urla
     const currentNoteId = window.location.pathname.split('/').pop();
+
+    const frontHtml = plainTextToHtml(frontPlain);
+    const backHtml = plainTextToHtml(backPlain);
+
     if (meta?.id) {
       result = await editCard(
         meta.id,
-        card.front.trim(),
-        card.back.trim(),
+        frontHtml,
+        backHtml,
         setId,
         mergedTags
       );
     } else {
       result = await addCard(
-        card.front.trim(),
-        card.back.trim(),
+        frontHtml,
+        backHtml,
         setId,
         mergedTags,
         false,          //isForced
@@ -722,14 +768,20 @@ function FlashcardCreatorSidebar({
   };
 
   const updateCard = (index, field, value) => {
+    const normalizedValue = htmlToPlainTextWithLines(value);
+
     setFlashcards((prev) =>
-      prev.map((card, i) => (i === index ? { ...card, [field]: value } : card))
+      prev.map((card, i) =>
+        i === index ? { ...card, [field]: normalizedValue } : card
+      )
     );
+
     setCardMeta((prev) =>
       prev.map((m, i) =>
         i === index ? { ...m, status: "idle", error: null } : m
       )
     );
+
     scheduleAutoSave(index);
   };
 
@@ -917,7 +969,7 @@ function FlashcardCreatorSidebar({
                 </RemoveCardBtn>
               </EntryHeader>
               <FlashcardInput
-                value={card.front}
+                value={htmlToPlainTextWithLines(card.front)}
                 placeholder="Przód fiszki"
                 onChange={(e) => updateCard(index, "front", e.target.value)}
                 onDragOver={(e) => {
@@ -928,7 +980,7 @@ function FlashcardCreatorSidebar({
               <FieldSeparator />
               <FlashcardLabel>Tył fiszki</FlashcardLabel>
               <FlashcardInput
-                value={card.back}
+                value={htmlToPlainTextWithLines(card.back)}
                 placeholder="Tył fiszki"
                 onChange={(e) => updateCard(index, "back", e.target.value)}
                 onDragOver={(e) => {

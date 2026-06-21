@@ -58,6 +58,9 @@ const CardContent = styled.div`
   overflow-y: auto;
   overscroll-behavior-y: auto;
 
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+
   scrollbar-width: thin;
   scrollbar-color: ${({ theme }) => theme.colors.secondary}
     transparent;
@@ -93,12 +96,37 @@ const CardContent = styled.div`
     margin: 0.5em 0;
     word-break: break-word;
   }
-  ul,
-  ol {
+
+  ul {
+    list-style-type: disc;
+    list-style-position: outside;
     padding-left: 1.5rem;
     text-align: left;
     margin: 0.5em 0;
+    width: 100%;
+    align-self: stretch;
   }
+
+  ol {
+    list-style-type: decimal;
+    list-style-position: outside;
+    padding-left: 1.5rem;
+    text-align: left;
+    margin: 0.5em 0;
+    width: 100%;
+    align-self: stretch;
+  }
+
+  li {
+    display: list-item;
+    margin: 0.25em 0;
+    text-align: left;
+  }
+
+  li p {
+    margin: 0;
+  }
+
   code {
     background-color: ${({ theme }) => theme.colors.borderLight};
     padding: 2px 5px;

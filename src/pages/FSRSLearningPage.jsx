@@ -14,6 +14,27 @@ const stripHtml = (html) => {
   return (doc.body.textContent || "").replace(/\u00a0/g, " ").trim();
 };
 
+const htmlToPlainTextWithLines = (html) => {
+  if (!html) return "";
+
+  const normalized = html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>\s*<p[^>]*>/gi, "\n")
+    .replace(/<\/div>\s*<div[^>]*>/gi, "\n")
+    .replace(/<\/li>\s*<li[^>]*>/gi, "\n");
+
+  const doc = new DOMParser().parseFromString(normalized, "text/html");
+  return (doc.body.textContent || "").replace(/\u00a0/g, " ").trim();
+};
+
+const plainTextToHtml = (text) => {
+  return (text || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\n/g, "<br />");
+};
+
 const fadeIn = keyframes` 
   from { 
     opacity: 0; 
@@ -134,10 +155,70 @@ const CardFace = styled.div`
     font-size: 1.7rem;
     font-weight: 600;
     color: ${({ theme }) => theme.colors.text};
-    overflow-wrap: break-word;
-    word-break: break-word;
+
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+
     overflow-y: auto;
+    overflow-x: hidden;
+
     max-height: calc(100% - 60px);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-wrap: break-word;
+    word-break: break-word;
+
+    ul {
+      list-style-type: disc;
+      list-style-position: outside;
+      padding-left: 1.5rem;
+      margin: 0.5em 0;
+      text-align: left;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
+    ol {
+      list-style-type: decimal;
+      list-style-position: outside;
+      padding-left: 1.5rem;
+      margin: 0.5em 0;
+      text-align: left;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
+    li {
+      display: list-item;
+      text-align: left;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    p {
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    pre {
+      max-width: 100%;
+      overflow-x: hidden;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    code {
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
     @media (max-width: 768px) {
       font-size: 1.2rem;
     }
@@ -161,9 +242,13 @@ const CardBack = styled(CardFace)`
   .content {
     -webkit-line-clamp: unset;
     overflow-y: auto;
+    overflow-x: hidden;
     display: block;
     max-height: calc(100% - 110px);
     margin: auto 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 `;
 
@@ -498,8 +583,8 @@ export default function FsrsLearningPage() {
   const openEditModal = (e) => {
     e.stopPropagation();
     const card = cards[currentIndex];
-    setEditQ(stripHtml(card.contentFirstSide));
-    setEditA(stripHtml(card.contentFlipSide));
+    setEditQ(htmlToPlainTextWithLines(card.contentFirstSide));
+    setEditA(htmlToPlainTextWithLines(card.contentFlipSide));
     setModalError("");
     setModalSuccess("");
     setIsEditModalOpen(true);
@@ -513,10 +598,13 @@ export default function FsrsLearningPage() {
     const currentCard = cards[currentIndex];
     const existingTags = currentCard.cardTags || [];
 
+    const questionHtml = plainTextToHtml(editQ);
+    const answerHtml = plainTextToHtml(editA);
+
     const res = await editCard(
       currentCard.id,
-      editQ,
-      editA,
+      questionHtml,
+      answerHtml,
       parseInt(setId),
       existingTags
     );
@@ -527,8 +615,8 @@ export default function FsrsLearningPage() {
       const newCards = [...cards];
       newCards[currentIndex] = {
         ...currentCard,
-        contentFirstSide: editQ,
-        contentFlipSide: editA,
+        contentFirstSide: questionHtml,
+        contentFlipSide: answerHtml,
         cardTags: existingTags,
       };
       setCards(newCards);

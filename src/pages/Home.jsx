@@ -741,7 +741,12 @@ const Home = () => {
           })
         );
 
-        setsWithStats.sort((a, b) => b._sortTime - a._sortTime);
+        const unfinishedFastSessions = setsWithStats
+          .filter((set) => {
+            const progress = Number(set.progress);
+            return Number.isFinite(progress) && progress > 0 && progress < 100;
+          })
+          .sort((a, b) => b._sortTime - a._sortTime);
 
         const sortedFolders = [...foldersArray]
           .filter((f) => f.name !== "/")
@@ -759,7 +764,7 @@ const Home = () => {
           return dateB - dateA;
         });
 
-        setRecentSets(setsWithStats.slice(0, 3));
+        setRecentSets(unfinishedFastSessions.slice(0, 3));
         setRecentNotes(sortedNotes.slice(0, 3));
         setRecentFolders(sortedFolders.slice(0, 3));
         setAllFoldersList(foldersArray);
