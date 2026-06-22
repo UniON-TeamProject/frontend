@@ -2291,7 +2291,10 @@ const FlashcardsPage = () => {
         card.question,
         card.answer,
         parseInt(activeSetId),
-        inheritedTags
+        inheritedTags,
+        ignoreDuplicates,
+        null,
+        socialId
       );
       if (res.errorCode === "TOKEN_UNDEFINED") {
         navigate("/", { replace: true });
@@ -2821,7 +2824,7 @@ const FlashcardsPage = () => {
                               onMouseDown={() => {
                                 setSearchQuery("");
                                 setIsSearchFocused(false);
-                                navigate(`/learning/set/${s.id}`);
+                                navigate(withSocialQuery(`/learning/set/${s.id}`));
                               }}
                             >
                               <svg
@@ -2880,7 +2883,7 @@ const FlashcardsPage = () => {
                                 onMouseDown={() => {
                                   setSearchQuery("");
                                   setIsSearchFocused(false);
-                                  navigate(`/learning/set/${c.setId}`, {
+                                  navigate(withSocialQuery(`/learning/set/${c.setId}`), {
                                     state: { highlightCardId: c.id },
                                   });
                                 }}
@@ -4341,7 +4344,9 @@ const FlashcardsPage = () => {
                     }));
                     const res = await addListOfCardsToSet(
                       currentSet.id,
-                      cardRequests
+                      cardRequests,
+                      null,
+                      socialId
                     );
                     if (res.errorCode) {
                       setErrorMessage(res.message);

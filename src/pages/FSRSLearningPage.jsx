@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import styled, { keyframes, useTheme } from "styled-components";
 import { getFsrsCards, sendFsrsAnswer, editCard, getCardDues } from "../api";
 import { getToken, removeToken } from "../token";
@@ -507,6 +507,13 @@ export default function FsrsLearningPage() {
   const { setId } = useParams();
   const navigate = useNavigate();
   const theme = useTheme();
+  const location = useLocation();
+
+  const socialId = new URLSearchParams(location.search).get("socialId");
+
+  const withSocialQuery = (path) => {
+    return socialId ? `${path}?socialId=${socialId}` : path;
+  };
 
   const [cards, setCards] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -532,7 +539,7 @@ export default function FsrsLearningPage() {
       return;
     }
     const fetchCards = async () => {
-      const data = await getFsrsCards(setId);
+      const data = await getFsrsCards(setId, socialId);
       if (data?.errorCode === "TOKEN_UNDEFINED") {
         removeToken();
         navigate("/", { replace: true });
@@ -544,7 +551,7 @@ export default function FsrsLearningPage() {
       setIsLoading(false);
     };
     fetchCards();
-  }, [setId]);
+  }, [setId, socialId, navigate]);
 
   useEffect(() => {
     if (cards.length > 0 && currentIndex < cards.length) {
@@ -627,7 +634,7 @@ export default function FsrsLearningPage() {
 
   const handleExitClick = (e) => {
     e.preventDefault();
-    navigate(`/learning/set/${setId}`);
+    navigate(withSocialQuery(`/learning/set/${setId}`));
   };
 
   const currentCard = cards[currentIndex];
@@ -673,7 +680,7 @@ export default function FsrsLearningPage() {
         <TopBar>
           <ExitButton
             type="button"
-            onClick={() => navigate(`/learning/set/${setId}`)}
+            onClick={() => navigate(withSocialQuery(`/learning/set/${setId}`))}
           >
             <svg
               fill="none"
@@ -701,7 +708,7 @@ export default function FsrsLearningPage() {
             </p>
             <EndScreenButton
               type="button"
-              onClick={() => navigate(`/learning/set/${setId}`)}
+              onClick={() => navigate(withSocialQuery(`/learning/set/${setId}`))}
             >
               Wróć do zestawu
             </EndScreenButton>

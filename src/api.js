@@ -1513,21 +1513,40 @@ export async function getFlashcardSetsBySocialId(socialId) {
   }
 }
 
-export async function getFastLearningCards(setId) {
+export async function getFastLearningCards(setId, socialId = null) {
   const token = getToken();
   if (!token) return null;
+
   try {
-    const resp = await fetch(`${API_HOST}/getCardsToLearn/${setId}`, {
-      method: "GET",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const params = new URLSearchParams();
+    if (socialId) params.append("socialId", socialId);
+    const queryString = params.toString() ? `?${params.toString()}` : "";
+
+    const resp = await fetch(
+      `${API_HOST}/getCardsToLearn/${setId}${queryString}`,
+      {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
     const authErr = checkUnauthorized(resp);
     if (authErr) return authErr;
 
-    if (!resp.ok) throw new Error("Błąd pobierania");
+    if (!resp.ok) {
+      const data = await resp.json().catch(() => ({}));
+      return {
+        errorCode: data.errorCode || "FETCH_ERROR",
+        message: data.message || "Błąd pobierania fiszek do nauki",
+      };
+    }
+
     return await resp.json();
   } catch (err) {
-    return null;
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Błąd połączenia z serwerem",
+    };
   }
 }
 
@@ -1590,21 +1609,40 @@ export async function resetFlashcardSetProgress(setId) {
 //
 // FSRS
 //
-export async function getFsrsCards(setId) {
+export async function getFsrsCards(setId, socialId = null) {
   const token = getToken();
   if (!token) return null;
+
   try {
-    const resp = await fetch(`${API_HOST}/getCardsToLearnFsrs/${setId}`, {
-      method: "GET",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const params = new URLSearchParams();
+    if (socialId) params.append("socialId", socialId);
+    const queryString = params.toString() ? `?${params.toString()}` : "";
+
+    const resp = await fetch(
+      `${API_HOST}/getCardsToLearnFsrs/${setId}${queryString}`,
+      {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
     const authErr = checkUnauthorized(resp);
     if (authErr) return authErr;
 
-    if (!resp.ok) throw new Error("Błąd pobierania");
+    if (!resp.ok) {
+      const data = await resp.json().catch(() => ({}));
+      return {
+        errorCode: data.errorCode || "FETCH_ERROR",
+        message: data.message || "Błąd pobierania fiszek FSRS",
+      };
+    }
+
     return await resp.json();
   } catch (err) {
-    return null;
+    return {
+      errorCode: "CONNECTION_ERROR",
+      message: "Błąd połączenia z serwerem",
+    };
   }
 }
 

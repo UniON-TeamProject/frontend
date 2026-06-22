@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import styled, { keyframes, useTheme } from "styled-components";
 import { getFastLearningCards, sendFastLearningAnswer, editCard } from "../api";
 import { getToken, removeToken } from "../token";
@@ -566,6 +566,13 @@ export default function FastLearningPage() {
   const { setId } = useParams();
   const navigate = useNavigate();
   const theme = useTheme();
+  const location = useLocation();
+
+  const socialId = new URLSearchParams(location.search).get("socialId");
+
+  const withSocialQuery = (path) => {
+    return socialId ? `${path}?socialId=${socialId}` : path;
+  };
 
   const [cards, setCards] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -591,7 +598,7 @@ export default function FastLearningPage() {
       return;
     }
     const fetchCards = async () => {
-      const data = await getFastLearningCards(setId);
+      const data = await getFastLearningCards(setId, socialId);
       if (data?.errorCode === "TOKEN_UNDEFINED") {
         removeToken();
         navigate("/", { replace: true });
@@ -603,7 +610,7 @@ export default function FastLearningPage() {
       setIsLoading(false);
     };
     fetchCards();
-  }, [setId]);
+  }, [setId, socialId, navigate]);
 
   const handleMouseMove = (e) => {
     if (!backRef.current) return;
@@ -720,7 +727,7 @@ export default function FastLearningPage() {
   };
 
   const handleExitClick = () => {
-    navigate(`/learning/set/${setId}`);
+    navigate(withSocialQuery(`/learning/set/${setId}`));
   };
 
   if (isLoading)
@@ -734,7 +741,7 @@ export default function FastLearningPage() {
     return (
       <PageContainer>
         <TopBar>
-          <ExitButton onClick={() => navigate(`/learning/set/${setId}`)}>
+          <ExitButton onClick={() => navigate(withSocialQuery(`/learning/set/${setId}`))}>
             <svg
               fill="none"
               stroke="currentColor"
@@ -755,7 +762,7 @@ export default function FastLearningPage() {
           <EndScreenModal>
             <h2>Pusty zestaw</h2>
             <p>W tym zestawie nie ma jeszcze żadnych fiszek do nauki.</p>
-            <EndScreenButton onClick={() => navigate(`/learning/set/${setId}`)}>
+            <EndScreenButton onClick={() => navigate(withSocialQuery(`/learning/set/${setId}`))}>
               Wróć do zestawu
             </EndScreenButton>
           </EndScreenModal>
@@ -927,7 +934,7 @@ export default function FastLearningPage() {
           <EndScreenModal>
             <h2>Gratulacje!</h2>
             <p>Przeszedłeś przez wszystkie fiszki w tej sesji.</p>
-            <EndScreenButton onClick={() => navigate(`/learning/set/${setId}`)}>
+            <EndScreenButton onClick={() => navigate(withSocialQuery(`/learning/set/${setId}`))}>
               Wróć do zestawu
             </EndScreenButton>
           </EndScreenModal>
